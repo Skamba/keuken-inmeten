@@ -128,15 +128,21 @@
 
         @foreach (var paneel in PaneelVisuals())
         {
-            var w = paneel.Rechthoek.Breedte * Schaal;
-            var h = paneel.Rechthoek.Hoogte * Schaal;
-            var x = P + paneel.Rechthoek.XPositie * Schaal;
-            var y = VloerY - (paneel.Rechthoek.HoogteVanVloer + paneel.Rechthoek.Hoogte) * Schaal;
-            var labelH = Math.Min(14.0, h * 0.28);
+            var openingW = paneel.OpeningsRechthoek.Breedte * Schaal;
+            var openingH = paneel.OpeningsRechthoek.Hoogte * Schaal;
+            var openingX = P + paneel.OpeningsRechthoek.XPositie * Schaal;
+            var openingY = VloerY - (paneel.OpeningsRechthoek.HoogteVanVloer + paneel.OpeningsRechthoek.Hoogte) * Schaal;
+            var w = paneel.WerkRechthoek.Breedte * Schaal;
+            var h = paneel.WerkRechthoek.Hoogte * Schaal;
+            var x = P + paneel.WerkRechthoek.XPositie * Schaal;
+            var y = VloerY - (paneel.WerkRechthoek.HoogteVanVloer + paneel.WerkRechthoek.Hoogte) * Schaal;
+            var labelH = Math.Min(14.0, Math.Max(10.0, h * 0.28));
 
             <g class="wand-paneel-overlay" pointer-events="none">
+                <rect x="@Fmt(openingX)" y="@Fmt(openingY)" width="@Fmt(openingW)" height="@Fmt(openingH)"
+                      fill="none" stroke="@paneel.Kleur" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.35" rx="2" />
                 <rect x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(h)"
-                      fill="@paneel.Kleur" opacity="0.12" stroke="@paneel.Kleur" stroke-width="2.5" rx="2" />
+                      fill="@paneel.Kleur" opacity="0.16" stroke="@paneel.Kleur" stroke-width="2.1" rx="2" />
                 <rect x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(labelH)"
                       fill="@paneel.Kleur" opacity="0.9" rx="2" />
                 @if (paneel.Toewijzing.Type == PaneelType.Deur)
@@ -146,6 +152,10 @@
                           stroke="@paneel.Kleur" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.75" />
                 }
                 @((MarkupString)$"<text x=\"{Fmt(x + w / 2)}\" y=\"{Fmt(y + labelH * 0.72)}\" font-size=\"8\" fill=\"#fff\" text-anchor=\"middle\" font-weight=\"bold\">{paneel.Label}</text>")
+                @if (h > 24)
+                {
+                    @((MarkupString)$"<text x=\"{Fmt(x + w / 2)}\" y=\"{Fmt(Math.Min(y + h - 7, y + labelH + 12))}\" font-size=\"7\" fill=\"#18446f\" text-anchor=\"middle\" font-weight=\"600\">{paneel.SubLabel}</text>")
+                }
             </g>
         }
 
@@ -176,7 +186,13 @@
             var y = VloerY - (ConceptPaneel.HoogteVanVloer + ConceptPaneel.Hoogte) * Schaal;
             var kleur = PaneelKleur(ConceptPaneelType);
             var labelH = Math.Min(18.0, h * 0.24);
-            var hingeX = ConceptPaneelScharnierZijde == ScharnierZijde.Links ? x + 7 : x + w - 7;
+            var conceptWerkmaat = BerekenConceptMaatInfo();
+            var conceptWerkRect = conceptWerkmaat?.PaneelRechthoek;
+            var workW = (conceptWerkRect?.Breedte ?? 0) * Schaal;
+            var workH = (conceptWerkRect?.Hoogte ?? 0) * Schaal;
+            var workX = P + (conceptWerkRect?.XPositie ?? 0) * Schaal;
+            var workY = VloerY - ((conceptWerkRect?.HoogteVanVloer ?? 0) + (conceptWerkRect?.Hoogte ?? 0)) * Schaal;
+            var hingeX = ConceptPaneelScharnierZijde == ScharnierZijde.Links ? workX + 7 : workX + workW - 7;
 
             <g class="paneel-draft"
                data-x="@Fmt(x)"
@@ -187,6 +203,12 @@
                 <rect class="paneel-draft-body"
                       x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(h)"
                       fill="@kleur" opacity="0.15" stroke="@kleur" stroke-width="2.5" stroke-dasharray="7,4" rx="3" />
+                @if (conceptWerkRect is not null)
+                {
+                    <rect class="paneel-draft-work"
+                          x="@Fmt(workX)" y="@Fmt(workY)" width="@Fmt(workW)" height="@Fmt(workH)"
+                          fill="@kleur" opacity="0.22" stroke="@kleur" stroke-width="2" rx="3" />
+                }
                 <rect class="paneel-draft-header"
                       x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(labelH)"
                       fill="@kleur" opacity="0.95" rx="3" />
@@ -195,12 +217,16 @@
                       font-size="8" fill="#fff" text-anchor="middle" font-weight="bold" pointer-events="none">@($"{TypeLabel(ConceptPaneelType)} concept")</text>
                 <text class="paneel-draft-subtitle"
                       x="@Fmt(x + w / 2)" y="@Fmt(Math.Min(y + h - 10, y + labelH + 16))"
-                      font-size="8" fill="#18446f" text-anchor="middle" font-weight="bold" pointer-events="none">@($"{ConceptPaneel.Breedte:0} × {ConceptPaneel.Hoogte:0} mm")</text>
-                @if (ConceptPaneelType == PaneelType.Deur)
+                      font-size="8" fill="#18446f" text-anchor="middle" font-weight="bold" pointer-events="none">@($"{ConceptPaneel.Breedte:0} × {ConceptPaneel.Hoogte:0} mm opening")</text>
+                @if (conceptWerkRect is not null)
+                {
+                    @((MarkupString)$"<text class=\"paneel-draft-subtitle\" x=\"{Fmt(x + w / 2)}\" y=\"{Fmt(Math.Min(y + h - 24, y + labelH + 28))}\" font-size=\"7.5\" fill=\"#18446f\" text-anchor=\"middle\" font-weight=\"600\" pointer-events=\"none\">{conceptWerkRect.Breedte:0.#} × {conceptWerkRect.Hoogte:0.#} mm werkmaat</text>")
+                }
+                @if (ConceptPaneelType == PaneelType.Deur && conceptWerkRect is not null)
                 {
                     <line class="paneel-draft-hinge"
-                          x1="@Fmt(hingeX)" y1="@Fmt(y + labelH + 5)"
-                          x2="@Fmt(hingeX)" y2="@Fmt(y + h - 5)"
+                          x1="@Fmt(hingeX)" y1="@Fmt(workY + labelH + 5)"
+                          x2="@Fmt(hingeX)" y2="@Fmt(workY + workH - 5)"
                           stroke="@kleur" stroke-width="2" stroke-dasharray="3,3" opacity="0.8" pointer-events="none" />
                 }
                 @foreach (var handle in DraftHandles(x, y, w, h))
@@ -219,13 +245,14 @@
 
         @if (Kasten.Count > 0)
         {
-            @((MarkupString)$"<text x=\"{Fmt(P + MuurBreedtePx / 2)}\" y=\"{Fmt(SvgHeight - 4)}\" font-size=\"9\" fill=\"#888\" text-anchor=\"middle\" font-style=\"italic\">Klik kast(en) voor plaatsingsgebied · sleep paneel · trek aan hoeken voor formaat · snapping op kast- en paneelranden</text>")
+            @((MarkupString)$"<text x=\"{Fmt(P + MuurBreedtePx / 2)}\" y=\"{Fmt(SvgHeight - 14)}\" font-size=\"9\" fill=\"#888\" text-anchor=\"middle\" font-style=\"italic\">Gestreepte rand = opening en snapping · volle vorm = werkmaat na speling</text>")
+            @((MarkupString)$"<text x=\"{Fmt(P + MuurBreedtePx / 2)}\" y=\"{Fmt(SvgHeight - 2)}\" font-size=\"9\" fill=\"#888\" text-anchor=\"middle\" font-style=\"italic\">Klik kast(en) voor plaatsingsgebied · sleep paneel · trek aan hoeken voor formaat · snapping op kast- en paneelranden</text>")
         }
     </svg>
 </div>
 
 @code {
-    private sealed record PaneelVisual(PaneelToewijzing Toewijzing, PaneelRechthoek Rechthoek, string Kleur, string Label);
+    private sealed record PaneelVisual(PaneelToewijzing Toewijzing, PaneelRechthoek OpeningsRechthoek, PaneelRechthoek WerkRechthoek, string Kleur, string Label, string SubLabel);
     private sealed record HandlePositie(string Naam, double X, double Y);
 
     [Parameter, EditorRequired] public List<Kast> Kasten { get; set; } = [];
@@ -233,6 +260,7 @@
     [Parameter] public double WandHoogte { get; set; } = 2600;
     [Parameter] public double WandBreedte { get; set; } = 3000;
     [Parameter] public double PlintHoogte { get; set; }
+    [Parameter] public double RandSpelingPerRaakrand { get; set; } = PaneelSpelingService.DefaultRandSpeling;
     [Parameter] public string? SvgMaxHoogte { get; set; }
     [Parameter] public bool BeperkTotContainerBreedte { get; set; }
     [Parameter] public IReadOnlySet<Guid>? GeselecteerdeKastIds { get; set; }
@@ -325,21 +353,62 @@
         if (Toewijzingen is null)
             yield break;
 
+        var openingsOpToewijzingId = Toewijzingen
+            .Select(toewijzing => new
+            {
+                Toewijzing = toewijzing,
+                Rechthoek = PaneelLayoutService.BerekenRechthoek(
+                    toewijzing,
+                    Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList())
+            })
+            .Where(item => item.Rechthoek is not null)
+            .ToDictionary(item => item.Toewijzing.Id, item => item.Rechthoek!);
+
         var index = 0;
         foreach (var toewijzing in Toewijzingen)
         {
-            var kastenVoorPaneel = Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList();
-            var rechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kastenVoorPaneel);
-            if (rechthoek is null)
+            if (!openingsOpToewijzingId.TryGetValue(toewijzing.Id, out var openingsRechthoek))
                 continue;
 
+            var kastenVoorPaneel = PaneelLayoutService.BepaalOverlappendeKasten(Kasten, openingsRechthoek);
+            var anderePanelen = openingsOpToewijzingId
+                .Where(item => item.Key != toewijzing.Id)
+                .Select(item => item.Value)
+                .ToList();
+            var werkRechthoek = PaneelSpelingService.BerekenMaatInfo(
+                openingsRechthoek,
+                kastenVoorPaneel,
+                anderePanelen,
+                RandSpelingPerRaakrand).PaneelRechthoek;
             index++;
             yield return new PaneelVisual(
                 toewijzing,
-                rechthoek,
+                openingsRechthoek,
+                werkRechthoek,
                 PaneelKleur(toewijzing.Type),
-                $"{TypeLabel(toewijzing.Type)} {index}");
+                $"{TypeLabel(toewijzing.Type)} {index}",
+                $"{werkRechthoek.Breedte:0.#} × {werkRechthoek.Hoogte:0.#} mm");
         }
+    }
+
+    private PaneelMaatInfo? BerekenConceptMaatInfo()
+    {
+        if (ConceptPaneel is null)
+            return null;
+
+        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(Kasten, ConceptPaneel);
+        if (dragendeKasten.Count == 0)
+            return null;
+
+        var anderePanelen = Toewijzingen?
+            .Select(toewijzing => PaneelLayoutService.BerekenRechthoek(
+                toewijzing,
+                Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList()))
+            .Where(rechthoek => rechthoek is not null)
+            .Cast<PaneelRechthoek>()
+            .ToList() ?? [];
+
+        return PaneelSpelingService.BerekenMaatInfo(ConceptPaneel, dragendeKasten, anderePanelen, RandSpelingPerRaakrand);
     }
 
     private static IEnumerable<HandlePositie> DraftHandles(double x, double y, double w, double h)

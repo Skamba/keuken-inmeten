@@ -50,6 +50,7 @@ else
                                             WandHoogte="@wand.Hoogte"
                                             WandBreedte="@wand.Breedte"
                                             PlintHoogte="@wand.PlintHoogte"
+                                            RandSpelingPerRaakrand="@State.PaneelRandSpeling"
                                             GeselecteerdeKastIds="@geselecteerdeKastIds"
                                             SvgMaxHoogte="55vh"
                                             BeperkTotContainerBreedte="false"
@@ -166,7 +167,7 @@ else
                             var conceptMaatInfo = BerekenConceptMaatInfo();
 
                             <div class="alert alert-primary small py-2">
-                                Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. Handmatige invoer bewaart exacte millimeters; slepen blijft snappen op randen.
+                                Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand is de openingsmaat waar de snapping op werkt; de volle binnenvorm laat direct de echte werkmaat na speling zien.
                             </div>
 
                             <div class="small text-muted mb-3">
