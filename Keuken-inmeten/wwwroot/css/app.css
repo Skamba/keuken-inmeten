@@ -57,6 +57,12 @@ a, .btn-link {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
+/* Accessible focus visible ring */
+.btn:focus-visible, .form-control:focus-visible {
+    outline: 2px solid #258cfb;
+    outline-offset: 2px;
+}
+
 .content {
     padding-top: 1.1rem;
 }
@@ -132,10 +138,12 @@ a, .btn-link {
     text-align: center;
     font-weight: bold;
     inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+    color: #1a1a2e;
+    font-size: 0.9rem;
 }
 
     .loading-progress-text:after {
-        content: var(--blazor-load-percentage-text, "Loading");
+        content: var(--blazor-load-percentage-text, "Laden...");
     }
 
 code {
@@ -339,8 +347,17 @@ code {
     font-weight: 700;
     color: #1a1a2e;
     padding-bottom: 0.5rem;
-    border-bottom: 2px solid #e9ecef;
+    border-bottom: 2px solid #dee2e6;
     margin-bottom: 1.25rem;
+}
+
+/* ── Empty state alerts ── */
+.alert-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+.alert-warning {
+    border-left: 4px solid #ffc107;
 }
 
 /* ── Stap Indicator (progress stepper) ── */
@@ -367,12 +384,13 @@ code {
 
 .stap-connector {
     position: absolute;
-    top: 16px;
+    top: 17px;
     right: 50%;
     width: 100%;
     height: 2px;
     background: #dee2e6;
     z-index: 0;
+    transition: background 0.2s ease;
 }
 
 .stap-indicator-item.klaar .stap-connector,
@@ -381,19 +399,20 @@ code {
 }
 
 .stap-cirkel {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     position: relative;
     z-index: 1;
     border: 2px solid #dee2e6;
     background: #fff;
     color: #adb5bd;
+    transition: all 0.2s ease;
 }
 
 .stap-indicator-item.klaar .stap-cirkel {
