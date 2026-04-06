@@ -40,6 +40,13 @@ jobs:
         run: |
           sed -i "s#<base href=\"/\" />#<base href=\"$SITE_BASE\" />#g" dist/wwwroot/index.html dist/wwwroot/404.html
 
+      - name: Add static entrypoints for known app routes
+        run: |
+          for route in kasten panelen resultaat counter weather not-found; do
+            mkdir -p "dist/wwwroot/$route"
+            cp dist/wwwroot/index.html "dist/wwwroot/$route/index.html"
+          done
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
