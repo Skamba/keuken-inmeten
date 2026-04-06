@@ -80,4 +80,55 @@ public static class PaneelLayoutService
             Hoogte = hoogte
         };
     }
+
+    public static List<PaneelRechthoek> BepaalVrijeVerticaleSegmenten(
+        PaneelRechthoek gebied,
+        IEnumerable<PaneelRechthoek> bezetteSegmentenBron,
+        double minimumHoogte = MinPaneelMaat)
+    {
+        var bezetteSegmenten = bezetteSegmentenBron
+            .Select(segment => new PaneelRechthoek
+            {
+                XPositie = gebied.XPositie,
+                Breedte = gebied.Breedte,
+                HoogteVanVloer = Math.Max(gebied.HoogteVanVloer, segment.HoogteVanVloer),
+                Hoogte = Math.Max(0, Math.Min(gebied.Bovenzijde, segment.Bovenzijde) - Math.Max(gebied.HoogteVanVloer, segment.HoogteVanVloer))
+            })
+            .Where(segment => segment.Hoogte > 0.001)
+            .OrderBy(segment => segment.HoogteVanVloer)
+            .ThenBy(segment => segment.Bovenzijde)
+            .ToList();
+
+        var vrijeSegmenten = new List<PaneelRechthoek>();
+        var cursor = gebied.HoogteVanVloer;
+
+        foreach (var bezet in bezetteSegmenten)
+        {
+            if (bezet.HoogteVanVloer - cursor >= minimumHoogte - 0.001)
+            {
+                vrijeSegmenten.Add(new PaneelRechthoek
+                {
+                    XPositie = gebied.XPositie,
+                    Breedte = gebied.Breedte,
+                    HoogteVanVloer = cursor,
+                    Hoogte = bezet.HoogteVanVloer - cursor
+                });
+            }
+
+            cursor = Math.Max(cursor, bezet.Bovenzijde);
+        }
+
+        if (gebied.Bovenzijde - cursor >= minimumHoogte - 0.001)
+        {
+            vrijeSegmenten.Add(new PaneelRechthoek
+            {
+                XPositie = gebied.XPositie,
+                Breedte = gebied.Breedte,
+                HoogteVanVloer = cursor,
+                Hoogte = gebied.Bovenzijde - cursor
+            });
+        }
+
+        return vrijeSegmenten;
+    }
 }

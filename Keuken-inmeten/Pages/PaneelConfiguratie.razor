@@ -34,6 +34,7 @@ else
                 var wandApparaten = State.ApparatenVoorWand(wand.Id);
                 var wandHasSelection = geselecteerdeKastIds.Any(id => wandKasten.Any(k => k.Id == id));
                 var conceptVoorWand = ActieveWandId == wand.Id ? conceptPaneel : null;
+                var vrijeSegmentenVoorWand = ActieveWandId == wand.Id ? VrijeSegmentenVoorSelectie() : [];
 
                 <div class="mb-3 border @(wandHasSelection ? "border-primary" : "") rounded overflow-hidden">
                     <div class="d-flex justify-content-between align-items-center px-2 py-1 @(wandHasSelection ? "bg-primary bg-opacity-10" : "bg-light")">
@@ -53,6 +54,7 @@ else
                                             SvgMaxHoogte="55vh"
                                             BeperkTotContainerBreedte="false"
                                             Toewijzingen="@ToewijzingenVoorWand(wand)"
+                                            VrijeSegmenten="@vrijeSegmentenVoorWand"
                                             ConceptPaneel="@conceptVoorWand"
                                             ConceptPaneelType="@formToewijzing.Type"
                                             ConceptPaneelScharnierZijde="@formToewijzing.ScharnierZijde"
@@ -162,7 +164,7 @@ else
                         else
                         {
                             <div class="alert alert-primary small py-2">
-                                Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken.
+                                Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. Handmatige invoer bewaart exacte millimeters; slepen blijft snappen op randen.
                             </div>
 
                             <div class="small text-muted mb-3">
@@ -216,11 +218,19 @@ else
                             <div class="row g-2 mb-3">
                                 <div class="col-6">
                                     <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Breedte (mm)</label>
-                                    <input type="number" class="form-control" @bind="BreedteInput" min="50" step="10" />
+                                    <input type="number" class="form-control" @bind="BreedteInput" min="50" step="1" />
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Hoogte (mm)</label>
-                                    <input type="number" class="form-control" @bind="HoogteInput" min="50" step="10" />
+                                    <input type="number" class="form-control" @bind="HoogteInput" min="50" step="1" />
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Links (mm)</label>
+                                    <input type="number" class="form-control" @bind="LinksInput" min="0" step="1" />
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Onderkant (mm)</label>
+                                    <input type="number" class="form-control" @bind="OnderkantInput" min="0" step="1" />
                                 </div>
                             </div>
 
@@ -233,6 +243,24 @@ else
                                         <span>Onderkant <strong>@FormatMm(conceptPaneel.HoogteVanVloer)</strong></span>
                                         <span>Rechts <strong>@FormatMm(conceptPaneel.Rechterkant)</strong></span>
                                         <span>Bovenkant <strong>@FormatMm(conceptPaneel.Bovenzijde)</strong></span>
+                                    </div>
+                                </div>
+                            }
+
+                            @if (VrijeSegmentenVoorSelectie().Count > 0)
+                            {
+                                <div class="border rounded bg-light p-3 mb-3 small">
+                                    <div class="fw-semibold mb-2">Vrije vakken</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @for (int i = 0; i < VrijeSegmentenVoorSelectie().Count; i++)
+                                        {
+                                            var segment = VrijeSegmentenVoorSelectie()[i];
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-success"
+                                                    @onclick="() => GebruikVrijSegment(segment)">
+                                                @VrijSegmentLabel(i, segment)
+                                            </button>
+                                        }
                                     </div>
                                 </div>
                             }
@@ -320,7 +348,7 @@ else
             if (conceptPaneel is null) return;
             var voorstel = conceptPaneel.Kopie();
             voorstel.Breedte = value;
-            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input", Paneel = voorstel });
+            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input-size", Paneel = voorstel });
         }
     }
 
@@ -332,7 +360,31 @@ else
             if (conceptPaneel is null) return;
             var voorstel = conceptPaneel.Kopie();
             voorstel.Hoogte = value;
-            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input", Paneel = voorstel });
+            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input-size", Paneel = voorstel });
+        }
+    }
+
+    private double LinksInput
+    {
+        get => conceptPaneel?.XPositie ?? 0;
+        set
+        {
+            if (conceptPaneel is null) return;
+            var voorstel = conceptPaneel.Kopie();
+            voorstel.XPositie = value;
+            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input-position", Paneel = voorstel });
+        }
+    }
+
+    private double OnderkantInput
+    {
+        get => conceptPaneel?.HoogteVanVloer ?? 0;
+        set
+        {
+            if (conceptPaneel is null) return;
+            var voorstel = conceptPaneel.Kopie();
+            voorstel.HoogteVanVloer = value;
+            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input-position", Paneel = voorstel });
         }
     }
 
@@ -396,7 +448,7 @@ else
             return;
         }
 
-        conceptPaneel = selectieBereik.Kopie();
+        conceptPaneel = BepaalStartRechthoek(selectieBereik);
         UpdateFormVanConcept();
     }
 
@@ -439,7 +491,9 @@ else
             return;
 
         var voorstel = PaneelLayoutService.ClampBinnen(wijziging.Paneel, selectieBereik);
-        conceptPaneel = SnapPaneel(wijziging.Bewerking, voorstel, selectieBereik);
+        conceptPaneel = wijziging.Bewerking.StartsWith("input-", StringComparison.Ordinal)
+            ? voorstel
+            : SnapPaneel(wijziging.Bewerking, voorstel, selectieBereik);
         UpdateFormVanConcept();
     }
 
@@ -483,7 +537,6 @@ else
                 break;
 
             case "se":
-            case "input":
             default:
                 right = SnapEdge(right, xTargets, snapDrempel);
                 top = SnapEdge(top, yTargets, snapDrempel);
@@ -542,6 +595,42 @@ else
             if (rechthoek is not null)
                 yield return rechthoek;
         }
+    }
+
+    private List<PaneelRechthoek> VrijeSegmentenVoorSelectie()
+    {
+        var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
+        if (selectieBereik is null)
+            return [];
+
+        var bezetteSegmenten = BestaandePaneelRechthoeken()
+            .Where(paneel => HeeftZelfdeHorizontaleSpan(paneel, selectieBereik))
+            .ToList();
+        if (bezetteSegmenten.Count == 0)
+            return [];
+
+        return PaneelLayoutService.BepaalVrijeVerticaleSegmenten(selectieBereik, bezetteSegmenten)
+            .OrderBy(segment => segment.HoogteVanVloer)
+            .ToList();
+    }
+
+    private PaneelRechthoek BepaalStartRechthoek(PaneelRechthoek selectieBereik)
+    {
+        var vrijeSegmenten = VrijeSegmentenVoorSelectie();
+        if (vrijeSegmenten.Count == 0)
+            return selectieBereik.Kopie();
+
+        return vrijeSegmenten
+            .OrderByDescending(segment => segment.Hoogte)
+            .ThenBy(segment => segment.HoogteVanVloer)
+            .First()
+            .Kopie();
+    }
+
+    private void GebruikVrijSegment(PaneelRechthoek segment)
+    {
+        conceptPaneel = segment.Kopie();
+        UpdateFormVanConcept();
     }
 
     private void PaneelOpslaan()
@@ -661,6 +750,16 @@ else
     }
 
     private static double RondRaster(double waarde) => Math.Round(waarde / 10.0) * 10.0;
+
+    private static bool HeeftZelfdeHorizontaleSpan(PaneelRechthoek links, PaneelRechthoek rechts)
+    {
+        const double tolerantie = 1.0;
+        return Math.Abs(links.XPositie - rechts.XPositie) <= tolerantie &&
+               Math.Abs(links.Rechterkant - rechts.Rechterkant) <= tolerantie;
+    }
+
+    private static string VrijSegmentLabel(int index, PaneelRechthoek segment)
+        => $"Vak {index + 1} · {segment.Hoogte:0.#} hoog · onder {segment.HoogteVanVloer:0.#}";
 
     private static string PlaatsTekst(PaneelToewijzing toewijzing)
         => toewijzing.XPositie is double x && toewijzing.HoogteVanVloer is double y

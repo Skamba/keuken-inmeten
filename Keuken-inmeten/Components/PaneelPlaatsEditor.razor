@@ -149,6 +149,25 @@
             </g>
         }
 
+        @if (VrijeSegmenten is not null)
+        {
+            var vrijeIndex = 0;
+            foreach (var segment in VrijeSegmenten)
+            {
+                vrijeIndex++;
+                var w = segment.Breedte * Schaal;
+                var h = segment.Hoogte * Schaal;
+                var x = P + segment.XPositie * Schaal;
+                var y = VloerY - (segment.HoogteVanVloer + segment.Hoogte) * Schaal;
+
+                <g class="paneel-vrij-segment" pointer-events="none">
+                    <rect x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(h)"
+                          fill="#198754" opacity="0.05" stroke="#198754" stroke-width="1.5" stroke-dasharray="6,4" rx="2" />
+                    @((MarkupString)$"<text x=\"{Fmt(x + w / 2)}\" y=\"{Fmt(y + Math.Min(h / 2 + 4, 18))}\" font-size=\"8\" fill=\"#198754\" text-anchor=\"middle\" font-weight=\"bold\">Vrij vak {vrijeIndex}</text>")
+                </g>
+            }
+        }
+
         @if (ConceptPaneel is not null)
         {
             var w = ConceptPaneel.Breedte * Schaal;
@@ -218,6 +237,7 @@
     [Parameter] public bool BeperkTotContainerBreedte { get; set; }
     [Parameter] public IReadOnlySet<Guid>? GeselecteerdeKastIds { get; set; }
     [Parameter] public IReadOnlyList<PaneelToewijzing>? Toewijzingen { get; set; }
+    [Parameter] public IReadOnlyList<PaneelRechthoek>? VrijeSegmenten { get; set; }
     [Parameter] public PaneelRechthoek? ConceptPaneel { get; set; }
     [Parameter] public PaneelType ConceptPaneelType { get; set; } = PaneelType.Deur;
     [Parameter] public ScharnierZijde ConceptPaneelScharnierZijde { get; set; } = ScharnierZijde.Links;
