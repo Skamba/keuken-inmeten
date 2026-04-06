@@ -94,7 +94,7 @@ else
                                     .Select(id => State.Kasten.Find(k => k.Id == id)?.Naam)
                                     .Where(n => n is not null));
                                 var rid = toewijzing.Id;
-                                <tr @key="toewijzing.Id">
+                                <tr class="@(bewerkToewijzingId == rid ? "table-primary" : null)" @key="toewijzing.Id">
                                     <td class="text-muted ps-3">@(i + 1)</td>
                                     <td>
                                         <span class="badge @(toewijzing.Type == PaneelType.Deur ? "bg-primary" : toewijzing.Type == PaneelType.LadeFront ? "bg-warning text-dark" : "bg-secondary")">
@@ -111,8 +111,13 @@ else
                                     </td>
                                     <td class="text-muted small">@kastenNamen</td>
                                     <td class="text-end pe-2">
+                                        <button type="button"
+                                                class="btn btn-outline-primary btn-sm py-0 px-2 me-1"
+                                                @onclick="() => BewerkPaneel(rid)">
+                                            @(bewerkToewijzingId == rid ? "Open" : "Bewerk")
+                                        </button>
                                         <button class="btn btn-outline-danger btn-sm py-0 px-1"
-                                                @onclick="() => State.VerwijderToewijzing(rid)">×</button>
+                                                @onclick="() => VerwijderPaneel(rid)">×</button>
                                     </td>
                                 </tr>
                             }
@@ -128,12 +133,22 @@ else
                     <div class="card-header @(geselecteerdeKastIds.Count > 0 ? "bg-primary bg-opacity-10" : "bg-light")">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0" style="font-size: 1rem;">
-                                @(geselecteerdeKastIds.Count > 0 ? "Paneel plaatsen" : "Paneel configureren")
+                                @(IsBewerkModus ? "Paneel bewerken" : geselecteerdeKastIds.Count > 0 ? "Paneel plaatsen" : "Paneel configureren")
                             </h5>
-                            @if (geselecteerdeKastIds.Count > 0)
-                            {
-                                <span class="badge bg-primary rounded-pill">@geselecteerdeKastIds.Count kast(en)</span>
-                            }
+                            <div class="d-flex align-items-center gap-2">
+                                @if (IsBewerkModus)
+                                {
+                                    <button type="button" class="btn btn-sm btn-link text-secondary p-0" @onclick="AnnuleerBewerken">
+                                        Annuleer
+                                    </button>
+                                }
+                                @if (geselecteerdeKastIds.Count > 0)
+                                {
+                                    <span class="badge bg-primary rounded-pill">
+                                        @(IsBewerkModus ? $"Paneel {BewerkIndex}" : $"{geselecteerdeKastIds.Count} kast(en)")
+                                    </span>
+                                }
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
@@ -224,11 +239,11 @@ else
 
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-outline-secondary flex-grow-1" @onclick="ResetConceptPaneel">
-                                    Reset naar selectie
+                                    @(IsBewerkModus ? "Reset naar origineel" : "Reset naar selectie")
                                 </button>
-                                <button type="button" class="btn btn-primary flex-grow-1" @onclick="PaneelToevoegen"
+                                <button type="button" class="btn btn-primary flex-grow-1" @onclick="PaneelOpslaan"
                                         disabled="@(conceptPaneel is null || formToewijzing.Breedte <= 0 || formToewijzing.Hoogte <= 0)">
-                                    + Paneel toevoegen
+                                    @(IsBewerkModus ? "Paneel opslaan" : "+ Paneel toevoegen")
                                 </button>
                             </div>
                         }
@@ -250,11 +265,24 @@ else
     private PaneelToewijzing formToewijzing = new();
     private readonly HashSet<Guid> geselecteerdeKastIds = [];
     private PaneelRechthoek? conceptPaneel;
+    private Guid? bewerkToewijzingId;
 
     protected override void OnInitialized()
     {
         formToewijzing.PotHartVanRand = State.LaatstGebruiktePotHartVanRand;
     }
+
+    private bool IsBewerkModus => bewerkToewijzingId is not null;
+
+    private int BewerkIndex =>
+        bewerkToewijzingId is Guid id
+            ? State.Toewijzingen.FindIndex(toewijzing => toewijzing.Id == id) + 1
+            : 0;
+
+    private PaneelToewijzing? BewerkteToewijzing =>
+        bewerkToewijzingId is Guid id
+            ? State.Toewijzingen.FirstOrDefault(toewijzing => toewijzing.Id == id)
+            : null;
 
     private List<Kast> geselecteerdeKasten =>
         geselecteerdeKastIds
@@ -320,6 +348,8 @@ else
         if (wandId is null)
             return;
 
+        bewerkToewijzingId = null;
+
         if (ActieveWandId is Guid actieveWandId && actieveWandId != wandId)
             geselecteerdeKastIds.Clear();
 
@@ -331,6 +361,8 @@ else
 
     private void DeselecteerWand(Guid wandId)
     {
+        bewerkToewijzingId = null;
+
         var wandKastIds = State.KastenVoorWand(wandId).Select(k => k.Id).ToList();
         foreach (var id in wandKastIds)
             geselecteerdeKastIds.Remove(id);
@@ -340,12 +372,19 @@ else
 
     private void DeselecteerAlles()
     {
+        bewerkToewijzingId = null;
         geselecteerdeKastIds.Clear();
         ResetConceptPaneel();
     }
 
     private void ResetConceptPaneel()
     {
+        if (BewerkteToewijzing is { } bewerkteToewijzing)
+        {
+            LaadToewijzingInFormulier(bewerkteToewijzing);
+            return;
+        }
+
         var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
         if (selectieBereik is null)
         {
@@ -358,6 +397,27 @@ else
         }
 
         conceptPaneel = selectieBereik.Kopie();
+        UpdateFormVanConcept();
+    }
+
+    private void LaadToewijzingInFormulier(PaneelToewijzing toewijzing)
+    {
+        var kasten = State.Kasten
+            .Where(kast => toewijzing.KastIds.Contains(kast.Id))
+            .ToList();
+        var rechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
+
+        if (rechthoek is null)
+        {
+            bewerkToewijzingId = null;
+            ResetConceptPaneel();
+            return;
+        }
+
+        formToewijzing.Type = toewijzing.Type;
+        formToewijzing.ScharnierZijde = toewijzing.ScharnierZijde;
+        formToewijzing.PotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
+        conceptPaneel = rechthoek.Kopie();
         UpdateFormVanConcept();
     }
 
@@ -475,7 +535,7 @@ else
             yield break;
 
         var wandKastIds = State.KastenVoorWand(actieveWandId).Select(kast => kast.Id).ToHashSet();
-        foreach (var toewijzing in State.Toewijzingen.Where(t => t.KastIds.Any(wandKastIds.Contains)))
+        foreach (var toewijzing in State.Toewijzingen.Where(t => t.Id != bewerkToewijzingId && t.KastIds.Any(wandKastIds.Contains)))
         {
             var kasten = State.Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList();
             var rechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
@@ -484,7 +544,7 @@ else
         }
     }
 
-    private void PaneelToevoegen()
+    private void PaneelOpslaan()
     {
         if (conceptPaneel is null || geselecteerdeKastIds.Count == 0)
             return;
@@ -493,8 +553,9 @@ else
         if (dragendeKasten.Count == 0)
             return;
 
-        State.VoegToewijzingToe(new PaneelToewijzing
+        var toewijzing = new PaneelToewijzing
         {
+            Id = bewerkToewijzingId ?? Guid.NewGuid(),
             Type = formToewijzing.Type,
             ScharnierZijde = formToewijzing.ScharnierZijde,
             PotHartVanRand = PotHartInput,
@@ -503,8 +564,14 @@ else
             Hoogte = Math.Round(conceptPaneel.Hoogte, 1),
             XPositie = Math.Round(conceptPaneel.XPositie, 1),
             HoogteVanVloer = Math.Round(conceptPaneel.HoogteVanVloer, 1)
-        });
+        };
 
+        if (IsBewerkModus)
+            State.WerkToewijzingBij(toewijzing);
+        else
+            State.VoegToewijzingToe(toewijzing);
+
+        bewerkToewijzingId = null;
         ResetConceptPaneel();
     }
 
@@ -512,8 +579,37 @@ else
     {
         var wandKastIds = wand.KastIds.ToHashSet();
         return State.Toewijzingen
-            .Where(t => t.KastIds.Any(wandKastIds.Contains))
+            .Where(t => t.Id != bewerkToewijzingId && t.KastIds.Any(wandKastIds.Contains))
             .ToList();
+    }
+
+    private void BewerkPaneel(Guid toewijzingId)
+    {
+        var toewijzing = State.Toewijzingen.FirstOrDefault(item => item.Id == toewijzingId);
+        if (toewijzing is null)
+            return;
+
+        bewerkToewijzingId = toewijzingId;
+        geselecteerdeKastIds.Clear();
+        foreach (var kastId in toewijzing.KastIds)
+            geselecteerdeKastIds.Add(kastId);
+
+        ResetConceptPaneel();
+    }
+
+    private void AnnuleerBewerken()
+    {
+        bewerkToewijzingId = null;
+        ResetConceptPaneel();
+    }
+
+    private void VerwijderPaneel(Guid toewijzingId)
+    {
+        if (bewerkToewijzingId == toewijzingId)
+            bewerkToewijzingId = null;
+
+        State.VerwijderToewijzing(toewijzingId);
+        ResetConceptPaneel();
     }
 
     private Guid? VindWandId(Guid kastId)

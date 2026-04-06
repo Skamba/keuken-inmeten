@@ -235,6 +235,19 @@ public class KeukenStateService
         NotifyChanged();
     }
 
+    public void WerkToewijzingBij(PaneelToewijzing toewijzing)
+    {
+        var index = Toewijzingen.FindIndex(t => t.Id == toewijzing.Id);
+        if (index < 0)
+            return;
+
+        if (toewijzing.Type == PaneelType.Deur)
+            LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
+
+        Toewijzingen[index] = toewijzing;
+        NotifyChanged();
+    }
+
     public void VerwijderToewijzing(Guid id)
     {
         Toewijzingen.RemoveAll(t => t.Id == id);
