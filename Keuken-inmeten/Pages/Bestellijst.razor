@@ -61,6 +61,10 @@ else
                 <span><strong>Dikte:</strong> @BestellijstExportService.FormatDikteLabel(_dikteMm)</span>
             </div>
 
+            <div class="alert alert-light border small mt-3 mb-0">
+                <strong>CNC-coordinaten:</strong> @BestellijstExportService.FormatCncAssenSamenvatting()
+            </div>
+
             @if (!string.IsNullOrWhiteSpace(_exportStatus))
             {
                 <div class="bestellijst-export-status @(_exportStatusIsError ? "fout" : "")">@_exportStatus</div>
@@ -107,8 +111,8 @@ else
                     @for (int i = 0; i < maxBoorgaten; i++)
                     {
                         var nummer = i + 1;
-                        <th>Boorgat @nummer X</th>
-                        <th>Boorgat @nummer Y</th>
+                        <th>Boorgat @nummer X (links)</th>
+                        <th>Boorgat @nummer Y (boven)</th>
                     }
                 </tr>
             </thead>
@@ -130,8 +134,8 @@ else
                             if (i < item.Boorgaten.Count)
                             {
                                 var boorgat = item.Boorgaten[i];
-                                <td>@FormatNumber(boorgat.X)</td>
-                                <td>@FormatNumber(boorgat.Y)</td>
+                                <td>@FormatNumber(BestellijstExportService.BerekenCncX(item, boorgat))</td>
+                                <td>@FormatNumber(BestellijstExportService.BerekenCncY(boorgat))</td>
                             }
                             else
                             {

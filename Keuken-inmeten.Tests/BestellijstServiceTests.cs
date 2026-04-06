@@ -54,9 +54,13 @@ public class BestellijstServiceTests
         Assert.Contains("Paneeltype", xml);
         Assert.Contains("ABS-band", xml);
         Assert.Contains(BestellijstService.StandaardAbsBandLabel, xml);
-        Assert.Contains("Boorgat 1 X (mm)", xml);
+        Assert.Contains("CNC nulpunt", xml);
+        Assert.Contains(BestellijstExportService.CncNulpuntLabel, xml);
+        Assert.Contains("Boorgat 1 X (links, mm)", xml);
+        Assert.Contains("Boorgat 1 Y (boven, mm)", xml);
         Assert.DoesNotContain("Boorgat X (mm)", xml);
         Assert.DoesNotContain("Boorgat Y (mm)", xml);
+        Assert.Contains("577.5", xml);
         Assert.Contains("Hoge Deur 1", xml);
         Assert.Contains("MDF gelakt", xml);
     }
@@ -75,12 +79,25 @@ public class BestellijstServiceTests
         Assert.Contains("Bestellijst", html);
         Assert.Contains("ABS-band", html);
         Assert.Contains(BestellijstService.StandaardAbsBandLabel, html);
+        Assert.Contains(BestellijstExportService.CncNulpuntLabel, html);
         Assert.DoesNotContain(">X: ", html);
         Assert.DoesNotContain(">Y: ", html);
-        Assert.Contains("B1: X", html);
+        Assert.Contains("B1: X 577.5 mm, Y 83 mm", html);
         Assert.Contains("Hoge Deur 1", html);
         Assert.Contains("<svg", html);
         Assert.Contains("window.print()", html);
+    }
+
+    [Fact]
+    public void Cnc_x_waarde_wordt_vanaf_linkerbovenhoek_berekend()
+    {
+        var item = MaakBestellijstItem();
+
+        var x = BestellijstExportService.BerekenCncX(item, item.Boorgaten[0]);
+        var y = BestellijstExportService.BerekenCncY(item.Boorgaten[0]);
+
+        Assert.Equal(577.5, x);
+        Assert.Equal(83, y);
     }
 
     private static Kast MaakHogeKast(string naam, double xPositie) => new()

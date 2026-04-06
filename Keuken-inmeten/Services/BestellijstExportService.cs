@@ -6,6 +6,10 @@ using Keuken_inmeten.Models;
 
 public static class BestellijstExportService
 {
+    public const string CncNulpuntLabel = "Nulpunt linksboven";
+    public const string CncXAsLabel = "X vanaf links";
+    public const string CncYAsLabel = "Y vanaf boven";
+
     public static string BouwExcelXml(IReadOnlyList<BestellijstItem> items, string paneelType, string dikteMm, DateTime generatedAt)
     {
         var maxBoorgaten = items.Count == 0 ? 0 : items.Max(item => item.Boorgaten.Count);
@@ -42,6 +46,21 @@ public static class BestellijstExportService
         });
         AppendRow(sb, new[]
         {
+            CellText("CNC nulpunt", "Meta"),
+            CellText(CncNulpuntLabel)
+        });
+        AppendRow(sb, new[]
+        {
+            CellText("X-as", "Meta"),
+            CellText(CncXAsLabel)
+        });
+        AppendRow(sb, new[]
+        {
+            CellText("Y-as", "Meta"),
+            CellText(CncYAsLabel)
+        });
+        AppendRow(sb, new[]
+        {
             CellText("Gegenereerd op", "Meta"),
             CellText(generatedAt.ToString("dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture))
         });
@@ -61,8 +80,8 @@ public static class BestellijstExportService
         for (int i = 0; i < maxBoorgaten; i++)
         {
             var nummer = i + 1;
-            koppen.Add(CellText($"Boorgat {nummer} X (mm)", "Kop"));
-            koppen.Add(CellText($"Boorgat {nummer} Y (mm)", "Kop"));
+            koppen.Add(CellText($"Boorgat {nummer} X (links, mm)", "Kop"));
+            koppen.Add(CellText($"Boorgat {nummer} Y (boven, mm)", "Kop"));
         }
 
         AppendRow(sb, koppen);
@@ -84,8 +103,8 @@ public static class BestellijstExportService
             {
                 if (i < item.Boorgaten.Count)
                 {
-                    row.Add(CellNumber(item.Boorgaten[i].X));
-                    row.Add(CellNumber(item.Boorgaten[i].Y));
+                    row.Add(CellNumber(BerekenCncX(item, item.Boorgaten[i])));
+                    row.Add(CellNumber(BerekenCncY(item.Boorgaten[i])));
                 }
                 else
                 {
@@ -133,7 +152,7 @@ public static class BestellijstExportService
         sb.AppendLine("</head>");
         sb.AppendLine("<body>");
         sb.AppendLine("  <h1>Bestellijst</h1>");
-        sb.AppendLine($"  <div class=\"meta\"><span>Paneeltype: <strong>{Encode(paneelType)}</strong></span><span>Dikte: <strong>{Encode(FormatDikteLabel(dikteMm))}</strong></span><span>Gegenereerd: <strong>{Encode(generatedAt.ToString("dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture))}</strong></span></div>");
+        sb.AppendLine($"  <div class=\"meta\"><span>Paneeltype: <strong>{Encode(paneelType)}</strong></span><span>Dikte: <strong>{Encode(FormatDikteLabel(dikteMm))}</strong></span><span>CNC: <strong>{Encode(FormatCncAssenSamenvatting())}</strong></span><span>Gegenereerd: <strong>{Encode(generatedAt.ToString("dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture))}</strong></span></div>");
         sb.AppendLine("  <div class=\"summary\">");
         sb.AppendLine($"    <div class=\"summary-card\"><span class=\"muted\">Orderregels</span><strong>{items.Count}</strong></div>");
         sb.AppendLine($"    <div class=\"summary-card\"><span class=\"muted\">Totaal aantal</span><strong>{items.Sum(item => item.Aantal)}</strong></div>");
@@ -214,10 +233,24 @@ public static class BestellijstExportService
             return "<span class=\"muted\">Geen boorgaten</span>";
 
         var lines = item.Boorgaten
-            .Select((boorgat, index) => $"<span class=\"muted\">B{index + 1}: X {Encode(FormatMm(boorgat.X))}, Y {Encode(FormatMm(boorgat.Y))}</span>");
+            .Select((boorgat, index) => $"<span class=\"muted\">B{index + 1}: X {Encode(FormatMm(BerekenCncX(item, boorgat)))}, Y {Encode(FormatMm(BerekenCncY(boorgat)))}</span>");
 
         return string.Join("<br />", lines);
     }
+
+    public static string FormatCncAssenSamenvatting() => $"{CncNulpuntLabel} · {CncXAsLabel} · {CncYAsLabel}";
+
+    public static double BerekenCncX(BestellijstItem item, Boorgat boorgat)
+    {
+        var breedte = item.Resultaat.Breedte > 0 ? item.Resultaat.Breedte : item.Breedte;
+        var xVanafLinks = item.Resultaat.ScharnierZijde == ScharnierZijde.Rechts
+            ? breedte - boorgat.X
+            : boorgat.X;
+
+        return Math.Round(Math.Max(0, xVanafLinks), 1);
+    }
+
+    public static double BerekenCncY(Boorgat boorgat) => Math.Round(boorgat.Y, 1);
 
     private static void AppendRow(StringBuilder sb, IEnumerable<string> cells)
     {
