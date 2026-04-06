@@ -104,8 +104,6 @@ else
                     <th class="text-end">Hoogte (mm)</th>
                     <th class="text-end">Breedte (mm)</th>
                     <th>ABS-band</th>
-                    <th>Boorgat X</th>
-                    <th>Boorgat Y</th>
                     @for (int i = 0; i < maxBoorgaten; i++)
                     {
                         var nummer = i + 1;
@@ -127,8 +125,6 @@ else
                         <td class="text-end">@FormatNumber(item.Hoogte)</td>
                         <td class="text-end">@FormatNumber(item.Breedte)</td>
                         <td>@item.AbsBandLabel</td>
-                        <td>@BestellijstExportService.FormatSummaryX(item)</td>
-                        <td>@BestellijstExportService.FormatSummaryY(item)</td>
                         @for (int i = 0; i < maxBoorgaten; i++)
                         {
                             if (i < item.Boorgaten.Count)

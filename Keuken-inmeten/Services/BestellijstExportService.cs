@@ -55,8 +55,6 @@ public static class BestellijstExportService
             CellText("Hoogte (mm)", "Kop"),
             CellText("Breedte (mm)", "Kop"),
             CellText("ABS-band", "Kop"),
-            CellText("Boorgat X (mm)", "Kop"),
-            CellText("Boorgat Y (mm)", "Kop"),
             CellText("Context", "Kop")
         };
 
@@ -79,8 +77,6 @@ public static class BestellijstExportService
                 CellNumber(item.Hoogte),
                 CellNumber(item.Breedte),
                 CellText(item.AbsBandLabel),
-                CellText(FormatSummaryX(item)),
-                CellText(FormatSummaryY(item)),
                 CellText(item.ContextLabel)
             };
 
@@ -154,7 +150,7 @@ public static class BestellijstExportService
             sb.AppendLine($"        <td>{item.Aantal}</td>");
             sb.AppendLine($"        <td>{Encode(item.PaneelRolLabel)}<br />{Encode(FormatMm(item.Hoogte))} hoog<br />{Encode(FormatMm(item.Breedte))} breed</td>");
             sb.AppendLine($"        <td>{Encode(item.AbsBandLabel)}</td>");
-            sb.AppendLine($"        <td class=\"holes\">X: {Encode(FormatSummaryX(item))}<br />Y: {Encode(FormatSummaryY(item))}{BuildHoleLines(item)}</td>");
+            sb.AppendLine($"        <td class=\"holes\">{BuildHoleLines(item)}</td>");
             sb.AppendLine($"        <td class=\"visual\">{BuildVisualSvg(item.Resultaat)}</td>");
             sb.AppendLine("      </tr>");
         }
@@ -215,12 +211,12 @@ public static class BestellijstExportService
     private static string BuildHoleLines(BestellijstItem item)
     {
         if (item.Boorgaten.Count == 0)
-            return "<br /><span class=\"muted\">Geen boorgaten</span>";
+            return "<span class=\"muted\">Geen boorgaten</span>";
 
         var lines = item.Boorgaten
-            .Select((boorgat, index) => $"<br /><span class=\"muted\">B{index + 1}: X {Encode(FormatMm(boorgat.X))}, Y {Encode(FormatMm(boorgat.Y))}</span>");
+            .Select((boorgat, index) => $"<span class=\"muted\">B{index + 1}: X {Encode(FormatMm(boorgat.X))}, Y {Encode(FormatMm(boorgat.Y))}</span>");
 
-        return string.Concat(lines);
+        return string.Join("<br />", lines);
     }
 
     private static void AppendRow(StringBuilder sb, IEnumerable<string> cells)
@@ -245,21 +241,6 @@ public static class BestellijstExportService
         => styleId is null
             ? $"<Cell><Data ss:Type=\"Number\">{value}</Data></Cell>"
             : $"<Cell ss:StyleID=\"{styleId}\"><Data ss:Type=\"Number\">{value}</Data></Cell>";
-
-    public static string FormatSummaryX(BestellijstItem item)
-        => item.Boorgaten.Count == 0
-            ? "—"
-            : string.Join(", ", item.Boorgaten
-                .Select(boorgat => boorgat.X)
-                .Distinct()
-                .Select(FormatMm));
-
-    public static string FormatSummaryY(BestellijstItem item)
-        => item.Boorgaten.Count == 0
-            ? "—"
-            : string.Join(", ", item.Boorgaten
-                .OrderBy(boorgat => boorgat.Y)
-                .Select(boorgat => FormatMm(boorgat.Y)));
 
     public static string FormatDikteLabel(string dikteMm)
     {

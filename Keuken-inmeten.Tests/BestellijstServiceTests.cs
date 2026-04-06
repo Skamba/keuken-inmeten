@@ -55,6 +55,8 @@ public class BestellijstServiceTests
         Assert.Contains("ABS-band", xml);
         Assert.Contains(BestellijstService.StandaardAbsBandLabel, xml);
         Assert.Contains("Boorgat 1 X (mm)", xml);
+        Assert.DoesNotContain("Boorgat X (mm)", xml);
+        Assert.DoesNotContain("Boorgat Y (mm)", xml);
         Assert.Contains("Hoge Deur 1", xml);
         Assert.Contains("MDF gelakt", xml);
     }
@@ -73,6 +75,9 @@ public class BestellijstServiceTests
         Assert.Contains("Bestellijst", html);
         Assert.Contains("ABS-band", html);
         Assert.Contains(BestellijstService.StandaardAbsBandLabel, html);
+        Assert.DoesNotContain(">X: ", html);
+        Assert.DoesNotContain(">Y: ", html);
+        Assert.Contains("B1: X", html);
         Assert.Contains("Hoge Deur 1", html);
         Assert.Contains("<svg", html);
         Assert.Contains("window.print()", html);
