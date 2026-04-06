@@ -1,0 +1,65 @@
+@using System.Globalization
+
+<div class="wand-visueel-container" style="overflow-x: auto;">
+    <svg width="@Fmt(SvgWidth)" height="@Fmt(SvgHeight)" class="border rounded bg-light">
+        <rect x="0" y="0" width="@Fmt(SvgWidth)" height="@Fmt(SvgHeight)"
+              fill="#f8f9fa" rx="4" />
+
+        @{
+            double xOffset = P;
+        }
+
+        @foreach (var kast in Kasten)
+        {
+            var w = kast.Breedte * Schaal;
+            var h = kast.Hoogte * Schaal;
+            var yTop = P + MaxH - h;
+
+            <rect x="@Fmt(xOffset)" y="@Fmt(yTop)" width="@Fmt(w)" height="@Fmt(h)"
+                  fill="@KastKleur(kast.Type)" stroke="#8b7355" stroke-width="1.5" rx="2" />
+
+            @foreach (var pos in kast.MontagePlaatPosities)
+            {
+                var cy = yTop + pos.AfstandVanBoven * Schaal;
+                var cx = pos.Zijde == ScharnierZijde.Links ? xOffset + 8 : xOffset + w - 8;
+                <circle cx="@Fmt(cx)" cy="@Fmt(cy)" r="4" fill="#e74c3c" stroke="#c0392b" stroke-width="0.8" />
+            }
+
+            @((MarkupString)$"<text x=\"{Fmt(xOffset + w / 2)}\" y=\"{Fmt(yTop + h / 2 - 6)}\" font-size=\"10\" fill=\"#333\" text-anchor=\"middle\" font-weight=\"bold\">{kast.Naam}</text>")
+            @((MarkupString)$"<text x=\"{Fmt(xOffset + w / 2)}\" y=\"{Fmt(yTop + h / 2 + 8)}\" font-size=\"9\" fill=\"#666\" text-anchor=\"middle\">{kast.Breedte}×{kast.Hoogte}</text>")
+            @((MarkupString)$"<text x=\"{Fmt(xOffset + w / 2)}\" y=\"{Fmt(P + MaxH + 16)}\" font-size=\"9\" fill=\"#999\" text-anchor=\"middle\">{kast.Breedte} mm</text>")
+
+            xOffset += w + Tussenruimte;
+        }
+
+        @((MarkupString)$"<text x=\"{Fmt(SvgWidth / 2)}\" y=\"{Fmt(SvgHeight - 4)}\" font-size=\"11\" fill=\"#333\" text-anchor=\"middle\">Totaal: {TotaleBreedte:F0} mm</text>")
+    </svg>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<Kast> Kasten { get; set; } = [];
+    [Parameter] public double MaxHoogte { get; set; } = 220;
+
+    private const double P = 24;
+    private const double Tussenruimte = 2;
+
+    private double MaxKastHoogte => Kasten.Count > 0 ? Kasten.Max(k => k.Hoogte) : 720;
+    private double Schaal => MaxHoogte / Math.Max(MaxKastHoogte, 1);
+    private double MaxH => MaxKastHoogte * Schaal;
+    private double TotaleBreedte => Kasten.Sum(k => k.Breedte);
+
+    private double SvgWidth => Kasten.Count > 0
+        ? Kasten.Sum(k => k.Breedte * Schaal) + (Kasten.Count - 1) * Tussenruimte + P * 2
+        : 200;
+    private double SvgHeight => MaxH + P * 2 + 24;
+
+    private static string KastKleur(KastType type) => type switch
+    {
+        KastType.Onderkast => "#f5deb3",
+        KastType.Bovenkast => "#d4e6f1",
+        KastType.HogeKast => "#d5f5e3",
+        _ => "#f5deb3"
+    };
+
+    private static string Fmt(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
+}

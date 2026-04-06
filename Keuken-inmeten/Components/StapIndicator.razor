@@ -1,0 +1,50 @@
+@{
+    var stappen = new[] { ("kasten", "Indeling"), ("panelen", "Panelen"), ("resultaat", "Resultaat") };
+    var huidigeIndex = Array.FindIndex(stappen, s => s.Item1 == HuidigeStap);
+}
+
+<nav aria-label="Stappen" class="stap-indicator mb-4">
+    <ol class="stap-indicator-list">
+        @for (int i = 0; i < stappen.Length; i++)
+        {
+            var (href, label) = stappen[i];
+            var nummer = i + 1;
+            var isKlaar = i < huidigeIndex;
+            var isActief = i == huidigeIndex;
+            var isNogNiet = i > huidigeIndex;
+            var stateClass = isKlaar ? "klaar" : isActief ? "actief" : "nog-niet";
+            <li class="stap-indicator-item @stateClass">
+                @if (i > 0)
+                {
+                    <div class="stap-connector"></div>
+                }
+                <div class="stap-cirkel">
+                    @if (isKlaar)
+                    {
+                        <a href="/@href" class="stap-link" title="@label">
+                            <span class="stap-check">✓</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="stap-nummer">@nummer</span>
+                    }
+                </div>
+                <div class="stap-label">
+                    @if (isKlaar)
+                    {
+                        <a href="/@href" class="stap-label-link">@label</a>
+                    }
+                    else
+                    {
+                        <span>@label</span>
+                    }
+                </div>
+            </li>
+        }
+    </ol>
+</nav>
+
+@code {
+    [Parameter, EditorRequired] public string HuidigeStap { get; set; } = "";
+}

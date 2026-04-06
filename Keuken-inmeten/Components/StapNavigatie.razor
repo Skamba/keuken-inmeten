@@ -1,0 +1,49 @@
+<div class="stap-navigatie">
+    @if (!string.IsNullOrEmpty(VorigeHref))
+    {
+        <a href="@VorigeHref" class="btn btn-outline-secondary text-nowrap">← @VorigeLabel</a>
+    }
+    else
+    {
+        <span></span>
+    }
+
+    <div class="stap-navigatie-stappen">
+        <a href="/kasten" class="@(HuidigeStap == "kasten" ? "actief" : "")">1. Indeling</a>
+        <span class="stap-pijl">›</span>
+        <a href="/panelen" class="@(HuidigeStap == "panelen" ? "actief" : "")">2. Panelen</a>
+        <span class="stap-pijl">›</span>
+        <a href="/resultaat" class="@(HuidigeStap == "resultaat" ? "actief" : "")">3. Resultaat</a>
+    </div>
+
+    @if (Midden is not null)
+    {
+        <div class="stap-navigatie-midden">@Midden</div>
+    }
+
+    @if (!string.IsNullOrEmpty(VolgendeHref))
+    {
+        @if (VolgendeDisabled)
+        {
+            <span class="btn btn-success disabled text-nowrap" aria-disabled="true">@VolgendeLabel →</span>
+        }
+        else
+        {
+            <a href="@VolgendeHref" class="btn btn-success text-nowrap">@VolgendeLabel →</a>
+        }
+    }
+    else
+    {
+        <span></span>
+    }
+</div>
+
+@code {
+    [Parameter] public string HuidigeStap { get; set; } = "";
+    [Parameter] public string? VorigeHref { get; set; }
+    [Parameter] public string VorigeLabel { get; set; } = "Vorige stap";
+    [Parameter] public string? VolgendeHref { get; set; }
+    [Parameter] public string VolgendeLabel { get; set; } = "Volgende stap";
+    [Parameter] public bool VolgendeDisabled { get; set; }
+    [Parameter] public RenderFragment? Midden { get; set; }
+}

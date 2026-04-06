@@ -1,0 +1,26 @@
+# .NET build output
+bin/
+obj/
+TestResults/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.rsuser
+*.suo
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Node / Playwright artifacts
+node_modules/
+playwright-screenshots/publish/
+playwright-screenshots/screenshots/
+
+# OS files
+.DS_Store
+Thumbs.db

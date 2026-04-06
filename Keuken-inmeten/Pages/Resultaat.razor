@@ -1,0 +1,329 @@
+@page "/resultaat"
+@inject KeukenStateService State
+@inject IJSRuntime JS
+
+<PageTitle>Stap 3 — Resultaat</PageTitle>
+
+<StapIndicator HuidigeStap="resultaat" />
+
+<h2 class="page-header">Stap 3: Resultaat</h2>
+<p class="text-muted">Overzicht van alle panelen met de benodigde boorgaten voor scharnieren.</p>
+
+@{
+    var resultaten = State.BerekenResultaten();
+    var aantalDeuren = resultaten.Count(r => r.Type == PaneelType.Deur);
+    var aantalLadeF = resultaten.Count(r => r.Type == PaneelType.LadeFront);
+    var aantalBlind = resultaten.Count(r => r.Type == PaneelType.BlindPaneel);
+}
+
+@if (resultaten.Count == 0)
+{
+    <div class="alert alert-warning">
+        Geen panelen geconfigureerd. <a href="/panelen">Ga terug om panelen toe te wijzen.</a>
+    </div>
+}
+else
+{
+    @* ── Summary stats ── *@
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-sm-3">
+            <div class="border rounded p-3 text-center">
+                <div class="fs-3 fw-bold text-primary">@resultaten.Count</div>
+                <small class="text-muted">Panelen totaal</small>
+            </div>
+        </div>
+        <div class="col-6 col-sm-3">
+            <div class="border rounded p-3 text-center">
+                <div class="fs-3 fw-bold text-primary">@aantalDeuren</div>
+                <small class="text-muted">Deuren</small>
+            </div>
+        </div>
+        <div class="col-6 col-sm-3">
+            <div class="border rounded p-3 text-center">
+                <div class="fs-3 fw-bold text-warning">@aantalLadeF</div>
+                <small class="text-muted">Ladefronten</small>
+            </div>
+        </div>
+        <div class="col-6 col-sm-3">
+            <div class="border rounded p-3 text-center">
+                <div class="fs-3 fw-bold text-secondary">@aantalBlind</div>
+                <small class="text-muted">Blinde panelen</small>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive mb-4">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Kast</th>
+                    <th>Wand</th>
+                    <th>Type</th>
+                    <th class="text-end">Breedte</th>
+                    <th class="text-end">Hoogte</th>
+                    <th>Scharnier</th>
+                    <th class="text-center">Boorgaten</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < resultaten.Count; i++)
+                {
+                    var r = resultaten[i];
+                    var wandNaam = r.KastIds
+                        .Select(id => State.Wanden.Find(w => w.KastIds.Contains(id))?.Naam)
+                        .FirstOrDefault(n => n is not null) ?? "—";
+                    <tr>
+                        <td class="text-muted">@(i + 1)</td>
+                        <td><strong>@r.KastNaam</strong></td>
+                        <td class="text-muted">@wandNaam</td>
+                        <td>
+                            <span class="badge @(r.Type == PaneelType.Deur ? "bg-primary" : r.Type == PaneelType.LadeFront ? "bg-warning text-dark" : "bg-secondary")">
+                                @TypeNaam(r.Type)
+                            </span>
+                        </td>
+                        <td class="text-end">@r.Breedte mm</td>
+                        <td class="text-end">@r.Hoogte mm</td>
+                        <td>@(r.Type == PaneelType.Deur ? r.ScharnierZijde.ToString() : "—")</td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border">@r.Boorgaten.Count</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h4>Wandoverzicht</h4>
+    <div class="d-flex flex-wrap gap-4 mb-4">
+    @foreach (var wand in State.Wanden)
+    {
+        var wandKasten = State.KastenVoorWand(wand.Id);
+        if (wandKasten.Count == 0) continue;
+        var wandApparaten = State.ApparatenVoorWand(wand.Id);
+        <div>
+            <h6 class="text-muted mb-1">@wand.Naam</h6>
+            <WandPaneelOverzicht Kasten="@wandKasten"
+                                 Apparaten="@wandApparaten"
+                                 WandBreedte="@wand.Breedte"
+                                 WandHoogte="@wand.Hoogte"
+                                 PlintHoogte="@wand.PlintHoogte"
+                                 AlleToewijzingen="@State.Toewijzingen" />
+        </div>
+    }
+    </div>
+
+    <h4>Detail per paneel</h4>
+
+    @for (int i = 0; i < resultaten.Count; i++)
+    {
+        var r = resultaten[i];
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Paneel @(i + 1): @r.KastNaam — @TypeNaam(r.Type)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h6>Afmetingen</h6>
+                        <ul>
+                            <li>Breedte: <strong>@r.Breedte mm</strong></li>
+                            <li>Hoogte: <strong>@r.Hoogte mm</strong></li>
+                            @if (r.Type == PaneelType.Deur)
+                            {
+                                <li>Scharnier zijde: <strong>@r.ScharnierZijde</strong></li>
+                            }
+                        </ul>
+
+                        @if (r.Type == PaneelType.Deur && r.Boorgaten.Count > 0)
+                        {
+                            <div class="border rounded bg-light p-3 mb-3 small">
+                                <div class="fw-semibold mb-1">Onderbouwing scharnierverdeling</div>
+                                <p class="mb-0">@ScharnierSamenvatting(r)</p>
+                            </div>
+                        }
+
+                        <h6>Boorgaten (35 mm cup)</h6>
+                        @if (r.Boorgaten.Count > 0)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>X van rand (mm)</th>
+                                            <th>Y van boven (mm)</th>
+                                            <th>Ø (mm)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int j = 0; j < r.Boorgaten.Count; j++)
+                                        {
+                                            var g = r.Boorgaten[j];
+                                            <tr>
+                                                <td>@(j + 1)</td>
+                                                <td>@g.X</td>
+                                                <td>@g.Y</td>
+                                                <td>@g.Diameter</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            @if (r.Type == PaneelType.Deur)
+                            {
+                                <div class="mt-4">
+                                    <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+                                            @onclick="() => ToggleOnderbouwing(i)">
+                                        <span>@(IsUitgeklapt(i) ? "▲" : "▼")</span>
+                                        <span>Onderbouwing per scharnier</span>
+                                    </button>
+
+                                    @if (IsUitgeklapt(i))
+                                    {
+                                        <div class="mt-2">
+                                        @for (int j = 0; j < r.Boorgaten.Count; j++)
+                                        {
+                                            var g = r.Boorgaten[j];
+                                            var o = g.Onderbouwing;
+                                            var kastVoorScharnier = o is not null ? VindKast(r, o) : null;
+                                            <div class="border rounded p-3 mb-3 bg-light small">
+                                                <div class="fw-semibold mb-1">Scharnier @(j + 1) op @FormatMm(g.Y) vanaf boven</div>
+                                                @if (o is not null)
+                                                {
+                                                    <div>Komt uit kast <strong>@o.KastNaam</strong> aan de <strong>@ZijdeBijvoeglijkNaamwoord(r.ScharnierZijde)</strong> zijde.</div>
+                                                    <div>Montageplaat-midden valt tussen gat <strong>@o.GaatBovenIndex</strong> (@FormatMm(o.GaatBovenY)) en gat <strong>@o.GaatOnderIndex</strong> (@FormatMm(o.GaatOnderY)) van boven gemeten in die kast.</div>
+                                                    <div class="text-muted mt-1">@WaaromPastTekst(r, o)</div>
+                                                    <ScharnierDetailVisueel Boorgat="@g"
+                                                                            Kast="@kastVoorScharnier"
+                                                                            ScharnierZijde="@r.ScharnierZijde"
+                                                                            PaneelHoogte="@r.Hoogte"
+                                                                            PaneelBreedte="@r.Breedte" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="text-muted">Geen onderbouwing beschikbaar.</div>
+                                                }
+                                            </div>
+                                        }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted">Geen boorgaten (geen scharnierposities op deze zijde)</p>
+                        }
+                    </div>
+                    <div class="col-lg-4 text-center">
+                        <PaneelVisueel Resultaat="@r" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<StapNavigatie HuidigeStap="resultaat"
+               VorigeHref="/panelen"
+               VorigeLabel="Terug naar panelen">
+    <Midden>
+        <button class="btn btn-outline-primary" @onclick="PrintResultaat">🖨️ Afdrukken</button>
+    </Midden>
+</StapNavigatie>
+
+@code {
+    private readonly HashSet<int> _uitgeklapt = [];
+
+    private bool IsUitgeklapt(int index) => _uitgeklapt.Contains(index);
+
+    private void ToggleOnderbouwing(int index)
+    {
+        if (!_uitgeklapt.Remove(index))
+            _uitgeklapt.Add(index);
+    }
+
+    private Kast? VindKast(PaneelResultaat r, BoorgatOnderbouwing o)
+        => r.KastIds
+            .Select(id => State.Kasten.Find(k => k.Id == id))
+            .FirstOrDefault(k => k?.Naam == o.KastNaam);
+
+    private static string TypeNaam(PaneelType type) => type switch
+    {
+        PaneelType.Deur => "Deur",
+        PaneelType.LadeFront => "Ladefront",
+        PaneelType.BlindPaneel => "Blind paneel",
+        _ => type.ToString()
+    };
+
+    private static string ScharnierSamenvatting(PaneelResultaat resultaat)
+    {
+        var dragendeKasten = resultaat.Boorgaten
+            .Select(g => g.Onderbouwing?.KastNaam)
+            .Where(naam => !string.IsNullOrWhiteSpace(naam))
+            .Distinct()
+            .ToList();
+
+        var delen = new List<string>
+        {
+            $"{resultaat.Boorgaten.Count} scharnieren voor een paneel van {FormatMm(resultaat.Hoogte)} hoog; dit volgt de hoogteklasse van het paneel."
+        };
+
+        if (dragendeKasten.Count == 1)
+        {
+            delen.Add($"Alle posities zijn uitgelijnd op de gaatjesrij van {dragendeKasten[0]}.");
+        }
+        else if (dragendeKasten.Count > 1)
+        {
+            delen.Add($"De posities komen uit meerdere kasten: {string.Join(", ", dragendeKasten)}.");
+        }
+
+        delen.Add($"Elke positie blijft minimaal {FormatMm(ScharnierBerekeningService.MinAfstandVanRand)} uit de paneelranden en wordt op het dichtstbijzijnde geldige midden tussen twee systeemgaten gezet.");
+
+        if (resultaat.Boorgaten.Any(g => g.Onderbouwing?.AfstandTotDichtstbijzijndeNaad is not null))
+        {
+            delen.Add("Bij gestapelde kasten blijven de gekozen posities ook weg van naden tussen kastdelen.");
+        }
+
+        if (resultaat.Boorgaten.Any(g => g.Onderbouwing?.AfstandTotDichtstbijzijndePlank is not null))
+        {
+            delen.Add("Posities te dicht bij een plank worden eveneens vermeden.");
+        }
+
+        return string.Join(" ", delen);
+    }
+
+    private static string WaaromPastTekst(PaneelResultaat resultaat, BoorgatOnderbouwing onderbouwing)
+    {
+        var delen = new List<string>
+        {
+            $"Past binnen het paneel omdat dit hart {FormatMm(onderbouwing.AfstandTotBoven)} vanaf boven en {FormatMm(onderbouwing.AfstandTotOnder)} vanaf onder ligt",
+            $"ligt {FormatMm(onderbouwing.AfstandTotIdealeVerdeling)} van de ideale verdeling voor {resultaat.Boorgaten.Count} scharnieren",
+            $"en precies op het midden van de gaatjesrij op {FormatMm(onderbouwing.MontagePlaatMiddenInKast)} vanaf boven in deze kast"
+        };
+
+        if (onderbouwing.AfstandTotDichtstbijzijndeNaad is double afstandNaad)
+        {
+            delen.Add($"met {FormatMm(afstandNaad)} vrije ruimte tot de dichtstbijzijnde naad");
+        }
+
+        if (onderbouwing.AfstandTotDichtstbijzijndePlank is double afstandPlank)
+        {
+            delen.Add($"en {FormatMm(afstandPlank)} vrije ruimte tot de dichtstbijzijnde plank");
+        }
+
+        return string.Join(", ", delen) + ".";
+    }
+
+    private static string ZijdeBijvoeglijkNaamwoord(ScharnierZijde zijde)
+        => zijde == ScharnierZijde.Links ? "linker" : "rechter";
+
+    private static string FormatMm(double waarde)
+        => $"{waarde:0.#} mm";
+
+    private async Task PrintResultaat()
+    {
+        await JS.InvokeVoidAsync("window.print");
+    }
+}

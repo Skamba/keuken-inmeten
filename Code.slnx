@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Keuken-inmeten/Keuken-inmeten.csproj" />
+  <Project Path="Keuken-inmeten.Tests/Keuken-inmeten.Tests.csproj" />
+</Solution>

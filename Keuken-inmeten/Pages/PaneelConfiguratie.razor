@@ -1,0 +1,268 @@
+@page "/panelen"
+@inject KeukenStateService State
+
+<PageTitle>Stap 2 — Panelen configureren</PageTitle>
+
+<StapIndicator HuidigeStap="panelen" />
+
+<h2 class="page-header">Stap 2: Panelen configureren</h2>
+<p class="text-muted">Selecteer kasten in het schema en wijs panelen toe. Panelafmetingen worden automatisch ingesteld op de kastmaten.</p>
+
+@if (State.Kasten.Count == 0)
+{
+    <div class="alert alert-warning">
+        <a href="/kasten">Voer eerst kasten in</a> voordat u panelen kunt configureren.
+    </div>
+}
+else
+{
+    <div class="row g-4">
+
+        @* ── LEFT: wall selection + panel list ── *@
+        <div class="col-xl-7 col-lg-6">
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .06em;">Klik op een kast om te selecteren</small>
+                @if (geselecteerdeKastIds.Count > 0)
+                {
+                    <button class="btn btn-sm btn-link text-secondary p-0" @onclick="DeselecteerAlles">Alles deselecteren ×</button>
+                }
+            </div>
+
+            @foreach (var wand in State.Wanden)
+            {
+                var wandKasten = State.KastenVoorWand(wand.Id);
+                if (wandKasten.Count == 0) continue;
+                var wandApparaten = State.ApparatenVoorWand(wand.Id);
+                var wandHasSelection = geselecteerdeKastIds.Any(id => wandKasten.Any(k => k.Id == id));
+                <div class="mb-3 border @(wandHasSelection ? "border-primary" : "") rounded overflow-hidden">
+                    <div class="d-flex justify-content-between align-items-center px-2 py-1 @(wandHasSelection ? "bg-primary bg-opacity-10" : "bg-light")">
+                        <small class="fw-semibold">@wand.Naam</small>
+                        @if (wandHasSelection)
+                        {
+                            <button class="btn btn-sm btn-link text-secondary p-0 text-decoration-none" style="font-size: 0.8rem;" @onclick="() => DeselecteerWand(wand.Id)">× deselecteer wand</button>
+                        }
+                    </div>
+                    <div class="paneel-overzicht-scroll">
+                        <WandOpstelling Kasten="@wandKasten"
+                                        Apparaten="@wandApparaten"
+                                        WandHoogte="@wand.Hoogte"
+                                        WandBreedte="@wand.Breedte"
+                                        PlintHoogte="@wand.PlintHoogte"
+                                        LeesAlleen="true"
+                                        GeselecteerdeKastIds="@geselecteerdeKastIds"
+                                        SvgMaxHoogte="55vh"
+                                        BeperkTotContainerBreedte="false"
+                                        Toewijzingen="@State.Toewijzingen"
+                                        OnKastGeselecteerd="ToggleKast" />
+                    </div>
+                </div>
+            }
+
+            @* ── Toegewezen panelen lijst ── *@
+            <div class="mt-4">
+                <h6 class="d-flex align-items-center gap-2 mb-2">
+                    Toegewezen panelen
+                    <span class="badge bg-secondary rounded-pill">@State.Toewijzingen.Count</span>
+                </h6>
+                @if (State.Toewijzingen.Count == 0)
+                {
+                    <p class="text-muted small">Nog geen panelen. Selecteer een kast rechts en voeg een paneel toe.</p>
+                }
+                else
+                {
+                    <table class="table table-sm table-hover mb-0 border rounded">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3" style="width:2rem;">#</th>
+                                <th>Type</th>
+                                <th>Breedte</th>
+                                <th>Hoogte</th>
+                                <th>Scharnier</th>
+                                <th>Kast(en)</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < State.Toewijzingen.Count; i++)
+                            {
+                                var toewijzing = State.Toewijzingen[i];
+                                var kastenNamen = string.Join(" + ", toewijzing.KastIds
+                                    .Select(id => State.Kasten.Find(k => k.Id == id)?.Naam)
+                                    .Where(n => n is not null));
+                                var rid = toewijzing.Id;
+                                <tr @key="toewijzing.Id">
+                                    <td class="text-muted ps-3">@(i + 1)</td>
+                                    <td>
+                                        <span class="badge @(toewijzing.Type == PaneelType.Deur ? "bg-primary" : toewijzing.Type == PaneelType.LadeFront ? "bg-warning text-dark" : "bg-secondary")">
+                                            @TypeNaam(toewijzing.Type)
+                                        </span>
+                                    </td>
+                                    <td>@toewijzing.Breedte mm</td>
+                                    <td>@toewijzing.Hoogte mm</td>
+                                    <td class="text-muted small">
+                                        @(toewijzing.Type == PaneelType.Deur ? toewijzing.ScharnierZijde.ToString().ToLower() : "—")
+                                    </td>
+                                    <td class="text-muted small">@kastenNamen</td>
+                                    <td class="text-end pe-2">
+                                        <button class="btn btn-outline-danger btn-sm py-0 px-1"
+                                                @onclick="() => State.VerwijderToewijzing(rid)">×</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+        @* ── RIGHT: sticky configuration form ── *@
+        <div class="col-xl-5 col-lg-6">
+            <div class="sticky-top" style="top: 1rem;">
+
+                <div class="card @(geselecteerdeKastIds.Count > 0 ? "border-primary shadow-sm" : "")">
+                    <div class="card-header @(geselecteerdeKastIds.Count > 0 ? "bg-primary bg-opacity-10" : "bg-light")">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0" style="font-size: 1rem;">
+                                @(geselecteerdeKastIds.Count > 0 ? "Paneel toevoegen" : "Paneel configureren")
+                            </h5>
+                            @if (geselecteerdeKastIds.Count > 0)
+                            {
+                                <span class="badge bg-primary rounded-pill">@geselecteerdeKastIds.Count kast(en)</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (geselecteerdeKastIds.Count == 0)
+                        {
+                            <div class="text-center text-muted py-4">
+                                <div class="mb-3" style="font-size: 3rem; opacity: 0.15;">🪟</div>
+                                <p class="mb-0">Klik op een kast in het schema om te beginnen.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Type paneel</label>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    @foreach (var type in Enum.GetValues<PaneelType>())
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm @(formToewijzing.Type == type ? "btn-primary" : "btn-outline-secondary")"
+                                                @onclick="() => formToewijzing.Type = type">
+                                            @TypeNaam(type)
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (formToewijzing.Type == PaneelType.Deur)
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Scharnier zijde</label>
+                                    <div class="d-flex gap-2">
+                                        <button type="button"
+                                                class="btn btn-sm @(formToewijzing.ScharnierZijde == ScharnierZijde.Links ? "btn-primary" : "btn-outline-secondary")"
+                                                @onclick="() => formToewijzing.ScharnierZijde = ScharnierZijde.Links">
+                                            ◄ Links
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm @(formToewijzing.ScharnierZijde == ScharnierZijde.Rechts ? "btn-primary" : "btn-outline-secondary")"
+                                                @onclick="() => formToewijzing.ScharnierZijde = ScharnierZijde.Rechts">
+                                            Rechts ►
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Breedte (mm)</label>
+                                    <input type="number" class="form-control" @bind="formToewijzing.Breedte" min="50" />
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Hoogte (mm)</label>
+                                    <input type="number" class="form-control" @bind="formToewijzing.Hoogte" min="50" />
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-primary" @onclick="PaneelToevoegen"
+                                        disabled="@(formToewijzing.Breedte <= 0 || formToewijzing.Hoogte <= 0)">
+                                    + Paneel toevoegen
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+<StapNavigatie HuidigeStap="panelen"
+               VorigeHref="/kasten"
+               VorigeLabel="Terug naar indeling"
+               VolgendeHref="/resultaat"
+               VolgendeLabel="Resultaat bekijken"
+               VolgendeDisabled="@(State.Toewijzingen.Count == 0)" />
+
+@code {
+    private PaneelToewijzing formToewijzing = new();
+    private HashSet<Guid> geselecteerdeKastIds = [];
+
+    private List<Kast> geselecteerdeKasten =>
+        geselecteerdeKastIds.Select(id => State.Kasten.Find(k => k.Id == id)!).Where(k => k is not null).ToList();
+
+    private void ToggleKast(Guid kastId)
+    {
+        if (!geselecteerdeKastIds.Add(kastId))
+            geselecteerdeKastIds.Remove(kastId);
+
+        UpdateAfmetingen();
+    }
+
+    private void DeselecteerWand(Guid wandId)
+    {
+        var wandKastIds = State.KastenVoorWand(wandId).Select(k => k.Id);
+        foreach (var id in wandKastIds) geselecteerdeKastIds.Remove(id);
+        UpdateAfmetingen();
+    }
+
+    private void UpdateAfmetingen()
+    {
+        var kasten = geselecteerdeKasten;
+        if (kasten.Count > 0)
+            (formToewijzing.Breedte, formToewijzing.Hoogte) = ScharnierBerekeningService.BerekenPaneelAfmetingen(kasten);
+        else
+            (formToewijzing.Breedte, formToewijzing.Hoogte) = (0, 0);
+    }
+
+    private void PaneelToevoegen()
+    {
+        if (geselecteerdeKastIds.Count == 0) return;
+        if (formToewijzing.Breedte <= 0 || formToewijzing.Hoogte <= 0) return;
+
+        formToewijzing.KastIds = [.. geselecteerdeKastIds];
+        State.VoegToewijzingToe(formToewijzing);
+
+        geselecteerdeKastIds.Clear();
+        formToewijzing = new PaneelToewijzing();
+        UpdateAfmetingen();
+    }
+
+    private void DeselecteerAlles()
+    {
+        geselecteerdeKastIds.Clear();
+        UpdateAfmetingen();
+    }
+
+    private static string TypeNaam(PaneelType type) => type switch
+    {
+        PaneelType.Deur => "Deur",
+        PaneelType.LadeFront => "Ladefront",
+        PaneelType.BlindPaneel => "Blind paneel",
+        _ => type.ToString()
+    };
+}

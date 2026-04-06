@@ -1,0 +1,136 @@
+@using System.Globalization
+
+<div class="wand-dragdrop">
+    <div class="wand-kasten-strip"
+         @ondragover="HandleDragOver"
+         @ondragover:preventDefault="true"
+         @ondrop="() => HandleDrop(Kasten.Count)">
+
+        @for (int i = 0; i < Kasten.Count; i++)
+        {
+            var kast = Kasten[i];
+            var index = i;
+            var isDragging = dragKastId == kast.Id;
+            var isSelected = GeselecteerdeKastId == kast.Id;
+            var minWidth = Math.Max(kast.Breedte * Schaal, 80);
+            var minHeight = Math.Max(kast.Hoogte * Schaal, 60);
+
+            <div class="wand-drop-zone @(dropIndex == index ? "drop-active" : "")"
+                 @ondragover="HandleDragOver"
+                 @ondragover:preventDefault="true"
+                 @ondrop="() => HandleDrop(index)"
+                 @ondrop:preventDefault="true"
+                 @ondragenter="() => dropIndex = index"
+                 @ondragleave="() => { if (dropIndex == index) dropIndex = -1; }">
+                <div class="drop-indicator"></div>
+            </div>
+
+            <div class="wand-kast-blok @(isDragging ? "dragging" : "") @(isSelected ? "selected" : "")"
+                 style="width: @Fmt(minWidth)px; height: @Fmt(minHeight)px; background-color: @KastKleur(kast.Type);"
+                 draggable="true"
+                 @ondragstart="() => HandleDragStart(kast.Id, index)"
+                 @ondragend="HandleDragEnd"
+                 @onclick="() => OnKastGeselecteerd.InvokeAsync(kast.Id)"
+                 title="@kast.Naam — @kast.Breedte×@kast.Hoogte×@kast.Diepte mm&#10;Sleep om te verplaatsen">
+                <div class="kast-grip">⠿</div>
+                <div class="kast-info">
+                    <span class="kast-naam">@kast.Naam</span>
+                    <span class="kast-afmeting">@kast.Breedte×@kast.Hoogte</span>
+                    <span class="kast-type badge @TypeBadge(kast.Type)">@kast.Type</span>
+                </div>
+            </div>
+        }
+
+        @if (Kasten.Count > 0)
+        {
+            <div class="wand-drop-zone wand-drop-zone-last @(dropIndex == Kasten.Count ? "drop-active" : "")"
+                 @ondragover="HandleDragOver"
+                 @ondragover:preventDefault="true"
+                 @ondrop="() => HandleDrop(Kasten.Count)"
+                 @ondrop:preventDefault="true"
+                 @ondragenter="() => dropIndex = Kasten.Count"
+                 @ondragleave="() => { if (dropIndex == Kasten.Count) dropIndex = -1; }">
+                <div class="drop-indicator"></div>
+            </div>
+        }
+
+        @if (Kasten.Count == 0)
+        {
+            <div class="wand-leeg">
+                <span class="text-muted">Nog geen kasten — voeg een kast toe</span>
+            </div>
+        }
+    </div>
+
+    <div class="wand-totaal text-muted small mt-1">
+        Totaal: @TotaleBreedte.ToString("F0") mm
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<Kast> Kasten { get; set; } = [];
+    [Parameter, EditorRequired] public Guid WandId { get; set; }
+    [Parameter] public Guid? GeselecteerdeKastId { get; set; }
+    [Parameter] public EventCallback<Guid> OnKastGeselecteerd { get; set; }
+    [Parameter] public EventCallback<(int vanIndex, int naarIndex)> OnKastVerplaatst { get; set; }
+
+    private Guid? dragKastId;
+    private int dragStartIndex = -1;
+    private int dropIndex = -1;
+
+    private double MaxKastHoogte => Kasten.Count > 0 ? Kasten.Max(k => k.Hoogte) : 720;
+    private double Schaal => 180.0 / Math.Max(MaxKastHoogte, 1);
+    private double TotaleBreedte => Kasten.Sum(k => k.Breedte);
+
+    private void HandleDragStart(Guid kastId, int index)
+    {
+        dragKastId = kastId;
+        dragStartIndex = index;
+    }
+
+    private void HandleDragOver()
+    {
+        // Allow drop
+    }
+
+    private async Task HandleDrop(int targetIndex)
+    {
+        if (dragStartIndex < 0 || dragKastId is null) return;
+
+        var effectiveTarget = targetIndex;
+        if (effectiveTarget > dragStartIndex)
+            effectiveTarget--;
+
+        if (effectiveTarget != dragStartIndex)
+        {
+            await OnKastVerplaatst.InvokeAsync((dragStartIndex, effectiveTarget));
+        }
+
+        HandleDragEnd();
+    }
+
+    private void HandleDragEnd()
+    {
+        dragKastId = null;
+        dragStartIndex = -1;
+        dropIndex = -1;
+    }
+
+    private static string KastKleur(KastType type) => type switch
+    {
+        KastType.Onderkast => "#f5deb3",
+        KastType.Bovenkast => "#d4e6f1",
+        KastType.HogeKast => "#d5f5e3",
+        _ => "#f5deb3"
+    };
+
+    private static string TypeBadge(KastType type) => type switch
+    {
+        KastType.Onderkast => "bg-warning text-dark",
+        KastType.Bovenkast => "bg-info text-dark",
+        KastType.HogeKast => "bg-success",
+        _ => "bg-secondary"
+    };
+
+    private static string Fmt(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
+}

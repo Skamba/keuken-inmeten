@@ -1,0 +1,59 @@
+﻿@page "/"
+@inject KeukenStateService State
+
+<PageTitle>Keuken Inmeten</PageTitle>
+
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Keuken Inmeten</h1>
+        <p class="lead text-muted">Meet uw keukenkasten en bereken de juiste paneelafmetingen en boorgat-posities voor 35mm cup scharnieren.</p>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-lg-4">
+            <a href="/kasten" class="text-decoration-none">
+                <div class="card h-100 text-center shadow-sm @(State.Kasten.Count > 0 ? "border-success" : "")">
+                    <div class="card-body">
+                        <h2 class="display-6 @(State.Kasten.Count > 0 ? "text-success" : "text-primary")">@(State.Kasten.Count > 0 ? "✓" : "1")</h2>
+                        <h5 class="card-title">Keuken indeling</h5>
+                        <p class="card-text text-muted">Maak wandindelingen aan, plaats kasten op elke wand en geef de montageplaat-posities voor scharnieren aan.</p>
+                        @if (State.Wanden.Count > 0)
+                        {
+                            <span class="badge bg-success">@State.Wanden.Count wand(en) · @State.Kasten.Count kast(en)</span>
+                        }
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4">
+            <a href="/panelen" class="text-decoration-none">
+                <div class="card h-100 text-center shadow-sm @(State.Toewijzingen.Count > 0 ? "border-success" : "")">
+                    <div class="card-body">
+                        <h2 class="display-6 @(State.Toewijzingen.Count > 0 ? "text-success" : "text-primary")">@(State.Toewijzingen.Count > 0 ? "✓" : "2")</h2>
+                        <h5 class="card-title">Panelen configureren</h5>
+                        <p class="card-text text-muted">Wijs panelen toe aan kasten en bepaal de afmetingen en scharnierzijde per paneel.</p>
+                        @if (State.Toewijzingen.Count > 0)
+                        {
+                            <span class="badge bg-success">@State.Toewijzingen.Count paneel/panelen</span>
+                        }
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4">
+            <a href="/resultaat" class="text-decoration-none">
+                <div class="card h-100 text-center shadow-sm">
+                    <div class="card-body">
+                        <h2 class="display-6 text-primary">3</h2>
+                        <h5 class="card-title">Resultaat bekijken</h5>
+                        <p class="card-text text-muted">Bekijk de lijst van panelen met exacte boorgat-posities, klaar om te bestellen.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="/kasten" class="btn btn-primary btn-lg">Begin met inmeten</a>
+    </div>
+</div>

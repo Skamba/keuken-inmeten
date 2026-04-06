@@ -1,0 +1,222 @@
+@using System.Globalization
+
+@*
+    Side-by-side SVG visualization for a single scharnier:
+      Left  – inside face of the kast side panel with the gaatjesrij;
+               used gaten highlighted, montageplaat-midden marked.
+      Right – front face of the door panel from the scharnier edge,
+               showing the 35 mm cup hole.
+
+    Both SVGs use the same vertical scale and centre on the scharnier
+    position so that the orange dashed alignment line appears at the
+    same pixel row in both images.
+*@
+
+<div class="d-flex align-items-start gap-4 mt-2 overflow-auto">
+
+    @* ── Kast zijkant ── *@
+    <figure class="flex-shrink-0 text-center m-0">
+        <figcaption class="text-muted mb-1" style="font-size:0.72rem;line-height:1.2;">
+            Kastzijkant<br/><small>gaatjesrij</small>
+        </figcaption>
+        <svg width="@Fmt(KastSvgW)" height="@Fmt(SvgH)"
+             style="display:block;border:1px solid #dee2e6;border-radius:4px;background:white;">
+            <defs>
+                <clipPath id="kc@(ClipId)">
+                    <rect x="0" y="0" width="@Fmt(KastSvgW)" height="@Fmt(SvgH)"/>
+                </clipPath>
+            </defs>
+            <g clip-path="url(#kc@(ClipId))">
+
+                @* Kast panel body *@
+                <rect x="@Fmt(KPX)" y="@Fmt(KPY0)" width="@Fmt(KPW)" height="@Fmt(KPH)"
+                      fill="#dce6f0" stroke="#5b7ea1" stroke-width="1.5"/>
+
+                @* Gaatjes *@
+                @if (Kast is not null && Boorgat.Onderbouwing is not null)
+                {
+                    @foreach (var (gatY, gatIdx) in AlleGaten)
+                    {
+                        var py = KastMmToY(gatY);
+                        if (py < -8 || py > SvgH + 8) continue;
+                        var used = IsGebruikt(gatY);
+                        <circle cx="@Fmt(KPX + KPW * 0.5)" cy="@Fmt(py)"
+                                r="@Fmt(used ? 5.5 : 2.8)"
+                                fill="@(used ? "#e74c3c" : "#8899bb")"
+                                stroke="@(used ? "#c0392b" : "#6677aa")"
+                                stroke-width="@(used ? "1.5" : "0.5")"/>
+                        @if (used)
+                        {
+                            @((MarkupString)$"<text x=\"{Fmt(KPX + KPW + 5)}\" y=\"{Fmt(py + 4)}\" font-size=\"9\" fill=\"#c0392b\">{gatIdx}: {FormatMm(gatY)} mm</text>")
+                        }
+                    }
+                }
+
+                @* Montageplaat-midden: orange dashed horizontal line, always at SvgH/2 *@
+                <line x1="2" y1="@Fmt(SvgH * 0.5)"
+                      x2="@Fmt(KastSvgW - 2)" y2="@Fmt(SvgH * 0.5)"
+                      stroke="#e67e22" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <circle cx="@Fmt(KPX + KPW * 0.5)" cy="@Fmt(SvgH * 0.5)"
+                        r="3.5" fill="#e67e22"/>
+                @((MarkupString)$"<text x=\"{Fmt(KPX - 4)}\" y=\"{Fmt(SvgH * 0.5 - 5)}\" font-size=\"8\" fill=\"#e67e22\" text-anchor=\"end\">MP</text>")
+
+                @* Top/bottom fade hints when kast extends beyond window *@
+                @if (KPY0 > 0)
+                {
+                    @((MarkupString)$"<text x=\"{Fmt(KPX + KPW * 0.5)}\" y=\"10\" font-size=\"8\" fill=\"#aaa\" text-anchor=\"middle\">↑</text>")
+                }
+                @if (KPY0 + KPH < SvgH)
+                {
+                    @((MarkupString)$"<text x=\"{Fmt(KPX + KPW * 0.5)}\" y=\"{Fmt(SvgH - 3)}\" font-size=\"8\" fill=\"#aaa\" text-anchor=\"middle\">↓</text>")
+                }
+            </g>
+        </svg>
+    </figure>
+
+    @* ── Deur ── *@
+    <figure class="flex-shrink-0 text-center m-0">
+        <figcaption class="text-muted mb-1" style="font-size:0.72rem;line-height:1.2;">
+            Deurpaneel<br/><small>scharnierrand links</small>
+        </figcaption>
+        <svg width="@Fmt(DeurSvgW)" height="@Fmt(SvgH)"
+             style="display:block;border:1px solid #dee2e6;border-radius:4px;background:white;">
+            <defs>
+                <clipPath id="dc@(ClipId)">
+                    <rect x="0" y="0" width="@Fmt(DeurSvgW)" height="@Fmt(SvgH)"/>
+                </clipPath>
+            </defs>
+            <g clip-path="url(#dc@(ClipId))">
+
+                @* Door panel body *@
+                <rect x="@Fmt(DPX)" y="@Fmt(DPY0)" width="@Fmt(DPW)" height="@Fmt(DPH)"
+                      fill="#f0e6d2" stroke="#a07850" stroke-width="1.5"/>
+
+                @* Scharnierkant indicator (red edge) *@
+                <line x1="@Fmt(DPX)" y1="2"
+                      x2="@Fmt(DPX)" y2="@Fmt(SvgH - 2)"
+                      stroke="#c0392b" stroke-width="2.5"/>
+
+                @* 35mm cup, always at SvgH/2 *@
+                <circle cx="@Fmt(CupCx)" cy="@Fmt(SvgH * 0.5)"
+                        r="@Fmt(CupR)"
+                        fill="#2c3e50" stroke="#1a252f" stroke-width="1" opacity="0.82"/>
+                @((MarkupString)$"<text x=\"{Fmt(CupCx)}\" y=\"{Fmt(SvgH * 0.5 + 4)}\" font-size=\"9\" fill=\"white\" text-anchor=\"middle\">⌀35</text>")
+
+                @* Alignment line *@
+                <line x1="2" y1="@Fmt(SvgH * 0.5)"
+                      x2="@Fmt(DeurSvgW - 2)" y2="@Fmt(SvgH * 0.5)"
+                      stroke="#e67e22" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.55"/>
+
+                @* X-offset dimension label *@
+                @((MarkupString)$"<text x=\"{Fmt(DPX + CupOffset * 0.5)}\" y=\"{Fmt(SvgH * 0.5 + CupR + 14)}\" font-size=\"9\" fill=\"#555\" text-anchor=\"middle\">{FormatMm(Boorgat.X)} mm</text>")
+            </g>
+        </svg>
+    </figure>
+</div>
+
+@* Legend *@
+<div class="d-flex flex-wrap gap-3 mt-1" style="font-size:0.7rem;color:#666;">
+    <span>
+        <svg width="12" height="12" style="display:inline-block;vertical-align:middle;">
+            <circle cx="6" cy="6" r="5" fill="#e74c3c"/>
+        </svg>
+        Gebruikt gat
+    </span>
+    <span>
+        <svg width="12" height="12" style="display:inline-block;vertical-align:middle;">
+            <circle cx="6" cy="6" r="3" fill="#8899bb"/>
+        </svg>
+        Overig gat
+    </span>
+    <span>
+        <svg width="24" height="12" style="display:inline-block;vertical-align:middle;">
+            <line x1="0" y1="6" x2="24" y2="6" stroke="#e67e22" stroke-width="2" stroke-dasharray="4,3"/>
+        </svg>
+        Montageplaat-midden / cup-hart
+    </span>
+    <span>
+        <svg width="6" height="12" style="display:inline-block;vertical-align:middle;">
+            <line x1="3" y1="0" x2="3" y2="12" stroke="#c0392b" stroke-width="2.5"/>
+        </svg>
+        Scharnierrand (deur)
+    </span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Boorgat Boorgat { get; set; } = default!;
+    [Parameter] public Kast? Kast { get; set; }
+    [Parameter, EditorRequired] public ScharnierZijde ScharnierZijde { get; set; }
+    [Parameter, EditorRequired] public double PaneelHoogte { get; set; }
+    [Parameter, EditorRequired] public double PaneelBreedte { get; set; }
+
+    // Unique suffix for SVG clipPath ids — prevents collisions when rendered multiple times per page
+    private readonly string ClipId = Guid.NewGuid().ToString("N")[..8];
+
+    // ── Scale ──────────────────────────────────────────────────────────────
+    // Both SVGs use the same vertical scale. A 220 mm window fits in 220 px → 1 px/mm.
+    private const double SvgH        = 220.0;
+    private const double WindowHalfMm = 110.0;     // 110 mm above + 110 mm below = 220 mm window
+
+    private double Scale => SvgH / (WindowHalfMm * 2.0);   // 1.0 px/mm
+
+    // ── Kast coordinate system ─────────────────────────────────────────────
+    // Centred on MontagePlaatMiddenInKast → always at pixel SvgH/2
+    private double KastCenter => Boorgat.Onderbouwing?.MontagePlaatMiddenInKast ?? Boorgat.Y;
+    private double KastMmToY(double mm) => SvgH / 2.0 + (mm - KastCenter) * Scale;
+
+    private double KastHoogte => Kast?.Hoogte ?? PaneelHoogte;
+
+    // ── Kast SVG layout ───────────────────────────────────────────────────
+    private const double KastSvgW = 200.0;
+    private const double KPX      = 14.0;   // panel left edge
+    private const double KPW      = 32.0;   // schematic panel width
+    private double KPY0 => KastMmToY(0);
+    private double KPH  => KastHoogte * Scale;
+
+    // ── Deur coordinate system ─────────────────────────────────────────────
+    // Centred on Boorgat.Y → always at pixel SvgH/2
+    private double DeurMmToY(double mm) => SvgH / 2.0 + (mm - Boorgat.Y) * Scale;
+
+    // ── Deur SVG layout ────────────────────────────────────────────────────
+    // Show the door from the scharnier edge (always on the left in this view),
+    // up to MaxDoorVisibleMm wide.
+    private const double DeurSvgW        = 160.0;
+    private const double DPX             = 14.0;   // scharnier edge X
+    private const double MaxDoorVisibleMm = 75.0;
+    private double DoorHScale => (DeurSvgW - DPX - 6.0) / MaxDoorVisibleMm; // px per mm (horizontal)
+    private double DPW  => Math.Min(PaneelBreedte, MaxDoorVisibleMm) * DoorHScale;
+    private double DPY0 => DeurMmToY(0);
+    private double DPH  => PaneelHoogte * Scale;
+
+    // Cup: horizontal position uses DoorHScale; radius uses vertical Scale for a true circle
+    private double CupOffset => Boorgat.X * DoorHScale;
+    private double CupCx     => DPX + CupOffset;
+    private double CupR      => Math.Max(Boorgat.Diameter / 2.0 * Scale, 8.0);
+
+    // ── Gaatjes ────────────────────────────────────────────────────────────
+    private IEnumerable<(double Y, int Index)> AlleGaten
+    {
+        get
+        {
+            if (Kast is null) yield break;
+            var y = Kast.EersteGaatPositieVanafBoven;
+            var idx = 1;
+            while (y <= Kast.Hoogte + 1)
+            {
+                yield return (y, idx);
+                y += Kast.GaatjesAfstand;
+                idx++;
+            }
+        }
+    }
+
+    private bool IsGebruikt(double y)
+    {
+        var o = Boorgat.Onderbouwing;
+        if (o is null) return false;
+        return Math.Abs(y - o.GaatBovenY) < 0.5 || Math.Abs(y - o.GaatOnderY) < 0.5;
+    }
+
+    private static string Fmt(double v)    => v.ToString("F1", CultureInfo.InvariantCulture);
+    private static string FormatMm(double v) => v.ToString("0.#", CultureInfo.InvariantCulture);
+}

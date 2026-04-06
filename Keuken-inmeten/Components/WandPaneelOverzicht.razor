@@ -1,0 +1,172 @@
+@using System.Globalization
+
+@*
+    Wandoverzicht met kleuroverlays voor toegewezen panelen.
+    Toont kasten als outline en elk paneel als gekleurde rechthoek over zijn kast(en).
+*@
+
+<div>
+    <svg width="@Fmt(SvgWidth)" height="@Fmt(SvgHoogte)" class="border rounded bg-white">
+
+        @* Muur achtergrond *@
+        <rect x="@Fmt(P)" y="@Fmt(P)" width="@Fmt(MuurBreedtePx)" height="@Fmt(MuurHoogtePx)"
+              fill="#f5f0e8" stroke="#bbb" stroke-width="1" />
+
+        @* Plint *@
+        @if (PlintHoogte > 0)
+        {
+            var ph = PlintHoogte * Schaal;
+            <rect x="@Fmt(P)" y="@Fmt(VloerY - ph)" width="@Fmt(MuurBreedtePx)" height="@Fmt(ph)"
+                  fill="#c8a87c" opacity="0.45" pointer-events="none" />
+            @((MarkupString)$"<text x=\"{Fmt(P + 4)}\" y=\"{Fmt(VloerY - ph / 2 + 3)}\" font-size=\"8\" fill=\"#7a5c2e\" pointer-events=\"none\">plint {PlintHoogte:F0}mm</text>")
+        }
+
+        @* Vloerlijn *@
+        <line x1="@Fmt(P)" y1="@Fmt(VloerY)" x2="@Fmt(P + MuurBreedtePx)" y2="@Fmt(VloerY)"
+              stroke="#8b7355" stroke-width="2" />
+
+        @* Kasten (outline) *@
+        @foreach (var kast in Kasten)
+        {
+            var kx = P + kast.XPositie * Schaal;
+            var ky = VloerY - (kast.HoogteVanVloer + kast.Hoogte) * Schaal;
+            var kw = kast.Breedte * Schaal;
+            var kh = kast.Hoogte * Schaal;
+            <rect x="@Fmt(kx)" y="@Fmt(ky)" width="@Fmt(kw)" height="@Fmt(kh)"
+                  fill="@KastKleur(kast.Type)" stroke="#8b7355" stroke-width="1" rx="1" opacity="0.55" />
+            @((MarkupString)$"<text x=\"{Fmt(kx + kw / 2)}\" y=\"{Fmt(ky + kh / 2 + 3)}\" font-size=\"8\" fill=\"#555\" text-anchor=\"middle\" pointer-events=\"none\">{kast.Naam}</text>")
+        }
+
+        @* Apparaten (outline) *@
+        @foreach (var apparaat in Apparaten)
+        {
+            var apx = P + apparaat.XPositie * Schaal;
+            var apy = VloerY - (apparaat.HoogteVanVloer + apparaat.Hoogte) * Schaal;
+            var apw = apparaat.Breedte * Schaal;
+            var aph = apparaat.Hoogte * Schaal;
+            <rect x="@Fmt(apx)" y="@Fmt(apy)" width="@Fmt(apw)" height="@Fmt(aph)"
+                  fill="@ApparaatKleur(apparaat.Type)" stroke="#555" stroke-width="1" rx="3" opacity="0.6" />
+            @((MarkupString)$"<text x=\"{Fmt(apx + apw / 2)}\" y=\"{Fmt(apy + aph / 2 - 4)}\" font-size=\"14\" text-anchor=\"middle\" pointer-events=\"none\">{ApparaatIcoon(apparaat.Type)}</text>")
+            @((MarkupString)$"<text x=\"{Fmt(apx + apw / 2)}\" y=\"{Fmt(apy + aph / 2 + 10)}\" font-size=\"7\" fill=\"#555\" text-anchor=\"middle\" pointer-events=\"none\">{apparaat.Naam}</text>")
+        }
+
+        @* Paneel-overlays *@
+        @for (int pi = 0; pi < GerelateerdeToewijzingen.Count; pi++)
+        {
+            var toewijzing = GerelateerdeToewijzingen[pi];
+            var panelKasten = toewijzing.KastIds
+                .Select(id => Kasten.Find(k => k.Id == id))
+                .Where(k => k is not null)
+                .Cast<Kast>()
+                .ToList();
+            if (panelKasten.Count == 0) continue;
+
+            var minX  = panelKasten.Min(k => k.XPositie);
+            var maxX  = panelKasten.Max(k => k.XPositie + k.Breedte);
+            var minVl = panelKasten.Min(k => k.HoogteVanVloer);
+            var maxTp = panelKasten.Max(k => k.HoogteVanVloer + k.Hoogte);
+
+            var px = P + minX  * Schaal;
+            var py = VloerY - maxTp * Schaal;
+            var pw = (maxX - minX)  * Schaal;
+            var ph = (maxTp - minVl) * Schaal;
+            var kleur = PaneelKleuren[pi % PaneelKleuren.Length];
+
+            <rect x="@Fmt(px)" y="@Fmt(py)" width="@Fmt(pw)" height="@Fmt(ph)"
+                  fill="@kleur" opacity="0.25" rx="2" pointer-events="none" />
+            <rect x="@Fmt(px)" y="@Fmt(py)" width="@Fmt(pw)" height="@Fmt(ph)"
+                  fill="none" stroke="@kleur" stroke-width="2" rx="2" pointer-events="none" />
+            @((MarkupString)$"<text x=\"{Fmt(px + pw / 2)}\" y=\"{Fmt(py + 11)}\" font-size=\"9\" fill=\"{kleur}\" text-anchor=\"middle\" font-weight=\"bold\" pointer-events=\"none\">{TypeLabel(toewijzing.Type)} {pi + 1}</text>")
+        }
+
+        @* Breedtelabel *@
+        @((MarkupString)$"<text x=\"{Fmt(P + MuurBreedtePx / 2)}\" y=\"{Fmt(P - 5)}\" font-size=\"10\" fill=\"#666\" text-anchor=\"middle\" font-weight=\"bold\">{WandBreedte:F0} mm</text>")
+    </svg>
+
+    @* Legenda *@
+    @if (GerelateerdeToewijzingen.Count > 0)
+    {
+        <div class="d-flex flex-wrap gap-1 mt-1">
+            @for (int li = 0; li < GerelateerdeToewijzingen.Count; li++)
+            {
+                var t = GerelateerdeToewijzingen[li];
+                var kastenNamen = string.Join(" + ", t.KastIds
+                    .Select(id => Kasten.Find(k => k.Id == id)?.Naam)
+                    .Where(n => n is not null));
+                var kleur = PaneelKleuren[li % PaneelKleuren.Length];
+                <span class="badge small" style="background-color: @kleur;">
+                    @(li + 1) @TypeLabel(t.Type) @t.Breedte×@t.Hoogte mm → @kastenNamen
+                </span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<Kast> Kasten { get; set; } = [];
+    [Parameter] public List<Apparaat> Apparaten { get; set; } = [];
+    [Parameter] public double WandBreedte { get; set; } = 3000;
+    [Parameter] public double WandHoogte { get; set; } = 2600;
+    [Parameter] public double PlintHoogte { get; set; }
+    [Parameter, EditorRequired] public List<PaneelToewijzing> AlleToewijzingen { get; set; } = [];
+
+    private List<PaneelToewijzing> GerelateerdeToewijzingen =>
+        AlleToewijzingen
+            .Where(t => t.KastIds.Any(id => Kasten.Any(k => k.Id == id)))
+            .ToList();
+
+    private const double P = 40;
+    private const double MaxVisueleHoogte = 260;
+
+    private double Schaal => MaxVisueleHoogte / Math.Max(WandHoogte, 1);
+    private double MuurHoogtePx => WandHoogte * Schaal;
+    private double MuurBreedtePx => WandBreedte * Schaal;
+    private double VloerY => P + MuurHoogtePx;
+    private double SvgWidth => MuurBreedtePx + P * 2;
+    private double SvgHoogte => MuurHoogtePx + P + 20;
+
+    private static readonly string[] PaneelKleuren =
+        ["#c0392b", "#2471a3", "#1e8449", "#7d3c98", "#d68910", "#117a65"];
+
+    private static string TypeLabel(PaneelType t) => t switch
+    {
+        PaneelType.Deur      => "Deur",
+        PaneelType.LadeFront => "Lade",
+        PaneelType.BlindPaneel => "Blind",
+        _ => t.ToString()
+    };
+
+    private static string KastKleur(KastType type) => type switch
+    {
+        KastType.Onderkast => "#f5deb3",
+        KastType.Bovenkast => "#d4e6f1",
+        KastType.HogeKast  => "#d5f5e3",
+        _ => "#f5deb3"
+    };
+
+    private static string ApparaatKleur(ApparaatType type) => type switch
+    {
+        ApparaatType.Oven => "#e8d5c4",
+        ApparaatType.Magnetron => "#d4d4e8",
+        ApparaatType.Vaatwasser => "#c4d8e8",
+        ApparaatType.Koelkast => "#c4e8e8",
+        ApparaatType.Vriezer => "#c4d4f0",
+        ApparaatType.Kookplaat => "#e8d4c4",
+        ApparaatType.Afzuigkap => "#d8d8d8",
+        _ => "#d8d8d8"
+    };
+
+    private static string ApparaatIcoon(ApparaatType type) => type switch
+    {
+        ApparaatType.Oven => "🔥",
+        ApparaatType.Magnetron => "📡",
+        ApparaatType.Vaatwasser => "🫧",
+        ApparaatType.Koelkast => "❄️",
+        ApparaatType.Vriezer => "🧊",
+        ApparaatType.Kookplaat => "♨️",
+        ApparaatType.Afzuigkap => "💨",
+        _ => "📦"
+    };
+
+    private static string Fmt(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
+}

@@ -1,0 +1,76 @@
+@using System.Globalization
+
+<svg width="@Fmt(SvgWidth)" height="@Fmt(SvgHeight)" class="border rounded bg-light">
+    @* Kast buitenkant *@
+    <rect x="@Fmt(P)" y="@Fmt(P)" width="@Fmt(W)" height="@Fmt(H)"
+          fill="#f5deb3" stroke="#8b7355" stroke-width="2" />
+
+    @* Wanddikte — boven, onder, links, rechts *@
+    @{
+        var wd = Kast.Wanddikte * Schaal;
+    }
+    <rect x="@Fmt(P + wd)" y="@Fmt(P + wd)" width="@Fmt(Math.Max(W - 2 * wd, 0))" height="@Fmt(Math.Max(H - 2 * wd, 0))"
+          fill="#faf3e6" stroke="#c9b896" stroke-width="0.5" stroke-dasharray="2,2" />
+
+    @* Gaatjesrij — beide kanten *@
+    @if (Kast.GaatjesAfstand > 0)
+    {
+        var gaatY = Kast.EersteGaatPositieVanafBoven;
+        while (gaatY < Kast.Hoogte - 5)
+        {
+            var gy = P + gaatY * Schaal;
+            <circle cx="@Fmt(P + 8)" cy="@Fmt(gy)" r="2" fill="none" stroke="#aaa" stroke-width="0.8" />
+            <circle cx="@Fmt(P + W - 8)" cy="@Fmt(gy)" r="2" fill="none" stroke="#aaa" stroke-width="0.8" />
+            gaatY += Kast.GaatjesAfstand;
+        }
+    }
+
+    @* Measurement from underside of the top shelf to the first hole *@
+    @{
+        var meetStartY = P + Kast.Wanddikte * Schaal;
+        var eersteGaatY = P + Kast.EersteGaatPositieVanafBoven * Schaal;
+        var meetLabelY = meetStartY + (eersteGaatY - meetStartY) / 2;
+    }
+    <line x1="@Fmt(P + W + 4)" y1="@Fmt(meetStartY)" x2="@Fmt(P + W + 4)" y2="@Fmt(eersteGaatY)"
+          stroke="#888" stroke-width="0.8" marker-start="url(#arrowUp)" marker-end="url(#arrowDown)" />
+    @((MarkupString)$"<text x=\"{Fmt(P + W + 8)}\" y=\"{Fmt(meetLabelY + 3)}\" font-size=\"8\" fill=\"#888\" text-anchor=\"start\">{Kast.EersteGaatVanBoven} mm</text>")
+    @((MarkupString)$"<text x=\"{Fmt(P + W + 8)}\" y=\"{Fmt(meetLabelY + 12)}\" font-size=\"7\" fill=\"#aaa\" text-anchor=\"start\">(onderkant plank)</text>")
+
+    @* Arrows defs *@
+    <defs>
+        <marker id="arrowUp" markerWidth="6" markerHeight="6" refX="3" refY="6" orient="auto">
+            <path d="M0,6 L3,0 L6,6" fill="none" stroke="#888" stroke-width="0.8" />
+        </marker>
+        <marker id="arrowDown" markerWidth="6" markerHeight="6" refX="3" refY="0" orient="auto">
+            <path d="M0,0 L3,6 L6,0" fill="none" stroke="#888" stroke-width="0.8" />
+        </marker>
+    </defs>
+
+    @foreach (var pos in Kast.MontagePlaatPosities)
+    {
+        var cy = P + pos.AfstandVanBoven * Schaal;
+        var cx = pos.Zijde == ScharnierZijde.Links ? P + 15 : P + W - 15;
+        var labelX = pos.Zijde == ScharnierZijde.Links ? cx + 12 : cx - 12;
+        var anchor = pos.Zijde == ScharnierZijde.Links ? "start" : "end";
+
+        <circle cx="@Fmt(cx)" cy="@Fmt(cy)" r="6" fill="#e74c3c" stroke="#c0392b" stroke-width="1" />
+        @((MarkupString)$"<text x=\"{Fmt(labelX)}\" y=\"{Fmt(cy + 4)}\" font-size=\"10\" fill=\"#555\" text-anchor=\"{anchor}\">{pos.AfstandVanBoven} mm</text>")
+    }
+
+    @((MarkupString)$"<text x=\"{Fmt(P + W / 2)}\" y=\"{Fmt(P - 6)}\" font-size=\"11\" fill=\"#333\" text-anchor=\"middle\">{Kast.Breedte} mm</text>")
+    @((MarkupString)$"<text x=\"{Fmt(P - 6)}\" y=\"{Fmt(P + H / 2)}\" font-size=\"11\" fill=\"#333\" text-anchor=\"middle\" transform=\"rotate(-90, {Fmt(P - 6)}, {Fmt(P + H / 2)})\">{Kast.Hoogte} mm</text>")
+</svg>
+
+@code {
+    [Parameter, EditorRequired] public Kast Kast { get; set; } = default!;
+    [Parameter] public double MaxHoogte { get; set; } = 250;
+
+    private const double P = 40;
+    private double Schaal => MaxHoogte / Math.Max(Kast.Hoogte, 1);
+    private double W => Kast.Breedte * Schaal;
+    private double H => Kast.Hoogte * Schaal;
+    private double SvgWidth => W + P * 2 + 60;
+    private double SvgHeight => H + P * 2;
+
+    private static string Fmt(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
+}

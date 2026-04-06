@@ -1,0 +1,776 @@
+@page "/kasten"
+@inject KeukenStateService State
+
+<PageTitle>Stap 1 — Keuken indeling</PageTitle>
+
+<StapIndicator HuidigeStap="kasten" />
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h2 class="page-header mb-0">Stap 1: Keuken indeling</h2>
+    @if (State.Kasten.Count > 0)
+    {
+        @if (bevestigVerwijderAlleKasten)
+        {
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-danger small fw-semibold">Alle @State.Kasten.Count kast(en) verwijderen?</span>
+                <button class="btn btn-sm btn-danger" @onclick="VerwijderAlleKasten">Ja, verwijder alles</button>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigVerwijderAlleKasten = false">Annuleren</button>
+            </div>
+        }
+        else
+        {
+            <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigVerwijderAlleKasten = true">
+                Verwijder alle kasten
+            </button>
+        }
+    }
+</div>
+<p class="text-muted">Maak wandindelingen aan en plaats kasten naast elkaar om uw keuken na te bouwen.</p>
+
+@* ──── Wand toevoegen ──── *@
+<div class="card mb-4">
+    <div class="card-body d-flex align-items-end gap-3">
+        <div class="flex-grow-1">
+            <label class="form-label fw-semibold">Nieuwe wand</label>
+            <input type="text" class="form-control" @bind="nieuweWandNaam"
+                   placeholder="bv. Linkerwand, Achterwand, Rechts bij raam" />
+        </div>
+        <button class="btn btn-primary" @onclick="WandToevoegen"
+                disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)">
+            Wand toevoegen
+        </button>
+    </div>
+</div>
+
+@if (State.Wanden.Count == 0)
+{
+    <div class="alert alert-info">
+        Begin door een wand toe te voegen. Elke wand stelt een rij kasten voor die naast elkaar staan.
+    </div>
+}
+
+@* ──── Per wand ──── *@
+@foreach (var wand in State.Wanden)
+{
+    var wandKasten = State.KastenVoorWand(wand.Id);
+    var wandApparaten = State.ApparatenVoorWand(wand.Id);
+
+    <div class="card mb-4 border-primary" @key="wand.Id">
+        <div class="card-header bg-primary bg-opacity-10 d-flex justify-content-between align-items-center">
+            @if (bewerkWandId == wand.Id)
+            {
+                <div class="d-flex gap-2 flex-grow-1 me-3">
+                    <input type="text" class="form-control form-control-sm" @bind="bewerkWandNaam" />
+                    <button class="btn btn-sm btn-outline-primary" @onclick="WandNaamOpslaan">Opslaan</button>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => bewerkWandId = null">Annuleren</button>
+                </div>
+            }
+            else
+            {
+                <h5 class="mb-0">
+                    @wand.Naam
+                    <small class="text-muted fw-normal ms-2">
+                        @wandKasten.Count kast(en) · @wand.TotaleBreedte(State.Kasten) mm breed
+                    </small>
+                </h5>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" @onclick="() => { bewerkWandId = wand.Id; bewerkWandNaam = wand.Naam; }"
+                            title="Naam wijzigen">
+                        Hernoemen
+                    </button>
+                    @if (bevestigVerwijderWandId == wand.Id)
+                    {
+                        <span class="btn btn-light disabled text-danger pe-none">Zeker?</span>
+                        <button class="btn btn-danger" @onclick="() => { State.VerwijderWand(wand.Id); bevestigVerwijderWandId = null; }">Ja</button>
+                        <button class="btn btn-outline-secondary" @onclick="() => bevestigVerwijderWandId = null">Nee</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-danger" @onclick="() => bevestigVerwijderWandId = wand.Id"
+                                title="Wand verwijderen">
+                            Verwijderen
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+        <div class="card-body">
+            @* ── Wandafmetingen ── *@
+            <div class="d-flex gap-3 mb-3">
+                <div>
+                    <label class="form-label small mb-0">Wandbreedte (mm)</label>
+                    <input type="number" class="form-control form-control-sm" style="width: 120px;"
+                           value="@wand.Breedte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.Breedte), e)" />
+                </div>
+                <div>
+                    <label class="form-label small mb-0">Wandhoogte (mm)</label>
+                    <input type="number" class="form-control form-control-sm" style="width: 120px;"
+                           value="@wand.Hoogte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.Hoogte), e)" />
+                </div>
+                <div>
+                    <label class="form-label small mb-0">Plinthoogte (mm)</label>
+                    <input type="number" class="form-control form-control-sm" style="width: 100px;" min="0" step="10"
+                           value="@wand.PlintHoogte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.PlintHoogte), e)" />
+                </div>
+            </div>
+
+            @* ── Kasten lijst compact ── *@
+            @if (wandKasten.Count > 0)
+            {
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    @foreach (var kast in wandKasten)
+                    {
+                        <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 small @(bewerkKastId == kast.Id && actieveWandId == wand.Id ? "border-primary bg-primary bg-opacity-10" : "")">
+                            <span class="badge @TypeBadge(kast.Type)">@kast.Type</span>
+                            <span class="fw-semibold">@kast.Naam</span>
+                            <span class="text-muted">@kast.Breedte×@kast.Hoogte</span>
+                            <button class="btn btn-outline-primary btn-sm px-1 ms-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                    @onclick="() => BewerkKast(kast, wand.Id)" title="Bewerken">✎</button>
+                            <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                    @onclick="() => KopieerKast(kast, wand.Id)" title="Kopiëren">⧉</button>
+                            @if (bevestigVerwijderKastId == kast.Id)
+                            {
+                                <span class="text-danger small ms-1">Weg?</span>
+                                <button class="btn btn-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                        @onclick="() => { VerwijderKast(kast.Id); bevestigVerwijderKastId = null; }">✓</button>
+                                <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                        @onclick="() => bevestigVerwijderKastId = null">✗</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                        @onclick="() => bevestigVerwijderKastId = kast.Id" title="Verwijderen">×</button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @* ── Apparaten lijst compact ── *@
+            @if (wandApparaten.Count > 0)
+            {
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    @foreach (var apparaat in wandApparaten)
+                    {
+                        <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 small @(bewerkApparaatId == apparaat.Id && actieveWandId == wand.Id ? "border-danger bg-danger bg-opacity-10" : "")">
+                            <span class="badge bg-secondary">@ApparaatTypeLabel(apparaat.Type)</span>
+                            <span class="fw-semibold">@apparaat.Naam</span>
+                            <span class="text-muted">@apparaat.Breedte×@apparaat.Hoogte</span>
+                            <button class="btn btn-outline-primary btn-sm px-1 ms-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                    @onclick="() => BewerkApparaat(apparaat, wand.Id)" title="Bewerken">✎</button>
+                            @if (bevestigVerwijderApparaatId == apparaat.Id)
+                            {
+                                <span class="text-danger small ms-1">Weg?</span>
+                                <button class="btn btn-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                        @onclick="() => { VerwijderApparaat(apparaat.Id); bevestigVerwijderApparaatId = null; }">✓</button>
+                                <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                        @onclick="() => bevestigVerwijderApparaatId = null">✗</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                        @onclick="() => bevestigVerwijderApparaatId = apparaat.Id" title="Verwijderen">×</button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @* ── Wandopstelling ── *@
+            @if (wandKasten.Count > 0 || wandApparaten.Count > 0)
+            {
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Wandopstelling</h6>
+                    <WandOpstelling Kasten="@wandKasten"
+                                    Apparaten="@wandApparaten"
+                                    WandHoogte="@wand.Hoogte"
+                                    WandBreedte="@wand.Breedte"
+                                    PlintHoogte="@wand.PlintHoogte"
+                                    GeselecteerdeKastId="@(actieveWandId == wand.Id ? bewerkKastId : null)"
+                                    OnKastGeselecteerd="(id) => SelecteerKast(id, wand.Id)"
+                                    OnKastVerplaatst="(args) => VerplaatsKastOpWand(args.kastId, args.xPositie, args.hoogteVanVloer)"
+                                    OnKastGewijzigd="KastGewijzigd"
+                                    OnKastKopieren="KopieerNaarKlembord"
+                                    OnKastPlakken="() => PlakUitKlembord(wand.Id)"
+                                    OnApparaatVerplaatst="(args) => VerplaatsApparaatOpWand(args.apparaatId, args.xPositie, args.hoogteVanVloer)" />
+                </div>
+            }
+
+            @* ── Kast / Apparaat toevoegen knoppen ── *@
+            @if (actieveWandId != wand.Id || (!toonKastFormulier && !toonApparaatFormulier))
+            {
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" @onclick="() => OpenKastFormulier(wand.Id)">
+                        + Kast toevoegen
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="() => OpenApparaatFormulier(wand.Id)">
+                        + Apparaat toevoegen
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@* ──── Kast formulier (overlay) ──── *@
+@if (toonKastFormulier && actieveWandId is not null)
+{
+    <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
+         style="z-index: 1050; background: rgba(0,0,0,0.4); overflow-y: auto; padding: 2rem 1rem;"
+         @onclick="SluitKastFormulier" @onclick:stopPropagation="false">
+        <div class="card border-success shadow-lg" style="max-width: 900px; width: 100%;"
+             @onclick:stopPropagation="true">
+            <div class="card-header bg-success bg-opacity-10 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">@(isBewerken ? "Kast bewerken" : "Kast toevoegen")</h5>
+                <button type="button" class="btn-close" @onclick="SluitKastFormulier"></button>
+            </div>
+            <div class="card-body">
+
+            @* ── Eerder gebruikte kasten ── *@
+            @if (!isBewerken && State.KastTemplates.Count > 0)
+            {
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-muted small">Eerder gebruikte kasten</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var template in State.KastTemplates.OrderByDescending(t => t.LaatstGebruikt))
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    @onclick="() => VulFormulierVanTemplate(template)"
+                                    title="@template.Naam · @template.Breedte×@template.Hoogte×@template.Diepte mm">
+                                <span class="badge @TypeBadge(template.Type) me-1">@template.Type</span>
+                                @template.Naam
+                                <small class="text-muted ms-1">@template.Breedte×@template.Hoogte</small>
+                            </button>
+                        }
+                    </div>
+                </div>
+                <hr class="my-2" />
+            }
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Wand</label>
+                    <select class="form-select" value="@actieveWandId" @onchange="OnWandGewijzigd">
+                        @foreach (var w in State.Wanden)
+                        {
+                            <option value="@w.Id">@w.Naam</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Naam</label>
+                    <input type="text" class="form-control" @bind="formKast.Naam"
+                           placeholder="bv. Onderkast spoelbak" />
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Breedte (mm)</label>
+                    <input type="number" class="form-control" @bind="formKast.Breedte" min="100" step="10" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Hoogte (mm)</label>
+                    <input type="number" class="form-control" @bind="formKast.Hoogte" @bind:after="AutoBerekenPosities" min="100" step="10" />
+                    <div class="form-text">Type: <span class="badge @TypeBadge(InferKastType(formKast.Hoogte))">@InferKastType(formKast.Hoogte)</span></div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Diepte (mm)</label>
+                    <input type="number" class="form-control" @bind="formKast.Diepte" min="100" step="10" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Wanddikte (mm)</label>
+                    <input type="number" class="form-control" @bind="formKast.Wanddikte" @bind:after="AutoBerekenPosities" min="1" step="1" />
+                </div>
+            </div>
+
+            @* ── Gaatjesrij ── *@
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Gaatjesrij</h6>
+            </div>
+            <p class="text-muted small mb-2">Rij gaten in de zijwand voor montage van scharnieren. Meet altijd vanaf de onderkant van de bovenste plank naar het eerste gat.</p>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Tussenafstand (mm)</label>
+                    <input type="number" class="form-control" @bind="formKast.GaatjesAfstand" @bind:after="AutoBerekenPosities" min="1" step="1" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Afstand onderkant bovenplank tot eerste gat (mm)</label>
+                    <input type="number" class="form-control" @bind="formKast.EersteGaatVanBoven" @bind:after="AutoBerekenPosities" min="1" step="1" />
+                    <div class="form-text">Meet vanaf de onderkant van de bovenste plank naar het eerste gat.</div>
+                </div>
+            </div>
+
+            <div class="text-center mb-3">
+                <KastVisueel Kast="@formKast" MaxHoogte="160" />
+            </div>
+
+            <p class="text-muted small mb-3"><em>Tip: dubbelklik in de wandopstelling om een plank toe te voegen. Sleep planken of gebruik de pijltjestoetsen. Selecteer een plank en druk Delete om hem te verwijderen.</em></p>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" @onclick="KastOpslaan"
+                        disabled="@string.IsNullOrWhiteSpace(formKast.Naam)">
+                    @(isBewerken ? "Opslaan" : "Kast toevoegen")
+                </button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="SluitKastFormulier">
+                    Annuleren
+                </button>
+            </div>
+            </div>
+        </div>
+    </div>
+}
+
+@* ──── Apparaat formulier (overlay) ──── *@
+@if (toonApparaatFormulier && actieveWandId is not null)
+{
+    <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
+         style="z-index: 1050; background: rgba(0,0,0,0.4); overflow-y: auto; padding: 2rem 1rem;"
+         @onclick="SluitApparaatFormulier" @onclick:stopPropagation="false">
+        <div class="card border-secondary shadow-lg" style="max-width: 600px; width: 100%;"
+             @onclick:stopPropagation="true">
+            <div class="card-header bg-secondary bg-opacity-10 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">@(isApparaatBewerken ? "Apparaat bewerken" : "Apparaat toevoegen")</h5>
+                <button type="button" class="btn-close" @onclick="SluitApparaatFormulier"></button>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" value="@formApparaat.Type" @onchange="OnApparaatTypeGewijzigd">
+                            @foreach (var t in Enum.GetValues<ApparaatType>())
+                            {
+                                <option value="@t">@ApparaatTypeLabel(t)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Naam</label>
+                        <input type="text" class="form-control" @bind="formApparaat.Naam"
+                               placeholder="bv. Oven Bosch" />
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Breedte (mm)</label>
+                        <input type="number" class="form-control" @bind="formApparaat.Breedte" min="100" step="10" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Hoogte (mm)</label>
+                        <input type="number" class="form-control" @bind="formApparaat.Hoogte" min="10" step="10" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Diepte (mm)</label>
+                        <input type="number" class="form-control" @bind="formApparaat.Diepte" min="100" step="10" />
+                    </div>
+                </div>
+
+                <div class="text-center mb-3">
+                    <svg width="120" height="80" class="border rounded bg-light">
+                        <text x="60" y="20" font-size="24" text-anchor="middle">@ApparaatIcoon(formApparaat.Type)</text>
+                        <text x="60" y="45" font-size="10" text-anchor="middle" fill="#333">@ApparaatTypeLabel(formApparaat.Type)</text>
+                        <text x="60" y="60" font-size="9" text-anchor="middle" fill="#888">@formApparaat.Breedte×@formApparaat.Hoogte mm</text>
+                    </svg>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" @onclick="ApparaatOpslaan"
+                            disabled="@string.IsNullOrWhiteSpace(formApparaat.Naam)">
+                        @(isApparaatBewerken ? "Opslaan" : "Apparaat toevoegen")
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" @onclick="SluitApparaatFormulier">
+                        Annuleren
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<StapNavigatie HuidigeStap="kasten"
+               VolgendeHref="/panelen"
+               VolgendeLabel="Panelen configureren"
+               VolgendeDisabled="@(State.Kasten.Count == 0)" />
+
+@code {
+    private string nieuweWandNaam = "";
+    private Guid? bewerkWandId;
+    private string bewerkWandNaam = "";
+    private Guid? bevestigVerwijderWandId;
+    private Guid? bevestigVerwijderKastId;
+    private Guid? _clipboardKastId;
+    private bool bevestigVerwijderAlleKasten;
+
+    private Guid? actieveWandId;
+    private Kast formKast = NieuweKast();
+    private bool isBewerken;
+    private Guid? bewerkKastId;
+    private bool toonKastFormulier;
+
+    private Apparaat formApparaat = NieuwApparaat();
+    private bool isApparaatBewerken;
+    private Guid? bewerkApparaatId;
+    private bool toonApparaatFormulier;
+    private Guid? bevestigVerwijderApparaatId;
+
+    private static Kast NieuweKast() => new()
+    {
+        Naam = "",
+        Type = KastType.Onderkast,
+        Breedte = 600,
+        Hoogte = 720,
+        Diepte = 560
+    };
+
+    private static Apparaat NieuwApparaat()
+    {
+        var (b, h, d) = Apparaat.StandaardAfmetingen(ApparaatType.Oven);
+        return new() { Naam = "", Type = ApparaatType.Oven, Breedte = b, Hoogte = h, Diepte = d };
+    }
+
+    private void WandToevoegen()
+    {
+        if (string.IsNullOrWhiteSpace(nieuweWandNaam)) return;
+        State.VoegWandToe(new KeukenWand { Naam = nieuweWandNaam.Trim() });
+        nieuweWandNaam = "";
+    }
+
+    private void VerwijderAlleKasten()
+    {
+        State.VerwijderAlleKasten();
+        bevestigVerwijderAlleKasten = false;
+        SluitKastFormulier();
+    }
+
+    private void WandNaamOpslaan()
+    {
+        if (bewerkWandId is null || string.IsNullOrWhiteSpace(bewerkWandNaam)) return;
+        var wand = State.Wanden.Find(w => w.Id == bewerkWandId);
+        if (wand is not null)
+        {
+            wand.Naam = bewerkWandNaam.Trim();
+        }
+        bewerkWandId = null;
+    }
+
+    private void OpenKastFormulier(Guid wandId)
+    {
+        actieveWandId = wandId;
+        formKast = NieuweKast();
+        isBewerken = false;
+        bewerkKastId = null;
+        toonKastFormulier = true;
+        AutoBerekenPosities();
+    }
+
+    private void VulFormulierVanTemplate(KastTemplate template)
+    {
+        formKast.Naam = template.Naam;
+        formKast.Breedte = template.Breedte;
+        formKast.Hoogte = template.Hoogte;
+        formKast.Diepte = template.Diepte;
+        formKast.Wanddikte = template.Wanddikte;
+        formKast.GaatjesAfstand = template.GaatjesAfstand;
+        formKast.EersteGaatVanBoven = template.EersteGaatVanBoven;
+        formKast.Type = InferKastType(formKast.Hoogte);
+        AutoBerekenPosities();
+    }
+
+    private void SluitKastFormulier()
+    {
+        actieveWandId = null;
+        formKast = NieuweKast();
+        isBewerken = false;
+        bewerkKastId = null;
+        toonKastFormulier = false;
+    }
+
+    private void OnWandGewijzigd(ChangeEventArgs e)
+    {
+        if (Guid.TryParse(e.Value?.ToString(), out var id))
+            actieveWandId = id;
+    }
+
+    private static KastType InferKastType(double hoogte) => hoogte switch
+    {
+        <= 500  => KastType.Bovenkast,
+        >= 1100 => KastType.HogeKast,
+        _       => KastType.Onderkast
+    };
+
+    private void KastOpslaan()
+    {
+        if (string.IsNullOrWhiteSpace(formKast.Naam)) return;
+        if (actieveWandId is null) return;
+
+        formKast.Type = InferKastType(formKast.Hoogte);
+        AutoBerekenPosities();
+
+        if (isBewerken && bewerkKastId.HasValue)
+        {
+            // Preserve planks managed via SVG drag/drop
+            var bestaand = State.Kasten.Find(k => k.Id == bewerkKastId.Value);
+            if (bestaand != null)
+                formKast.Planken = bestaand.Planken;
+            formKast.Id = bewerkKastId.Value;
+            State.WerkKastBij(formKast);
+        }
+        else
+        {
+            formKast.Id = Guid.NewGuid();
+            var bestaandeKasten = State.KastenVoorWand(actieveWandId.Value);
+            formKast.XPositie = bestaandeKasten.Sum(k => k.Breedte);
+            State.VoegKastToe(formKast, actieveWandId.Value);
+        }
+
+        formKast = NieuweKast();
+        isBewerken = false;
+        bewerkKastId = null;
+        toonKastFormulier = false;
+    }
+
+    private void SelecteerKast(Guid kastId, Guid wandId)
+    {
+        actieveWandId = wandId;
+        bewerkKastId = kastId;
+        // Only highlight — edit form opens via the ✎ button
+    }
+
+    private void BewerkKast(Kast kast, Guid wandId)
+    {
+        actieveWandId = wandId;
+        isBewerken = true;
+        bewerkKastId = kast.Id;
+        toonKastFormulier = true;
+        formKast = new Kast
+        {
+            Id = kast.Id,
+            Naam = kast.Naam,
+            Type = kast.Type,
+            Breedte = kast.Breedte,
+            Hoogte = kast.Hoogte,
+            Diepte = kast.Diepte,
+            Wanddikte = kast.Wanddikte,
+            GaatjesAfstand = kast.GaatjesAfstand,
+            EersteGaatVanBoven = kast.EersteGaatVanBoven,
+            HoogteVanVloer = kast.HoogteVanVloer,
+            XPositie = kast.XPositie,
+            MontagePlaatPosities = kast.MontagePlaatPosities
+                .Select(p => new MontagePlaatPositie { AfstandVanBoven = p.AfstandVanBoven, Zijde = p.Zijde })
+                .ToList()
+        };
+    }
+
+    private void KopieerKast(Kast kast, Guid wandId)
+    {
+        var kopie = new Kast
+        {
+            Id = Guid.NewGuid(),
+            Naam = kast.Naam + " (kopie)",
+            Type = kast.Type,
+            Breedte = kast.Breedte,
+            Hoogte = kast.Hoogte,
+            Diepte = kast.Diepte,
+            Wanddikte = kast.Wanddikte,
+            GaatjesAfstand = kast.GaatjesAfstand,
+            EersteGaatVanBoven = kast.EersteGaatVanBoven,
+            HoogteVanVloer = kast.HoogteVanVloer,
+            XPositie = Math.Min(State.KastenVoorWand(wandId).Sum(k => k.Breedte),
+                                Math.Max(0, (State.Wanden.Find(w => w.KastIds.Contains(kast.Id))?.Breedte ?? State.Wanden.Find(w => w.Id == wandId)?.Breedte ?? double.MaxValue) - kast.Breedte)),
+            MontagePlaatPosities = kast.MontagePlaatPosities
+                .Select(p => new MontagePlaatPositie { AfstandVanBoven = p.AfstandVanBoven, Zijde = p.Zijde })
+                .ToList(),
+            Planken = kast.Planken
+                .Select(p => new Plank { HoogteVanBodem = p.HoogteVanBodem })
+                .ToList()
+        };
+        State.VoegKastToe(kopie, wandId);
+    }
+
+    private void VerwijderKast(Guid id)
+    {
+        State.VerwijderKast(id);
+        if (bewerkKastId == id) SluitKastFormulier();
+    }
+
+    private void VerplaatsKast(Guid wandId, int vanIndex, int naarIndex)
+    {
+        State.VerplaatsKastInWand(wandId, vanIndex, naarIndex);
+    }
+
+    private void AutoBerekenPosities()
+    {
+        var posities = ScharnierBerekeningService.BerekenStandaardPosities(
+            formKast.Hoogte, formKast.EersteGaatPositieVanafBoven, formKast.GaatjesAfstand);
+        formKast.MontagePlaatPosities = posities
+            .SelectMany(p => new[]
+            {
+                new MontagePlaatPositie { AfstandVanBoven = p, Zijde = ScharnierZijde.Links },
+                new MontagePlaatPositie { AfstandVanBoven = p, Zijde = ScharnierZijde.Rechts }
+            })
+            .OrderBy(p => p.AfstandVanBoven)
+            .ThenBy(p => p.Zijde)
+            .ToList();
+    }
+
+    private void WijzigWandAfmeting(KeukenWand wand, string eigenschap, ChangeEventArgs e)
+    {
+        if (!double.TryParse(e.Value?.ToString(), out var waarde)) return;
+
+        if (eigenschap == nameof(KeukenWand.Breedte) && waarde > 0)
+            wand.Breedte = waarde;
+        else if (eigenschap == nameof(KeukenWand.Hoogte) && waarde > 0)
+            wand.Hoogte = waarde;
+        else if (eigenschap == nameof(KeukenWand.PlintHoogte) && waarde >= 0)
+            wand.PlintHoogte = waarde;
+    }
+
+    private void VerplaatsKastOpWand(Guid kastId, double xPositie, double hoogteVanVloer)
+    {
+        var kast = State.Kasten.Find(k => k.Id == kastId);
+        if (kast is null) return;
+
+        kast.XPositie = xPositie;
+        kast.HoogteVanVloer = hoogteVanVloer;
+        State.WerkKastBij(kast);
+    }
+
+    private void KopieerNaarKlembord(Guid kastId) => _clipboardKastId = kastId;
+
+    private void PlakUitKlembord(Guid wandId)
+    {
+        if (_clipboardKastId is null) return;
+        var kast = State.Kasten.Find(k => k.Id == _clipboardKastId.Value);
+        if (kast is null) return;
+        KopieerKast(kast, wandId);
+    }
+
+    private void KastGewijzigd(Guid kastId)
+    {
+        // Planks are mutated directly on the shared kast object; just trigger re-render.
+        InvokeAsync(StateHasChanged);
+    }
+
+    // --- Apparaten ---
+
+    private void OpenApparaatFormulier(Guid wandId)
+    {
+        actieveWandId = wandId;
+        formApparaat = NieuwApparaat();
+        isApparaatBewerken = false;
+        bewerkApparaatId = null;
+        toonApparaatFormulier = true;
+    }
+
+    private void SluitApparaatFormulier()
+    {
+        toonApparaatFormulier = false;
+        formApparaat = NieuwApparaat();
+        isApparaatBewerken = false;
+        bewerkApparaatId = null;
+    }
+
+    private void OnApparaatTypeGewijzigd(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<ApparaatType>(e.Value?.ToString(), out var type))
+        {
+            formApparaat.Type = type;
+            if (!isApparaatBewerken)
+            {
+                var (b, h, d) = Apparaat.StandaardAfmetingen(type);
+                formApparaat.Breedte = b;
+                formApparaat.Hoogte = h;
+                formApparaat.Diepte = d;
+            }
+        }
+    }
+
+    private void ApparaatOpslaan()
+    {
+        if (string.IsNullOrWhiteSpace(formApparaat.Naam)) return;
+        if (actieveWandId is null) return;
+
+        if (isApparaatBewerken && bewerkApparaatId.HasValue)
+        {
+            formApparaat.Id = bewerkApparaatId.Value;
+            State.WerkApparaatBij(formApparaat);
+        }
+        else
+        {
+            formApparaat.Id = Guid.NewGuid();
+            var bestaandeKasten = State.KastenVoorWand(actieveWandId.Value);
+            var bestaandeApparaten = State.ApparatenVoorWand(actieveWandId.Value);
+            formApparaat.XPositie = bestaandeKasten.Sum(k => k.Breedte) + bestaandeApparaten.Sum(a => a.Breedte);
+            State.VoegApparaatToe(formApparaat, actieveWandId.Value);
+        }
+
+        SluitApparaatFormulier();
+    }
+
+    private void BewerkApparaat(Apparaat apparaat, Guid wandId)
+    {
+        actieveWandId = wandId;
+        isApparaatBewerken = true;
+        bewerkApparaatId = apparaat.Id;
+        toonApparaatFormulier = true;
+        formApparaat = new Apparaat
+        {
+            Id = apparaat.Id,
+            Naam = apparaat.Naam,
+            Type = apparaat.Type,
+            Breedte = apparaat.Breedte,
+            Hoogte = apparaat.Hoogte,
+            Diepte = apparaat.Diepte,
+            HoogteVanVloer = apparaat.HoogteVanVloer,
+            XPositie = apparaat.XPositie
+        };
+    }
+
+    private void VerwijderApparaat(Guid id)
+    {
+        State.VerwijderApparaat(id);
+        if (bewerkApparaatId == id) SluitApparaatFormulier();
+    }
+
+    private void VerplaatsApparaatOpWand(Guid apparaatId, double xPositie, double hoogteVanVloer)
+    {
+        var apparaat = State.Apparaten.Find(a => a.Id == apparaatId);
+        if (apparaat is null) return;
+
+        apparaat.XPositie = xPositie;
+        apparaat.HoogteVanVloer = hoogteVanVloer;
+        State.WerkApparaatBij(apparaat);
+    }
+
+    private static string ApparaatTypeLabel(ApparaatType type) => type switch
+    {
+        ApparaatType.Oven => "Oven",
+        ApparaatType.Magnetron => "Magnetron",
+        ApparaatType.Vaatwasser => "Vaatwasser",
+        ApparaatType.Koelkast => "Koelkast",
+        ApparaatType.Vriezer => "Vriezer",
+        ApparaatType.Kookplaat => "Kookplaat",
+        ApparaatType.Afzuigkap => "Afzuigkap",
+        _ => type.ToString()
+    };
+
+    private static string ApparaatIcoon(ApparaatType type) => type switch
+    {
+        ApparaatType.Oven => "🔥",
+        ApparaatType.Magnetron => "📡",
+        ApparaatType.Vaatwasser => "🫧",
+        ApparaatType.Koelkast => "❄️",
+        ApparaatType.Vriezer => "🧊",
+        ApparaatType.Kookplaat => "♨️",
+        ApparaatType.Afzuigkap => "💨",
+        _ => "📦"
+    };
+
+    private static string TypeBadge(KastType type) => type switch
+    {
+        KastType.Onderkast => "bg-warning text-dark",
+        KastType.Bovenkast => "bg-info text-dark",
+        KastType.HogeKast => "bg-success",
+        _ => "bg-secondary"
+    };
+}
