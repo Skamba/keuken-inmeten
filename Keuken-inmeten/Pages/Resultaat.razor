@@ -19,7 +19,7 @@
 @if (resultaten.Count == 0)
 {
     <div class="alert alert-warning">
-        Geen panelen geconfigureerd. <a href="/panelen">Ga terug om panelen toe te wijzen.</a>
+        Geen panelen geconfigureerd. <a href="panelen">Ga terug om panelen toe te wijzen.</a>
     </div>
 }
 else
@@ -226,7 +226,7 @@ else
 }
 
 <StapNavigatie HuidigeStap="resultaat"
-               VorigeHref="/panelen"
+               VorigeHref="panelen"
                VorigeLabel="Terug naar panelen">
     <Midden>
         <button class="btn btn-outline-primary" @onclick="PrintResultaat">🖨️ Afdrukken</button>

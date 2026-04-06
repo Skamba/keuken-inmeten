@@ -11,7 +11,7 @@
 @if (State.Kasten.Count == 0)
 {
     <div class="alert alert-warning">
-        <a href="/kasten">Voer eerst kasten in</a> voordat u panelen kunt configureren.
+        <a href="kasten">Voer eerst kasten in</a> voordat u panelen kunt configureren.
     </div>
 }
 else
@@ -202,9 +202,9 @@ else
 }
 
 <StapNavigatie HuidigeStap="panelen"
-               VorigeHref="/kasten"
+               VorigeHref="kasten"
                VorigeLabel="Terug naar indeling"
-               VolgendeHref="/resultaat"
+               VolgendeHref="resultaat"
                VolgendeLabel="Resultaat bekijken"
                VolgendeDisabled="@(State.Toewijzingen.Count == 0)" />
 

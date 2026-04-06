@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 
-const BASE = 'http://localhost:32591';
+const BASE = process.env.BASE_URL ?? 'http://localhost:32591';
 
 async function waitB(page) {
   await page.waitForFunction(() => !document.querySelector('.loading-progress'), { timeout: 60000 });

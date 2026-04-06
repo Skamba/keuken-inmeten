@@ -1,7 +1,7 @@
 <div class="stap-navigatie">
     @if (!string.IsNullOrEmpty(VorigeHref))
     {
-        <a href="@VorigeHref" class="btn btn-outline-secondary text-nowrap">← @VorigeLabel</a>
+        <a href="@NormaliseerHref(VorigeHref)" class="btn btn-outline-secondary text-nowrap">← @VorigeLabel</a>
     }
     else
     {
@@ -9,11 +9,11 @@
     }
 
     <div class="stap-navigatie-stappen">
-        <a href="/kasten" class="@(HuidigeStap == "kasten" ? "actief" : "")">1. Indeling</a>
+        <a href="kasten" class="@(HuidigeStap == "kasten" ? "actief" : "")">1. Indeling</a>
         <span class="stap-pijl">›</span>
-        <a href="/panelen" class="@(HuidigeStap == "panelen" ? "actief" : "")">2. Panelen</a>
+        <a href="panelen" class="@(HuidigeStap == "panelen" ? "actief" : "")">2. Panelen</a>
         <span class="stap-pijl">›</span>
-        <a href="/resultaat" class="@(HuidigeStap == "resultaat" ? "actief" : "")">3. Resultaat</a>
+        <a href="resultaat" class="@(HuidigeStap == "resultaat" ? "actief" : "")">3. Resultaat</a>
     </div>
 
     @if (Midden is not null)
@@ -29,7 +29,7 @@
         }
         else
         {
-            <a href="@VolgendeHref" class="btn btn-success text-nowrap">@VolgendeLabel →</a>
+            <a href="@NormaliseerHref(VolgendeHref)" class="btn btn-success text-nowrap">@VolgendeLabel →</a>
         }
     }
     else
@@ -46,4 +46,7 @@
     [Parameter] public string VolgendeLabel { get; set; } = "Volgende stap";
     [Parameter] public bool VolgendeDisabled { get; set; }
     [Parameter] public RenderFragment? Midden { get; set; }
+
+    private static string NormaliseerHref(string? href)
+        => string.IsNullOrWhiteSpace(href) ? "" : href.TrimStart('/');
 }

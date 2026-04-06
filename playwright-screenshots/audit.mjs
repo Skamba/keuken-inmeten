@@ -1,8 +1,8 @@
 import { chromium } from "playwright";
 import fs from "fs";
 
-const BASE = "http://localhost:43463";
-const OUT = "./screenshots";
+const BASE = process.env.BASE_URL ?? "http://localhost:43463";
+const OUT = process.env.SCREENSHOT_DIR ?? "./screenshots";
 fs.mkdirSync(OUT, { recursive: true });
 fs.readdirSync(OUT).filter(f => f.endsWith(".png")).forEach(f => fs.unlinkSync(`${OUT}/${f}`));
 
