@@ -59,9 +59,9 @@
                     <div class="scharnier-viewer-subtitle">Sleep om te pannen en gebruik het muiswiel of de knoppen om te zoomen.</div>
                 </div>
                 <div class="scharnier-viewer-actions">
-                    <button type="button" class="btn btn-light btn-sm" @onclick="ZoomOutViewer" aria-label="Zoom uit">−</button>
-                    <button type="button" class="btn btn-light btn-sm" @onclick="ResetViewer">100%</button>
-                    <button type="button" class="btn btn-light btn-sm" @onclick="ZoomInViewer" aria-label="Zoom in">+</button>
+                    <button type="button" class="btn btn-light btn-sm" @onclick="ZoomOutViewer" aria-label="Zoom uit" disabled="@(!_viewerInitialized)">−</button>
+                    <button type="button" class="btn btn-light btn-sm" @onclick="ResetViewer" disabled="@(!_viewerInitialized)">100%</button>
+                    <button type="button" class="btn btn-light btn-sm" @onclick="ZoomInViewer" aria-label="Zoom in" disabled="@(!_viewerInitialized)">+</button>
                     <button type="button" class="btn btn-outline-light btn-sm" @onclick="CloseViewer">Sluiten</button>
                 </div>
             </div>
@@ -131,10 +131,12 @@
             "import", "./Components/ScharnierOverzichtVisueel.razor.js");
         await jsModule.InvokeVoidAsync("init", viewerStage, viewerCanvas, viewerShell);
         _viewerInitialized = true;
+        await InvokeAsync(StateHasChanged);
     }
 
     private void OpenViewer()
     {
+        _viewerInitialized = false;
         _viewerOpen = true;
     }
 
