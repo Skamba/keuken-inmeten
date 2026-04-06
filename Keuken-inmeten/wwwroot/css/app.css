@@ -485,6 +485,31 @@ code {
     gap: 0.5rem;
 }
 
+.deel-acties {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.deel-acties-knoppen {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.deel-status {
+    min-height: 1.1rem;
+    font-size: 0.8rem;
+    color: #1f7a45;
+    text-align: center;
+}
+
+.deel-status.fout {
+    color: #b42318;
+}
+
 /* ── Resultaat onderbouwing uitklapper ── */
 .onderbouwing-blok {
     border-top: 1px solid #e9ecef;

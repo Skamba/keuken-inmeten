@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@inject PersistentieService Persistentie
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -6,6 +8,13 @@
 
     <main>
         <article class="content px-4">
+            @if (Persistentie.HeeftOngeldigeDeelLink)
+            {
+                <div class="alert alert-warning mt-3" role="alert">
+                    De deellink kon niet worden gelezen. Controleer of de volledige URL is gekopieerd.
+                </div>
+            }
+
             @Body
         </article>
     </main>

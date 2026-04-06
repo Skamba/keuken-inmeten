@@ -1,5 +1,6 @@
 @page "/resultaat"
 @inject KeukenStateService State
+@inject PersistentieService Persistentie
 @inject IJSRuntime JS
 
 <PageTitle>Stap 3 — Resultaat</PageTitle>
@@ -240,12 +241,23 @@ else
                VorigeHref="panelen"
                VorigeLabel="Terug naar panelen">
     <Midden>
-        <button class="btn btn-outline-primary" @onclick="PrintResultaat">🖨️ Afdrukken</button>
+        <div class="deel-acties">
+            <div class="deel-acties-knoppen">
+                <button class="btn btn-outline-secondary" @onclick="DeelResultaat">🔗 Deel link</button>
+                <button class="btn btn-outline-primary" @onclick="PrintResultaat">🖨️ Afdrukken</button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_deelStatus))
+            {
+                <div class="deel-status @(_deelStatusIsFout ? "fout" : "")">@_deelStatus</div>
+            }
+        </div>
     </Midden>
 </StapNavigatie>
 
 @code {
     private readonly HashSet<int> _uitgeklapt = [];
+    private string? _deelStatus;
+    private bool _deelStatusIsFout;
 
     private bool IsUitgeklapt(int index) => _uitgeklapt.Contains(index);
 
@@ -331,5 +343,27 @@ else
     private async Task PrintResultaat()
     {
         await JS.InvokeVoidAsync("window.print");
+    }
+
+    private async Task DeelResultaat()
+    {
+        try
+        {
+            var deelUrl = Persistentie.MaakDeelUrl("resultaat");
+            var resultaat = await JS.InvokeAsync<string>("keukenShare.shareUrl", deelUrl, "Keuken-inmeten", "Bekijk deze keukenconfiguratie");
+
+            (_deelStatus, _deelStatusIsFout) = resultaat switch
+            {
+                "shared" => ("De share-sheet is geopend met de publieke GitHub Pages-link.", false),
+                "copied" => ("De publieke deellink is gekopieerd naar het klembord.", false),
+                "cancelled" => ("Delen geannuleerd; de link is niet verstuurd.", false),
+                _ => ("Delen lukte niet in deze browser.", true)
+            };
+        }
+        catch
+        {
+            _deelStatus = "Deellink maken of kopieren lukte niet.";
+            _deelStatusIsFout = true;
+        }
     }
 }
