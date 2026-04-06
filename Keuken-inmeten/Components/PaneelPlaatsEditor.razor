@@ -371,14 +371,18 @@
                 continue;
 
             var kastenVoorPaneel = PaneelLayoutService.BepaalOverlappendeKasten(Kasten, openingsRechthoek);
+            var dragendeKastIds = kastenVoorPaneel.Select(kast => kast.Id).ToHashSet();
+            var buurKasten = Kasten
+                .Where(kast => !dragendeKastIds.Contains(kast.Id))
+                .Select(PaneelLayoutService.NaarRechthoek);
+            var buurApparaten = Apparaten.Select(PaneelLayoutService.NaarRechthoek);
             var anderePanelen = openingsOpToewijzingId
                 .Where(item => item.Key != toewijzing.Id)
                 .Select(item => item.Value)
                 .ToList();
             var werkRechthoek = PaneelSpelingService.BerekenMaatInfo(
                 openingsRechthoek,
-                kastenVoorPaneel,
-                anderePanelen,
+                [.. buurKasten, .. buurApparaten, .. anderePanelen],
                 RandSpelingPerRaakrand).PaneelRechthoek;
             index++;
             yield return new PaneelVisual(
@@ -400,6 +404,11 @@
         if (dragendeKasten.Count == 0)
             return null;
 
+        var dragendeKastIds = dragendeKasten.Select(kast => kast.Id).ToHashSet();
+        var buurKasten = Kasten
+            .Where(kast => !dragendeKastIds.Contains(kast.Id))
+            .Select(PaneelLayoutService.NaarRechthoek);
+        var buurApparaten = Apparaten.Select(PaneelLayoutService.NaarRechthoek);
         var anderePanelen = Toewijzingen?
             .Select(toewijzing => PaneelLayoutService.BerekenRechthoek(
                 toewijzing,
@@ -408,7 +417,7 @@
             .Cast<PaneelRechthoek>()
             .ToList() ?? [];
 
-        return PaneelSpelingService.BerekenMaatInfo(ConceptPaneel, dragendeKasten, anderePanelen, RandSpelingPerRaakrand);
+        return PaneelSpelingService.BerekenMaatInfo(ConceptPaneel, [.. buurKasten, .. buurApparaten, .. anderePanelen], RandSpelingPerRaakrand);
     }
 
     private static IEnumerable<HandlePositie> DraftHandles(double x, double y, double w, double h)

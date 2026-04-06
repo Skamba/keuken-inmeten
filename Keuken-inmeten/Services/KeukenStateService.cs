@@ -304,9 +304,25 @@ public class KeukenStateService
         if (openingsRechthoek is null)
             return null;
 
-        var wandKastIds = VindWandKastIds(toewijzing.KastIds);
-        var anderePanelen = Toewijzingen
-            .Where(item => item.Id != toewijzing.Id && item.KastIds.Any(wandKastIds.Contains))
+        var buurRechthoeken = BouwBuurRechthoeken(toewijzing, kasten);
+        return PaneelSpelingService.BerekenMaatInfo(openingsRechthoek, buurRechthoeken, PaneelRandSpeling);
+    }
+
+    private List<PaneelRechthoek> BouwBuurRechthoeken(PaneelToewijzing toewijzing, List<Kast> dragendeKasten)
+    {
+        var dragendeKastIds = dragendeKasten.Select(kast => kast.Id).ToHashSet();
+        var wand = Wanden.FirstOrDefault(item => item.KastIds.Any(dragendeKastIds.Contains));
+        if (wand is null)
+            return [];
+
+        var buurKasten = Kasten
+            .Where(kast => wand.KastIds.Contains(kast.Id) && !dragendeKastIds.Contains(kast.Id))
+            .Select(PaneelLayoutService.NaarRechthoek);
+        var buurApparaten = Apparaten
+            .Where(apparaat => wand.ApparaatIds.Contains(apparaat.Id))
+            .Select(PaneelLayoutService.NaarRechthoek);
+        var buurPanelen = Toewijzingen
+            .Where(item => item.Id != toewijzing.Id && item.KastIds.Any(wand.KastIds.Contains))
             .Select(item =>
             {
                 var panelKasten = item.KastIds
@@ -317,16 +333,8 @@ public class KeukenStateService
                 return PaneelLayoutService.BerekenRechthoek(item, panelKasten);
             })
             .Where(rechthoek => rechthoek is not null)
-            .Cast<PaneelRechthoek>()
-            .ToList();
+            .Cast<PaneelRechthoek>();
 
-        return PaneelSpelingService.BerekenMaatInfo(openingsRechthoek, kasten, anderePanelen, PaneelRandSpeling);
-    }
-
-    private HashSet<Guid> VindWandKastIds(IEnumerable<Guid> kastIds)
-    {
-        var kastIdSet = kastIds.ToHashSet();
-        var wand = Wanden.FirstOrDefault(item => item.KastIds.Any(kastIdSet.Contains));
-        return wand is null ? kastIdSet : wand.KastIds.ToHashSet();
+        return [.. buurKasten, .. buurApparaten, .. buurPanelen];
     }
 }

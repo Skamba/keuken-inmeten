@@ -668,14 +668,22 @@ else
         if (conceptPaneel is null)
             return null;
 
-        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel);
+        if (ActieveWandId is not Guid wandId)
+            return null;
+
+        var wandKasten = State.KastenVoorWand(wandId);
+        var wandKastIds = wandKasten.Select(kast => kast.Id).ToHashSet();
+        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(wandKasten, conceptPaneel);
         if (dragendeKasten.Count == 0)
             return null;
 
-        var wandKastIds = ActieveWandId is Guid wandId
-            ? State.KastenVoorWand(wandId).Select(kast => kast.Id).ToHashSet()
-            : geselecteerdeKastIds.ToHashSet();
-        var anderePanelen = State.Toewijzingen
+        var dragendeKastIds = dragendeKasten.Select(kast => kast.Id).ToHashSet();
+        var buurKasten = wandKasten
+            .Where(kast => !dragendeKastIds.Contains(kast.Id))
+            .Select(PaneelLayoutService.NaarRechthoek);
+        var buurApparaten = State.ApparatenVoorWand(wandId)
+            .Select(PaneelLayoutService.NaarRechthoek);
+        var buurPanelen = State.Toewijzingen
             .Where(toewijzing => toewijzing.Id != bewerkToewijzingId && toewijzing.KastIds.Any(wandKastIds.Contains))
             .Select(toewijzing =>
             {
@@ -685,10 +693,9 @@ else
                 return PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
             })
             .Where(rechthoek => rechthoek is not null)
-            .Cast<PaneelRechthoek>()
-            .ToList();
+            .Cast<PaneelRechthoek>();
 
-        return PaneelSpelingService.BerekenMaatInfo(conceptPaneel, dragendeKasten, anderePanelen, State.PaneelRandSpeling);
+        return PaneelSpelingService.BerekenMaatInfo(conceptPaneel, [.. buurKasten, .. buurApparaten, .. buurPanelen], State.PaneelRandSpeling);
     }
 
     private void PaneelOpslaan()
@@ -824,7 +831,7 @@ else
         if (maatInfo.TotaleInkortingBreedte <= 0.001)
             return $"Breedte blijft gelijk op {FormatMm(maatInfo.PaneelRechthoek.Breedte)}; links en rechts raken geen andere rand.";
 
-        return $"Breedte: {FormatMm(maatInfo.OpeningsRechthoek.Breedte)} opening -> {FormatMm(maatInfo.PaneelRechthoek.Breedte)} paneel. {string.Join(" + ", SpelingDelen(maatInfo.RaaktLinks, maatInfo.InkortingLinks, "links", maatInfo.RaaktRechts, maatInfo.InkortingRechts, "rechts"))} aftrek omdat deze randen een kast- of paneelrand raken.";
+        return $"Breedte: {FormatMm(maatInfo.OpeningsRechthoek.Breedte)} opening -> {FormatMm(maatInfo.PaneelRechthoek.Breedte)} paneel. {string.Join(" + ", SpelingDelen(maatInfo.RaaktLinks, maatInfo.InkortingLinks, "links", maatInfo.RaaktRechts, maatInfo.InkortingRechts, "rechts"))} aftrek omdat deze randen een andere kast-, apparaat- of paneelrand raken.";
     }
 
     private static string HoogteSpelingTekst(PaneelMaatInfo maatInfo)
@@ -832,7 +839,7 @@ else
         if (maatInfo.TotaleInkortingHoogte <= 0.001)
             return $"Hoogte blijft gelijk op {FormatMm(maatInfo.PaneelRechthoek.Hoogte)}; boven en onder raken geen andere rand.";
 
-        return $"Hoogte: {FormatMm(maatInfo.OpeningsRechthoek.Hoogte)} opening -> {FormatMm(maatInfo.PaneelRechthoek.Hoogte)} paneel. {string.Join(" + ", SpelingDelen(maatInfo.RaaktOnder, maatInfo.InkortingOnder, "onder", maatInfo.RaaktBoven, maatInfo.InkortingBoven, "boven"))} aftrek omdat deze randen een kast- of paneelrand raken.";
+        return $"Hoogte: {FormatMm(maatInfo.OpeningsRechthoek.Hoogte)} opening -> {FormatMm(maatInfo.PaneelRechthoek.Hoogte)} paneel. {string.Join(" + ", SpelingDelen(maatInfo.RaaktOnder, maatInfo.InkortingOnder, "onder", maatInfo.RaaktBoven, maatInfo.InkortingBoven, "boven"))} aftrek omdat deze randen een andere kast-, apparaat- of paneelrand raken.";
     }
 
     private static IEnumerable<string> SpelingDelen(

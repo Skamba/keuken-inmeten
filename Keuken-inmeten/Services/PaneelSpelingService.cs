@@ -17,22 +17,20 @@ public static class PaneelSpelingService
 
     public static PaneelMaatInfo BerekenMaatInfo(
         PaneelRechthoek openingsRechthoek,
-        IEnumerable<Kast> wandKastenBron,
-        IEnumerable<PaneelRechthoek> anderePanelenBron,
+        IEnumerable<PaneelRechthoek> buurRechthoekenBron,
         double randSpelingPerRaakrand)
     {
         var randSpeling = NormaliseerRandSpeling(randSpelingPerRaakrand);
-        var wandKasten = wandKastenBron.ToList();
-        var anderePanelen = anderePanelenBron.ToList();
+        var buurRechthoeken = buurRechthoekenBron.ToList();
 
         var raaktLinks = RaaktVerticaleRand(openingsRechthoek.XPositie, openingsRechthoek.HoogteVanVloer, openingsRechthoek.Bovenzijde,
-            VerticaleSegmentenVanKasten(wandKasten).Concat(VerticaleSegmentenVanPanelen(anderePanelen)));
+            VerticaleSegmentenVanPanelen(buurRechthoeken));
         var raaktRechts = RaaktVerticaleRand(openingsRechthoek.Rechterkant, openingsRechthoek.HoogteVanVloer, openingsRechthoek.Bovenzijde,
-            VerticaleSegmentenVanKasten(wandKasten).Concat(VerticaleSegmentenVanPanelen(anderePanelen)));
+            VerticaleSegmentenVanPanelen(buurRechthoeken));
         var raaktOnder = RaaktHorizontaleRand(openingsRechthoek.HoogteVanVloer, openingsRechthoek.XPositie, openingsRechthoek.Rechterkant,
-            HorizontaleSegmentenVanKasten(wandKasten).Concat(HorizontaleSegmentenVanPanelen(anderePanelen)));
+            HorizontaleSegmentenVanPanelen(buurRechthoeken));
         var raaktBoven = RaaktHorizontaleRand(openingsRechthoek.Bovenzijde, openingsRechthoek.XPositie, openingsRechthoek.Rechterkant,
-            HorizontaleSegmentenVanKasten(wandKasten).Concat(HorizontaleSegmentenVanPanelen(anderePanelen)));
+            HorizontaleSegmentenVanPanelen(buurRechthoeken));
 
         var linksInset = raaktLinks ? randSpeling : 0;
         var rechtsInset = raaktRechts ? randSpeling : 0;
@@ -84,24 +82,6 @@ public static class PaneelSpelingService
         => segmenten.Any(segment =>
             Math.Abs(segment.y - y) <= Tolerantie &&
             Overlap(segment.start, segment.eind, startX, eindX) > 0.5);
-
-    private static IEnumerable<(double x, double start, double eind)> VerticaleSegmentenVanKasten(IEnumerable<Kast> kasten)
-    {
-        foreach (var kast in kasten)
-        {
-            yield return (kast.XPositie, kast.HoogteVanVloer, kast.HoogteVanVloer + kast.Hoogte);
-            yield return (kast.XPositie + kast.Breedte, kast.HoogteVanVloer, kast.HoogteVanVloer + kast.Hoogte);
-        }
-    }
-
-    private static IEnumerable<(double y, double start, double eind)> HorizontaleSegmentenVanKasten(IEnumerable<Kast> kasten)
-    {
-        foreach (var kast in kasten)
-        {
-            yield return (kast.HoogteVanVloer, kast.XPositie, kast.XPositie + kast.Breedte);
-            yield return (kast.HoogteVanVloer + kast.Hoogte, kast.XPositie, kast.XPositie + kast.Breedte);
-        }
-    }
 
     private static IEnumerable<(double x, double start, double eind)> VerticaleSegmentenVanPanelen(IEnumerable<PaneelRechthoek> panelen)
     {

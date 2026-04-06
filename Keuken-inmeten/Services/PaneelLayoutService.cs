@@ -6,6 +6,22 @@ public static class PaneelLayoutService
 {
     public const double MinPaneelMaat = 50.0;
 
+    public static PaneelRechthoek NaarRechthoek(Kast kast) => new()
+    {
+        XPositie = kast.XPositie,
+        HoogteVanVloer = kast.HoogteVanVloer,
+        Breedte = kast.Breedte,
+        Hoogte = kast.Hoogte
+    };
+
+    public static PaneelRechthoek NaarRechthoek(Apparaat apparaat) => new()
+    {
+        XPositie = apparaat.XPositie,
+        HoogteVanVloer = apparaat.HoogteVanVloer,
+        Breedte = apparaat.Breedte,
+        Hoogte = apparaat.Hoogte
+    };
+
     public static PaneelRechthoek? BerekenRechthoek(PaneelToewijzing toewijzing, IEnumerable<Kast> kasten)
     {
         if (toewijzing.Breedte <= 0 || toewijzing.Hoogte <= 0)

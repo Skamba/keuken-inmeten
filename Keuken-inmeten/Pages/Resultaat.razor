@@ -8,7 +8,7 @@
 <StapIndicator HuidigeStap="resultaat" />
 
 <h2 class="page-header">Stap 3: Resultaat</h2>
-<p class="text-muted">Overzicht van alle panelen met de benodigde boorgaten voor scharnieren. De paneelmaten hieronder zijn inclusief een globale randspeling van @FormatMm(State.PaneelRandSpeling) per rakende rand.</p>
+<p class="text-muted">Overzicht van alle panelen met de benodigde boorgaten voor scharnieren. De paneelmaten hieronder zijn inclusief een globale randspeling van @FormatMm(State.PaneelRandSpeling) per rand die tegen een ander front of apparaat komt.</p>
 
 @{
     var resultaten = State.BerekenResultaten();
@@ -29,7 +29,7 @@
 else
 {
     <div class="alert alert-secondary small mb-4">
-        Rakende randen worden standaard met <strong>@FormatMm(State.PaneelRandSpeling)</strong> per zijde ingekort. Dus als een paneel links en rechts aansluit, wordt de werkmaat in de breedte in totaal <strong>@FormatMm(State.PaneelRandSpeling * 2)</strong> kleiner.
+        Alleen randen die tegen een andere kast, een apparaat of een bestaand paneel komen worden standaard met <strong>@FormatMm(State.PaneelRandSpeling)</strong> per zijde ingekort. Dus als een paneel links en rechts aansluit, wordt de werkmaat in de breedte in totaal <strong>@FormatMm(State.PaneelRandSpeling * 2)</strong> kleiner.
     </div>
     @* ── Summary stats ── *@
     <div class="row g-3 mb-4">
@@ -367,7 +367,7 @@ else
         if (maatInfo.TotaleInkortingBreedte <= 0.001)
             return $"Breedte blijft {FormatMm(maatInfo.PaneelRechthoek.Breedte)}; links en rechts raken geen andere rand.";
 
-        return $"Breedte: opening {FormatMm(maatInfo.OpeningsRechthoek.Breedte)} -> paneel {FormatMm(maatInfo.PaneelRechthoek.Breedte)}. {string.Join(" + ", SpelingDelen(maatInfo.RaaktLinks, maatInfo.InkortingLinks, "links", maatInfo.RaaktRechts, maatInfo.InkortingRechts, "rechts"))} aftrek omdat deze randen een kast- of paneelrand raken.";
+        return $"Breedte: opening {FormatMm(maatInfo.OpeningsRechthoek.Breedte)} -> paneel {FormatMm(maatInfo.PaneelRechthoek.Breedte)}. {string.Join(" + ", SpelingDelen(maatInfo.RaaktLinks, maatInfo.InkortingLinks, "links", maatInfo.RaaktRechts, maatInfo.InkortingRechts, "rechts"))} aftrek omdat deze randen een andere kast-, apparaat- of paneelrand raken.";
     }
 
     private static string HoogteSpelingTekst(PaneelMaatInfo maatInfo)
@@ -375,7 +375,7 @@ else
         if (maatInfo.TotaleInkortingHoogte <= 0.001)
             return $"Hoogte blijft {FormatMm(maatInfo.PaneelRechthoek.Hoogte)}; boven en onder raken geen andere rand.";
 
-        return $"Hoogte: opening {FormatMm(maatInfo.OpeningsRechthoek.Hoogte)} -> paneel {FormatMm(maatInfo.PaneelRechthoek.Hoogte)}. {string.Join(" + ", SpelingDelen(maatInfo.RaaktOnder, maatInfo.InkortingOnder, "onder", maatInfo.RaaktBoven, maatInfo.InkortingBoven, "boven"))} aftrek omdat deze randen een kast- of paneelrand raken.";
+        return $"Hoogte: opening {FormatMm(maatInfo.OpeningsRechthoek.Hoogte)} -> paneel {FormatMm(maatInfo.PaneelRechthoek.Hoogte)}. {string.Join(" + ", SpelingDelen(maatInfo.RaaktOnder, maatInfo.InkortingOnder, "onder", maatInfo.RaaktBoven, maatInfo.InkortingBoven, "boven"))} aftrek omdat deze randen een andere kast-, apparaat- of paneelrand raken.";
     }
 
     private static IEnumerable<string> SpelingDelen(
