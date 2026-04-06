@@ -187,10 +187,14 @@
         @* Apparaten *@
         @foreach (var apparaat in Apparaten)
         {
+            const double apparaatStroke = 1.5;
             var aw = apparaat.Breedte * Schaal;
             var ah = apparaat.Hoogte * Schaal;
             var ax = P + apparaat.XPositie * Schaal;
             var ay = VloerY - (apparaat.HoogteVanVloer + apparaat.Hoogte) * Schaal;
+            var labelBandHoogte = Math.Min(18.0, Math.Max(12.0, ah * 0.22));
+            var naamY = ay + ah - Math.Min(8.0, Math.Max(5.0, ah * 0.12));
+            var naamFontSize = Math.Min(11.0, Math.Max(7.0, Math.Min(aw * 0.16, ah * 0.18)));
 
             <g class="wand-kast-sleepbaar"
                data-kast-id="apparaat-@apparaat.Id"
@@ -199,18 +203,20 @@
                data-schaal="@Fmt(Schaal)"
                style="cursor: @(LeesAlleen ? "default" : "grab");">
 
-                <rect x="@Fmt(ax)" y="@Fmt(ay)" width="@Fmt(aw)" height="@Fmt(ah)"
-                      fill="@ApparaatKleur(apparaat.Type)" stroke="#555" stroke-width="1.5" rx="4" opacity="0.9" />
+                <rect x="@Fmt(ax + apparaatStroke / 2)" y="@Fmt(ay + apparaatStroke / 2)"
+                      width="@Fmt(Math.Max(0, aw - apparaatStroke))" height="@Fmt(Math.Max(0, ah - apparaatStroke))"
+                      fill="@ApparaatKleur(apparaat.Type)" stroke="#555" stroke-width="@Fmt(apparaatStroke)" rx="4" opacity="0.9" />
 
-                @* Icoon *@
-                @{
-                    var icoon = ApparaatIcoon(apparaat.Type);
-                    var icoonFontSize = Math.Min(aw * 0.45, ah * 0.35);
-                }
-                @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2)}\" y=\"{Fmt(ay + ah / 2 - 2)}\" font-size=\"{Fmt(icoonFontSize)}\" text-anchor=\"middle\" dominant-baseline=\"central\" pointer-events=\"none\">{icoon}</text>")
+                <ApparaatPictogram Type="apparaat.Type"
+                                   X="ax"
+                                   Y="ay"
+                                   Width="aw"
+                                   Height="ah"
+                                   ReservedBottom="labelBandHoogte"
+                                   StrokeColor="#4b5563" />
 
                 @* Label *@
-                @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2)}\" y=\"{Fmt(ay + ah / 2 + icoonFontSize * 0.6 + 4)}\" font-size=\"9\" fill=\"#333\" text-anchor=\"middle\" font-weight=\"bold\" pointer-events=\"none\">{apparaat.Naam}</text>")
+                @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2)}\" y=\"{Fmt(naamY)}\" font-size=\"{Fmt(naamFontSize)}\" fill=\"#333\" text-anchor=\"middle\" font-weight=\"bold\" pointer-events=\"none\">{apparaat.Naam}</text>")
 
                 @* Afmetingen *@
                 @if (aw > 20 && ah > 25)
@@ -547,18 +553,6 @@
         ApparaatType.Kookplaat => "#e8d4c4",
         ApparaatType.Afzuigkap => "#d8d8d8",
         _ => "#d8d8d8"
-    };
-
-    private static string ApparaatIcoon(ApparaatType type) => type switch
-    {
-        ApparaatType.Oven => "🔥",
-        ApparaatType.Magnetron => "📡",
-        ApparaatType.Vaatwasser => "🫧",
-        ApparaatType.Koelkast => "❄️",
-        ApparaatType.Vriezer => "🧊",
-        ApparaatType.Kookplaat => "♨️",
-        ApparaatType.Afzuigkap => "💨",
-        _ => "📦"
     };
 
     private static string Fmt(double v) => v.ToString("F1", CultureInfo.InvariantCulture);

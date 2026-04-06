@@ -102,16 +102,27 @@
 
         @foreach (var apparaat in Apparaten)
         {
+            const double apparaatStroke = 1.5;
             var aw = apparaat.Breedte * Schaal;
             var ah = apparaat.Hoogte * Schaal;
             var ax = P + apparaat.XPositie * Schaal;
             var ay = VloerY - (apparaat.HoogteVanVloer + apparaat.Hoogte) * Schaal;
+            var labelBandHoogte = Math.Min(18.0, Math.Max(12.0, ah * 0.22));
+            var naamY = ay + ah - Math.Min(8.0, Math.Max(5.0, ah * 0.12));
+            var naamFontSize = Math.Min(9.0, Math.Max(6.0, Math.Min(aw * 0.14, ah * 0.16)));
 
             <g pointer-events="none">
-                <rect x="@Fmt(ax)" y="@Fmt(ay)" width="@Fmt(aw)" height="@Fmt(ah)"
-                      fill="@ApparaatKleur(apparaat.Type)" stroke="#555" stroke-width="1.5" rx="4" opacity="0.9" />
-                @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2)}\" y=\"{Fmt(ay + ah / 2 - 2)}\" font-size=\"14\" text-anchor=\"middle\" dominant-baseline=\"central\">{ApparaatIcoon(apparaat.Type)}</text>")
-                @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2)}\" y=\"{Fmt(ay + ah / 2 + 12)}\" font-size=\"9\" fill=\"#333\" text-anchor=\"middle\" font-weight=\"bold\">{apparaat.Naam}</text>")
+                <rect x="@Fmt(ax + apparaatStroke / 2)" y="@Fmt(ay + apparaatStroke / 2)"
+                      width="@Fmt(Math.Max(0, aw - apparaatStroke))" height="@Fmt(Math.Max(0, ah - apparaatStroke))"
+                      fill="@ApparaatKleur(apparaat.Type)" stroke="#555" stroke-width="@Fmt(apparaatStroke)" rx="4" opacity="0.9" />
+                <ApparaatPictogram Type="apparaat.Type"
+                                   X="ax"
+                                   Y="ay"
+                                   Width="aw"
+                                   Height="ah"
+                                   ReservedBottom="labelBandHoogte"
+                                   StrokeColor="#4b5563" />
+                @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2)}\" y=\"{Fmt(naamY)}\" font-size=\"{Fmt(naamFontSize)}\" fill=\"#333\" text-anchor=\"middle\" font-weight=\"bold\">{apparaat.Naam}</text>")
             </g>
         }
 
@@ -352,18 +363,6 @@
         ApparaatType.Kookplaat => "#e8d4c4",
         ApparaatType.Afzuigkap => "#d8d8d8",
         _ => "#d8d8d8"
-    };
-
-    private static string ApparaatIcoon(ApparaatType type) => type switch
-    {
-        ApparaatType.Oven => "🔥",
-        ApparaatType.Magnetron => "📡",
-        ApparaatType.Vaatwasser => "🫧",
-        ApparaatType.Koelkast => "❄️",
-        ApparaatType.Vriezer => "🧊",
-        ApparaatType.Kookplaat => "♨️",
-        ApparaatType.Afzuigkap => "💨",
-        _ => "📦"
     };
 
     private static string Fmt(double value) => value.ToString("F1", CultureInfo.InvariantCulture);

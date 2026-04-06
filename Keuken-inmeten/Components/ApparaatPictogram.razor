@@ -1,0 +1,113 @@
+@using Keuken_inmeten.Models
+@using System.Globalization
+
+<g pointer-events="none"
+   shape-rendering="geometricPrecision"
+   transform="translate(@Fmt(IconX) @Fmt(IconY)) scale(@Fmt(Scale))">
+    @switch (Type)
+    {
+        case ApparaatType.Oven:
+            <g stroke="@StrokeColor" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="10" y="10" width="44" height="44" rx="6" />
+                <line x1="10" y1="22" x2="54" y2="22" />
+                <line x1="18" y1="34" x2="46" y2="34" />
+                <line x1="18" y1="42" x2="40" y2="42" />
+            </g>
+            <circle cx="19" cy="16" r="2.2" fill="@StrokeColor" stroke="none" />
+            <circle cx="32" cy="16" r="2.2" fill="@StrokeColor" stroke="none" />
+            <circle cx="45" cy="16" r="2.2" fill="@StrokeColor" stroke="none" />
+            break;
+        case ApparaatType.Magnetron:
+            <g stroke="@StrokeColor" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="8" y="14" width="48" height="36" rx="6" />
+                <line x1="18" y1="24" x2="34" y2="24" />
+                <line x1="18" y1="32" x2="34" y2="32" />
+                <line x1="18" y1="40" x2="34" y2="40" />
+                <circle cx="45" cy="25" r="3" />
+                <circle cx="45" cy="39" r="3" />
+            </g>
+            break;
+        case ApparaatType.Vaatwasser:
+            <g stroke="@StrokeColor" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="10" y="8" width="44" height="48" rx="6" />
+                <line x1="10" y1="18" x2="54" y2="18" />
+                <circle cx="32" cy="33" r="9" />
+                <line x1="18" y1="45" x2="46" y2="45" />
+                <line x1="22" y1="50" x2="42" y2="50" />
+            </g>
+            break;
+        case ApparaatType.Koelkast:
+        case ApparaatType.Vriezer:
+            <g stroke="@StrokeColor" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="16" y="6" width="32" height="52" rx="5" />
+                <line x1="16" y1="32" x2="48" y2="32" />
+                <line x1="41" y1="18" x2="41" y2="28" />
+                <line x1="23" y1="38" x2="23" y2="48" />
+            </g>
+            break;
+        case ApparaatType.Kookplaat:
+            <g stroke="@StrokeColor" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="8" y="16" width="48" height="32" rx="6" />
+                <circle cx="22" cy="28" r="6" />
+                <circle cx="42" cy="28" r="6" />
+                <circle cx="22" cy="40" r="6" />
+                <circle cx="42" cy="40" r="6" />
+            </g>
+            break;
+        case ApparaatType.Afzuigkap:
+            <g stroke="@StrokeColor" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="28" y1="10" x2="36" y2="10" />
+                <line x1="32" y1="10" x2="32" y2="22" />
+                <path d="M14 24 H50 L42 50 H22 Z" />
+                <line x1="22" y1="33" x2="42" y2="33" />
+                <line x1="24" y1="40" x2="40" y2="40" />
+            </g>
+            break;
+        default:
+            <g stroke="@StrokeColor" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="12" y="12" width="40" height="40" rx="6" />
+                <line x1="22" y1="24" x2="42" y2="24" />
+                <line x1="22" y1="34" x2="42" y2="34" />
+                <line x1="22" y1="44" x2="38" y2="44" />
+            </g>
+            break;
+    }
+</g>
+
+@code {
+    private const double IconCanvas = 64;
+
+    [Parameter] public ApparaatType Type { get; set; }
+    [Parameter] public double X { get; set; }
+    [Parameter] public double Y { get; set; }
+    [Parameter] public double Width { get; set; }
+    [Parameter] public double Height { get; set; }
+    [Parameter] public double ReservedBottom { get; set; } = 18;
+    [Parameter] public string StrokeColor { get; set; } = "#4b5563";
+
+    private double IconSize
+    {
+        get
+        {
+            var availableWidth = Math.Max(4, Width - 10);
+            var availableHeight = Math.Max(4, Height - ReservedBottom - 8);
+            var maxSquare = Math.Max(4, Math.Min(availableWidth, availableHeight));
+            return maxSquare;
+        }
+    }
+
+    private double IconX => X + (Width - IconSize) / 2;
+
+    private double IconY
+    {
+        get
+        {
+            var availableHeight = Math.Max(4, Height - ReservedBottom - 8);
+            return Y + 4 + Math.Max(0, (availableHeight - IconSize) / 2);
+        }
+    }
+
+    private double Scale => IconSize / IconCanvas;
+
+    private static string Fmt(double value) => value.ToString("F1", CultureInfo.InvariantCulture);
+}

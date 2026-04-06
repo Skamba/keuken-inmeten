@@ -40,14 +40,25 @@
         @* Apparaten (outline) *@
         @foreach (var apparaat in Apparaten)
         {
+            const double apparaatStroke = 1.0;
             var apx = P + apparaat.XPositie * Schaal;
             var apy = VloerY - (apparaat.HoogteVanVloer + apparaat.Hoogte) * Schaal;
             var apw = apparaat.Breedte * Schaal;
             var aph = apparaat.Hoogte * Schaal;
-            <rect x="@Fmt(apx)" y="@Fmt(apy)" width="@Fmt(apw)" height="@Fmt(aph)"
-                  fill="@ApparaatKleur(apparaat.Type)" stroke="#555" stroke-width="1" rx="3" opacity="0.6" />
-            @((MarkupString)$"<text x=\"{Fmt(apx + apw / 2)}\" y=\"{Fmt(apy + aph / 2 - 4)}\" font-size=\"14\" text-anchor=\"middle\" pointer-events=\"none\">{ApparaatIcoon(apparaat.Type)}</text>")
-            @((MarkupString)$"<text x=\"{Fmt(apx + apw / 2)}\" y=\"{Fmt(apy + aph / 2 + 10)}\" font-size=\"7\" fill=\"#555\" text-anchor=\"middle\" pointer-events=\"none\">{apparaat.Naam}</text>")
+            var labelBandHoogte = Math.Min(14.0, Math.Max(10.0, aph * 0.22));
+            var naamY = apy + aph - Math.Min(6.0, Math.Max(4.0, aph * 0.12));
+            var naamFontSize = Math.Min(7.0, Math.Max(5.0, Math.Min(apw * 0.12, aph * 0.14)));
+            <rect x="@Fmt(apx + apparaatStroke / 2)" y="@Fmt(apy + apparaatStroke / 2)"
+                  width="@Fmt(Math.Max(0, apw - apparaatStroke))" height="@Fmt(Math.Max(0, aph - apparaatStroke))"
+                  fill="@ApparaatKleur(apparaat.Type)" stroke="#555" stroke-width="@Fmt(apparaatStroke)" rx="3" opacity="0.6" />
+            <ApparaatPictogram Type="apparaat.Type"
+                               X="apx"
+                               Y="apy"
+                               Width="apw"
+                               Height="aph"
+                               ReservedBottom="labelBandHoogte"
+                               StrokeColor="#4b5563" />
+            @((MarkupString)$"<text x=\"{Fmt(apx + apw / 2)}\" y=\"{Fmt(naamY)}\" font-size=\"{Fmt(naamFontSize)}\" fill=\"#555\" text-anchor=\"middle\" pointer-events=\"none\">{apparaat.Naam}</text>")
         }
 
         @* Paneel-overlays *@
@@ -150,18 +161,6 @@
         ApparaatType.Kookplaat => "#e8d4c4",
         ApparaatType.Afzuigkap => "#d8d8d8",
         _ => "#d8d8d8"
-    };
-
-    private static string ApparaatIcoon(ApparaatType type) => type switch
-    {
-        ApparaatType.Oven => "🔥",
-        ApparaatType.Magnetron => "📡",
-        ApparaatType.Vaatwasser => "🫧",
-        ApparaatType.Koelkast => "❄️",
-        ApparaatType.Vriezer => "🧊",
-        ApparaatType.Kookplaat => "♨️",
-        ApparaatType.Afzuigkap => "💨",
-        _ => "📦"
     };
 
     private static string Fmt(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
