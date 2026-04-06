@@ -456,7 +456,7 @@
     private void OpenKastFormulier(Guid wandId)
     {
         actieveWandId = wandId;
-        formKast = NieuweKast();
+        formKast = NieuweKastMetVorigeWaarden();
         isBewerken = false;
         bewerkKastId = null;
         toonKastFormulier = true;
@@ -523,7 +523,7 @@
             State.VoegKastToe(formKast, actieveWandId.Value);
         }
 
-        formKast = NieuweKast();
+        formKast = NieuweKastMetVorigeWaarden();
         isBewerken = false;
         bewerkKastId = null;
         toonKastFormulier = false;
@@ -558,6 +558,28 @@
             MontagePlaatPosities = kast.MontagePlaatPosities
                 .Select(p => new MontagePlaatPositie { AfstandVanBoven = p.AfstandVanBoven, Zijde = p.Zijde })
                 .ToList()
+        };
+    }
+
+    private Kast NieuweKastMetVorigeWaarden()
+    {
+        var laatsteTemplate = State.KastTemplates
+            .OrderByDescending(template => template.LaatstGebruikt)
+            .FirstOrDefault();
+
+        if (laatsteTemplate is null)
+            return NieuweKast();
+
+        return new Kast
+        {
+            Naam = "",
+            Type = InferKastType(laatsteTemplate.Hoogte),
+            Breedte = laatsteTemplate.Breedte,
+            Hoogte = laatsteTemplate.Hoogte,
+            Diepte = laatsteTemplate.Diepte,
+            Wanddikte = laatsteTemplate.Wanddikte,
+            GaatjesAfstand = laatsteTemplate.GaatjesAfstand,
+            EersteGaatVanBoven = laatsteTemplate.EersteGaatVanBoven
         };
     }
 
