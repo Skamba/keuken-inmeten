@@ -1,0 +1,237 @@
+@page "/bestellijst"
+@inject KeukenStateService State
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Stap 4 — Bestellijst</PageTitle>
+
+<StapIndicator HuidigeStap="bestellijst" />
+
+<h2 class="page-header">Stap 4: Bestellijst</h2>
+<p class="text-muted">Bundel identieke panelen tot orderregels, geef het materiaal mee en exporteer de lijst naar Excel of een printklare PDF met visuals.</p>
+
+@{
+    var items = BestellijstService.BerekenItems(State);
+    var maxBoorgaten = items.Count == 0 ? 0 : items.Max(item => item.Boorgaten.Count);
+    var totaalAantal = items.Sum(item => item.Aantal);
+    var totaalBoorgaten = items.Sum(item => item.Aantal * item.Boorgaten.Count);
+}
+
+@if (items.Count == 0)
+{
+    <div class="alert alert-warning">
+        Er is nog geen bestellijst beschikbaar. <a href="resultaat">Controleer eerst het resultaat</a> of voeg panelen toe in stap 2.
+    </div>
+}
+else
+{
+    <div class="bestellijst-toolbar card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-5">
+                    <label class="form-label fw-semibold">Paneeltype</label>
+                    <input class="form-control"
+                           list="paneeltype-opties"
+                           @bind="_paneelType"
+                           placeholder="Kies of typ een paneeltype" />
+                    <datalist id="paneeltype-opties">
+                        @foreach (var optie in PaneelTypeOpties)
+                        {
+                            <option value="@optie"></option>
+                        }
+                    </datalist>
+                </div>
+                <div class="col-lg-3">
+                    <label class="form-label fw-semibold">Dikte (mm)</label>
+                    <input class="form-control"
+                           @bind="_dikteMm"
+                           inputmode="decimal"
+                           placeholder="Bijv. 19 of 18.4" />
+                </div>
+                <div class="col-lg-4">
+                    <div class="bestellijst-export-acties">
+                        <button class="btn btn-primary" @onclick="ExporteerPdf">PDF met visuals</button>
+                        <button class="btn btn-outline-secondary" @onclick="ExporteerExcel">Excel alleen lijst</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bestellijst-toolbar-meta mt-3">
+                <span><strong>Materiaal:</strong> @DisplayPaneelType()</span>
+                <span><strong>Dikte:</strong> @BestellijstExportService.FormatDikteLabel(_dikteMm)</span>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_exportStatus))
+            {
+                <div class="bestellijst-export-status @(_exportStatusIsError ? "fout" : "")">@_exportStatus</div>
+            }
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold text-primary">@items.Count</div>
+                <small class="text-muted">Orderregels</small>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold text-primary">@totaalAantal</div>
+                <small class="text-muted">Panelen totaal</small>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold text-primary">@totaalBoorgaten</div>
+                <small class="text-muted">Boorgaten totaal</small>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold text-primary">@maxBoorgaten</div>
+                <small class="text-muted">Max boorgaten per regel</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive bestellijst-table-wrap">
+        <table class="table table-hover align-middle bestellijst-table">
+            <thead class="table-light">
+                <tr>
+                    <th>Naam</th>
+                    <th class="text-center">Aantal</th>
+                    <th class="text-end">Hoogte (mm)</th>
+                    <th class="text-end">Breedte (mm)</th>
+                    <th>Boorgat X</th>
+                    <th>Boorgat Y</th>
+                    @for (int i = 0; i < maxBoorgaten; i++)
+                    {
+                        var nummer = i + 1;
+                        <th>Boorgat @nummer X</th>
+                        <th>Boorgat @nummer Y</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    <tr>
+                        <td class="bestellijst-name">
+                            <div class="fw-semibold">@item.Naam</div>
+                            <div class="small text-muted">@item.PaneelRolLabel</div>
+                            <div class="small text-muted">@item.ContextLabel</div>
+                        </td>
+                        <td class="text-center fw-semibold">@item.Aantal</td>
+                        <td class="text-end">@FormatNumber(item.Hoogte)</td>
+                        <td class="text-end">@FormatNumber(item.Breedte)</td>
+                        <td>@BestellijstExportService.FormatSummaryX(item)</td>
+                        <td>@BestellijstExportService.FormatSummaryY(item)</td>
+                        @for (int i = 0; i < maxBoorgaten; i++)
+                        {
+                            if (i < item.Boorgaten.Count)
+                            {
+                                var boorgat = item.Boorgaten[i];
+                                <td>@FormatNumber(boorgat.X)</td>
+                                <td>@FormatNumber(boorgat.Y)</td>
+                            }
+                            else
+                            {
+                                <td class="text-muted">—</td>
+                                <td class="text-muted">—</td>
+                            }
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<StapNavigatie HuidigeStap="bestellijst"
+               VorigeHref="resultaat"
+               VorigeLabel="Terug naar resultaat" />
+
+@code {
+    private static readonly string[] PaneelTypeOpties =
+    [
+        "MDF gelakt",
+        "Melamine",
+        "Fenix",
+        "HPL",
+        "Fineer",
+        "Multiplex",
+        "Acrylaat"
+    ];
+
+    private IJSObjectReference? _jsModule;
+    private string _paneelType = "MDF gelakt";
+    private string _dikteMm = "19";
+    private string? _exportStatus;
+    private bool _exportStatusIsError;
+
+    private async Task ExporteerExcel()
+    {
+        try
+        {
+            var items = BestellijstService.BerekenItems(State);
+            var generatedAt = DateTime.Now;
+            var bestand = BestellijstExportService.MaakBestandsNaam("bestellijst", DisplayPaneelType(), "xls", generatedAt);
+            var xml = BestellijstExportService.BouwExcelXml(items, DisplayPaneelType(), _dikteMm, generatedAt);
+
+            await EnsureJsModuleAsync();
+            await _jsModule!.InvokeVoidAsync(
+                "downloadTextFile",
+                bestand,
+                xml,
+                "application/vnd.ms-excel;charset=utf-8");
+
+            SetStatus("Excel-bestand gedownload.", false);
+        }
+        catch
+        {
+            SetStatus("Excel-export is niet gelukt.", true);
+        }
+    }
+
+    private async Task ExporteerPdf()
+    {
+        try
+        {
+            var items = BestellijstService.BerekenItems(State);
+            var html = BestellijstExportService.BouwPdfHtml(items, DisplayPaneelType(), _dikteMm, DateTime.Now);
+
+            await EnsureJsModuleAsync();
+            await _jsModule!.InvokeVoidAsync("openPrintDocument", html);
+
+            SetStatus("Printvriendelijke PDF-weergave geopend. Kies in de browser 'Opslaan als PDF'.", false);
+        }
+        catch
+        {
+            SetStatus("PDF-export is niet gelukt.", true);
+        }
+    }
+
+    private async Task EnsureJsModuleAsync()
+    {
+        _jsModule ??= await JS.InvokeAsync<IJSObjectReference>(
+            "import", "./Pages/Bestellijst.razor.js");
+    }
+
+    private void SetStatus(string message, bool isError)
+    {
+        _exportStatus = message;
+        _exportStatusIsError = isError;
+    }
+
+    private string DisplayPaneelType()
+        => string.IsNullOrWhiteSpace(_paneelType) ? "Onbekend paneeltype" : _paneelType.Trim();
+
+    private static string FormatNumber(double value) => value.ToString("0.#");
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule is not null)
+            await _jsModule.DisposeAsync();
+    }
+}

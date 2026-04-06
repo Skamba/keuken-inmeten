@@ -45,7 +45,7 @@ jobs:
 
       - name: Add static entrypoints for known app routes
         run: |
-          for route in kasten panelen resultaat counter weather not-found; do
+          for route in kasten panelen resultaat bestellijst counter weather not-found; do
             mkdir -p "dist/wwwroot/$route"
             cp dist/wwwroot/index.html "dist/wwwroot/$route/index.html"
           done

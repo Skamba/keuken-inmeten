@@ -1,7 +1,11 @@
-﻿@page "/"
+@page "/"
 @inject KeukenStateService State
 
 <PageTitle>Keuken Inmeten</PageTitle>
+
+@{
+    var aantalResultaten = State.BerekenResultaten().Count;
+}
 
 <div class="container py-4">
     <div class="text-center mb-5">
@@ -10,7 +14,7 @@
     </div>
 
     <div class="row g-4 mb-5">
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <a href="kasten" class="text-decoration-none">
                 <div class="card h-100 text-center shadow-sm @(State.Kasten.Count > 0 ? "border-success" : "")">
                     <div class="card-body">
@@ -25,7 +29,7 @@
                 </div>
             </a>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <a href="panelen" class="text-decoration-none">
                 <div class="card h-100 text-center shadow-sm @(State.Toewijzingen.Count > 0 ? "border-success" : "")">
                     <div class="card-body">
@@ -40,13 +44,32 @@
                 </div>
             </a>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <a href="resultaat" class="text-decoration-none">
-                <div class="card h-100 text-center shadow-sm">
+                <div class="card h-100 text-center shadow-sm @(aantalResultaten > 0 ? "border-success" : "")">
                     <div class="card-body">
-                        <h2 class="display-6 text-primary">3</h2>
+                        <h2 class="display-6 @(aantalResultaten > 0 ? "text-success" : "text-primary")">@(aantalResultaten > 0 ? "✓" : "3")</h2>
                         <h5 class="card-title">Resultaat bekijken</h5>
                         <p class="card-text text-muted">Bekijk de lijst van panelen met exacte boorgat-posities, klaar om te bestellen.</p>
+                        @if (aantalResultaten > 0)
+                        {
+                            <span class="badge bg-success">@aantalResultaten resultaat/regel(s)</span>
+                        }
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3">
+            <a href="bestellijst" class="text-decoration-none">
+                <div class="card h-100 text-center shadow-sm @(aantalResultaten > 0 ? "border-success" : "")">
+                    <div class="card-body">
+                        <h2 class="display-6 @(aantalResultaten > 0 ? "text-success" : "text-primary")">4</h2>
+                        <h5 class="card-title">Bestellijst exporteren</h5>
+                        <p class="card-text text-muted">Genereer bestelregels met aantallen, boorgaten en export naar Excel of PDF.</p>
+                        @if (aantalResultaten > 0)
+                        {
+                            <span class="badge bg-success">Export klaar</span>
+                        }
                     </div>
                 </div>
             </a>
