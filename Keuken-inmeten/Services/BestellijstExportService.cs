@@ -54,6 +54,7 @@ public static class BestellijstExportService
             CellText("Paneelrol", "Kop"),
             CellText("Hoogte (mm)", "Kop"),
             CellText("Breedte (mm)", "Kop"),
+            CellText("ABS-band", "Kop"),
             CellText("Boorgat X (mm)", "Kop"),
             CellText("Boorgat Y (mm)", "Kop"),
             CellText("Context", "Kop")
@@ -77,6 +78,7 @@ public static class BestellijstExportService
                 CellText(item.PaneelRolLabel),
                 CellNumber(item.Hoogte),
                 CellNumber(item.Breedte),
+                CellText(item.AbsBandLabel),
                 CellText(FormatSummaryX(item)),
                 CellText(FormatSummaryY(item)),
                 CellText(item.ContextLabel)
@@ -142,7 +144,7 @@ public static class BestellijstExportService
         sb.AppendLine($"    <div class=\"summary-card\"><span class=\"muted\">Totaal boorgaten</span><strong>{items.Sum(item => item.Boorgaten.Count * item.Aantal)}</strong></div>");
         sb.AppendLine("  </div>");
         sb.AppendLine("  <table>");
-        sb.AppendLine("    <thead><tr><th>Naam</th><th>Aantal</th><th>Afmeting</th><th>Boorgaten</th><th>Visual</th></tr></thead>");
+        sb.AppendLine("    <thead><tr><th>Naam</th><th>Aantal</th><th>Afmeting</th><th>ABS-band</th><th>Boorgaten</th><th>Visual</th></tr></thead>");
         sb.AppendLine("    <tbody>");
 
         foreach (var item in items)
@@ -151,6 +153,7 @@ public static class BestellijstExportService
             sb.AppendLine($"        <td><div class=\"name\">{Encode(item.Naam)}</div><div class=\"context\">{Encode(item.ContextLabel)}</div></td>");
             sb.AppendLine($"        <td>{item.Aantal}</td>");
             sb.AppendLine($"        <td>{Encode(item.PaneelRolLabel)}<br />{Encode(FormatMm(item.Hoogte))} hoog<br />{Encode(FormatMm(item.Breedte))} breed</td>");
+            sb.AppendLine($"        <td>{Encode(item.AbsBandLabel)}</td>");
             sb.AppendLine($"        <td class=\"holes\">X: {Encode(FormatSummaryX(item))}<br />Y: {Encode(FormatSummaryY(item))}{BuildHoleLines(item)}</td>");
             sb.AppendLine($"        <td class=\"visual\">{BuildVisualSvg(item.Resultaat)}</td>");
             sb.AppendLine("      </tr>");

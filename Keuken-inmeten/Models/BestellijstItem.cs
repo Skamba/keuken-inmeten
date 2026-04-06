@@ -5,6 +5,7 @@ public class BestellijstItem
     public string BasisNaam { get; set; } = "";
     public string Naam { get; set; } = "";
     public int Aantal { get; set; }
+    public string AbsBandLabel { get; set; } = "1 mm ABS rondom";
     public string PaneelRolLabel { get; set; } = "";
     public string WandNaam { get; set; } = "";
     public string KastenLabel { get; set; } = "";

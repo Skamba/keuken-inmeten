@@ -35,6 +35,7 @@ public class BestellijstServiceTests
         var item = Assert.Single(items);
         Assert.Equal("Hoge Deur 1", item.Naam);
         Assert.Equal(2, item.Aantal);
+        Assert.Equal(BestellijstService.StandaardAbsBandLabel, item.AbsBandLabel);
         Assert.Equal("Deur", item.PaneelRolLabel);
         Assert.Equal(4, item.Boorgaten.Count);
     }
@@ -51,6 +52,8 @@ public class BestellijstServiceTests
             new DateTime(2026, 4, 6, 14, 0, 0));
 
         Assert.Contains("Paneeltype", xml);
+        Assert.Contains("ABS-band", xml);
+        Assert.Contains(BestellijstService.StandaardAbsBandLabel, xml);
         Assert.Contains("Boorgat 1 X (mm)", xml);
         Assert.Contains("Hoge Deur 1", xml);
         Assert.Contains("MDF gelakt", xml);
@@ -68,6 +71,8 @@ public class BestellijstServiceTests
             new DateTime(2026, 4, 6, 14, 0, 0));
 
         Assert.Contains("Bestellijst", html);
+        Assert.Contains("ABS-band", html);
+        Assert.Contains(BestellijstService.StandaardAbsBandLabel, html);
         Assert.Contains("Hoge Deur 1", html);
         Assert.Contains("<svg", html);
         Assert.Contains("window.print()", html);
@@ -103,6 +108,7 @@ public class BestellijstServiceTests
         BasisNaam = "Hoge Deur",
         Naam = "Hoge Deur 1",
         Aantal = 2,
+        AbsBandLabel = BestellijstService.StandaardAbsBandLabel,
         PaneelRolLabel = "Deur",
         WandNaam = "Muur",
         KastenLabel = "Hoge kast links",
