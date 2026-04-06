@@ -104,7 +104,7 @@
     private double SvgHeight => H + P * 2 + 28;
 
     private List<PaneelSegmentInfo> Segmenten =>
-        ScharnierBerekeningService.BerekenPaneelSegmenten(Toewijzing, Kasten.ToList());
+        ScharnierBerekeningService.BerekenPaneelSegmenten(Toewijzing, Kasten.ToList(), Resultaat.MaatInfo);
 
     private IEnumerable<double> OverigeGaten(PaneelSegmentInfo segment)
     {

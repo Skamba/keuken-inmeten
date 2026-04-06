@@ -224,27 +224,39 @@ public static class ScharnierBerekeningService
     }
 
     public static PaneelResultaat BerekenPaneel(PaneelToewijzing toewijzing, List<Kast> kasten)
+        => BerekenPaneel(toewijzing, kasten, null);
+
+    public static PaneelResultaat BerekenPaneel(PaneelToewijzing toewijzing, List<Kast> kasten, PaneelMaatInfo? maatInfo)
     {
         var boorgaten = toewijzing.Type == PaneelType.Deur
-            ? BerekenPaneelBoorgaten(toewijzing, kasten)
+            ? BerekenPaneelBoorgaten(toewijzing, kasten, maatInfo)
             : [];
 
         return new PaneelResultaat
         {
+            ToewijzingId = toewijzing.Id,
             KastIds = toewijzing.KastIds,
             KastNaam = string.Join(" + ", kasten.Select(k => k.Naam)),
             Type = toewijzing.Type,
-            Breedte = toewijzing.Breedte,
-            Hoogte = toewijzing.Hoogte,
+            Breedte = maatInfo?.PaneelRechthoek.Breedte ?? toewijzing.Breedte,
+            Hoogte = maatInfo?.PaneelRechthoek.Hoogte ?? toewijzing.Hoogte,
             ScharnierZijde = toewijzing.ScharnierZijde,
+            MaatInfo = maatInfo,
             Boorgaten = boorgaten
         };
     }
 
     public static List<PaneelSegmentInfo> BerekenPaneelSegmenten(PaneelToewijzing toewijzing, List<Kast> kasten)
+        => BerekenPaneelSegmenten(toewijzing, kasten, null);
+
+    public static List<PaneelSegmentInfo> BerekenPaneelSegmenten(PaneelToewijzing toewijzing, List<Kast> kasten, PaneelMaatInfo? maatInfo)
     {
         List<PaneelSegment> segmenten;
-        if (toewijzing.XPositie is null || toewijzing.HoogteVanVloer is null)
+        if (maatInfo?.PaneelRechthoek is not null)
+        {
+            segmenten = BouwPaneelSegmenten(kasten, maatInfo.PaneelRechthoek, toewijzing.ScharnierZijde);
+        }
+        else if (toewijzing.XPositie is null || toewijzing.HoogteVanVloer is null)
         {
             segmenten = BouwPaneelSegmenten(kasten, toewijzing.Hoogte, toewijzing.ScharnierZijde);
         }
@@ -267,9 +279,15 @@ public static class ScharnierBerekeningService
             .ToList();
     }
 
-    private static List<Boorgat> BerekenPaneelBoorgaten(PaneelToewijzing toewijzing, List<Kast> kasten)
+    private static List<Boorgat> BerekenPaneelBoorgaten(PaneelToewijzing toewijzing, List<Kast> kasten, PaneelMaatInfo? maatInfo)
     {
         var potHartVanRand = NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
+
+        if (maatInfo?.PaneelRechthoek is not null)
+        {
+            var fysiekeSegmenten = BouwPaneelSegmenten(kasten, maatInfo.PaneelRechthoek, toewijzing.ScharnierZijde);
+            return BerekenPaneelBoorgaten(fysiekeSegmenten, maatInfo.PaneelRechthoek.Hoogte, potHartVanRand);
+        }
 
         if (toewijzing.XPositie is null || toewijzing.HoogteVanVloer is null)
         {

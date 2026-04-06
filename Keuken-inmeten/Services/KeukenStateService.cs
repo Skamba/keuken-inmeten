@@ -10,6 +10,7 @@ public class KeukenStateService
     public List<PaneelToewijzing> Toewijzingen { get; } = [];
     public List<KastTemplate> KastTemplates { get; } = [];
     public double LaatstGebruiktePotHartVanRand { get; private set; } = ScharnierBerekeningService.CupCenterVanRand;
+    public double PaneelRandSpeling { get; private set; } = PaneelSpelingService.DefaultRandSpeling;
 
     /// <summary>Fires after any state mutation so subscribers can persist the data.</summary>
     public event Action? OnStateChanged;
@@ -25,7 +26,8 @@ public class KeukenStateService
         Apparaten = [.. Apparaten],
         Toewijzingen = [.. Toewijzingen],
         KastTemplates = [.. KastTemplates],
-        LaatstGebruiktePotHartVanRand = LaatstGebruiktePotHartVanRand
+        LaatstGebruiktePotHartVanRand = LaatstGebruiktePotHartVanRand,
+        PaneelRandSpeling = PaneelRandSpeling
     };
 
     public void Laden(KeukenData data)
@@ -42,6 +44,7 @@ public class KeukenStateService
         Toewijzingen.AddRange(data.Toewijzingen);
         KastTemplates.AddRange(data.KastTemplates);
         LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(data.LaatstGebruiktePotHartVanRand);
+        PaneelRandSpeling = PaneelSpelingService.NormaliseerRandSpeling(data.PaneelRandSpeling);
     }
 
     // --- Wanden ---
@@ -216,6 +219,16 @@ public class KeukenStateService
         NotifyChanged();
     }
 
+    public void StelPaneelRandSpelingIn(double waarde)
+    {
+        var genormaliseerd = PaneelSpelingService.NormaliseerRandSpeling(waarde);
+        if (Math.Abs(PaneelRandSpeling - genormaliseerd) < 0.001)
+            return;
+
+        PaneelRandSpeling = genormaliseerd;
+        NotifyChanged();
+    }
+
     public List<Apparaat> ApparatenVoorWand(Guid wandId)
     {
         var wand = Wanden.Find(w => w.Id == wandId);
@@ -265,9 +278,55 @@ public class KeukenStateService
                 .Where(k => k is not null)
                 .ToList()!;
             if (kasten.Count > 0)
-                resultaten.Add(ScharnierBerekeningService.BerekenPaneel(toewijzing, kasten!));
+            {
+                var maatInfo = BerekenPaneelMaatInfo(toewijzing, kasten!);
+                resultaten.Add(ScharnierBerekeningService.BerekenPaneel(toewijzing, kasten!, maatInfo));
+            }
         }
 
         return resultaten;
+    }
+
+    public PaneelMaatInfo? BerekenPaneelMaatInfo(PaneelToewijzing toewijzing)
+    {
+        var kasten = toewijzing.KastIds
+            .Select(id => Kasten.Find(k => k.Id == id))
+            .Where(k => k is not null)
+            .Cast<Kast>()
+            .ToList();
+
+        return kasten.Count == 0 ? null : BerekenPaneelMaatInfo(toewijzing, kasten);
+    }
+
+    private PaneelMaatInfo? BerekenPaneelMaatInfo(PaneelToewijzing toewijzing, List<Kast> kasten)
+    {
+        var openingsRechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
+        if (openingsRechthoek is null)
+            return null;
+
+        var wandKastIds = VindWandKastIds(toewijzing.KastIds);
+        var anderePanelen = Toewijzingen
+            .Where(item => item.Id != toewijzing.Id && item.KastIds.Any(wandKastIds.Contains))
+            .Select(item =>
+            {
+                var panelKasten = item.KastIds
+                    .Select(id => Kasten.Find(k => k.Id == id))
+                    .Where(k => k is not null)
+                    .Cast<Kast>()
+                    .ToList();
+                return PaneelLayoutService.BerekenRechthoek(item, panelKasten);
+            })
+            .Where(rechthoek => rechthoek is not null)
+            .Cast<PaneelRechthoek>()
+            .ToList();
+
+        return PaneelSpelingService.BerekenMaatInfo(openingsRechthoek, kasten, anderePanelen, PaneelRandSpeling);
+    }
+
+    private HashSet<Guid> VindWandKastIds(IEnumerable<Guid> kastIds)
+    {
+        var kastIdSet = kastIds.ToHashSet();
+        var wand = Wanden.FirstOrDefault(item => item.KastIds.Any(kastIdSet.Contains));
+        return wand is null ? kastIdSet : wand.KastIds.ToHashSet();
     }
 }

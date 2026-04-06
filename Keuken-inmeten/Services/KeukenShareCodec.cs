@@ -110,6 +110,9 @@ public static class KeukenShareCodec
             LastCupOffset = IsBijnaGelijk(data.LaatstGebruiktePotHartVanRand, ScharnierBerekeningService.CupCenterVanRand)
                 ? null
                 : Round1(data.LaatstGebruiktePotHartVanRand),
+            PanelEdgeClearance = IsBijnaGelijk(data.PaneelRandSpeling, PaneelSpelingService.DefaultRandSpeling)
+                ? null
+                : Round1(data.PaneelRandSpeling),
             Walls =
             [
                 .. data.Wanden.Select(wand => new CompactWall
@@ -284,7 +287,8 @@ public static class KeukenShareCodec
         Apparaten = [.. data.Apparaten],
         Toewijzingen = [.. data.Toewijzingen],
         KastTemplates = [],
-        LaatstGebruiktePotHartVanRand = data.LaatstGebruiktePotHartVanRand
+        LaatstGebruiktePotHartVanRand = data.LaatstGebruiktePotHartVanRand,
+        PaneelRandSpeling = PaneelSpelingService.NormaliseerRandSpeling(data.PaneelRandSpeling)
     };
 
     private static KeukenData BouwKeukenData(CompactShareData data)
@@ -346,7 +350,8 @@ public static class KeukenShareCodec
             Apparaten = apparaten,
             Toewijzingen = toewijzingen,
             KastTemplates = [],
-            LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(data.LastCupOffset ?? ScharnierBerekeningService.CupCenterVanRand)
+            LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(data.LastCupOffset ?? ScharnierBerekeningService.CupCenterVanRand),
+            PaneelRandSpeling = PaneelSpelingService.NormaliseerRandSpeling(data.PanelEdgeClearance ?? PaneelSpelingService.DefaultRandSpeling)
         };
     }
 
@@ -544,6 +549,9 @@ public static class KeukenShareCodec
 
         [JsonPropertyName("p")]
         public double? LastCupOffset { get; set; }
+
+        [JsonPropertyName("r")]
+        public double? PanelEdgeClearance { get; set; }
     }
 
     private sealed class CompactWall

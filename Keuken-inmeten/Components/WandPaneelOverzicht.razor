@@ -70,7 +70,10 @@
                 .Where(k => k is not null)
                 .Cast<Kast>()
                 .ToList();
-            var paneelRechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, panelKasten);
+            var paneelResultaat = ResultatenOpToewijzingId is not null && ResultatenOpToewijzingId.TryGetValue(toewijzing.Id, out var resultaat)
+                ? resultaat
+                : null;
+            var paneelRechthoek = paneelResultaat?.MaatInfo?.PaneelRechthoek ?? PaneelLayoutService.BerekenRechthoek(toewijzing, panelKasten);
             if (paneelRechthoek is null) continue;
 
             var px = P + paneelRechthoek.XPositie * Schaal;
@@ -102,7 +105,7 @@
                     .Where(n => n is not null));
                 var kleur = PaneelKleuren[li % PaneelKleuren.Length];
                 <span class="badge small" style="background-color: @kleur;">
-                    @(li + 1) @TypeLabel(t.Type) @t.Breedte×@t.Hoogte mm → @kastenNamen
+                    @(li + 1) @TypeLabel(t.Type) @(PaneelMaatLabel(t)) → @kastenNamen
                 </span>
             }
         </div>
@@ -116,6 +119,7 @@
     [Parameter] public double WandHoogte { get; set; } = 2600;
     [Parameter] public double PlintHoogte { get; set; }
     [Parameter, EditorRequired] public List<PaneelToewijzing> AlleToewijzingen { get; set; } = [];
+    [Parameter] public IReadOnlyDictionary<Guid, PaneelResultaat>? ResultatenOpToewijzingId { get; set; }
 
     private List<PaneelToewijzing> GerelateerdeToewijzingen =>
         AlleToewijzingen
@@ -162,6 +166,14 @@
         ApparaatType.Afzuigkap => "#d8d8d8",
         _ => "#d8d8d8"
     };
+
+    private string PaneelMaatLabel(PaneelToewijzing toewijzing)
+    {
+        if (ResultatenOpToewijzingId is not null && ResultatenOpToewijzingId.TryGetValue(toewijzing.Id, out var resultaat))
+            return $"{resultaat.Breedte:0.#}×{resultaat.Hoogte:0.#} mm";
+
+        return $"{toewijzing.Breedte:0.#}×{toewijzing.Hoogte:0.#} mm";
+    }
 
     private static string Fmt(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
 }

@@ -163,6 +163,8 @@ else
                         }
                         else
                         {
+                            var conceptMaatInfo = BerekenConceptMaatInfo();
+
                             <div class="alert alert-primary small py-2">
                                 Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. Handmatige invoer bewaart exacte millimeters; slepen blijft snappen op randen.
                             </div>
@@ -170,6 +172,16 @@ else
                             <div class="small text-muted mb-3">
                                 <div><strong>Wand:</strong> @ActieveWandNaam</div>
                                 <div><strong>Geselecteerd:</strong> @GeselecteerdeKastNamen</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Randspeling per raakrand (mm)</label>
+                                <input type="number"
+                                       class="form-control"
+                                       @bind="RandSpelingInput"
+                                       min="0"
+                                       step="0.5" />
+                                <div class="form-text">Standaard 2 mm. Als twee tegenoverliggende randen raken, wordt de werkmaat dus 4 mm kleiner.</div>
                             </div>
 
                             <div class="mb-3">
@@ -244,6 +256,17 @@ else
                                         <span>Rechts <strong>@FormatMm(conceptPaneel.Rechterkant)</strong></span>
                                         <span>Bovenkant <strong>@FormatMm(conceptPaneel.Bovenzijde)</strong></span>
                                     </div>
+                                </div>
+                            }
+
+                            @if (conceptMaatInfo is not null)
+                            {
+                                <div class="border rounded bg-light p-3 mb-3 small">
+                                    <div class="fw-semibold mb-2">Paneelmaat na speling</div>
+                                    <div class="mb-1">Openingsmaat <strong>@FormatMm(conceptMaatInfo.OpeningsRechthoek.Breedte)</strong> × <strong>@FormatMm(conceptMaatInfo.OpeningsRechthoek.Hoogte)</strong></div>
+                                    <div class="mb-2">Werkmaat paneel <strong>@FormatMm(conceptMaatInfo.PaneelRechthoek.Breedte)</strong> × <strong>@FormatMm(conceptMaatInfo.PaneelRechthoek.Hoogte)</strong></div>
+                                    <div>@BreedteSpelingTekst(conceptMaatInfo)</div>
+                                    <div>@HoogteSpelingTekst(conceptMaatInfo)</div>
                                 </div>
                             }
 
@@ -392,6 +415,12 @@ else
     {
         get => formToewijzing.PotHartVanRand;
         set => formToewijzing.PotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(value);
+    }
+
+    private double RandSpelingInput
+    {
+        get => State.PaneelRandSpeling;
+        set => State.StelPaneelRandSpelingIn(value);
     }
 
     private void ToggleKast(Guid kastId)
@@ -633,6 +662,34 @@ else
         UpdateFormVanConcept();
     }
 
+    private PaneelMaatInfo? BerekenConceptMaatInfo()
+    {
+        if (conceptPaneel is null)
+            return null;
+
+        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel);
+        if (dragendeKasten.Count == 0)
+            return null;
+
+        var wandKastIds = ActieveWandId is Guid wandId
+            ? State.KastenVoorWand(wandId).Select(kast => kast.Id).ToHashSet()
+            : geselecteerdeKastIds.ToHashSet();
+        var anderePanelen = State.Toewijzingen
+            .Where(toewijzing => toewijzing.Id != bewerkToewijzingId && toewijzing.KastIds.Any(wandKastIds.Contains))
+            .Select(toewijzing =>
+            {
+                var kasten = State.Kasten
+                    .Where(kast => toewijzing.KastIds.Contains(kast.Id))
+                    .ToList();
+                return PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
+            })
+            .Where(rechthoek => rechthoek is not null)
+            .Cast<PaneelRechthoek>()
+            .ToList();
+
+        return PaneelSpelingService.BerekenMaatInfo(conceptPaneel, dragendeKasten, anderePanelen, State.PaneelRandSpeling);
+    }
+
     private void PaneelOpslaan()
     {
         if (conceptPaneel is null || geselecteerdeKastIds.Count == 0)
@@ -760,6 +817,37 @@ else
 
     private static string VrijSegmentLabel(int index, PaneelRechthoek segment)
         => $"Vak {index + 1} · {segment.Hoogte:0.#} hoog · onder {segment.HoogteVanVloer:0.#}";
+
+    private static string BreedteSpelingTekst(PaneelMaatInfo maatInfo)
+    {
+        if (maatInfo.TotaleInkortingBreedte <= 0.001)
+            return $"Breedte blijft gelijk op {FormatMm(maatInfo.PaneelRechthoek.Breedte)}; links en rechts raken geen andere rand.";
+
+        return $"Breedte: {FormatMm(maatInfo.OpeningsRechthoek.Breedte)} opening -> {FormatMm(maatInfo.PaneelRechthoek.Breedte)} paneel. {string.Join(" + ", SpelingDelen(maatInfo.RaaktLinks, maatInfo.InkortingLinks, "links", maatInfo.RaaktRechts, maatInfo.InkortingRechts, "rechts"))} aftrek omdat deze randen een kast- of paneelrand raken.";
+    }
+
+    private static string HoogteSpelingTekst(PaneelMaatInfo maatInfo)
+    {
+        if (maatInfo.TotaleInkortingHoogte <= 0.001)
+            return $"Hoogte blijft gelijk op {FormatMm(maatInfo.PaneelRechthoek.Hoogte)}; boven en onder raken geen andere rand.";
+
+        return $"Hoogte: {FormatMm(maatInfo.OpeningsRechthoek.Hoogte)} opening -> {FormatMm(maatInfo.PaneelRechthoek.Hoogte)} paneel. {string.Join(" + ", SpelingDelen(maatInfo.RaaktOnder, maatInfo.InkortingOnder, "onder", maatInfo.RaaktBoven, maatInfo.InkortingBoven, "boven"))} aftrek omdat deze randen een kast- of paneelrand raken.";
+    }
+
+    private static IEnumerable<string> SpelingDelen(
+        bool eersteRaakt,
+        double eersteWaarde,
+        string eersteLabel,
+        bool tweedeRaakt,
+        double tweedeWaarde,
+        string tweedeLabel)
+    {
+        if (eersteRaakt)
+            yield return $"{FormatMm(eersteWaarde)} {eersteLabel}";
+
+        if (tweedeRaakt)
+            yield return $"{FormatMm(tweedeWaarde)} {tweedeLabel}";
+    }
 
     private static string PlaatsTekst(PaneelToewijzing toewijzing)
         => toewijzing.XPositie is double x && toewijzing.HoogteVanVloer is double y

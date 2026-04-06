@@ -26,11 +26,13 @@ public class BoorgatOnderbouwing
 
 public class PaneelResultaat
 {
+    public Guid ToewijzingId { get; set; }
     public List<Guid> KastIds { get; set; } = [];
     public string KastNaam { get; set; } = "";
     public PaneelType Type { get; set; }
     public double Breedte { get; set; }
     public double Hoogte { get; set; }
     public ScharnierZijde ScharnierZijde { get; set; }
+    public PaneelMaatInfo? MaatInfo { get; set; }
     public List<Boorgat> Boorgaten { get; set; } = [];
 }

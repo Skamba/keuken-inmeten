@@ -34,6 +34,20 @@ public class KeukenStateServiceTests
     }
 
     [Fact]
+    public void Exporteren_en_laden_bewaren_paneelrandspeling()
+    {
+        var state = new KeukenStateService();
+        state.StelPaneelRandSpelingIn(1.5);
+
+        var snapshot = state.Exporteren();
+        var herladen = new KeukenStateService();
+        herladen.Laden(snapshot);
+
+        Assert.Equal(1.5, snapshot.PaneelRandSpeling);
+        Assert.Equal(1.5, herladen.PaneelRandSpeling);
+    }
+
+    [Fact]
     public void WerkToewijzingBij_vervangt_bestaande_toewijzing_en_bewaart_laatst_gebruikte_pot_hart_afstand()
     {
         var state = new KeukenStateService();

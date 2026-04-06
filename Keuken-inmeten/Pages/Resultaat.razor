@@ -8,10 +8,13 @@
 <StapIndicator HuidigeStap="resultaat" />
 
 <h2 class="page-header">Stap 3: Resultaat</h2>
-<p class="text-muted">Overzicht van alle panelen met de benodigde boorgaten voor scharnieren.</p>
+<p class="text-muted">Overzicht van alle panelen met de benodigde boorgaten voor scharnieren. De paneelmaten hieronder zijn inclusief een globale randspeling van @FormatMm(State.PaneelRandSpeling) per rakende rand.</p>
 
 @{
     var resultaten = State.BerekenResultaten();
+    var resultatenOpToewijzingId = resultaten
+        .Where(resultaat => resultaat.ToewijzingId != Guid.Empty)
+        .ToDictionary(resultaat => resultaat.ToewijzingId);
     var aantalDeuren = resultaten.Count(r => r.Type == PaneelType.Deur);
     var aantalLadeF = resultaten.Count(r => r.Type == PaneelType.LadeFront);
     var aantalBlind = resultaten.Count(r => r.Type == PaneelType.BlindPaneel);
@@ -25,6 +28,9 @@
 }
 else
 {
+    <div class="alert alert-secondary small mb-4">
+        Rakende randen worden standaard met <strong>@FormatMm(State.PaneelRandSpeling)</strong> per zijde ingekort. Dus als een paneel links en rechts aansluit, wordt de werkmaat in de breedte in totaal <strong>@FormatMm(State.PaneelRandSpeling * 2)</strong> kleiner.
+    </div>
     @* ── Summary stats ── *@
     <div class="row g-3 mb-4">
         <div class="col-6 col-sm-3">
@@ -108,7 +114,8 @@ else
                                  WandBreedte="@wand.Breedte"
                                  WandHoogte="@wand.Hoogte"
                                  PlintHoogte="@wand.PlintHoogte"
-                                 AlleToewijzingen="@State.Toewijzingen" />
+                                 AlleToewijzingen="@State.Toewijzingen"
+                                 ResultatenOpToewijzingId="@resultatenOpToewijzingId" />
         </div>
     }
     </div>
@@ -119,7 +126,7 @@ else
     {
         var r = resultaten[i];
         var detailIndex = i;
-        var toewijzing = State.Toewijzingen[i];
+        var toewijzing = State.Toewijzingen.FirstOrDefault(item => item.Id == r.ToewijzingId) ?? State.Toewijzingen[i];
         var potHartVanRand = r.Boorgaten.FirstOrDefault()?.X ?? toewijzing.PotHartVanRand;
         var paneelKasten = r.KastIds
             .Select(id => State.Kasten.Find(k => k.Id == id))
@@ -137,12 +144,26 @@ else
                         <ul>
                             <li>Breedte: <strong>@r.Breedte mm</strong></li>
                             <li>Hoogte: <strong>@r.Hoogte mm</strong></li>
+                            @if (r.MaatInfo is not null)
+                            {
+                                <li>Openingsbreedte: <strong>@FormatMm(r.MaatInfo.OpeningsRechthoek.Breedte)</strong></li>
+                                <li>Openingshoogte: <strong>@FormatMm(r.MaatInfo.OpeningsRechthoek.Hoogte)</strong></li>
+                            }
                             @if (r.Type == PaneelType.Deur)
                             {
                                 <li>Scharnier zijde: <strong>@r.ScharnierZijde</strong></li>
                                 <li>Hart 35mm-potje vanaf rand: <strong>@FormatMm(potHartVanRand)</strong></li>
                             }
                         </ul>
+
+                        @if (r.MaatInfo is not null)
+                        {
+                            <div class="border rounded bg-light p-3 mb-3 small">
+                                <div class="fw-semibold mb-1">Paneelmaat na speling</div>
+                                <div>@BreedteSpelingTekst(r.MaatInfo)</div>
+                                <div>@HoogteSpelingTekst(r.MaatInfo)</div>
+                            </div>
+                        }
 
                         @if (r.Type == PaneelType.Deur && r.Boorgaten.Count > 0)
                         {
@@ -340,6 +361,37 @@ else
 
     private static string ZijdeBijvoeglijkNaamwoord(ScharnierZijde zijde)
         => zijde == ScharnierZijde.Links ? "linker" : "rechter";
+
+    private static string BreedteSpelingTekst(PaneelMaatInfo maatInfo)
+    {
+        if (maatInfo.TotaleInkortingBreedte <= 0.001)
+            return $"Breedte blijft {FormatMm(maatInfo.PaneelRechthoek.Breedte)}; links en rechts raken geen andere rand.";
+
+        return $"Breedte: opening {FormatMm(maatInfo.OpeningsRechthoek.Breedte)} -> paneel {FormatMm(maatInfo.PaneelRechthoek.Breedte)}. {string.Join(" + ", SpelingDelen(maatInfo.RaaktLinks, maatInfo.InkortingLinks, "links", maatInfo.RaaktRechts, maatInfo.InkortingRechts, "rechts"))} aftrek omdat deze randen een kast- of paneelrand raken.";
+    }
+
+    private static string HoogteSpelingTekst(PaneelMaatInfo maatInfo)
+    {
+        if (maatInfo.TotaleInkortingHoogte <= 0.001)
+            return $"Hoogte blijft {FormatMm(maatInfo.PaneelRechthoek.Hoogte)}; boven en onder raken geen andere rand.";
+
+        return $"Hoogte: opening {FormatMm(maatInfo.OpeningsRechthoek.Hoogte)} -> paneel {FormatMm(maatInfo.PaneelRechthoek.Hoogte)}. {string.Join(" + ", SpelingDelen(maatInfo.RaaktOnder, maatInfo.InkortingOnder, "onder", maatInfo.RaaktBoven, maatInfo.InkortingBoven, "boven"))} aftrek omdat deze randen een kast- of paneelrand raken.";
+    }
+
+    private static IEnumerable<string> SpelingDelen(
+        bool eersteRaakt,
+        double eersteWaarde,
+        string eersteLabel,
+        bool tweedeRaakt,
+        double tweedeWaarde,
+        string tweedeLabel)
+    {
+        if (eersteRaakt)
+            yield return $"{FormatMm(eersteWaarde)} {eersteLabel}";
+
+        if (tweedeRaakt)
+            yield return $"{FormatMm(tweedeWaarde)} {tweedeLabel}";
+    }
 
     private static string FormatMm(double waarde)
         => $"{waarde:0.#} mm";

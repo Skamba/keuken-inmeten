@@ -11,4 +11,5 @@ public class KeukenData
     public List<PaneelToewijzing> Toewijzingen { get; set; } = [];
     public List<KastTemplate> KastTemplates { get; set; } = [];
     public double LaatstGebruiktePotHartVanRand { get; set; } = 22.5;
+    public double PaneelRandSpeling { get; set; } = 2.0;
 }

@@ -101,6 +101,19 @@ public class KeukenShareCodecTests
         Assert.DoesNotContain(wandKasten, kast => ApparaatLayoutService.HeeftOverlap(oven, kast));
     }
 
+    [Fact]
+    public void Niet_standaard_paneelrandspeling_roundtript_via_v2()
+    {
+        var data = MaakVoorbeeldData();
+        data.PaneelRandSpeling = 1.5;
+
+        var token = KeukenShareCodec.Encode(data);
+        var decodedOk = KeukenShareCodec.TryDecode(token, out var decoded);
+
+        Assert.True(decodedOk);
+        Assert.Equal(1.5, decoded.PaneelRandSpeling);
+    }
+
     private static KeukenData MaakVoorbeeldData()
     {
         var wandId = Guid.Parse("11111111-1111-1111-1111-111111111111");
