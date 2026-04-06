@@ -59,17 +59,13 @@
                 .Where(k => k is not null)
                 .Cast<Kast>()
                 .ToList();
-            if (panelKasten.Count == 0) continue;
+            var paneelRechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, panelKasten);
+            if (paneelRechthoek is null) continue;
 
-            var minX  = panelKasten.Min(k => k.XPositie);
-            var maxX  = panelKasten.Max(k => k.XPositie + k.Breedte);
-            var minVl = panelKasten.Min(k => k.HoogteVanVloer);
-            var maxTp = panelKasten.Max(k => k.HoogteVanVloer + k.Hoogte);
-
-            var px = P + minX  * Schaal;
-            var py = VloerY - maxTp * Schaal;
-            var pw = (maxX - minX)  * Schaal;
-            var ph = (maxTp - minVl) * Schaal;
+            var px = P + paneelRechthoek.XPositie * Schaal;
+            var py = VloerY - paneelRechthoek.Bovenzijde * Schaal;
+            var pw = paneelRechthoek.Breedte * Schaal;
+            var ph = paneelRechthoek.Hoogte * Schaal;
             var kleur = PaneelKleuren[pi % PaneelKleuren.Length];
 
             <rect x="@Fmt(px)" y="@Fmt(py)" width="@Fmt(pw)" height="@Fmt(ph)"

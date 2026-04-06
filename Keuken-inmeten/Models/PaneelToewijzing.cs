@@ -8,4 +8,6 @@ public class PaneelToewijzing
     public ScharnierZijde ScharnierZijde { get; set; } = ScharnierZijde.Links;
     public double Breedte { get; set; }
     public double Hoogte { get; set; }
+    public double? XPositie { get; set; }
+    public double? HoogteVanVloer { get; set; }
 }

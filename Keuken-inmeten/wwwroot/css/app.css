@@ -301,6 +301,28 @@ code {
     stroke-width: 2.5;
 }
 
+.paneel-kast-selecteerbaar.geselecteerd rect:first-child {
+    stroke: #0d6efd;
+    stroke-width: 2.5;
+}
+
+.paneel-draft .paneel-draft-body {
+    cursor: move;
+}
+
+.paneel-draft-handle {
+    cursor: nwse-resize;
+}
+
+.paneel-draft-handle[data-handle="ne"],
+.paneel-draft-handle[data-handle="sw"] {
+    cursor: nesw-resize;
+}
+
+.paneel-draft-handle:hover {
+    filter: drop-shadow(0 0 2px rgba(13, 110, 253, 0.35));
+}
+
 /* ── Page header ── */
 .page-header {
     font-size: 1.4rem;

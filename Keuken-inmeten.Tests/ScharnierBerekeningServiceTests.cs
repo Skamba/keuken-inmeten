@@ -303,4 +303,44 @@ public class BerekenPaneelOnderbouwingTests
         Assert.Contains(resultaat.Boorgaten.Skip(1), g => g.Onderbouwing!.KastNaam == "Hoge kast");
         Assert.All(resultaat.Boorgaten, g => Assert.NotNull(g.Onderbouwing!.AfstandTotDichtstbijzijndeNaad));
     }
+
+    [Fact]
+    public void Expliciet_geplaatst_deelpaneel_geeft_boorgaten_binnen_het_geselecteerde_segment()
+    {
+        var kast = new Kast
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Hoge kast",
+            Breedte = 600,
+            Hoogte = 2600,
+            HoogteVanVloer = 0,
+            Type = KastType.HogeKast,
+            Wanddikte = 18,
+            GaatjesAfstand = 32,
+            EersteGaatVanBoven = 19
+        };
+
+        var toewijzing = new PaneelToewijzing
+        {
+            Type = PaneelType.Deur,
+            Breedte = 600,
+            Hoogte = 900,
+            XPositie = 0,
+            HoogteVanVloer = 700,
+            ScharnierZijde = ScharnierZijde.Links,
+            KastIds = [kast.Id]
+        };
+
+        var resultaat = ScharnierBerekeningService.BerekenPaneel(toewijzing, [kast]);
+
+        Assert.Equal(2, resultaat.Boorgaten.Count);
+        Assert.Equal(109.0, resultaat.Boorgaten[0].Y);
+        Assert.Equal(813.0, resultaat.Boorgaten[1].Y);
+        Assert.All(resultaat.Boorgaten, gat => Assert.Equal("Hoge kast", gat.Onderbouwing!.KastNaam));
+        Assert.All(resultaat.Boorgaten, gat =>
+        {
+            Assert.InRange(gat.Y, 0, toewijzing.Hoogte);
+            Assert.InRange(gat.Onderbouwing!.MontagePlaatMiddenInKast, 1000, 1900);
+        });
+    }
 }

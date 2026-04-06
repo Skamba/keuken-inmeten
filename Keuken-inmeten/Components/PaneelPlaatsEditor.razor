@@ -1,0 +1,381 @@
+@using System.Globalization
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="wand-opstelling-container" style="text-align: center;">
+    <svg @ref="svgRef"
+         viewBox="0 0 @Fmt(SvgWidth) @Fmt(SvgHeight)"
+         class="border rounded bg-white wand-opstelling-svg"
+         style="max-height: @(SvgMaxHoogte ?? "55vh"); width: auto; max-width: @(BeperkTotContainerBreedte ? "100%" : "none"); display: block; margin: 0 auto;"
+         tabindex="0">
+        <rect x="@Fmt(P)" y="@Fmt(P)" width="@Fmt(MuurBreedtePx)" height="@Fmt(MuurHoogtePx)"
+              fill="#f5f0e8" stroke="#bbb" stroke-width="1.5" />
+
+        @foreach (var h in HoogteMarkeringen())
+        {
+            var y = VloerY - h * Schaal;
+            <line x1="@Fmt(P)" y1="@Fmt(y)" x2="@Fmt(P + MuurBreedtePx)" y2="@Fmt(y)"
+                  stroke="#e8e0d4" stroke-width="0.5" />
+            <line x1="@Fmt(P - 5)" y1="@Fmt(y)" x2="@Fmt(P)" y2="@Fmt(y)"
+                  stroke="#999" stroke-width="1" />
+            @((MarkupString)$"<text x=\"{Fmt(P - 8)}\" y=\"{Fmt(y + 3)}\" font-size=\"9\" fill=\"#999\" text-anchor=\"end\">{h}</text>")
+        }
+
+        @if (PlintHoogte > 0)
+        {
+            var plintPx = PlintHoogte * Schaal;
+            <rect x="@Fmt(P)" y="@Fmt(VloerY - plintPx)" width="@Fmt(MuurBreedtePx)" height="@Fmt(plintPx)"
+                  fill="#c8a87c" opacity="0.5" pointer-events="none" />
+            @((MarkupString)$"<text x=\"{Fmt(P + 4)}\" y=\"{Fmt(VloerY - plintPx / 2 + 3)}\" font-size=\"8\" fill=\"#7a5c2e\" pointer-events=\"none\">plint {PlintHoogte:F0}mm</text>")
+        }
+
+        <line x1="@Fmt(P)" y1="@Fmt(VloerY)" x2="@Fmt(P + MuurBreedtePx)" y2="@Fmt(VloerY)"
+              stroke="#8b7355" stroke-width="2" />
+        @((MarkupString)$"<text x=\"{Fmt(P - 8)}\" y=\"{Fmt(VloerY + 4)}\" font-size=\"9\" fill=\"#8b7355\" text-anchor=\"end\">0</text>")
+
+        @foreach (var b in BreedteMarkeringen())
+        {
+            var x = P + b * Schaal;
+            <line x1="@Fmt(x)" y1="@Fmt(VloerY)" x2="@Fmt(x)" y2="@Fmt(VloerY + 5)"
+                  stroke="#999" stroke-width="1" />
+            @((MarkupString)$"<text x=\"{Fmt(x)}\" y=\"{Fmt(VloerY + 16)}\" font-size=\"9\" fill=\"#999\" text-anchor=\"middle\">{b}</text>")
+        }
+
+        @((MarkupString)$"<text x=\"{Fmt(P + MuurBreedtePx / 2)}\" y=\"{Fmt(P - 8)}\" font-size=\"11\" fill=\"#666\" text-anchor=\"middle\" font-weight=\"bold\">{WandBreedte:F0} mm</text>")
+        @((MarkupString)$"<text x=\"{Fmt(P + MuurBreedtePx + 12)}\" y=\"{Fmt(P + MuurHoogtePx / 2)}\" font-size=\"11\" fill=\"#666\" text-anchor=\"start\" transform=\"rotate(90, {Fmt(P + MuurBreedtePx + 12)}, {Fmt(P + MuurHoogtePx / 2)})\">{WandHoogte:F0} mm</text>")
+
+        @foreach (var kast in Kasten)
+        {
+            var w = kast.Breedte * Schaal;
+            var h = kast.Hoogte * Schaal;
+            var x = P + kast.XPositie * Schaal;
+            var y = VloerY - (kast.HoogteVanVloer + kast.Hoogte) * Schaal;
+            var isSelected = GeselecteerdeKastIds?.Contains(kast.Id) ?? false;
+            var dimH_x = x + w - 7;
+            var dimH_y1 = y + 4;
+            var dimH_y2 = y + h - 4;
+            var dimH_my = (dimH_y1 + dimH_y2) / 2;
+
+            <g class="paneel-kast-selecteerbaar @(isSelected ? "geselecteerd" : "")"
+               data-kast-id="@kast.Id"
+               style="cursor: pointer;">
+                <rect x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(h)"
+                      fill="@KastKleur(kast.Type)" stroke="@(isSelected ? "#0d6efd" : "#8b7355")"
+                      stroke-width="@(isSelected ? "2.5" : "1.5")" rx="2" opacity="0.88" />
+
+                @if (w > 20 && h > 25)
+                {
+                    <line x1="@Fmt(dimH_x)" y1="@Fmt(dimH_y1)" x2="@Fmt(dimH_x)" y2="@Fmt(dimH_y2)"
+                          stroke="#ccc" stroke-width="0.6" pointer-events="none" />
+                    @((MarkupString)$"<text x=\"{Fmt(dimH_x - 2)}\" y=\"{Fmt(dimH_my)}\" font-size=\"7\" fill=\"#aaa\" text-anchor=\"middle\" pointer-events=\"none\" transform=\"rotate(-90, {Fmt(dimH_x - 2)}, {Fmt(dimH_my)})\">{kast.Hoogte:F0}mm</text>")
+                }
+
+                @if (kast.GaatjesAfstand > 0)
+                {
+                    var gaatYMm = kast.EersteGaatPositieVanafBoven;
+                    while (gaatYMm < kast.Hoogte - 5)
+                    {
+                        var gy = y + gaatYMm * Schaal;
+                        <circle cx="@Fmt(x + 5)" cy="@Fmt(gy)" r="1.2" fill="#999" pointer-events="none" />
+                        <circle cx="@Fmt(x + w - 5)" cy="@Fmt(gy)" r="1.2" fill="#999" pointer-events="none" />
+                        gaatYMm += kast.GaatjesAfstand;
+                    }
+                }
+
+                @foreach (var pos in kast.MontagePlaatPosities)
+                {
+                    var cy = y + pos.AfstandVanBoven * Schaal;
+                    var cx = pos.Zijde == ScharnierZijde.Links ? x + 6 : x + w - 6;
+                    <circle cx="@Fmt(cx)" cy="@Fmt(cy)" r="3" fill="#e74c3c" stroke="#c0392b" stroke-width="0.6" pointer-events="none" />
+                }
+
+                @((MarkupString)$"<text x=\"{Fmt(x + w / 2)}\" y=\"{Fmt(y + h / 2 + 4)}\" font-size=\"10\" fill=\"#333\" text-anchor=\"middle\" font-weight=\"bold\" pointer-events=\"none\">{kast.Naam}</text>")
+
+                @if (kast.HoogteVanVloer > 0)
+                {
+                    <line x1="@Fmt(x + w / 2)" y1="@Fmt(y + h)" x2="@Fmt(x + w / 2)" y2="@Fmt(VloerY)"
+                          stroke="#999" stroke-width="1" stroke-dasharray="3,3" pointer-events="none" />
+                    @((MarkupString)$"<text x=\"{Fmt(x + w / 2 + 10)}\" y=\"{Fmt(y + h + (VloerY - y - h) / 2 + 3)}\" font-size=\"8\" fill=\"#999\" text-anchor=\"start\" pointer-events=\"none\">↕{kast.HoogteVanVloer:F0}</text>")
+                }
+            </g>
+        }
+
+        @foreach (var apparaat in Apparaten)
+        {
+            var aw = apparaat.Breedte * Schaal;
+            var ah = apparaat.Hoogte * Schaal;
+            var ax = P + apparaat.XPositie * Schaal;
+            var ay = VloerY - (apparaat.HoogteVanVloer + apparaat.Hoogte) * Schaal;
+
+            <g pointer-events="none">
+                <rect x="@Fmt(ax)" y="@Fmt(ay)" width="@Fmt(aw)" height="@Fmt(ah)"
+                      fill="@ApparaatKleur(apparaat.Type)" stroke="#555" stroke-width="1.5" rx="4" opacity="0.9" />
+                @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2)}\" y=\"{Fmt(ay + ah / 2 - 2)}\" font-size=\"14\" text-anchor=\"middle\" dominant-baseline=\"central\">{ApparaatIcoon(apparaat.Type)}</text>")
+                @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2)}\" y=\"{Fmt(ay + ah / 2 + 12)}\" font-size=\"9\" fill=\"#333\" text-anchor=\"middle\" font-weight=\"bold\">{apparaat.Naam}</text>")
+            </g>
+        }
+
+        @foreach (var paneel in PaneelVisuals())
+        {
+            var w = paneel.Rechthoek.Breedte * Schaal;
+            var h = paneel.Rechthoek.Hoogte * Schaal;
+            var x = P + paneel.Rechthoek.XPositie * Schaal;
+            var y = VloerY - (paneel.Rechthoek.HoogteVanVloer + paneel.Rechthoek.Hoogte) * Schaal;
+            var labelH = Math.Min(14.0, h * 0.28);
+
+            <g class="wand-paneel-overlay" pointer-events="none">
+                <rect x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(h)"
+                      fill="@paneel.Kleur" opacity="0.12" stroke="@paneel.Kleur" stroke-width="2.5" rx="2" />
+                <rect x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(labelH)"
+                      fill="@paneel.Kleur" opacity="0.9" rx="2" />
+                @if (paneel.Toewijzing.Type == PaneelType.Deur)
+                {
+                    var hingeX = paneel.Toewijzing.ScharnierZijde == ScharnierZijde.Links ? x + 6 : x + w - 6;
+                    <line x1="@Fmt(hingeX)" y1="@Fmt(y + labelH + 4)" x2="@Fmt(hingeX)" y2="@Fmt(y + h - 4)"
+                          stroke="@paneel.Kleur" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.75" />
+                }
+                @((MarkupString)$"<text x=\"{Fmt(x + w / 2)}\" y=\"{Fmt(y + labelH * 0.72)}\" font-size=\"8\" fill=\"#fff\" text-anchor=\"middle\" font-weight=\"bold\">{paneel.Label}</text>")
+            </g>
+        }
+
+        @if (ConceptPaneel is not null)
+        {
+            var w = ConceptPaneel.Breedte * Schaal;
+            var h = ConceptPaneel.Hoogte * Schaal;
+            var x = P + ConceptPaneel.XPositie * Schaal;
+            var y = VloerY - (ConceptPaneel.HoogteVanVloer + ConceptPaneel.Hoogte) * Schaal;
+            var kleur = PaneelKleur(ConceptPaneelType);
+            var labelH = Math.Min(18.0, h * 0.24);
+            var hingeX = ConceptPaneelScharnierZijde == ScharnierZijde.Links ? x + 7 : x + w - 7;
+
+            <g class="paneel-draft"
+               data-x="@Fmt(x)"
+               data-y="@Fmt(y)"
+               data-width="@Fmt(w)"
+               data-height="@Fmt(h)"
+               style="cursor: move;">
+                <rect class="paneel-draft-body"
+                      x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(h)"
+                      fill="@kleur" opacity="0.15" stroke="@kleur" stroke-width="2.5" stroke-dasharray="7,4" rx="3" />
+                <rect class="paneel-draft-header"
+                      x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(labelH)"
+                      fill="@kleur" opacity="0.95" rx="3" />
+                <text class="paneel-draft-title"
+                      x="@Fmt(x + w / 2)" y="@Fmt(y + Math.Max(11, labelH * 0.72))"
+                      font-size="8" fill="#fff" text-anchor="middle" font-weight="bold" pointer-events="none">@($"{TypeLabel(ConceptPaneelType)} concept")</text>
+                <text class="paneel-draft-subtitle"
+                      x="@Fmt(x + w / 2)" y="@Fmt(Math.Min(y + h - 10, y + labelH + 16))"
+                      font-size="8" fill="#18446f" text-anchor="middle" font-weight="bold" pointer-events="none">@($"{ConceptPaneel.Breedte:0} × {ConceptPaneel.Hoogte:0} mm")</text>
+                @if (ConceptPaneelType == PaneelType.Deur)
+                {
+                    <line class="paneel-draft-hinge"
+                          x1="@Fmt(hingeX)" y1="@Fmt(y + labelH + 5)"
+                          x2="@Fmt(hingeX)" y2="@Fmt(y + h - 5)"
+                          stroke="@kleur" stroke-width="2" stroke-dasharray="3,3" opacity="0.8" pointer-events="none" />
+                }
+                @foreach (var handle in DraftHandles(x, y, w, h))
+                {
+                    <circle class="paneel-draft-handle"
+                            data-handle="@handle.Naam"
+                            cx="@Fmt(handle.X)"
+                            cy="@Fmt(handle.Y)"
+                            r="5.5"
+                            fill="#fff"
+                            stroke="@kleur"
+                            stroke-width="2" />
+                }
+            </g>
+        }
+
+        @if (Kasten.Count > 0)
+        {
+            @((MarkupString)$"<text x=\"{Fmt(P + MuurBreedtePx / 2)}\" y=\"{Fmt(SvgHeight - 4)}\" font-size=\"9\" fill=\"#888\" text-anchor=\"middle\" font-style=\"italic\">Klik kast(en) voor plaatsingsgebied · sleep paneel · trek aan hoeken voor formaat · snapping op kast- en paneelranden</text>")
+        }
+    </svg>
+</div>
+
+@code {
+    private sealed record PaneelVisual(PaneelToewijzing Toewijzing, PaneelRechthoek Rechthoek, string Kleur, string Label);
+    private sealed record HandlePositie(string Naam, double X, double Y);
+
+    [Parameter, EditorRequired] public List<Kast> Kasten { get; set; } = [];
+    [Parameter] public List<Apparaat> Apparaten { get; set; } = [];
+    [Parameter] public double WandHoogte { get; set; } = 2600;
+    [Parameter] public double WandBreedte { get; set; } = 3000;
+    [Parameter] public double PlintHoogte { get; set; }
+    [Parameter] public string? SvgMaxHoogte { get; set; }
+    [Parameter] public bool BeperkTotContainerBreedte { get; set; }
+    [Parameter] public IReadOnlySet<Guid>? GeselecteerdeKastIds { get; set; }
+    [Parameter] public IReadOnlyList<PaneelToewijzing>? Toewijzingen { get; set; }
+    [Parameter] public PaneelRechthoek? ConceptPaneel { get; set; }
+    [Parameter] public PaneelType ConceptPaneelType { get; set; } = PaneelType.Deur;
+    [Parameter] public ScharnierZijde ConceptPaneelScharnierZijde { get; set; } = ScharnierZijde.Links;
+    [Parameter] public EventCallback<Guid> OnKastGeselecteerd { get; set; }
+    [Parameter] public EventCallback<PaneelConceptWijziging> OnConceptPaneelGewijzigd { get; set; }
+
+    private ElementReference svgRef;
+    private DotNetObjectReference<PaneelPlaatsEditor>? dotNetRef;
+    private IJSObjectReference? jsModule;
+
+    private const double P = 50;
+    private const double MaxVisueleHoogte = 500;
+
+    private double Schaal => MaxVisueleHoogte / Math.Max(WandHoogte, 1);
+    private double MuurHoogtePx => WandHoogte * Schaal;
+    private double MuurBreedtePx => WandBreedte * Schaal;
+    private double VloerY => P + MuurHoogtePx;
+    private double SvgWidth => MuurBreedtePx + P * 2 + 30;
+    private double SvgHeight => MuurHoogtePx + P + 30;
+
+    private IEnumerable<int> HoogteMarkeringen()
+    {
+        var step = WandHoogte > 2000 ? 500 : 250;
+        for (int h = step; h < WandHoogte; h += step)
+            yield return h;
+    }
+
+    private IEnumerable<int> BreedteMarkeringen()
+    {
+        var step = WandBreedte > 2000 ? 500 : 250;
+        for (int b = step; b < WandBreedte; b += step)
+            yield return b;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        dotNetRef = DotNetObjectReference.Create(this);
+        jsModule = await JS.InvokeAsync<IJSObjectReference>(
+            "import", "./Components/PaneelPlaatsEditor.razor.js");
+        await jsModule.InvokeVoidAsync("init", svgRef, dotNetRef);
+    }
+
+    [JSInvokable]
+    public async Task OnKastKlik(string kastIdStr)
+    {
+        if (Guid.TryParse(kastIdStr, out var kastId))
+        {
+            await OnKastGeselecteerd.InvokeAsync(kastId);
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnConceptPaneelUpdate(string bewerking, double svgX, double svgY, double svgWidth, double svgHeight)
+    {
+        if (!OnConceptPaneelGewijzigd.HasDelegate)
+            return;
+
+        var xMm = (svgX - P) / Schaal;
+        var topFromFloorMm = (VloerY - svgY) / Schaal;
+        var breedteMm = svgWidth / Schaal;
+        var hoogteMm = svgHeight / Schaal;
+        var hoogteVanVloer = topFromFloorMm - hoogteMm;
+
+        await OnConceptPaneelGewijzigd.InvokeAsync(new PaneelConceptWijziging
+        {
+            Bewerking = bewerking,
+            Paneel = new PaneelRechthoek
+            {
+                XPositie = xMm,
+                HoogteVanVloer = hoogteVanVloer,
+                Breedte = breedteMm,
+                Hoogte = hoogteMm
+            }
+        });
+
+        StateHasChanged();
+    }
+
+    private IEnumerable<PaneelVisual> PaneelVisuals()
+    {
+        if (Toewijzingen is null)
+            yield break;
+
+        var index = 0;
+        foreach (var toewijzing in Toewijzingen)
+        {
+            var kastenVoorPaneel = Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList();
+            var rechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kastenVoorPaneel);
+            if (rechthoek is null)
+                continue;
+
+            index++;
+            yield return new PaneelVisual(
+                toewijzing,
+                rechthoek,
+                PaneelKleur(toewijzing.Type),
+                $"{TypeLabel(toewijzing.Type)} {index}");
+        }
+    }
+
+    private static IEnumerable<HandlePositie> DraftHandles(double x, double y, double w, double h)
+    {
+        yield return new HandlePositie("nw", x, y);
+        yield return new HandlePositie("ne", x + w, y);
+        yield return new HandlePositie("se", x + w, y + h);
+        yield return new HandlePositie("sw", x, y + h);
+    }
+
+    private static string PaneelKleur(PaneelType type) => type switch
+    {
+        PaneelType.Deur => "#0d6efd",
+        PaneelType.LadeFront => "#e67e22",
+        _ => "#6c757d"
+    };
+
+    private static string TypeLabel(PaneelType type) => type switch
+    {
+        PaneelType.Deur => "Deur",
+        PaneelType.LadeFront => "Lade",
+        PaneelType.BlindPaneel => "Blind",
+        _ => type.ToString()
+    };
+
+    private static string KastKleur(KastType type) => type switch
+    {
+        KastType.Onderkast => "#f5deb3",
+        KastType.Bovenkast => "#d4e6f1",
+        KastType.HogeKast => "#d5f5e3",
+        _ => "#f5deb3"
+    };
+
+    private static string ApparaatKleur(ApparaatType type) => type switch
+    {
+        ApparaatType.Oven => "#e8d5c4",
+        ApparaatType.Magnetron => "#d4d4e8",
+        ApparaatType.Vaatwasser => "#c4d8e8",
+        ApparaatType.Koelkast => "#c4e8e8",
+        ApparaatType.Vriezer => "#c4d4f0",
+        ApparaatType.Kookplaat => "#e8d4c4",
+        ApparaatType.Afzuigkap => "#d8d8d8",
+        _ => "#d8d8d8"
+    };
+
+    private static string ApparaatIcoon(ApparaatType type) => type switch
+    {
+        ApparaatType.Oven => "🔥",
+        ApparaatType.Magnetron => "📡",
+        ApparaatType.Vaatwasser => "🫧",
+        ApparaatType.Koelkast => "❄️",
+        ApparaatType.Vriezer => "🧊",
+        ApparaatType.Kookplaat => "♨️",
+        ApparaatType.Afzuigkap => "💨",
+        _ => "📦"
+    };
+
+    private static string Fmt(double value) => value.ToString("F1", CultureInfo.InvariantCulture);
+
+    public async ValueTask DisposeAsync()
+    {
+        if (jsModule is not null)
+        {
+            try { await jsModule.InvokeVoidAsync("dispose", svgRef); } catch { }
+            await jsModule.DisposeAsync();
+        }
+
+        dotNetRef?.Dispose();
+    }
+}

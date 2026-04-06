@@ -6,7 +6,7 @@
 <StapIndicator HuidigeStap="panelen" />
 
 <h2 class="page-header">Stap 2: Panelen configureren</h2>
-<p class="text-muted">Selecteer kasten in het schema en wijs panelen toe. Panelafmetingen worden automatisch ingesteld op de kastmaten.</p>
+<p class="text-muted">Selecteer een of meer kasten, sleep het paneel in het schema en trek aan de hoeken om formaat te kiezen. Het paneel snapt aan kast- en paneelranden, zodat u ook meerdere panelen op één kast kunt plaatsen.</p>
 
 @if (State.Kasten.Count == 0)
 {
@@ -17,12 +17,9 @@
 else
 {
     <div class="row g-4">
-
-        @* ── LEFT: wall selection + panel list ── *@
         <div class="col-xl-7 col-lg-6">
-
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <small class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .06em;">Klik op een kast om te selecteren</small>
+                <small class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .06em;">Klik op een kast om te selecteren, sleep daarna het paneel</small>
                 @if (geselecteerdeKastIds.Count > 0)
                 {
                     <button class="btn btn-sm btn-link text-secondary p-0" @onclick="DeselecteerAlles">Alles deselecteren ×</button>
@@ -33,8 +30,11 @@ else
             {
                 var wandKasten = State.KastenVoorWand(wand.Id);
                 if (wandKasten.Count == 0) continue;
+
                 var wandApparaten = State.ApparatenVoorWand(wand.Id);
                 var wandHasSelection = geselecteerdeKastIds.Any(id => wandKasten.Any(k => k.Id == id));
+                var conceptVoorWand = ActieveWandId == wand.Id ? conceptPaneel : null;
+
                 <div class="mb-3 border @(wandHasSelection ? "border-primary" : "") rounded overflow-hidden">
                     <div class="d-flex justify-content-between align-items-center px-2 py-1 @(wandHasSelection ? "bg-primary bg-opacity-10" : "bg-light")">
                         <small class="fw-semibold">@wand.Naam</small>
@@ -44,22 +44,24 @@ else
                         }
                     </div>
                     <div class="paneel-overzicht-scroll">
-                        <WandOpstelling Kasten="@wandKasten"
-                                        Apparaten="@wandApparaten"
-                                        WandHoogte="@wand.Hoogte"
-                                        WandBreedte="@wand.Breedte"
-                                        PlintHoogte="@wand.PlintHoogte"
-                                        LeesAlleen="true"
-                                        GeselecteerdeKastIds="@geselecteerdeKastIds"
-                                        SvgMaxHoogte="55vh"
-                                        BeperkTotContainerBreedte="false"
-                                        Toewijzingen="@State.Toewijzingen"
-                                        OnKastGeselecteerd="ToggleKast" />
+                        <PaneelPlaatsEditor Kasten="@wandKasten"
+                                            Apparaten="@wandApparaten"
+                                            WandHoogte="@wand.Hoogte"
+                                            WandBreedte="@wand.Breedte"
+                                            PlintHoogte="@wand.PlintHoogte"
+                                            GeselecteerdeKastIds="@geselecteerdeKastIds"
+                                            SvgMaxHoogte="55vh"
+                                            BeperkTotContainerBreedte="false"
+                                            Toewijzingen="@ToewijzingenVoorWand(wand)"
+                                            ConceptPaneel="@conceptVoorWand"
+                                            ConceptPaneelType="@formToewijzing.Type"
+                                            ConceptPaneelScharnierZijde="@formToewijzing.ScharnierZijde"
+                                            OnKastGeselecteerd="ToggleKast"
+                                            OnConceptPaneelGewijzigd="VerwerkConceptPaneel" />
                     </div>
                 </div>
             }
 
-            @* ── Toegewezen panelen lijst ── *@
             <div class="mt-4">
                 <h6 class="d-flex align-items-center gap-2 mb-2">
                     Toegewezen panelen
@@ -67,7 +69,7 @@ else
                 </h6>
                 @if (State.Toewijzingen.Count == 0)
                 {
-                    <p class="text-muted small">Nog geen panelen. Selecteer een kast rechts en voeg een paneel toe.</p>
+                    <p class="text-muted small">Nog geen panelen. Selecteer een kast in het schema en voeg een paneel toe.</p>
                 }
                 else
                 {
@@ -78,6 +80,7 @@ else
                                 <th>Type</th>
                                 <th>Breedte</th>
                                 <th>Hoogte</th>
+                                <th>Plaatsing</th>
                                 <th>Scharnier</th>
                                 <th>Kast(en)</th>
                                 <th></th>
@@ -100,6 +103,7 @@ else
                                     </td>
                                     <td>@toewijzing.Breedte mm</td>
                                     <td>@toewijzing.Hoogte mm</td>
+                                    <td class="text-muted small">@PlaatsTekst(toewijzing)</td>
                                     <td class="text-muted small">
                                         @(toewijzing.Type == PaneelType.Deur ? toewijzing.ScharnierZijde.ToString().ToLower() : "—")
                                     </td>
@@ -116,15 +120,13 @@ else
             </div>
         </div>
 
-        @* ── RIGHT: sticky configuration form ── *@
         <div class="col-xl-5 col-lg-6">
             <div class="sticky-top" style="top: 1rem;">
-
                 <div class="card @(geselecteerdeKastIds.Count > 0 ? "border-primary shadow-sm" : "")">
                     <div class="card-header @(geselecteerdeKastIds.Count > 0 ? "bg-primary bg-opacity-10" : "bg-light")">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0" style="font-size: 1rem;">
-                                @(geselecteerdeKastIds.Count > 0 ? "Paneel toevoegen" : "Paneel configureren")
+                                @(geselecteerdeKastIds.Count > 0 ? "Paneel plaatsen" : "Paneel configureren")
                             </h5>
                             @if (geselecteerdeKastIds.Count > 0)
                             {
@@ -142,6 +144,15 @@ else
                         }
                         else
                         {
+                            <div class="alert alert-primary small py-2">
+                                Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken.
+                            </div>
+
+                            <div class="small text-muted mb-3">
+                                <div><strong>Wand:</strong> @ActieveWandNaam</div>
+                                <div><strong>Geselecteerd:</strong> @GeselecteerdeKastNamen</div>
+                            </div>
+
                             <div class="mb-3">
                                 <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Type paneel</label>
                                 <div class="d-flex gap-2 flex-wrap">
@@ -178,24 +189,39 @@ else
                             <div class="row g-2 mb-3">
                                 <div class="col-6">
                                     <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Breedte (mm)</label>
-                                    <input type="number" class="form-control" @bind="formToewijzing.Breedte" min="50" />
+                                    <input type="number" class="form-control" @bind="BreedteInput" min="50" step="10" />
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Hoogte (mm)</label>
-                                    <input type="number" class="form-control" @bind="formToewijzing.Hoogte" min="50" />
+                                    <input type="number" class="form-control" @bind="HoogteInput" min="50" step="10" />
                                 </div>
                             </div>
 
-                            <div class="d-grid">
-                                <button type="button" class="btn btn-primary" @onclick="PaneelToevoegen"
-                                        disabled="@(formToewijzing.Breedte <= 0 || formToewijzing.Hoogte <= 0)">
+                            @if (conceptPaneel is not null)
+                            {
+                                <div class="border rounded bg-light p-3 mb-3 small">
+                                    <div class="fw-semibold mb-2">Plaatsing</div>
+                                    <div class="d-flex flex-wrap gap-3">
+                                        <span>Links <strong>@FormatMm(conceptPaneel.XPositie)</strong></span>
+                                        <span>Onderkant <strong>@FormatMm(conceptPaneel.HoogteVanVloer)</strong></span>
+                                        <span>Rechts <strong>@FormatMm(conceptPaneel.Rechterkant)</strong></span>
+                                        <span>Bovenkant <strong>@FormatMm(conceptPaneel.Bovenzijde)</strong></span>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary flex-grow-1" @onclick="ResetConceptPaneel">
+                                    Reset naar selectie
+                                </button>
+                                <button type="button" class="btn btn-primary flex-grow-1" @onclick="PaneelToevoegen"
+                                        disabled="@(conceptPaneel is null || formToewijzing.Breedte <= 0 || formToewijzing.Hoogte <= 0)">
                                     + Paneel toevoegen
                                 </button>
                             </div>
                         }
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -210,53 +236,316 @@ else
 
 @code {
     private PaneelToewijzing formToewijzing = new();
-    private HashSet<Guid> geselecteerdeKastIds = [];
+    private readonly HashSet<Guid> geselecteerdeKastIds = [];
+    private PaneelRechthoek? conceptPaneel;
 
     private List<Kast> geselecteerdeKasten =>
-        geselecteerdeKastIds.Select(id => State.Kasten.Find(k => k.Id == id)!).Where(k => k is not null).ToList();
+        geselecteerdeKastIds
+            .Select(id => State.Kasten.Find(k => k.Id == id))
+            .Where(k => k is not null)
+            .Cast<Kast>()
+            .ToList();
+
+    private Guid? ActieveWandId
+    {
+        get
+        {
+            var wandIds = geselecteerdeKastIds
+                .Select(VindWandId)
+                .Where(id => id is not null)
+                .Distinct()
+                .Cast<Guid>()
+                .ToList();
+
+            return wandIds.Count == 1 ? wandIds[0] : null;
+        }
+    }
+
+    private string ActieveWandNaam =>
+        ActieveWandId is Guid wandId ? State.Wanden.Find(w => w.Id == wandId)?.Naam ?? "—" : "—";
+
+    private string GeselecteerdeKastNamen =>
+        string.Join(" + ", geselecteerdeKasten.Select(kast => kast.Naam));
+
+    private double BreedteInput
+    {
+        get => conceptPaneel?.Breedte ?? 0;
+        set
+        {
+            if (conceptPaneel is null) return;
+            var voorstel = conceptPaneel.Kopie();
+            voorstel.Breedte = value;
+            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input", Paneel = voorstel });
+        }
+    }
+
+    private double HoogteInput
+    {
+        get => conceptPaneel?.Hoogte ?? 0;
+        set
+        {
+            if (conceptPaneel is null) return;
+            var voorstel = conceptPaneel.Kopie();
+            voorstel.Hoogte = value;
+            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input", Paneel = voorstel });
+        }
+    }
 
     private void ToggleKast(Guid kastId)
     {
+        var wandId = VindWandId(kastId);
+        if (wandId is null)
+            return;
+
+        if (ActieveWandId is Guid actieveWandId && actieveWandId != wandId)
+            geselecteerdeKastIds.Clear();
+
         if (!geselecteerdeKastIds.Add(kastId))
             geselecteerdeKastIds.Remove(kastId);
 
-        UpdateAfmetingen();
+        ResetConceptPaneel();
     }
 
     private void DeselecteerWand(Guid wandId)
     {
-        var wandKastIds = State.KastenVoorWand(wandId).Select(k => k.Id);
-        foreach (var id in wandKastIds) geselecteerdeKastIds.Remove(id);
-        UpdateAfmetingen();
-    }
+        var wandKastIds = State.KastenVoorWand(wandId).Select(k => k.Id).ToList();
+        foreach (var id in wandKastIds)
+            geselecteerdeKastIds.Remove(id);
 
-    private void UpdateAfmetingen()
-    {
-        var kasten = geselecteerdeKasten;
-        if (kasten.Count > 0)
-            (formToewijzing.Breedte, formToewijzing.Hoogte) = ScharnierBerekeningService.BerekenPaneelAfmetingen(kasten);
-        else
-            (formToewijzing.Breedte, formToewijzing.Hoogte) = (0, 0);
-    }
-
-    private void PaneelToevoegen()
-    {
-        if (geselecteerdeKastIds.Count == 0) return;
-        if (formToewijzing.Breedte <= 0 || formToewijzing.Hoogte <= 0) return;
-
-        formToewijzing.KastIds = [.. geselecteerdeKastIds];
-        State.VoegToewijzingToe(formToewijzing);
-
-        geselecteerdeKastIds.Clear();
-        formToewijzing = new PaneelToewijzing();
-        UpdateAfmetingen();
+        ResetConceptPaneel();
     }
 
     private void DeselecteerAlles()
     {
         geselecteerdeKastIds.Clear();
-        UpdateAfmetingen();
+        ResetConceptPaneel();
     }
+
+    private void ResetConceptPaneel()
+    {
+        var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
+        if (selectieBereik is null)
+        {
+            conceptPaneel = null;
+            formToewijzing.XPositie = null;
+            formToewijzing.HoogteVanVloer = null;
+            formToewijzing.Breedte = 0;
+            formToewijzing.Hoogte = 0;
+            return;
+        }
+
+        conceptPaneel = selectieBereik.Kopie();
+        UpdateFormVanConcept();
+    }
+
+    private void UpdateFormVanConcept()
+    {
+        if (conceptPaneel is null)
+            return;
+
+        formToewijzing.XPositie = Math.Round(conceptPaneel.XPositie, 1);
+        formToewijzing.HoogteVanVloer = Math.Round(conceptPaneel.HoogteVanVloer, 1);
+        formToewijzing.Breedte = Math.Round(conceptPaneel.Breedte, 1);
+        formToewijzing.Hoogte = Math.Round(conceptPaneel.Hoogte, 1);
+    }
+
+    private void VerwerkConceptPaneel(PaneelConceptWijziging wijziging)
+    {
+        var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
+        if (selectieBereik is null)
+            return;
+
+        var voorstel = PaneelLayoutService.ClampBinnen(wijziging.Paneel, selectieBereik);
+        conceptPaneel = SnapPaneel(wijziging.Bewerking, voorstel, selectieBereik);
+        UpdateFormVanConcept();
+    }
+
+    private PaneelRechthoek SnapPaneel(string bewerking, PaneelRechthoek voorstel, PaneelRechthoek selectieBereik)
+    {
+        const double snapDrempel = 24.0;
+
+        var left = voorstel.XPositie;
+        var right = voorstel.Rechterkant;
+        var bottom = voorstel.HoogteVanVloer;
+        var top = voorstel.Bovenzijde;
+        var xTargets = XTargets(selectieBereik).Distinct().ToList();
+        var yTargets = YTargets(selectieBereik).Distinct().ToList();
+
+        switch (bewerking)
+        {
+            case "move":
+                var nieuweX = SnapPositieMetBehoudVanMaat(voorstel.XPositie, voorstel.Breedte, xTargets, snapDrempel);
+                var nieuweY = SnapPositieMetBehoudVanMaat(voorstel.HoogteVanVloer, voorstel.Hoogte, yTargets, snapDrempel);
+                return PaneelLayoutService.ClampBinnen(new PaneelRechthoek
+                {
+                    XPositie = nieuweX,
+                    HoogteVanVloer = nieuweY,
+                    Breedte = voorstel.Breedte,
+                    Hoogte = voorstel.Hoogte
+                }, selectieBereik);
+
+            case "nw":
+                left = SnapEdge(left, xTargets, snapDrempel);
+                top = SnapEdge(top, yTargets, snapDrempel);
+                break;
+
+            case "ne":
+                right = SnapEdge(right, xTargets, snapDrempel);
+                top = SnapEdge(top, yTargets, snapDrempel);
+                break;
+
+            case "sw":
+                left = SnapEdge(left, xTargets, snapDrempel);
+                bottom = SnapEdge(bottom, yTargets, snapDrempel);
+                break;
+
+            case "se":
+            case "input":
+            default:
+                right = SnapEdge(right, xTargets, snapDrempel);
+                top = SnapEdge(top, yTargets, snapDrempel);
+                break;
+        }
+
+        return BouwRechthoek(left, right, bottom, top, selectieBereik);
+    }
+
+    private IEnumerable<double> XTargets(PaneelRechthoek selectieBereik)
+    {
+        yield return selectieBereik.XPositie;
+        yield return selectieBereik.Rechterkant;
+
+        foreach (var kast in geselecteerdeKasten)
+        {
+            yield return kast.XPositie;
+            yield return kast.XPositie + kast.Breedte;
+        }
+
+        foreach (var paneel in BestaandePaneelRechthoeken())
+        {
+            yield return paneel.XPositie;
+            yield return paneel.Rechterkant;
+        }
+    }
+
+    private IEnumerable<double> YTargets(PaneelRechthoek selectieBereik)
+    {
+        yield return selectieBereik.HoogteVanVloer;
+        yield return selectieBereik.Bovenzijde;
+
+        foreach (var kast in geselecteerdeKasten)
+        {
+            yield return kast.HoogteVanVloer;
+            yield return kast.HoogteVanVloer + kast.Hoogte;
+        }
+
+        foreach (var paneel in BestaandePaneelRechthoeken())
+        {
+            yield return paneel.HoogteVanVloer;
+            yield return paneel.Bovenzijde;
+        }
+    }
+
+    private IEnumerable<PaneelRechthoek> BestaandePaneelRechthoeken()
+    {
+        if (ActieveWandId is not Guid actieveWandId)
+            yield break;
+
+        var wandKastIds = State.KastenVoorWand(actieveWandId).Select(kast => kast.Id).ToHashSet();
+        foreach (var toewijzing in State.Toewijzingen.Where(t => t.KastIds.Any(wandKastIds.Contains)))
+        {
+            var kasten = State.Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList();
+            var rechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
+            if (rechthoek is not null)
+                yield return rechthoek;
+        }
+    }
+
+    private void PaneelToevoegen()
+    {
+        if (conceptPaneel is null || geselecteerdeKastIds.Count == 0)
+            return;
+
+        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel);
+        if (dragendeKasten.Count == 0)
+            return;
+
+        State.VoegToewijzingToe(new PaneelToewijzing
+        {
+            Type = formToewijzing.Type,
+            ScharnierZijde = formToewijzing.ScharnierZijde,
+            KastIds = dragendeKasten.Select(kast => kast.Id).ToList(),
+            Breedte = Math.Round(conceptPaneel.Breedte, 1),
+            Hoogte = Math.Round(conceptPaneel.Hoogte, 1),
+            XPositie = Math.Round(conceptPaneel.XPositie, 1),
+            HoogteVanVloer = Math.Round(conceptPaneel.HoogteVanVloer, 1)
+        });
+
+        ResetConceptPaneel();
+    }
+
+    private List<PaneelToewijzing> ToewijzingenVoorWand(KeukenWand wand)
+    {
+        var wandKastIds = wand.KastIds.ToHashSet();
+        return State.Toewijzingen
+            .Where(t => t.KastIds.Any(wandKastIds.Contains))
+            .ToList();
+    }
+
+    private Guid? VindWandId(Guid kastId)
+        => State.Wanden.FirstOrDefault(wand => wand.KastIds.Contains(kastId))?.Id;
+
+    private static double SnapEdge(double waarde, IEnumerable<double> targets, double drempel)
+    {
+        var best = targets
+            .Select(target => new { target, diff = Math.Abs(target - waarde) })
+            .OrderBy(item => item.diff)
+            .FirstOrDefault();
+
+        return best is not null && best.diff <= drempel
+            ? Math.Round(best.target)
+            : RondRaster(waarde);
+    }
+
+    private static double SnapPositieMetBehoudVanMaat(double waarde, double maat, IEnumerable<double> targets, double drempel)
+    {
+        var kandidaten = targets
+            .SelectMany(target => new[] { target, target - maat })
+            .Distinct()
+            .Select(target => new { target, diff = Math.Abs(target - waarde) })
+            .OrderBy(item => item.diff)
+            .FirstOrDefault();
+
+        return kandidaten is not null && kandidaten.diff <= drempel
+            ? Math.Round(kandidaten.target)
+            : RondRaster(waarde);
+    }
+
+    private static PaneelRechthoek BouwRechthoek(double left, double right, double bottom, double top, PaneelRechthoek selectieBereik)
+    {
+        var minBreedte = Math.Min(PaneelLayoutService.MinPaneelMaat, selectieBereik.Breedte);
+        var minHoogte = Math.Min(PaneelLayoutService.MinPaneelMaat, selectieBereik.Hoogte);
+
+        left = Math.Clamp(left, selectieBereik.XPositie, selectieBereik.Rechterkant - minBreedte);
+        right = Math.Clamp(right, left + minBreedte, selectieBereik.Rechterkant);
+        bottom = Math.Clamp(bottom, selectieBereik.HoogteVanVloer, selectieBereik.Bovenzijde - minHoogte);
+        top = Math.Clamp(top, bottom + minHoogte, selectieBereik.Bovenzijde);
+
+        return new PaneelRechthoek
+        {
+            XPositie = RondRaster(left),
+            HoogteVanVloer = RondRaster(bottom),
+            Breedte = RondRaster(Math.Max(minBreedte, right - left)),
+            Hoogte = RondRaster(Math.Max(minHoogte, top - bottom))
+        };
+    }
+
+    private static double RondRaster(double waarde) => Math.Round(waarde / 10.0) * 10.0;
+
+    private static string PlaatsTekst(PaneelToewijzing toewijzing)
+        => toewijzing.XPositie is double x && toewijzing.HoogteVanVloer is double y
+            ? $"x {x:0} · onder {y:0}"
+            : "volledige span";
 
     private static string TypeNaam(PaneelType type) => type switch
     {
@@ -265,4 +554,6 @@ else
         PaneelType.BlindPaneel => "Blind paneel",
         _ => type.ToString()
     };
+
+    private static string FormatMm(double waarde) => $"{waarde:0.#} mm";
 }

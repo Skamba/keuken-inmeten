@@ -4,11 +4,11 @@ using Keuken_inmeten.Models;
 
 public static class ScharnierBerekeningService
 {
-    private sealed record PaneelSegment(Kast Kast, double TopVanPaneel);
+    private sealed record PaneelSegment(Kast Kast, double TopVanPaneel, double KastOffsetVanBoven, double Hoogte);
     private sealed record ScharnierKandidaat(
         Kast Kast,
         double PaneelY,
-        double TopVanPaneel,
+        double MontagePlaatMiddenInKast,
         int GaatBovenIndex,
         int GaatOnderIndex,
         double GaatBovenY,
@@ -118,15 +118,22 @@ public static class ScharnierBerekeningService
         List<Kast> kasten, double paneelHoogte, ScharnierZijde zijde)
     {
         var segmenten = BouwPaneelSegmenten(kasten, paneelHoogte, zijde);
+        return BerekenPaneelBoorgaten(segmenten, paneelHoogte);
+    }
+
+    private static List<Boorgat> BerekenPaneelBoorgaten(List<PaneelSegment> segmenten, double paneelHoogte)
+    {
         var kandidaten = BerekenScharnierKandidaten(segmenten);
         if (kandidaten.Count == 0) return [];
 
         var junctiesVanBoven = segmenten
             .Take(Math.Max(segmenten.Count - 1, 0))
-            .Select(segment => segment.TopVanPaneel + segment.Kast.Hoogte)
+            .Select(segment => segment.TopVanPaneel + segment.Hoogte)
             .ToList();
         var plankPositiesVanBoven = segmenten
-            .SelectMany(segment => segment.Kast.Planken.Select(plank => segment.TopVanPaneel + (segment.Kast.Hoogte - plank.HoogteVanBodem)))
+            .SelectMany(segment => segment.Kast.Planken.Select(plank =>
+                segment.TopVanPaneel + ((segment.Kast.Hoogte - plank.HoogteVanBodem) - segment.KastOffsetVanBoven)))
+            .Where(plankY => plankY >= 0 && plankY <= paneelHoogte)
             .ToList();
 
         const double junctionZone = 50.0;
@@ -210,7 +217,7 @@ public static class ScharnierBerekeningService
     public static PaneelResultaat BerekenPaneel(PaneelToewijzing toewijzing, List<Kast> kasten)
     {
         var boorgaten = toewijzing.Type == PaneelType.Deur
-            ? BerekenPaneelBoorgaten(kasten, toewijzing.Hoogte, toewijzing.ScharnierZijde)
+            ? BerekenPaneelBoorgaten(toewijzing, kasten)
             : [];
 
         return new PaneelResultaat
@@ -223,6 +230,19 @@ public static class ScharnierBerekeningService
             ScharnierZijde = toewijzing.ScharnierZijde,
             Boorgaten = boorgaten
         };
+    }
+
+    private static List<Boorgat> BerekenPaneelBoorgaten(PaneelToewijzing toewijzing, List<Kast> kasten)
+    {
+        if (toewijzing.XPositie is null || toewijzing.HoogteVanVloer is null)
+            return BerekenPaneelBoorgaten(kasten, toewijzing.Hoogte, toewijzing.ScharnierZijde);
+
+        var paneel = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
+        if (paneel is null)
+            return [];
+
+        var segmenten = BouwPaneelSegmenten(kasten, paneel, toewijzing.ScharnierZijde);
+        return BerekenPaneelBoorgaten(segmenten, paneel.Hoogte);
     }
 
     private static List<PaneelSegment> BouwPaneelSegmenten(List<Kast> kasten, double paneelHoogte, ScharnierZijde zijde)
@@ -241,7 +261,7 @@ public static class ScharnierBerekeningService
             double topVanPaneel = 0;
             foreach (var kast in gesorteerd)
             {
-                segmenten.Add(new PaneelSegment(kast, topVanPaneel));
+                segmenten.Add(new PaneelSegment(kast, topVanPaneel, 0, kast.Hoogte));
                 topVanPaneel += kast.Hoogte;
             }
 
@@ -252,7 +272,49 @@ public static class ScharnierBerekeningService
             ? kasten.OrderBy(k => k.XPositie).ThenBy(k => k.Naam).First()
             : kasten.OrderByDescending(k => k.XPositie + k.Breedte).ThenBy(k => k.Naam).First();
 
-        return [new PaneelSegment(draagKast, Math.Max(0, paneelHoogte - draagKast.Hoogte))];
+        return [new PaneelSegment(draagKast, Math.Max(0, paneelHoogte - draagKast.Hoogte), 0, draagKast.Hoogte)];
+    }
+
+    private static List<PaneelSegment> BouwPaneelSegmenten(List<Kast> kasten, PaneelRechthoek paneel, ScharnierZijde zijde)
+    {
+        if (kasten.Count == 0)
+            return [];
+
+        var probeOffset = zijde == ScharnierZijde.Links ? 1.0 : -1.0;
+        var probeX = Math.Clamp(
+            zijde == ScharnierZijde.Links ? paneel.XPositie + probeOffset : paneel.Rechterkant + probeOffset,
+            paneel.XPositie + 0.1,
+            paneel.Rechterkant - 0.1);
+
+        var panelTop = paneel.Bovenzijde;
+        var panelBottom = paneel.HoogteVanVloer;
+
+        var segmenten = kasten
+            .Where(kast => probeX >= kast.XPositie - 0.1 && probeX <= kast.XPositie + kast.Breedte + 0.1)
+            .Select(kast =>
+            {
+                var kastTop = kast.HoogteVanVloer + kast.Hoogte;
+                var overlapTop = Math.Min(panelTop, kastTop);
+                var overlapBottom = Math.Max(panelBottom, kast.HoogteVanVloer);
+                var overlapHoogte = overlapTop - overlapBottom;
+                if (overlapHoogte < 1.0)
+                    return null;
+
+                return new PaneelSegment(
+                    kast,
+                    panelTop - overlapTop,
+                    kastTop - overlapTop,
+                    overlapHoogte);
+            })
+            .Where(segment => segment is not null)
+            .Cast<PaneelSegment>()
+            .OrderBy(segment => segment.TopVanPaneel)
+            .ThenBy(segment => segment.Kast.XPositie)
+            .ToList();
+
+        return segmenten.Count > 0
+            ? segmenten
+            : BouwPaneelSegmenten(kasten, paneel.Hoogte, zijde);
     }
 
     private static List<ScharnierKandidaat> BerekenScharnierKandidaten(List<PaneelSegment> segmenten)
@@ -267,10 +329,16 @@ public static class ScharnierBerekeningService
             for (int i = 0; i < gaten.Count - 1; i++)
             {
                 var montagePlaatMidden = (gaten[i] + gaten[i + 1]) / 2.0;
+                if (montagePlaatMidden < segment.KastOffsetVanBoven - 0.1 ||
+                    montagePlaatMidden > segment.KastOffsetVanBoven + segment.Hoogte + 0.1)
+                {
+                    continue;
+                }
+
                 kandidaten.Add(new ScharnierKandidaat(
                     segment.Kast,
-                    segment.TopVanPaneel + montagePlaatMidden,
-                    segment.TopVanPaneel,
+                    segment.TopVanPaneel + (montagePlaatMidden - segment.KastOffsetVanBoven),
+                    montagePlaatMidden,
                     i + 1,
                     i + 2,
                     gaten[i],
@@ -300,7 +368,7 @@ public static class ScharnierBerekeningService
                 GaatOnderIndex = kandidaat.GaatOnderIndex,
                 GaatBovenY = kandidaat.GaatBovenY,
                 GaatOnderY = kandidaat.GaatOnderY,
-                MontagePlaatMiddenInKast = Math.Round(kandidaat.PaneelY - kandidaat.TopVanPaneel, 1),
+                MontagePlaatMiddenInKast = Math.Round(kandidaat.MontagePlaatMiddenInKast, 1),
                 IdealeY = Math.Round(idealeY, 1),
                 AfstandTotIdealeVerdeling = Math.Round(Math.Abs(kandidaat.PaneelY - idealeY), 1),
                 AfstandTotBoven = Math.Round(kandidaat.PaneelY, 1),
