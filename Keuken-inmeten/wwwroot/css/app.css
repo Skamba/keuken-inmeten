@@ -1,7 +1,7 @@
 html, body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size: 15px;
-    color: #1a1a2e;
+    color: var(--bs-body-color, #1a1a2e);
 }
 
 /* Smooth transitions on interactive elements */
@@ -54,7 +54,7 @@ a, .btn-link {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+  box-shadow: 0 0 0 0.1rem var(--bs-body-bg, white), 0 0 0 0.25rem #258cfb;
 }
 
 /* Accessible focus visible ring */
@@ -80,8 +80,8 @@ a, .btn-link {
 }
 
 #blazor-error-ui {
-    color-scheme: light only;
-    background: lightyellow;
+    background: var(--bs-warning-bg-subtle, lightyellow);
+    color: var(--bs-body-color);
     bottom: 0;
     box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
     box-sizing: border-box;
@@ -138,7 +138,7 @@ a, .btn-link {
     text-align: center;
     font-weight: bold;
     inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
-    color: #1a1a2e;
+    color: var(--bs-body-color, #1a1a2e);
     font-size: 0.9rem;
 }
 
@@ -170,8 +170,8 @@ code {
     align-items: flex-end;
     min-height: 120px;
     padding: 12px 8px;
-    background: #f8f9fa;
-    border: 2px dashed #dee2e6;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+    border: 2px dashed var(--bs-border-color, #dee2e6);
     border-radius: 8px;
     gap: 0;
     transition: border-color 0.2s;
@@ -246,7 +246,7 @@ code {
 .kast-naam {
     font-weight: 600;
     font-size: 11px;
-    color: #333;
+    color: var(--bs-body-color, #333);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -255,7 +255,7 @@ code {
 
 .kast-afmeting {
     font-size: 9px;
-    color: #666;
+    color: var(--bs-secondary-color, #666);
 }
 
 .kast-type {
@@ -303,7 +303,7 @@ code {
     overflow-x: auto;
     overflow-y: hidden;
     padding: 0.75rem;
-    background: #fff;
+    background: var(--bs-body-bg, #fff);
 }
 
 .wand-kast-sleepbaar {
@@ -345,9 +345,9 @@ code {
 .page-header {
     font-size: 1.4rem;
     font-weight: 700;
-    color: #1a1a2e;
+    color: var(--bs-body-color, #1a1a2e);
     padding-bottom: 0.5rem;
-    border-bottom: 2px solid #dee2e6;
+    border-bottom: 2px solid var(--bs-border-color, #dee2e6);
     margin-bottom: 1.25rem;
 }
 
@@ -388,7 +388,7 @@ code {
     right: 50%;
     width: 100%;
     height: 2px;
-    background: #dee2e6;
+    background: var(--bs-border-color, #dee2e6);
     z-index: 0;
     transition: background 0.2s ease;
 }
@@ -409,9 +409,9 @@ code {
     font-size: 0.88rem;
     position: relative;
     z-index: 1;
-    border: 2px solid #dee2e6;
-    background: #fff;
-    color: #adb5bd;
+    border: 2px solid var(--bs-border-color, #dee2e6);
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-secondary-color, #adb5bd);
     transition: all 0.2s ease;
 }
 
@@ -422,7 +422,7 @@ code {
 }
 
 .stap-indicator-item.actief .stap-cirkel {
-    background: #fff;
+    background: var(--bs-body-bg, #fff);
     border-color: #0d6efd;
     color: #0d6efd;
     box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
@@ -446,7 +446,7 @@ code {
     margin-top: 6px;
     font-size: 0.82rem;
     text-align: center;
-    color: #6c757d;
+    color: var(--bs-secondary-color, #6c757d);
 }
 
 .stap-indicator-item.klaar .stap-label {
@@ -471,8 +471,8 @@ code {
 .stap-navigatie {
     position: sticky;
     bottom: 0;
-    background: #fff;
-    border-top: 1px solid #dee2e6;
+    background: var(--bs-body-bg, #fff);
+    border-top: 1px solid var(--bs-border-color, #dee2e6);
     padding: 0.75rem 1.5rem;
     display: flex;
     align-items: center;
@@ -491,7 +491,7 @@ code {
 }
 
 .stap-navigatie-stappen a {
-    color: #6c757d;
+    color: var(--bs-secondary-color, #6c757d);
     text-decoration: none;
 }
 
@@ -506,7 +506,7 @@ code {
 }
 
 .stap-pijl {
-    color: #adb5bd;
+    color: var(--bs-secondary-color, #adb5bd);
 }
 
 .stap-navigatie-midden {
@@ -560,7 +560,7 @@ code {
 
 /* ── Resultaat onderbouwing uitklapper ── */
 .onderbouwing-blok {
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--bs-border-color, #e9ecef);
     padding-top: 1rem;
 }
 
@@ -573,18 +573,18 @@ code {
     text-align: left;
     padding: 0.65rem 0.9rem;
     font-weight: 600;
-    border-color: #c9d3df;
-    background: #fff;
+    border-color: var(--bs-border-color, #c9d3df);
+    background: var(--bs-body-bg, #fff);
 }
 
 .onderbouwing-toggle:hover {
-    border-color: #9fb4cb;
-    background: #f8fbff;
+    border-color: var(--bs-border-color, #9fb4cb);
+    background: var(--bs-tertiary-bg, #f8fbff);
 }
 
 .onderbouwing-toggle-icoon {
     flex-shrink: 0;
-    color: #49637d;
+    color: var(--bs-secondary-color, #49637d);
     font-size: 0.85rem;
 }
 
@@ -599,9 +599,9 @@ code {
 .scharnier-overzicht-trigger {
     width: 100%;
     padding: 0.6rem;
-    border: 1px solid #d9e1ea;
+    border: 1px solid var(--bs-border-color, #d9e1ea);
     border-radius: 0.8rem;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    background: var(--bs-body-bg, #fff);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -610,7 +610,7 @@ code {
 }
 
 .scharnier-overzicht-trigger:hover {
-    border-color: #a9c0d8;
+    border-color: var(--bs-border-color, #a9c0d8);
     box-shadow: 0 10px 28px rgba(25, 56, 85, 0.09);
 }
 
@@ -618,14 +618,14 @@ code {
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.01em;
-    color: #41617e;
+    color: var(--bs-secondary-color, #41617e);
 }
 
 .scharnier-overzicht-svg {
     display: block;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--bs-border-color, #dee2e6);
     border-radius: 0.6rem;
-    background: #fff;
+    background: var(--bs-body-bg, #fff);
 }
 
 .scharnier-overzicht-svg--preview {
@@ -635,7 +635,7 @@ code {
 
 .scharnier-overzicht-legenda {
     font-size: 0.7rem;
-    color: #666;
+    color: var(--bs-secondary-color, #666);
 }
 
 .scharnier-viewer-backdrop {
@@ -753,7 +753,7 @@ code {
 
 /* ── Bestellijst ── */
 .bestellijst-toolbar {
-    background: linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
+    background: var(--bs-body-bg, #fff);
 }
 
 .bestellijst-toolbar-meta {
@@ -761,7 +761,7 @@ code {
     flex-wrap: wrap;
     gap: 0.85rem 1.5rem;
     font-size: 0.86rem;
-    color: #516173;
+    color: var(--bs-secondary-color, #516173);
 }
 
 .bestellijst-export-acties {
@@ -782,10 +782,10 @@ code {
 }
 
 .bestellijst-table-wrap {
-    border: 1px solid #e3e8ef;
+    border: 1px solid var(--bs-border-color, #e3e8ef);
     border-radius: 0.9rem;
     overflow: hidden;
-    background: #fff;
+    background: var(--bs-body-bg, #fff);
     position: relative;
 }
 
@@ -799,8 +799,8 @@ code {
     padding: 0.35rem;
     text-align: center;
     font-size: 0.72rem;
-    color: #6c757d;
-    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.95));
+    color: var(--bs-secondary-color, #6c757d);
+    background: linear-gradient(180deg, transparent, var(--bs-body-bg, rgba(255,255,255,0.95)));
     pointer-events: none;
 }
 
@@ -820,7 +820,7 @@ code {
     font-size: 0.76rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: #5c6b7a;
+    color: var(--bs-secondary-color, #5c6b7a);
 }
 
 .bestellijst-table td {
@@ -829,4 +829,60 @@ code {
 
 .bestellijst-name {
     min-width: 260px;
+}
+
+/* ── Dark mode overrides ── */
+[data-bs-theme="dark"] {
+    --bs-body-color: #dee2e6;
+    --bs-body-bg: #1a1d21;
+}
+
+[data-bs-theme="dark"] .card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+[data-bs-theme="dark"] .home-stap-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35) !important;
+}
+
+[data-bs-theme="dark"] .stap-navigatie {
+    box-shadow: 0 -3px 12px rgba(0,0,0,0.25);
+}
+
+[data-bs-theme="dark"] .deel-status {
+    color: #6dd698;
+}
+
+[data-bs-theme="dark"] .deel-status.fout {
+    color: #f87171;
+}
+
+[data-bs-theme="dark"] .bestellijst-export-status {
+    color: #6dd698;
+}
+
+[data-bs-theme="dark"] .bestellijst-export-status.fout {
+    color: #f87171;
+}
+
+[data-bs-theme="dark"] .wand-kast-blok {
+    border-color: #a08b6d;
+}
+
+[data-bs-theme="dark"] .kast-grip {
+    color: rgba(255,255,255,0.25);
+}
+
+[data-bs-theme="dark"] .loading-progress circle {
+    stroke: #495057;
+}
+
+[data-bs-theme="dark"] .loading-progress circle:last-child {
+    stroke: #4da3ff;
+}
+
+/* SVG text and strokes in dark mode */
+[data-bs-theme="dark"] .wand-opstelling-svg text,
+[data-bs-theme="dark"] .paneel-overzicht-scroll text {
+    fill: var(--bs-body-color);
 }

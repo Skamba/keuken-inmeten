@@ -8,6 +8,12 @@
     <base href="/" />
     <script>
         (function () {
+            // Apply saved theme or detect system preference before first paint
+            var saved = localStorage.getItem("keuken-theme");
+            var theme = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+            document.documentElement.setAttribute("data-bs-theme", theme);
+        })();
+        (function () {
             const savedPath = sessionStorage.getItem("github-pages-path");
             if (!savedPath) {
                 return;
@@ -16,6 +22,19 @@
             sessionStorage.removeItem("github-pages-path");
             history.replaceState(null, "", savedPath);
         })();
+
+        window.keukenTheme = {
+            toggle: function () {
+                var current = document.documentElement.getAttribute("data-bs-theme");
+                var next = current === "dark" ? "light" : "dark";
+                document.documentElement.setAttribute("data-bs-theme", next);
+                localStorage.setItem("keuken-theme", next);
+                return next;
+            },
+            get: function () {
+                return document.documentElement.getAttribute("data-bs-theme") || "light";
+            }
+        };
 
         window.keukenShare = {
             shareUrl: async function (url, title, text) {
