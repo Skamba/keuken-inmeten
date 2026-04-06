@@ -16,7 +16,16 @@ public static class ScharnierBerekeningService
 
     public const double CupDiameter = 35.0;
     public const double CupCenterVanRand = 22.5;
+    public const double MinCupCenterVanRand = CupDiameter / 2.0;
     public const double MinAfstandVanRand = 80.0;
+
+    public static double NormaliseerCupCenterVanRand(double waarde)
+    {
+        if (double.IsNaN(waarde) || double.IsInfinity(waarde))
+            return CupCenterVanRand;
+
+        return Math.Round(Math.Max(MinCupCenterVanRand, waarde), 1);
+    }
 
     /// <summary>
     /// Geeft alle gaatjesrij-posities van bovenkant kast.
@@ -118,10 +127,10 @@ public static class ScharnierBerekeningService
         List<Kast> kasten, double paneelHoogte, ScharnierZijde zijde)
     {
         var segmenten = BouwPaneelSegmenten(kasten, paneelHoogte, zijde);
-        return BerekenPaneelBoorgaten(segmenten, paneelHoogte);
+        return BerekenPaneelBoorgaten(segmenten, paneelHoogte, CupCenterVanRand);
     }
 
-    private static List<Boorgat> BerekenPaneelBoorgaten(List<PaneelSegment> segmenten, double paneelHoogte)
+    private static List<Boorgat> BerekenPaneelBoorgaten(List<PaneelSegment> segmenten, double paneelHoogte, double potHartVanRand)
     {
         var kandidaten = BerekenScharnierKandidaten(segmenten);
         if (kandidaten.Count == 0) return [];
@@ -170,7 +179,7 @@ public static class ScharnierBerekeningService
 
         return gekozen
             .OrderBy(item => item.kandidaat.PaneelY)
-            .Select(item => MaakBoorgat(item.kandidaat, paneelHoogte, item.ideaal, junctiesVanBoven, plankPositiesVanBoven))
+            .Select(item => MaakBoorgat(item.kandidaat, paneelHoogte, potHartVanRand, item.ideaal, junctiesVanBoven, plankPositiesVanBoven))
             .ToList();
     }
 
@@ -260,15 +269,20 @@ public static class ScharnierBerekeningService
 
     private static List<Boorgat> BerekenPaneelBoorgaten(PaneelToewijzing toewijzing, List<Kast> kasten)
     {
+        var potHartVanRand = NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
+
         if (toewijzing.XPositie is null || toewijzing.HoogteVanVloer is null)
-            return BerekenPaneelBoorgaten(kasten, toewijzing.Hoogte, toewijzing.ScharnierZijde);
+        {
+            var segmentenZonderRechthoek = BouwPaneelSegmenten(kasten, toewijzing.Hoogte, toewijzing.ScharnierZijde);
+            return BerekenPaneelBoorgaten(segmentenZonderRechthoek, toewijzing.Hoogte, potHartVanRand);
+        }
 
         var paneel = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
         if (paneel is null)
             return [];
 
         var segmenten = BouwPaneelSegmenten(kasten, paneel, toewijzing.ScharnierZijde);
-        return BerekenPaneelBoorgaten(segmenten, paneel.Hoogte);
+        return BerekenPaneelBoorgaten(segmenten, paneel.Hoogte, potHartVanRand);
     }
 
     private static List<PaneelSegment> BouwPaneelSegmenten(List<Kast> kasten, double paneelHoogte, ScharnierZijde zijde)
@@ -378,13 +392,14 @@ public static class ScharnierBerekeningService
     private static Boorgat MaakBoorgat(
         ScharnierKandidaat kandidaat,
         double paneelHoogte,
+        double potHartVanRand,
         double idealeY,
         List<double> junctiesVanBoven,
         List<double> plankPositiesVanBoven)
     {
         return new Boorgat
         {
-            X = CupCenterVanRand,
+            X = potHartVanRand,
             Y = Math.Round(kandidaat.PaneelY, 1),
             Diameter = CupDiameter,
             Onderbouwing = new BoorgatOnderbouwing

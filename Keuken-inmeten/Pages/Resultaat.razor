@@ -120,6 +120,7 @@ else
         var r = resultaten[i];
         var detailIndex = i;
         var toewijzing = State.Toewijzingen[i];
+        var potHartVanRand = r.Boorgaten.FirstOrDefault()?.X ?? toewijzing.PotHartVanRand;
         var paneelKasten = r.KastIds
             .Select(id => State.Kasten.Find(k => k.Id == id))
             .Where(k => k is not null)
@@ -139,6 +140,7 @@ else
                             @if (r.Type == PaneelType.Deur)
                             {
                                 <li>Scharnier zijde: <strong>@r.ScharnierZijde</strong></li>
+                                <li>Hart 35mm-potje vanaf rand: <strong>@FormatMm(potHartVanRand)</strong></li>
                             }
                         </ul>
 

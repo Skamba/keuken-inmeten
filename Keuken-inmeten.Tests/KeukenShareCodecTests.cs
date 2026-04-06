@@ -17,6 +17,7 @@ public class KeukenShareCodecTests
 
         var data = new KeukenData
         {
+            LaatstGebruiktePotHartVanRand = 24.5,
             Wanden =
             [
                 new KeukenWand
@@ -83,6 +84,7 @@ public class KeukenShareCodecTests
                     KastIds = [kastBId],
                     Type = PaneelType.Deur,
                     ScharnierZijde = ScharnierZijde.Rechts,
+                    PotHartVanRand = 24.5,
                     Breedte = 600,
                     Hoogte = 900,
                     XPositie = 2400,
@@ -125,6 +127,8 @@ public class KeukenShareCodecTests
         Assert.Equal("Oven", apparaat.Naam);
         Assert.Equal(2400, toewijzing.XPositie);
         Assert.Equal(700, toewijzing.HoogteVanVloer);
+        Assert.Equal(24.5, toewijzing.PotHartVanRand);
+        Assert.Equal(24.5, decoded.LaatstGebruiktePotHartVanRand);
         Assert.Empty(decoded.KastTemplates);
     }
 

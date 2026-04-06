@@ -9,6 +9,7 @@ public class KeukenStateService
     public List<Apparaat> Apparaten { get; } = [];
     public List<PaneelToewijzing> Toewijzingen { get; } = [];
     public List<KastTemplate> KastTemplates { get; } = [];
+    public double LaatstGebruiktePotHartVanRand { get; private set; } = ScharnierBerekeningService.CupCenterVanRand;
 
     /// <summary>Fires after any state mutation so subscribers can persist the data.</summary>
     public event Action? OnStateChanged;
@@ -23,7 +24,8 @@ public class KeukenStateService
         Kasten = [.. Kasten],
         Apparaten = [.. Apparaten],
         Toewijzingen = [.. Toewijzingen],
-        KastTemplates = [.. KastTemplates]
+        KastTemplates = [.. KastTemplates],
+        LaatstGebruiktePotHartVanRand = LaatstGebruiktePotHartVanRand
     };
 
     public void Laden(KeukenData data)
@@ -39,6 +41,7 @@ public class KeukenStateService
         Apparaten.AddRange(data.Apparaten);
         Toewijzingen.AddRange(data.Toewijzingen);
         KastTemplates.AddRange(data.KastTemplates);
+        LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(data.LaatstGebruiktePotHartVanRand);
     }
 
     // --- Wanden ---
@@ -225,6 +228,9 @@ public class KeukenStateService
 
     public void VoegToewijzingToe(PaneelToewijzing toewijzing)
     {
+        if (toewijzing.Type == PaneelType.Deur)
+            LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
+
         Toewijzingen.Add(toewijzing);
         NotifyChanged();
     }

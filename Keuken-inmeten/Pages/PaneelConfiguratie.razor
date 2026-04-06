@@ -105,7 +105,9 @@ else
                                     <td>@toewijzing.Hoogte mm</td>
                                     <td class="text-muted small">@PlaatsTekst(toewijzing)</td>
                                     <td class="text-muted small">
-                                        @(toewijzing.Type == PaneelType.Deur ? toewijzing.ScharnierZijde.ToString().ToLower() : "—")
+                                        @(toewijzing.Type == PaneelType.Deur
+                                            ? $"{toewijzing.ScharnierZijde.ToString().ToLower()} · pot {FormatMm(toewijzing.PotHartVanRand)}"
+                                            : "—")
                                     </td>
                                     <td class="text-muted small">@kastenNamen</td>
                                     <td class="text-end pe-2">
@@ -184,6 +186,16 @@ else
                                         </button>
                                     </div>
                                 </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Hart 35mm-potje vanaf zijkant (mm)</label>
+                                    <input type="number"
+                                           class="form-control"
+                                           @bind="PotHartInput"
+                                           min="@ScharnierBerekeningService.MinCupCenterVanRand"
+                                           step="0.5" />
+                                    <div class="form-text">Deze X-maat wordt gebruikt voor alle scharnierpotjes in dit deurpaneel en de laatst gebruikte waarde wordt onthouden.</div>
+                                </div>
                             }
 
                             <div class="row g-2 mb-3">
@@ -239,6 +251,11 @@ else
     private readonly HashSet<Guid> geselecteerdeKastIds = [];
     private PaneelRechthoek? conceptPaneel;
 
+    protected override void OnInitialized()
+    {
+        formToewijzing.PotHartVanRand = State.LaatstGebruiktePotHartVanRand;
+    }
+
     private List<Kast> geselecteerdeKasten =>
         geselecteerdeKastIds
             .Select(id => State.Kasten.Find(k => k.Id == id))
@@ -289,6 +306,12 @@ else
             voorstel.Hoogte = value;
             VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input", Paneel = voorstel });
         }
+    }
+
+    private double PotHartInput
+    {
+        get => formToewijzing.PotHartVanRand;
+        set => formToewijzing.PotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(value);
     }
 
     private void ToggleKast(Guid kastId)
@@ -474,6 +497,7 @@ else
         {
             Type = formToewijzing.Type,
             ScharnierZijde = formToewijzing.ScharnierZijde,
+            PotHartVanRand = PotHartInput,
             KastIds = dragendeKasten.Select(kast => kast.Id).ToList(),
             Breedte = Math.Round(conceptPaneel.Breedte, 1),
             Hoogte = Math.Round(conceptPaneel.Hoogte, 1),

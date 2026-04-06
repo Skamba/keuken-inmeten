@@ -10,4 +10,5 @@ public class KeukenData
     public List<Apparaat> Apparaten { get; set; } = [];
     public List<PaneelToewijzing> Toewijzingen { get; set; } = [];
     public List<KastTemplate> KastTemplates { get; set; } = [];
+    public double LaatstGebruiktePotHartVanRand { get; set; } = 22.5;
 }

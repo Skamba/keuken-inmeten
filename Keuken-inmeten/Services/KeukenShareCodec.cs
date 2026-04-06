@@ -48,7 +48,8 @@ public static class KeukenShareCodec
         Kasten = [.. data.Kasten],
         Apparaten = [.. data.Apparaten],
         Toewijzingen = [.. data.Toewijzingen],
-        KastTemplates = []
+        KastTemplates = [],
+        LaatstGebruiktePotHartVanRand = data.LaatstGebruiktePotHartVanRand
     };
 
     private static KeukenData Normaliseer(KeukenData data) => new()
@@ -57,7 +58,8 @@ public static class KeukenShareCodec
         Kasten = data.Kasten ?? [],
         Apparaten = data.Apparaten ?? [],
         Toewijzingen = data.Toewijzingen ?? [],
-        KastTemplates = data.KastTemplates ?? []
+        KastTemplates = data.KastTemplates ?? [],
+        LaatstGebruiktePotHartVanRand = data.LaatstGebruiktePotHartVanRand
     };
 
     private static string NaarBase64Url(byte[] bytes)

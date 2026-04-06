@@ -491,14 +491,14 @@ public class HandBerekendTests
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // 23. BerekenPaneel — Deur 720mm → 2 boorgaten with X=22.5
+    // 23. BerekenPaneel — Deur 720mm → 2 boorgaten with standaard X
     // ═══════════════════════════════════════════════════════════════════
     [Fact]
     public void Test23_BerekenPaneel_Deur_720mm()
     {
         // 720mm door → 2 hinges
         // Y positions snapped to centers: 85, 629 (from test 7)
-        // X = 22.5mm (cup center from panel edge, ScharnierZijde.Links)
+        // X = standaard cup center from panel edge, ScharnierZijde.Links
         // Diameter = 35mm (European 35mm cup standard)
         var kast = MaakKast(720);
         var toewijzing = new PaneelToewijzing
@@ -513,10 +513,33 @@ public class HandBerekendTests
         var resultaat = ScharnierBerekeningService.BerekenPaneel(toewijzing, [kast]);
 
         Assert.Equal(2, resultaat.Boorgaten.Count);
-        Assert.All(resultaat.Boorgaten, g => Assert.Equal(22.5, g.X));
+        Assert.All(resultaat.Boorgaten, g => Assert.Equal(ScharnierBerekeningService.CupCenterVanRand, g.X));
         Assert.All(resultaat.Boorgaten, g => Assert.Equal(35.0, g.Diameter));
         Assert.Equal(85.0, resultaat.Boorgaten[0].Y);
         Assert.Equal(629.0, resultaat.Boorgaten[1].Y);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 26. BerekenPaneel — Deur met aangepaste pot-hart afstand
+    // ═══════════════════════════════════════════════════════════════════
+    [Fact]
+    public void Test26_BerekenPaneel_Deur_GebruiktAangepastePotHartAfstand()
+    {
+        var kast = MaakKast(720);
+        var toewijzing = new PaneelToewijzing
+        {
+            Type = PaneelType.Deur,
+            Breedte = 600,
+            Hoogte = 720,
+            ScharnierZijde = ScharnierZijde.Links,
+            PotHartVanRand = 24.5,
+            KastIds = [kast.Id]
+        };
+
+        var resultaat = ScharnierBerekeningService.BerekenPaneel(toewijzing, [kast]);
+
+        Assert.Equal(2, resultaat.Boorgaten.Count);
+        Assert.All(resultaat.Boorgaten, g => Assert.Equal(24.5, g.X));
     }
 
     // ═══════════════════════════════════════════════════════════════════
