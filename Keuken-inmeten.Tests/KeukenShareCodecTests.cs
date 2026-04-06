@@ -1,5 +1,6 @@
 using Keuken_inmeten.Models;
 using Keuken_inmeten.Services;
+using System.Text.Json;
 using Xunit;
 
 namespace Keuken_inmeten.Tests;
@@ -9,13 +10,84 @@ public class KeukenShareCodecTests
     [Fact]
     public void Encode_en_decode_behouden_de_keukenconfiguratie()
     {
+        var data = MaakVoorbeeldData();
+
+        var token = KeukenShareCodec.Encode(data);
+
+        var decodedOk = KeukenShareCodec.TryDecode(token, out var decoded);
+
+        Assert.True(decodedOk);
+        var wand = Assert.Single(decoded.Wanden);
+        var kasten = decoded.Kasten.OrderBy(k => k.Naam).ToList();
+        var apparaat = Assert.Single(decoded.Apparaten);
+        var toewijzing = Assert.Single(decoded.Toewijzingen);
+        var hogeKast = Assert.Single(decoded.Kasten, k => k.Naam == "Hoge kast");
+        var onderkast = Assert.Single(decoded.Kasten, k => k.Naam == "Onderkast links");
+
+        Assert.Equal("Muur", wand.Naam);
+        Assert.Equal(2, wand.KastIds.Count);
+        Assert.Contains(hogeKast.Id, wand.KastIds);
+        Assert.Contains(onderkast.Id, wand.KastIds);
+        Assert.Equal("Hoge kast", kasten[0].Naam);
+        Assert.Equal("Onderkast links", kasten[1].Naam);
+        Assert.Equal(85, hogeKast.MontagePlaatPosities[0].AfstandVanBoven);
+        Assert.Equal(360, onderkast.Planken[0].HoogteVanBodem);
+        Assert.Equal("Oven", apparaat.Naam);
+        Assert.Equal(2400, toewijzing.XPositie);
+        Assert.Equal(700, toewijzing.HoogteVanVloer);
+        Assert.Equal(24.5, toewijzing.PotHartVanRand);
+        Assert.Equal([hogeKast.Id], toewijzing.KastIds);
+        Assert.Equal(24.5, decoded.LaatstGebruiktePotHartVanRand);
+        Assert.Empty(decoded.KastTemplates);
+    }
+
+    [Fact]
+    public void Ongeldige_token_wordt_afgewezen()
+    {
+        var decodedOk = KeukenShareCodec.TryDecode("v1.geen-geldige-data", out var decoded);
+
+        Assert.False(decodedOk);
+        Assert.Empty(decoded.Wanden);
+        Assert.Empty(decoded.Kasten);
+    }
+
+    [Fact]
+    public void Legacy_v1_link_blijft_decodeerbaar()
+    {
+        var data = MaakVoorbeeldData();
+        var token = MaakLegacyToken(data);
+
+        var decodedOk = KeukenShareCodec.TryDecode(token, out var decoded);
+
+        Assert.True(decodedOk);
+        Assert.Single(decoded.Wanden);
+        Assert.Equal(2, decoded.Kasten.Count);
+        Assert.Single(decoded.Apparaten);
+        Assert.Single(decoded.Toewijzingen);
+        Assert.Equal(24.5, decoded.LaatstGebruiktePotHartVanRand);
+    }
+
+    [Fact]
+    public void V2_token_is_korter_dan_legacy_v1_token()
+    {
+        var data = MaakVoorbeeldData();
+
+        var v1 = MaakLegacyToken(data);
+        var v2 = KeukenShareCodec.Encode(data);
+
+        Assert.StartsWith("v2.", v2);
+        Assert.True(v2.Length < v1.Length, $"v2 token should be shorter than v1. v2={v2.Length}, v1={v1.Length}");
+    }
+
+    private static KeukenData MaakVoorbeeldData()
+    {
         var wandId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         var kastAId = Guid.Parse("22222222-2222-2222-2222-222222222222");
         var kastBId = Guid.Parse("33333333-3333-3333-3333-333333333333");
         var apparaatId = Guid.Parse("44444444-4444-4444-4444-444444444444");
         var toewijzingId = Guid.Parse("55555555-5555-5555-5555-555555555555");
 
-        var data = new KeukenData
+        return new KeukenData
         {
             LaatstGebruiktePotHartVanRand = 24.5,
             Wanden =
@@ -107,38 +179,29 @@ public class KeukenShareCodecTests
                 }
             ]
         };
-
-        var token = KeukenShareCodec.Encode(data);
-
-        var decodedOk = KeukenShareCodec.TryDecode(token, out var decoded);
-
-        Assert.True(decodedOk);
-        var wand = Assert.Single(decoded.Wanden);
-        var kasten = decoded.Kasten.OrderBy(k => k.Naam).ToList();
-        var apparaat = Assert.Single(decoded.Apparaten);
-        var toewijzing = Assert.Single(decoded.Toewijzingen);
-
-        Assert.Equal("Muur", wand.Naam);
-        Assert.Equal(new[] { kastAId, kastBId }, wand.KastIds);
-        Assert.Equal("Hoge kast", kasten[0].Naam);
-        Assert.Equal("Onderkast links", kasten[1].Naam);
-        Assert.Equal(1280, kasten[0].MontagePlaatPosities[0].AfstandVanBoven);
-        Assert.Equal(360, kasten[1].Planken[0].HoogteVanBodem);
-        Assert.Equal("Oven", apparaat.Naam);
-        Assert.Equal(2400, toewijzing.XPositie);
-        Assert.Equal(700, toewijzing.HoogteVanVloer);
-        Assert.Equal(24.5, toewijzing.PotHartVanRand);
-        Assert.Equal(24.5, decoded.LaatstGebruiktePotHartVanRand);
-        Assert.Empty(decoded.KastTemplates);
     }
 
-    [Fact]
-    public void Ongeldige_token_wordt_afgewezen()
+    private static string MaakLegacyToken(KeukenData data)
     {
-        var decodedOk = KeukenShareCodec.TryDecode("v1.geen-geldige-data", out var decoded);
+        var deelbareData = new KeukenData
+        {
+            Wanden = [.. data.Wanden],
+            Kasten = [.. data.Kasten],
+            Apparaten = [.. data.Apparaten],
+            Toewijzingen = [.. data.Toewijzingen],
+            KastTemplates = [],
+            LaatstGebruiktePotHartVanRand = data.LaatstGebruiktePotHartVanRand
+        };
+        var json = JsonSerializer.SerializeToUtf8Bytes(deelbareData, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        });
+        var token = Convert.ToBase64String(json)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
 
-        Assert.False(decodedOk);
-        Assert.Empty(decoded.Wanden);
-        Assert.Empty(decoded.Kasten);
+        return "v1." + token;
     }
 }

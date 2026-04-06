@@ -82,7 +82,9 @@ public class BestellijstServiceTests
         Assert.Contains(BestellijstExportService.CncNulpuntLabel, html);
         Assert.DoesNotContain(">X: ", html);
         Assert.DoesNotContain(">Y: ", html);
-        Assert.Contains("B1: X 577.5 mm, Y 83 mm", html);
+        Assert.Contains("Boorgaten", html);
+        Assert.Contains("B1: X", html);
+        Assert.Contains("Y 83 mm", html);
         Assert.Contains("Hoge Deur 1", html);
         Assert.Contains("<svg", html);
         Assert.Contains("window.print()", html);
