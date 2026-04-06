@@ -15,6 +15,7 @@ TestResults/
 __pycache__/
 .pytest_cache/
 *.py[cod]
+.codex-temp/
 
 # Node / Playwright artifacts
 node_modules/

@@ -6,6 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Keuken-inmeten</title>
     <base href="/" />
+    <script>
+        (function () {
+            const savedPath = sessionStorage.getItem("github-pages-path");
+            if (!savedPath) {
+                return;
+            }
+
+            sessionStorage.removeItem("github-pages-path");
+            history.replaceState(null, "", savedPath);
+        })();
+    </script>
     <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
