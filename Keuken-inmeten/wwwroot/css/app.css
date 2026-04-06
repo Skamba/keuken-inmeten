@@ -556,7 +556,6 @@ code {
         order: 3;
     }
 }
-}
 
 /* ── Resultaat onderbouwing uitklapper ── */
 .onderbouwing-blok {
@@ -885,4 +884,160 @@ code {
 [data-bs-theme="dark"] .wand-opstelling-svg text,
 [data-bs-theme="dark"] .paneel-overzicht-scroll text {
     fill: var(--bs-body-color);
+}
+
+/* SVG wall/cabinet backgrounds in dark mode */
+[data-bs-theme="dark"] svg rect[fill="#f5f0e8"] {
+    fill: #2a2520;
+}
+
+[data-bs-theme="dark"] svg rect[fill="#f8f9fa"] {
+    fill: #212529;
+}
+
+/* Cabinet body colors - darken for dark mode */
+[data-bs-theme="dark"] svg rect[fill="#f5deb3"] {
+    fill: #3d3222;
+}
+
+[data-bs-theme="dark"] svg rect[fill="#d4e6f1"] {
+    fill: #1e2d3d;
+}
+
+[data-bs-theme="dark"] svg rect[fill="#d5f5e3"] {
+    fill: #1e3328;
+}
+
+/* Cabinet inner panels */
+[data-bs-theme="dark"] svg rect[fill="#faf3e6"] {
+    fill: #332e22;
+}
+
+/* Plint */
+[data-bs-theme="dark"] svg rect[fill="#c8a87c"] {
+    fill: #5c4a30;
+}
+
+/* Panel fill */
+[data-bs-theme="dark"] svg rect[fill="#dce6f0"] {
+    fill: #1e2a38;
+}
+
+/* Door panel fill */
+[data-bs-theme="dark"] svg rect[fill="#f0e6d2"] {
+    fill: #33291c;
+}
+
+/* Appliance fills */
+[data-bs-theme="dark"] svg rect[fill="#e8d5c4"] {
+    fill: #3d3025;
+}
+
+[data-bs-theme="dark"] svg rect[fill="#d4d4e8"] {
+    fill: #28283d;
+}
+
+[data-bs-theme="dark"] svg rect[fill="#c4d8e8"] {
+    fill: #1e2d38;
+}
+
+[data-bs-theme="dark"] svg rect[fill="#c4e8e8"] {
+    fill: #1e3535;
+}
+
+[data-bs-theme="dark"] svg rect[fill="#c4d4f0"] {
+    fill: #1e2840;
+}
+
+[data-bs-theme="dark"] svg rect[fill="#e8d4c4"] {
+    fill: #3d3025;
+}
+
+[data-bs-theme="dark"] svg rect[fill="#d8d8d8"] {
+    fill: #383838;
+}
+
+/* SVG strokes - lighten borders for dark mode */
+[data-bs-theme="dark"] svg rect[stroke="#bbb"],
+[data-bs-theme="dark"] svg line[stroke="#bbb"] {
+    stroke: #555;
+}
+
+[data-bs-theme="dark"] svg rect[stroke="#8b7355"],
+[data-bs-theme="dark"] svg line[stroke="#8b7355"] {
+    stroke: #a08b6d;
+}
+
+[data-bs-theme="dark"] svg rect[stroke="#c9b896"],
+[data-bs-theme="dark"] svg line[stroke="#c9b896"] {
+    stroke: #7a6d50;
+}
+
+[data-bs-theme="dark"] svg rect[stroke="#ccc"],
+[data-bs-theme="dark"] svg line[stroke="#ccc"] {
+    stroke: #555;
+}
+
+[data-bs-theme="dark"] svg rect[stroke="#555"],
+[data-bs-theme="dark"] svg line[stroke="#555"] {
+    stroke: #888;
+}
+
+[data-bs-theme="dark"] svg rect[stroke="#5b7ea1"],
+[data-bs-theme="dark"] svg line[stroke="#5b7ea1"] {
+    stroke: #7a9dc0;
+}
+
+[data-bs-theme="dark"] svg rect[stroke="#a07850"] {
+    stroke: #c0986a;
+}
+
+/* SVG text colors - ensure readability */
+[data-bs-theme="dark"] svg text[fill="#333"],
+[data-bs-theme="dark"] svg text[fill="#666"],
+[data-bs-theme="dark"] svg text[fill="#999"],
+[data-bs-theme="dark"] svg text[fill="#888"],
+[data-bs-theme="dark"] svg text[fill="#aaa"],
+[data-bs-theme="dark"] svg text[fill="#4b6580"],
+[data-bs-theme="dark"] svg text[fill="#18446f"],
+[data-bs-theme="dark"] svg text[fill="#1a252f"] {
+    fill: #c8cdd3;
+}
+
+[data-bs-theme="dark"] svg text[fill="#7a5c2e"] {
+    fill: #c8a87c;
+}
+
+/* SVG dimension lines */
+[data-bs-theme="dark"] svg line[stroke="#999"],
+[data-bs-theme="dark"] svg line[stroke="#e8e0d4"] {
+    stroke: #666;
+}
+
+/* SVG hole positions - lighten for visibility */
+[data-bs-theme="dark"] svg circle[stroke="#aaa"],
+[data-bs-theme="dark"] svg circle[fill="none"][stroke="#aaa"] {
+    stroke: #777;
+}
+
+[data-bs-theme="dark"] svg circle[fill="#8899bb"] {
+    fill: #667799;
+}
+
+[data-bs-theme="dark"] svg circle[stroke="#6677aa"] {
+    stroke: #8899cc;
+}
+
+/* Dark cup holes */
+[data-bs-theme="dark"] svg circle[fill="#2c3e50"] {
+    fill: #4a6680;
+}
+
+[data-bs-theme="dark"] svg circle[stroke="#1a252f"] {
+    stroke: #6a8aa0;
+}
+
+/* SVG measurement text in dark mode */
+[data-bs-theme="dark"] svg text[fill="#888"] {
+    fill: #aaa;
 }
