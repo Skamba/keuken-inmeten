@@ -32,8 +32,8 @@
     <div class="card-body d-flex align-items-end gap-3">
         <div class="flex-grow-1">
             <label class="form-label fw-semibold">Nieuwe wand</label>
-            <input type="text" class="form-control" @bind="nieuweWandNaam"
-                   placeholder="bv. Linkerwand, Achterwand, Rechts bij raam" />
+            <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
+                   placeholder="bv. Linkerwand, Achterwand, Rechts bij raam" @onkeydown="WandToevoegenBijEnter" />
         </div>
         <button class="btn btn-primary" @onclick="WandToevoegen"
                 disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)">
@@ -60,7 +60,7 @@
             @if (bewerkWandId == wand.Id)
             {
                 <div class="d-flex gap-2 flex-grow-1 me-3">
-                    <input type="text" class="form-control form-control-sm" @bind="bewerkWandNaam" />
+                    <input type="text" class="form-control form-control-sm" @bind="bewerkWandNaam" @bind:event="oninput" />
                     <button class="btn btn-sm btn-outline-primary" @onclick="WandNaamOpslaan">Opslaan</button>
                     <button class="btn btn-sm btn-outline-secondary" @onclick="() => bewerkWandId = null">Annuleren</button>
                 </div>
@@ -124,22 +124,22 @@
                             <span class="badge @TypeBadge(kast.Type)">@kast.Type</span>
                             <span class="fw-semibold">@kast.Naam</span>
                             <span class="text-muted">@kast.Breedte×@kast.Hoogte</span>
-                            <button class="btn btn-outline-primary btn-sm px-1 ms-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                    @onclick="() => BewerkKast(kast, wand.Id)" title="Bewerken">✎</button>
-                            <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                    @onclick="() => KopieerKast(kast, wand.Id)" title="Kopiëren">⧉</button>
+                            <button class="btn btn-outline-primary btn-sm px-1 ms-1" style="font-size: 0.75rem; line-height: 1.2;"
+                                    @onclick="() => BewerkKast(kast, wand.Id)" title="Kast bewerken">✎</button>
+                            <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
+                                    @onclick="() => KopieerKast(kast, wand.Id)" title="Kast kopiëren">⧉</button>
                             @if (bevestigVerwijderKastId == kast.Id)
                             {
-                                <span class="text-danger small ms-1">Weg?</span>
-                                <button class="btn btn-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                        @onclick="() => { VerwijderKast(kast.Id); bevestigVerwijderKastId = null; }">✓</button>
-                                <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                        @onclick="() => bevestigVerwijderKastId = null">✗</button>
+                                <span class="text-danger small ms-1 fw-semibold">Verwijderen?</span>
+                                <button class="btn btn-danger btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
+                                        @onclick="() => { VerwijderKast(kast.Id); bevestigVerwijderKastId = null; }" title="Bevestig verwijderen">Ja</button>
+                                <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
+                                        @onclick="() => bevestigVerwijderKastId = null" title="Annuleren">Nee</button>
                             }
                             else
                             {
-                                <button class="btn btn-outline-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                        @onclick="() => bevestigVerwijderKastId = kast.Id" title="Verwijderen">×</button>
+                                <button class="btn btn-outline-danger btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
+                                        @onclick="() => bevestigVerwijderKastId = kast.Id" title="Kast verwijderen">×</button>
                             }
                         </div>
                     }
@@ -259,7 +259,7 @@
                 </div>
                 <div class="col-md-8">
                     <label class="form-label">Naam</label>
-                    <input type="text" class="form-control" @bind="formKast.Naam"
+                    <input type="text" class="form-control" @bind="formKast.Naam" @bind:event="oninput"
                            placeholder="bv. Onderkast spoelbak" />
                 </div>
             </div>
@@ -345,7 +345,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Naam</label>
-                        <input type="text" class="form-control" @bind="formApparaat.Naam"
+                        <input type="text" class="form-control" @bind="formApparaat.Naam" @bind:event="oninput"
                                placeholder="bv. Oven Bosch" />
                     </div>
                 </div>
@@ -433,6 +433,11 @@
         if (string.IsNullOrWhiteSpace(nieuweWandNaam)) return;
         State.VoegWandToe(new KeukenWand { Naam = nieuweWandNaam.Trim() });
         nieuweWandNaam = "";
+    }
+
+    private void WandToevoegenBijEnter(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") WandToevoegen();
     }
 
     private void VerwijderAlleKasten()

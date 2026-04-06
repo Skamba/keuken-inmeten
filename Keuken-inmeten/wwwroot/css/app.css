@@ -15,6 +15,16 @@ html, body {
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
+/* Home step cards */
+.home-stap-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-stap-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+}
+
 .card-header {
     border-radius: 0.5rem 0.5rem 0 0 !important;
     font-size: 0.95rem;
@@ -91,7 +101,7 @@ a, .btn-link {
 }
 
     .blazor-error-boundary::after {
-        content: "An error has occurred."
+        content: "Er is een fout opgetreden."
     }
 
 .loading-progress {
@@ -415,9 +425,9 @@ code {
 
 .stap-label {
     margin-top: 6px;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     text-align: center;
-    color: #adb5bd;
+    color: #6c757d;
 }
 
 .stap-indicator-item.klaar .stap-label {
@@ -508,6 +518,25 @@ code {
 
 .deel-status.fout {
     color: #b42318;
+}
+
+@media (max-width: 640px) {
+    .stap-navigatie {
+        padding: 0.6rem 0.75rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .stap-navigatie-stappen {
+        display: none;
+    }
+
+    .stap-navigatie-midden {
+        width: 100%;
+        justify-content: center;
+        order: 3;
+    }
+}
 }
 
 /* ── Resultaat onderbouwing uitklapper ── */
@@ -738,6 +767,28 @@ code {
     border-radius: 0.9rem;
     overflow: hidden;
     background: #fff;
+    position: relative;
+}
+
+.bestellijst-table-wrap::after {
+    content: "← scroll →";
+    display: none;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    padding: 0.35rem;
+    text-align: center;
+    font-size: 0.72rem;
+    color: #6c757d;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.95));
+    pointer-events: none;
+}
+
+@media (max-width: 1024px) {
+    .bestellijst-table-wrap::after {
+        display: block;
+    }
 }
 
 .bestellijst-table {
