@@ -117,6 +117,7 @@ else
     @for (int i = 0; i < resultaten.Count; i++)
     {
         var r = resultaten[i];
+        var detailIndex = i;
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">Paneel @(i + 1): @r.KastNaam — @TypeNaam(r.Type)</h5>
@@ -172,16 +173,18 @@ else
 
                             @if (r.Type == PaneelType.Deur)
                             {
-                                <div class="mt-4">
-                                    <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
-                                            @onclick="() => ToggleOnderbouwing(i)">
-                                        <span>@(IsUitgeklapt(i) ? "▲" : "▼")</span>
+                                <div class="onderbouwing-blok mt-4">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-secondary onderbouwing-toggle"
+                                            aria-expanded="@IsUitgeklapt(detailIndex)"
+                                            @onclick="() => ToggleOnderbouwing(detailIndex)">
                                         <span>Onderbouwing per scharnier</span>
+                                        <span class="onderbouwing-toggle-icoon">@(IsUitgeklapt(detailIndex) ? "▲" : "▼")</span>
                                     </button>
 
-                                    @if (IsUitgeklapt(i))
+                                    @if (IsUitgeklapt(detailIndex))
                                     {
-                                        <div class="mt-2">
+                                        <div class="onderbouwing-inhoud mt-2">
                                         @for (int j = 0; j < r.Boorgaten.Count; j++)
                                         {
                                             var g = r.Boorgaten[j];

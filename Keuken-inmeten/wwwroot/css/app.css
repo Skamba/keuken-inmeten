@@ -462,3 +462,37 @@ code {
     display: flex;
     gap: 0.5rem;
 }
+
+/* ── Resultaat onderbouwing uitklapper ── */
+.onderbouwing-blok {
+    border-top: 1px solid #e9ecef;
+    padding-top: 1rem;
+}
+
+.onderbouwing-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    text-align: left;
+    padding: 0.65rem 0.9rem;
+    font-weight: 600;
+    border-color: #c9d3df;
+    background: #fff;
+}
+
+.onderbouwing-toggle:hover {
+    border-color: #9fb4cb;
+    background: #f8fbff;
+}
+
+.onderbouwing-toggle-icoon {
+    flex-shrink: 0;
+    color: #49637d;
+    font-size: 0.85rem;
+}
+
+.onderbouwing-inhoud {
+    padding-top: 0.25rem;
+}
