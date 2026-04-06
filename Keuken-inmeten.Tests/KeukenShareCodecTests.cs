@@ -79,6 +79,28 @@ public class KeukenShareCodecTests
         Assert.True(v2.Length < v1.Length, $"v2 token should be shorter than v1. v2={v2.Length}, v1={v1.Length}");
     }
 
+    [Fact]
+    public void V2_token_zonder_expliciete_ovenpositie_decodeert_naar_zichtbare_vrije_plek()
+    {
+        const string token = "v2.eyJ3IjpbeyJuIjoiTXV1ciIsImsiOlswLDEsMiwzLDQsNSw2XSwiYSI6WzBdfSx7Im4iOiJLZXVrZW4gdmFuYWYgdmFhdHdhc3NlciJ9LHsibiI6IkxhZGVzIn1dLCJrIjpbeyJuIjoiR3Jvb3QgMSIsImgiOjE5MDAsInciOjE2LCJlIjozMCwieCI6MjQwMCwieSI6MTAwfSx7Im4iOiJLbGVpbiIsImgiOjMyMCwidyI6MTYsImUiOjMwLCJ4IjoyNDAwLCJ5IjoyMDEwfSx7Im4iOiJCbGluZCIsImgiOjI3MCwidyI6MTYsIngiOjI0MDAsInkiOjIzMzB9LHsibiI6Ikdyb290IDIiLCJoIjoxOTAwLCJ3IjoxNiwiZSI6MzAsInkiOjEwMH0seyJuIjoiS2xlaW4gMiIsImgiOjMyMCwidyI6MTYsImUiOjMwLCJ4IjoxODAwLCJ5IjoyMDEwfSx7Im4iOiJCbGluZCAyIiwiaCI6MjcwLCJ3IjoxNiwieCI6MTgwMCwieSI6MjMzMH0seyJuIjoiTWVkaXVtIDEgIiwiaCI6NjQ1LCJ3IjoxNiwiZSI6NjIsIngiOjAsInkiOjEwMH1dLCJhIjpbeyJuIjoiT3ZlbiJ9XSwidCI6W3siYyI6WzEsMF0sInMiOjEsImIiOjYwMCwiaCI6MjIyMCwieCI6MjQwMCwieSI6MTAwfSx7ImMiOls0LDNdLCJzIjoxLCJiIjo2MDAsImgiOjIyMjAsIngiOjE4MDAsInkiOjEwMH0seyJjIjpbMl0sInQiOjJ9LHsiYyI6WzVdLCJ0IjoyfSx7ImMiOls2XX1dfQ";
+
+        var decodedOk = KeukenShareCodec.TryDecode(token, out var decoded);
+
+        Assert.True(decodedOk);
+
+        var wand = Assert.Single(decoded.Wanden, item => item.Naam == "Muur");
+        var oven = Assert.Single(decoded.Apparaten, item => item.Naam == "Oven");
+        var wandKasten = decoded.Kasten
+            .Where(kast => wand.KastIds.Contains(kast.Id))
+            .ToList();
+
+        Assert.Equal(600, oven.XPositie);
+        Assert.Equal(100, oven.HoogteVanVloer);
+        Assert.InRange(oven.XPositie, 0, wand.Breedte - oven.Breedte);
+        Assert.InRange(oven.HoogteVanVloer, 0, wand.Hoogte - oven.Hoogte);
+        Assert.DoesNotContain(wandKasten, kast => ApparaatLayoutService.HeeftOverlap(oven, kast));
+    }
+
     private static KeukenData MaakVoorbeeldData()
     {
         var wandId = Guid.Parse("11111111-1111-1111-1111-111111111111");

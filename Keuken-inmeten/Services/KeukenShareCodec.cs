@@ -103,7 +103,7 @@ public static class KeukenShareCodec
             .Select((apparaat, index) => (apparaat, index))
             .ToDictionary(item => item.apparaat.Id, item => item.index);
         var standaardKastPosities = BerekenStandaardKastPosities(data);
-        var standaardApparaatPosities = BerekenStandaardApparaatPosities(data);
+        var standaardApparaatPlaatsingen = BerekenStandaardApparaatPlaatsingen(data);
 
         return new CompactShareData
         {
@@ -149,6 +149,7 @@ public static class KeukenShareCodec
                 .. data.Apparaten.Select(apparaat =>
                 {
                     var standaardAfmetingen = Apparaat.StandaardAfmetingen(apparaat.Type);
+                    var standaardPlaatsing = standaardApparaatPlaatsingen.GetValueOrDefault(apparaat.Id, (0, 0));
                     return new CompactAppliance
                     {
                         Name = string.IsNullOrWhiteSpace(apparaat.Naam) ? null : apparaat.Naam,
@@ -156,10 +157,10 @@ public static class KeukenShareCodec
                         Width = IsBijnaGelijk(apparaat.Breedte, standaardAfmetingen.breedte) ? null : Round1(apparaat.Breedte),
                         Height = IsBijnaGelijk(apparaat.Hoogte, standaardAfmetingen.hoogte) ? null : Round1(apparaat.Hoogte),
                         Depth = IsBijnaGelijk(apparaat.Diepte, standaardAfmetingen.diepte) ? null : Round1(apparaat.Diepte),
-                        X = standaardApparaatPosities.TryGetValue(apparaat.Id, out var standaardApparaatX) && IsBijnaGelijk(apparaat.XPositie, standaardApparaatX)
+                        X = standaardApparaatPlaatsingen.ContainsKey(apparaat.Id) && IsBijnaGelijk(apparaat.XPositie, standaardPlaatsing.xPositie)
                             ? null
                             : Round1(apparaat.XPositie),
-                        FloorHeight = IsBijnaGelijk(apparaat.HoogteVanVloer, 0)
+                        FloorHeight = standaardApparaatPlaatsingen.ContainsKey(apparaat.Id) && IsBijnaGelijk(apparaat.HoogteVanVloer, standaardPlaatsing.hoogteVanVloer)
                             ? null
                             : Round1(apparaat.HoogteVanVloer)
                     };
@@ -223,28 +224,43 @@ public static class KeukenShareCodec
         return standaard;
     }
 
-    private static Dictionary<Guid, double> BerekenStandaardApparaatPosities(KeukenData data)
+    private static Dictionary<Guid, (double xPositie, double hoogteVanVloer)> BerekenStandaardApparaatPlaatsingen(KeukenData data)
     {
         var kastenOpId = data.Kasten.ToDictionary(kast => kast.Id);
         var apparatenOpId = data.Apparaten.ToDictionary(apparaat => apparaat.Id);
-        var standaard = new Dictionary<Guid, double>();
+        var standaard = new Dictionary<Guid, (double xPositie, double hoogteVanVloer)>();
 
         foreach (var wand in data.Wanden)
         {
-            double lopendeX = 0;
-            foreach (var kastId in wand.KastIds)
-            {
-                if (kastenOpId.TryGetValue(kastId, out var kast))
-                    lopendeX += kast.Breedte;
-            }
+            var wandKasten = wand.KastIds
+                .Select(id => kastenOpId.GetValueOrDefault(id))
+                .Where(kast => kast is not null)
+                .Cast<Kast>()
+                .ToList();
+            var geplaatsteApparaten = new List<Apparaat>();
 
             foreach (var apparaatId in wand.ApparaatIds)
             {
                 if (!apparatenOpId.TryGetValue(apparaatId, out var apparaat))
                     continue;
 
-                standaard[apparaatId] = Round1(lopendeX);
-                lopendeX += apparaat.Breedte;
+                var plaatsing = ApparaatLayoutService.BepaalStandaardPlaatsing(
+                    wand,
+                    apparaat,
+                    wandKasten,
+                    geplaatsteApparaten);
+                standaard[apparaatId] = plaatsing;
+                geplaatsteApparaten.Add(new Apparaat
+                {
+                    Id = apparaat.Id,
+                    Naam = apparaat.Naam,
+                    Type = apparaat.Type,
+                    Breedte = apparaat.Breedte,
+                    Hoogte = apparaat.Hoogte,
+                    Diepte = apparaat.Diepte,
+                    XPositie = plaatsing.xPositie,
+                    HoogteVanVloer = plaatsing.hoogteVanVloer
+                });
             }
         }
 
@@ -277,7 +293,7 @@ public static class KeukenShareCodec
         var cabinetIds = data.Cabinets.Select(_ => Guid.NewGuid()).ToList();
         var applianceIds = data.Appliances.Select(_ => Guid.NewGuid()).ToList();
         var defaultCabinetX = BerekenDecodeStandaardKastPosities(data);
-        var defaultApplianceX = BerekenDecodeStandaardApparaatPosities(data);
+        var defaultAppliancePlaatsingen = BerekenDecodeStandaardApparaatPlaatsingen(data, defaultCabinetX);
 
         var wanden = data.Walls.Select((wand, index) => new KeukenWand
         {
@@ -291,7 +307,11 @@ public static class KeukenShareCodec
         }).ToList();
 
         var kasten = data.Cabinets.Select((kast, index) => BouwKast(kast, cabinetIds[index], defaultCabinetX.GetValueOrDefault(index, 0))).ToList();
-        var apparaten = data.Appliances.Select((apparaat, index) => BouwApparaat(apparaat, applianceIds[index], defaultApplianceX.GetValueOrDefault(index, 0))).ToList();
+        var apparaten = data.Appliances.Select((apparaat, index) =>
+        {
+            var standaardPlaatsing = defaultAppliancePlaatsingen.GetValueOrDefault(index, (0, 0));
+            return BouwApparaat(apparaat, applianceIds[index], standaardPlaatsing);
+        }).ToList();
         var kastenOpId = kasten.ToDictionary(kast => kast.Id);
 
         var toewijzingen = data.Panels.Select(panel =>
@@ -355,7 +375,7 @@ public static class KeukenShareCodec
         };
     }
 
-    private static Apparaat BouwApparaat(CompactAppliance bron, Guid id, double standaardX)
+    private static Apparaat BouwApparaat(CompactAppliance bron, Guid id, (double xPositie, double hoogteVanVloer) standaardPlaatsing)
     {
         var type = bron.Type is int typeNummer ? (ApparaatType)typeNummer : ApparaatType.Oven;
         var standaardAfmetingen = Apparaat.StandaardAfmetingen(type);
@@ -368,8 +388,8 @@ public static class KeukenShareCodec
             Breedte = bron.Width ?? standaardAfmetingen.breedte,
             Hoogte = bron.Height ?? standaardAfmetingen.hoogte,
             Diepte = bron.Depth ?? standaardAfmetingen.diepte,
-            HoogteVanVloer = bron.FloorHeight ?? 0,
-            XPositie = bron.X ?? standaardX
+            HoogteVanVloer = bron.FloorHeight ?? standaardPlaatsing.hoogteVanVloer,
+            XPositie = bron.X ?? standaardPlaatsing.xPositie
         };
     }
 
@@ -399,28 +419,61 @@ public static class KeukenShareCodec
         return standaard;
     }
 
-    private static Dictionary<int, double> BerekenDecodeStandaardApparaatPosities(CompactShareData data)
+    private static Dictionary<int, (double xPositie, double hoogteVanVloer)> BerekenDecodeStandaardApparaatPlaatsingen(
+        CompactShareData data,
+        IReadOnlyDictionary<int, double> defaultCabinetX)
     {
-        var standaard = new Dictionary<int, double>();
+        var standaard = new Dictionary<int, (double xPositie, double hoogteVanVloer)>();
 
         foreach (var wand in data.Walls)
         {
-            double lopendeX = 0;
-            foreach (var index in wand.CabinetIndexes ?? [])
+            var wandModel = new KeukenWand
             {
-                if (index >= 0 && index < data.Cabinets.Count)
-                    lopendeX += data.Cabinets[index].Width ?? DefaultKastBreedte;
-            }
+                Id = Guid.NewGuid(),
+                Naam = wand.Name ?? "",
+                Breedte = wand.Width ?? DefaultWandBreedte,
+                Hoogte = wand.Height ?? DefaultWandHoogte,
+                PlintHoogte = wand.PlinthHeight ?? DefaultPlintHoogte
+            };
+            var wandKasten = (wand.CabinetIndexes ?? [])
+                .Where(index => index >= 0 && index < data.Cabinets.Count)
+                .Select(index => BouwKast(data.Cabinets[index], Guid.NewGuid(), defaultCabinetX.GetValueOrDefault(index, 0)))
+                .ToList();
+            var geplaatsteApparaten = new List<Apparaat>();
 
             foreach (var index in wand.ApplianceIndexes ?? [])
             {
                 if (index < 0 || index >= data.Appliances.Count)
                     continue;
 
-                standaard[index] = Round1(lopendeX);
                 var type = data.Appliances[index].Type is int typeNummer ? (ApparaatType)typeNummer : ApparaatType.Oven;
                 var standaardAfmetingen = Apparaat.StandaardAfmetingen(type);
-                lopendeX += data.Appliances[index].Width ?? standaardAfmetingen.breedte;
+                var apparaat = new Apparaat
+                {
+                    Id = Guid.NewGuid(),
+                    Naam = data.Appliances[index].Name ?? "",
+                    Type = type,
+                    Breedte = data.Appliances[index].Width ?? standaardAfmetingen.breedte,
+                    Hoogte = data.Appliances[index].Height ?? standaardAfmetingen.hoogte,
+                    Diepte = data.Appliances[index].Depth ?? standaardAfmetingen.diepte
+                };
+                var plaatsing = ApparaatLayoutService.BepaalStandaardPlaatsing(
+                    wandModel,
+                    apparaat,
+                    wandKasten,
+                    geplaatsteApparaten);
+                standaard[index] = plaatsing;
+                geplaatsteApparaten.Add(new Apparaat
+                {
+                    Id = apparaat.Id,
+                    Naam = apparaat.Naam,
+                    Type = apparaat.Type,
+                    Breedte = apparaat.Breedte,
+                    Hoogte = apparaat.Hoogte,
+                    Diepte = apparaat.Diepte,
+                    XPositie = plaatsing.xPositie,
+                    HoogteVanVloer = plaatsing.hoogteVanVloer
+                });
             }
         }
 

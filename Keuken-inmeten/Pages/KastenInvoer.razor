@@ -720,9 +720,19 @@
         else
         {
             formApparaat.Id = Guid.NewGuid();
+            var wand = State.Wanden.Find(w => w.Id == actieveWandId.Value);
             var bestaandeKasten = State.KastenVoorWand(actieveWandId.Value);
             var bestaandeApparaten = State.ApparatenVoorWand(actieveWandId.Value);
-            formApparaat.XPositie = bestaandeKasten.Sum(k => k.Breedte) + bestaandeApparaten.Sum(a => a.Breedte);
+            if (wand is not null)
+            {
+                var plaatsing = ApparaatLayoutService.BepaalStandaardPlaatsing(
+                    wand,
+                    formApparaat,
+                    bestaandeKasten,
+                    bestaandeApparaten);
+                formApparaat.XPositie = plaatsing.xPositie;
+                formApparaat.HoogteVanVloer = plaatsing.hoogteVanVloer;
+            }
             State.VoegApparaatToe(formApparaat, actieveWandId.Value);
         }
 
