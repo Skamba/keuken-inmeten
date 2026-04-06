@@ -118,6 +118,12 @@ else
     {
         var r = resultaten[i];
         var detailIndex = i;
+        var toewijzing = State.Toewijzingen[i];
+        var paneelKasten = r.KastIds
+            .Select(id => State.Kasten.Find(k => k.Id == id))
+            .Where(k => k is not null)
+            .Cast<Kast>()
+            .ToList();
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">Paneel @(i + 1): @r.KastNaam — @TypeNaam(r.Type)</h5>
@@ -185,23 +191,25 @@ else
                                     @if (IsUitgeklapt(detailIndex))
                                     {
                                         <div class="onderbouwing-inhoud mt-2">
+                                        <div class="border rounded p-3 mb-3 bg-light small">
+                                            <div class="fw-semibold mb-2">Gecombineerd scharnieroverzicht</div>
+                                            <ScharnierOverzichtVisueel Resultaat="@r"
+                                                                        Toewijzing="@toewijzing"
+                                                                        Kasten="@paneelKasten" />
+                                        </div>
+
                                         @for (int j = 0; j < r.Boorgaten.Count; j++)
                                         {
                                             var g = r.Boorgaten[j];
                                             var o = g.Onderbouwing;
-                                            var kastVoorScharnier = o is not null ? VindKast(r, o) : null;
                                             <div class="border rounded p-3 mb-3 bg-light small">
                                                 <div class="fw-semibold mb-1">Scharnier @(j + 1) op @FormatMm(g.Y) vanaf boven</div>
+                                                <div class="text-muted mb-1">@FormatMm(r.Hoogte - g.Y) vanaf onder</div>
                                                 @if (o is not null)
                                                 {
                                                     <div>Komt uit kast <strong>@o.KastNaam</strong> aan de <strong>@ZijdeBijvoeglijkNaamwoord(r.ScharnierZijde)</strong> zijde.</div>
                                                     <div>Montageplaat-midden valt tussen gat <strong>@o.GaatBovenIndex</strong> (@FormatMm(o.GaatBovenY)) en gat <strong>@o.GaatOnderIndex</strong> (@FormatMm(o.GaatOnderY)) van boven gemeten in die kast.</div>
                                                     <div class="text-muted mt-1">@WaaromPastTekst(r, o)</div>
-                                                    <ScharnierDetailVisueel Boorgat="@g"
-                                                                            Kast="@kastVoorScharnier"
-                                                                            ScharnierZijde="@r.ScharnierZijde"
-                                                                            PaneelHoogte="@r.Hoogte"
-                                                                            PaneelBreedte="@r.Breedte" />
                                                 }
                                                 else
                                                 {
@@ -246,11 +254,6 @@ else
         if (!_uitgeklapt.Remove(index))
             _uitgeklapt.Add(index);
     }
-
-    private Kast? VindKast(PaneelResultaat r, BoorgatOnderbouwing o)
-        => r.KastIds
-            .Select(id => State.Kasten.Find(k => k.Id == id))
-            .FirstOrDefault(k => k?.Naam == o.KastNaam);
 
     private static string TypeNaam(PaneelType type) => type switch
     {

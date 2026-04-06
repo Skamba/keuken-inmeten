@@ -1,0 +1,169 @@
+@using System.Globalization
+
+<div class="overflow-auto mt-2">
+    <svg width="@Fmt(SvgWidth)" height="@Fmt(SvgHeight)"
+         style="display:block; border:1px solid #dee2e6; border-radius:6px; background:white;">
+
+        @SvgText(KastKolomLabelX, 16, "Kastzijkant", "font-size=\"11\" fill=\"#666\" text-anchor=\"middle\" font-weight=\"600\"")
+        @SvgText(KastKolomLabelX, 29, "gaatjesrij", "font-size=\"9\" fill=\"#888\" text-anchor=\"middle\"")
+        @SvgText(DeurKolomLabelX, 16, "Deurpaneel", "font-size=\"11\" fill=\"#666\" text-anchor=\"middle\" font-weight=\"600\"")
+        @SvgText(DeurKolomLabelX, 29, "alle scharnieren", "font-size=\"9\" fill=\"#888\" text-anchor=\"middle\"")
+
+        <rect x="@Fmt(DeurX)" y="@Fmt(P)" width="@Fmt(DeurW)" height="@Fmt(H)"
+              fill="#f0e6d2" stroke="#a07850" stroke-width="1.5" />
+        <line x1="@Fmt(ScharnierRandX)" y1="@Fmt(P)"
+              x2="@Fmt(ScharnierRandX)" y2="@Fmt(P + H)"
+              stroke="#c0392b" stroke-width="2.5" />
+
+        @foreach (var segment in Segmenten)
+        {
+            var segmentY = P + segment.TopVanPaneel * Scale;
+            var segmentH = segment.Hoogte * Scale;
+            <rect x="@Fmt(KastX)" y="@Fmt(segmentY)" width="@Fmt(KastW)" height="@Fmt(segmentH)"
+                  fill="#dce6f0" stroke="#5b7ea1" stroke-width="1.4" />
+
+            @if (segmentH > 34)
+            {
+                @SvgText(KastX + KastW / 2, segmentY + segmentH / 2, segment.Kast.Naam,
+                    $"font-size=\"8\" fill=\"#4b6580\" text-anchor=\"middle\" transform=\"rotate(-90, {Fmt(KastX + KastW / 2)}, {Fmt(segmentY + segmentH / 2)})\"")
+            }
+
+            @foreach (var gatY in OverigeGaten(segment))
+            {
+                <circle cx="@Fmt(KastX + KastW / 2)" cy="@Fmt(P + gatY * Scale)"
+                        r="2.4" fill="#8899bb" stroke="#6677aa" stroke-width="0.4" />
+            }
+        }
+
+        @for (int i = 0; i < Resultaat.Boorgaten.Count; i++)
+        {
+            var boorgat = Resultaat.Boorgaten[i];
+            var onderbouwing = boorgat.Onderbouwing;
+            var y = P + boorgat.Y * Scale;
+            var cupCx = Resultaat.ScharnierZijde == ScharnierZijde.Links
+                ? DeurX + CupOffset
+                : DeurX + DeurW - CupOffset;
+            var labelY = i == 0 ? y + 4 : y;
+
+            <line x1="@Fmt(KastX + KastW + 12)" y1="@Fmt(y)"
+                  x2="@Fmt(LabelX - 10)" y2="@Fmt(y)"
+                  stroke="#e67e22" stroke-width="1.4" stroke-dasharray="4,3" opacity="0.8" />
+
+            <circle cx="@Fmt(cupCx)" cy="@Fmt(y)"
+                    r="@Fmt(CupR)"
+                    fill="#2c3e50" stroke="#1a252f" stroke-width="1" opacity="0.82" />
+            @SvgText(cupCx, y + 4, "⌀35", "font-size=\"9\" fill=\"white\" text-anchor=\"middle\"")
+
+            <circle cx="@Fmt(LabelX - 18)" cy="@Fmt(y)" r="8" fill="#1b6ec2" />
+            @SvgText(LabelX - 18, y + 3.5, $"{i + 1}", "font-size=\"9\" fill=\"white\" text-anchor=\"middle\" font-weight=\"700\"")
+            @SvgText(LabelX, labelY - 4, $"{FormatMm(boorgat.Y)} boven", "font-size=\"8.5\" fill=\"#555\" text-anchor=\"start\"")
+            @SvgText(LabelX, labelY + 9, $"{FormatMm(Resultaat.Hoogte - boorgat.Y)} onder", "font-size=\"8.5\" fill=\"#555\" text-anchor=\"start\"")
+
+            @if (onderbouwing is not null)
+            {
+                @foreach (var gebruiktY in GebruikteGaten(onderbouwing))
+                {
+                    <circle cx="@Fmt(KastX + KastW / 2)" cy="@Fmt(P + gebruiktY * Scale)"
+                            r="4.1" fill="#e74c3c" stroke="#c0392b" stroke-width="1.2" />
+                }
+            }
+        }
+
+        @SvgText(DeurX + DeurW / 2, P - 8, $"{FormatMm(Resultaat.Breedte)} breed", "font-size=\"10\" fill=\"#555\" text-anchor=\"middle\"")
+        @SvgText(DeurX + DeurW + 4, P + H / 2, $"{FormatMm(Resultaat.Hoogte)} hoog",
+            $"font-size=\"10\" fill=\"#555\" text-anchor=\"start\" transform=\"rotate(90, {Fmt(DeurX + DeurW + 4)}, {Fmt(P + H / 2)})\"")
+        @SvgText(DeurX + CupOffset / 2, P + H + 18, $"{FormatMm(Resultaat.Boorgaten.FirstOrDefault()?.X ?? 0)} van rand",
+            "font-size=\"8.5\" fill=\"#555\" text-anchor=\"middle\"")
+    </svg>
+</div>
+
+<div class="d-flex flex-wrap gap-3 mt-2" style="font-size:0.7rem;color:#666;">
+    <span>
+        <svg width="12" height="12" style="display:inline-block;vertical-align:middle;">
+            <circle cx="6" cy="6" r="5" fill="#e74c3c"/>
+        </svg>
+        Gebruikt gat
+    </span>
+    <span>
+        <svg width="12" height="12" style="display:inline-block;vertical-align:middle;">
+            <circle cx="6" cy="6" r="3" fill="#8899bb"/>
+        </svg>
+        Overig gat
+    </span>
+    <span>
+        <svg width="24" height="12" style="display:inline-block;vertical-align:middle;">
+            <line x1="0" y1="6" x2="24" y2="6" stroke="#e67e22" stroke-width="2" stroke-dasharray="4,3"/>
+        </svg>
+        Montageplaat-midden / cup-hart
+    </span>
+    <span>
+        <svg width="6" height="12" style="display:inline-block;vertical-align:middle;">
+            <line x1="3" y1="0" x2="3" y2="12" stroke="#c0392b" stroke-width="2.5"/>
+        </svg>
+        Scharnierrand
+    </span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public PaneelResultaat Resultaat { get; set; } = default!;
+    [Parameter, EditorRequired] public PaneelToewijzing Toewijzing { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<Kast> Kasten { get; set; } = [];
+    [Parameter] public double MaxHoogte { get; set; } = 360;
+
+    private const double P = 40;
+    private const double KastX = 34;
+    private const double KastW = 36;
+    private const double DeurX = 150;
+    private const double MaxDoorVisibleMm = 75;
+
+    private double Scale => MaxHoogte / Math.Max(Resultaat.Hoogte, 1);
+    private double H => Resultaat.Hoogte * Scale;
+    private double DoorHScale => 1.5;
+    private double DeurW => Math.Min(Resultaat.Breedte, MaxDoorVisibleMm) * DoorHScale;
+    private double CupOffset => (Resultaat.Boorgaten.FirstOrDefault()?.X ?? ScharnierBerekeningService.CupCenterVanRand) * DoorHScale;
+    private double CupR => Math.Max((ScharnierBerekeningService.CupDiameter / 2.0) * Scale, 8.0);
+    private double ScharnierRandX => Resultaat.ScharnierZijde == ScharnierZijde.Links ? DeurX : DeurX + DeurW;
+    private double LabelX => DeurX + DeurW + 26;
+    private double KastKolomLabelX => KastX + KastW / 2;
+    private double DeurKolomLabelX => DeurX + DeurW / 2;
+    private double SvgWidth => LabelX + 110;
+    private double SvgHeight => H + P * 2 + 28;
+
+    private List<PaneelSegmentInfo> Segmenten =>
+        ScharnierBerekeningService.BerekenPaneelSegmenten(Toewijzing, Kasten.ToList());
+
+    private IEnumerable<double> OverigeGaten(PaneelSegmentInfo segment)
+    {
+        var gaten = ScharnierBerekeningService.GaatjesRijPosities(
+            segment.Kast.Hoogte,
+            segment.Kast.EersteGaatPositieVanafBoven,
+            segment.Kast.GaatjesAfstand);
+
+        foreach (var gat in gaten)
+        {
+            var paneelY = segment.TopVanPaneel + (gat - segment.KastOffsetVanBoven);
+            if (paneelY >= 0 && paneelY <= Resultaat.Hoogte)
+                yield return paneelY;
+        }
+    }
+
+    private IEnumerable<double> GebruikteGaten(BoorgatOnderbouwing onderbouwing)
+    {
+        var segment = Segmenten.FirstOrDefault(s => s.Kast.Naam == onderbouwing.KastNaam);
+        if (segment is null)
+            yield break;
+
+        foreach (var gatY in new[] { onderbouwing.GaatBovenY, onderbouwing.GaatOnderY })
+        {
+            var paneelY = segment.TopVanPaneel + (gatY - segment.KastOffsetVanBoven);
+            if (paneelY >= 0 && paneelY <= Resultaat.Hoogte)
+                yield return paneelY;
+        }
+    }
+
+    private static string Fmt(double value) => value.ToString("F1", CultureInfo.InvariantCulture);
+    private static string FormatMm(double value) => $"{value:0.#} mm";
+    private static string Encode(string value) => System.Net.WebUtility.HtmlEncode(value);
+    private static MarkupString SvgText(double x, double y, string text, string extraAttributes = "")
+        => (MarkupString)$"<text x=\"{Fmt(x)}\" y=\"{Fmt(y)}\" {extraAttributes}>{Encode(text)}</text>";
+}

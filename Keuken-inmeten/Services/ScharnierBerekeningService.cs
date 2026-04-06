@@ -232,6 +232,32 @@ public static class ScharnierBerekeningService
         };
     }
 
+    public static List<PaneelSegmentInfo> BerekenPaneelSegmenten(PaneelToewijzing toewijzing, List<Kast> kasten)
+    {
+        List<PaneelSegment> segmenten;
+        if (toewijzing.XPositie is null || toewijzing.HoogteVanVloer is null)
+        {
+            segmenten = BouwPaneelSegmenten(kasten, toewijzing.Hoogte, toewijzing.ScharnierZijde);
+        }
+        else
+        {
+            var paneel = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
+            segmenten = paneel is null
+                ? []
+                : BouwPaneelSegmenten(kasten, paneel, toewijzing.ScharnierZijde);
+        }
+
+        return segmenten
+            .Select(segment => new PaneelSegmentInfo
+            {
+                Kast = segment.Kast,
+                TopVanPaneel = segment.TopVanPaneel,
+                KastOffsetVanBoven = segment.KastOffsetVanBoven,
+                Hoogte = segment.Hoogte
+            })
+            .ToList();
+    }
+
     private static List<Boorgat> BerekenPaneelBoorgaten(PaneelToewijzing toewijzing, List<Kast> kasten)
     {
         if (toewijzing.XPositie is null || toewijzing.HoogteVanVloer is null)
