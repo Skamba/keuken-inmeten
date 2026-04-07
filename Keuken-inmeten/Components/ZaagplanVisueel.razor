@@ -42,6 +42,11 @@
 
     private const double Padding = 28;
     private const double TitelHoogte = 28;
+    private const double MaxLabelFontSize = 11;
+    private const double MinLabelFontSize = 5;
+    private const double MinLeesbareFontSize = 6;
+    private const double LabelBreedteFactor = 8;
+    private const double LabelHoogteFactor = 3;
 
     private static readonly string[] PaneelKleuren =
     [
@@ -53,8 +58,8 @@
     {
         var cx = px + pw / 2;
         var cy = py + ph / 2;
-        var labelFontSize = Math.Min(Math.Min(pw / 8, ph / 3), 11);
-        if (labelFontSize < 6)
+        var labelFontSize = Math.Min(Math.Min(pw / LabelBreedteFactor, ph / LabelHoogteFactor), MaxLabelFontSize);
+        if (labelFontSize < MinLeesbareFontSize)
             return "";
 
         var maatTekst = p.Gedraaid
@@ -62,7 +67,7 @@
             : $"{p.Breedte:0.#}×{p.Hoogte:0.#}";
 
         return $"<text x=\"{Fmt(cx)}\" y=\"{Fmt(cy - 2)}\" font-size=\"{Fmt(labelFontSize)}\" fill=\"#18446f\" text-anchor=\"middle\" dominant-baseline=\"auto\">{Encode(p.Naam)}</text>"
-             + $"<text x=\"{Fmt(cx)}\" y=\"{Fmt(cy + labelFontSize + 1)}\" font-size=\"{Fmt(Math.Max(labelFontSize - 1.5, 5))}\" fill=\"#4b6580\" text-anchor=\"middle\" dominant-baseline=\"auto\">{Encode(maatTekst)}</text>";
+             + $"<text x=\"{Fmt(cx)}\" y=\"{Fmt(cy + labelFontSize + 1)}\" font-size=\"{Fmt(Math.Max(labelFontSize - 1.5, MinLabelFontSize))}\" fill=\"#4b6580\" text-anchor=\"middle\" dominant-baseline=\"auto\">{Encode(maatTekst)}</text>";
     }
 
     private static string Fmt(double v) => VisualisatieHelper.Fmt(v);

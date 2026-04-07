@@ -42,8 +42,8 @@ public static class ZaagplanService
                     resultaat.NietGeplaatst.Add(new ZaagplanPaneel
                     {
                         Naam = stuk.Naam,
-                        Hoogte = stuk.Hoogte,
-                        Breedte = stuk.Breedte,
+                        Hoogte = stuk.OrigineleHoogte,
+                        Breedte = stuk.OrigineleBreedte,
                         Aantal = 1
                     });
                 }
@@ -185,7 +185,7 @@ public static class ZaagplanService
         public double GebruikteBreedte { get; set; }
     }
 
-    private sealed record StukInfo(string Naam, double Breedte, double Hoogte);
+    private sealed record StukInfo(string Naam, double Breedte, double Hoogte, double OrigineleBreedte, double OrigineleHoogte);
 
     private static List<StukInfo> ExpandEnSorteer(
         IReadOnlyList<ZaagplanPaneel> panelen,
@@ -211,7 +211,7 @@ public static class ZaagplanService
                         (b, h) = (h, b);
                 }
 
-                stukken.Add(new StukInfo(paneel.Naam, b, h));
+                stukken.Add(new StukInfo(paneel.Naam, b, h, paneel.Breedte, paneel.Hoogte));
             }
         }
 
@@ -230,7 +230,7 @@ public static class ZaagplanService
         if (panelen.Count == 0) return panelen;
 
         var groepen = panelen
-            .GroupBy(p => $"{p.Naam}|{p.Hoogte:0.###}|{p.Breedte:0.###}")
+            .GroupBy(p => (p.Naam, Hoogte: Math.Round(p.Hoogte, 3), Breedte: Math.Round(p.Breedte, 3)))
             .Select(g => new ZaagplanPaneel
             {
                 Naam = g.First().Naam,
