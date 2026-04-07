@@ -35,18 +35,24 @@
         }
     }
 
+    @{
+        double lastLabelY = double.MinValue;
+        double minLabelGap = 16.0;
+    }
     @for (int i = 0; i < Resultaat.Boorgaten.Count; i++)
     {
         var boorgat = Resultaat.Boorgaten[i];
         var onderbouwing = boorgat.Onderbouwing;
         var y = P + boorgat.Y * Scale;
+        var showLabels = (y - lastLabelY) >= minLabelGap;
+        if (showLabels) lastLabelY = y;
         var cupCx = Resultaat.ScharnierZijde == ScharnierZijde.Links
             ? DeurX + CupOffset
             : DeurX + DeurW - CupOffset;
         var labelY = i == 0 ? y + 4 : y;
 
-        <line x1="@Fmt(KastX + KastW + 12)" y1="@Fmt(y)"
-              x2="@Fmt(LabelX - 10)" y2="@Fmt(y)"
+        <line x1="@Fmt(KastX + KastW + 8)" y1="@Fmt(y)"
+              x2="@Fmt(DeurX - 5)" y2="@Fmt(y)"
               stroke="#e67e22" stroke-width="1.4" stroke-dasharray="4,3" opacity="0.8" />
 
         <circle cx="@Fmt(cupCx)" cy="@Fmt(y)"
@@ -56,11 +62,25 @@
 
         <circle cx="@Fmt(LabelX - 18)" cy="@Fmt(y)" r="8" fill="#1b6ec2" />
         @SvgText(LabelX - 18, y + 3.5, $"{i + 1}", "font-size=\"9\" fill=\"white\" text-anchor=\"middle\" font-weight=\"700\"")
-        @SvgText(LabelX, labelY - 4, $"{FormatMm(boorgat.Y)} boven", "font-size=\"8.5\" fill=\"#555\" text-anchor=\"start\"")
-        @SvgText(LabelX, labelY + 9, $"{FormatMm(Resultaat.Hoogte - boorgat.Y)} onder", "font-size=\"8.5\" fill=\"#555\" text-anchor=\"start\"")
+
+        @if (showLabels)
+        {
+            @SvgText(LabelX, labelY - 4, $"{FormatMm(boorgat.Y)} boven", "font-size=\"8.5\" fill=\"#555\" text-anchor=\"start\"")
+            @SvgText(LabelX, labelY + 9, $"{FormatMm(Resultaat.Hoogte - boorgat.Y)} onder", "font-size=\"8.5\" fill=\"#555\" text-anchor=\"start\"")
+        }
 
         @if (onderbouwing is not null)
         {
+            var boorgatKast = Kasten.FirstOrDefault(k => k.Naam == onderbouwing.KastNaam);
+            if (boorgatKast is not null && showLabels)
+            {
+                var kastBoven = onderbouwing.MontagePlaatMiddenInKast;
+                var kastOnder = boorgatKast.Hoogte - onderbouwing.MontagePlaatMiddenInKast;
+                var kastPrefix = Resultaat.KastIds.Count > 1 ? $"{onderbouwing.KastNaam}: " : "";
+                @SvgText(KastX - 6, labelY - 4, $"{kastPrefix}{FormatMm(kastBoven)} v. kasttop", "font-size=\"7.5\" fill=\"#5b7ea1\" text-anchor=\"end\"")
+                @SvgText(KastX - 6, labelY + 9, $"{kastPrefix}{FormatMm(kastOnder)} v. kastbodem", "font-size=\"7.5\" fill=\"#5b7ea1\" text-anchor=\"end\"")
+            }
+
             @foreach (var gebruiktY in GebruikteGaten(onderbouwing))
             {
                 <circle cx="@Fmt(KastX + KastW / 2)" cy="@Fmt(P + gebruiktY * Scale)"
@@ -69,9 +89,15 @@
         }
     }
 
+    @if (Resultaat.Boorgaten.Count > 0)
+    {
+        <line x1="@Fmt(DeurX)" y1="@Fmt(P - 15)"
+              x2="@Fmt(DeurX)" y2="@Fmt(P + H + 15)"
+              stroke="#bbb" stroke-width="0.8" stroke-dasharray="3,3" />
+    }
     @SvgText(DeurX + DeurW / 2, P - 8, $"{FormatMm(Resultaat.Breedte)} breed", "font-size=\"10\" fill=\"#555\" text-anchor=\"middle\"")
-    @SvgText(DeurX + DeurW + 4, P + H / 2, $"{FormatMm(Resultaat.Hoogte)} hoog",
-        $"font-size=\"10\" fill=\"#555\" text-anchor=\"start\" transform=\"rotate(90, {Fmt(DeurX + DeurW + 4)}, {Fmt(P + H / 2)})\"")
+    @SvgText((KastX + KastW + DeurX) / 2, P + H / 2, $"{FormatMm(Resultaat.Hoogte)} hoog",
+        $"font-size=\"10\" fill=\"#555\" text-anchor=\"middle\" transform=\"rotate(90, {Fmt((KastX + KastW + DeurX) / 2)}, {Fmt(P + H / 2)})\"")
     @SvgText(DeurX + CupOffset / 2, P + H + 18, $"{FormatMm(Resultaat.Boorgaten.FirstOrDefault()?.X ?? 0)} van rand",
         "font-size=\"8.5\" fill=\"#555\" text-anchor=\"middle\"")
 </svg>
@@ -85,9 +111,9 @@
     [Parameter] public string SvgStyle { get; set; } = "display:block; border:1px solid #dee2e6; border-radius:6px; background:white;";
 
     private const double P = 40;
-    private const double KastX = 34;
+    private const double KastX = 190;
     private const double KastW = 36;
-    private const double DeurX = 150;
+    private const double DeurX = 300;   // ← kast is nu ver genoeg rechts; labels staan links van de kast
     private const double MaxDoorVisibleMm = 75;
 
     private double Scale => MaxHoogte / Math.Max(Resultaat.Hoogte, 1);
@@ -97,10 +123,11 @@
     private double CupOffset => (Resultaat.Boorgaten.FirstOrDefault()?.X ?? ScharnierBerekeningService.CupCenterVanRand) * DoorHScale;
     private double CupR => Math.Max((ScharnierBerekeningService.CupDiameter / 2.0) * Scale, 8.0);
     private double ScharnierRandX => Resultaat.ScharnierZijde == ScharnierZijde.Links ? DeurX : DeurX + DeurW;
+    private double SeparatorX => DeurX + DeurW + 100;
     private double LabelX => DeurX + DeurW + 26;
     private double KastKolomLabelX => KastX + KastW / 2;
     private double DeurKolomLabelX => DeurX + DeurW / 2;
-    private double SvgWidth => LabelX + 110;
+    private double SvgWidth => LabelX + 120;
     private double SvgHeight => H + P * 2 + 28;
 
     private List<PaneelSegmentInfo> Segmenten =>
