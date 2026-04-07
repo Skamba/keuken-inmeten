@@ -1,0 +1,122 @@
+@page "/zaagplan"
+@inject KeukenStateService State
+
+<PageTitle>Zaagplan</PageTitle>
+
+<StapIndicator HuidigeStap="zaagplan" />
+
+<h2 class="page-header">Zaagplan</h2>
+<p class="text-muted">Vul de afmetingen van een standaardplaat in en bekijk hoe de panelen optimaal over de platen verdeeld worden.</p>
+
+@{
+    var items = BestellijstService.BerekenItems(State);
+}
+
+@if (items.Count == 0)
+{
+    <div class="alert alert-warning">
+        Er zijn nog geen panelen beschikbaar. <a href="bestellijst">Ga eerst naar de bestellijst</a> of voeg panelen toe in stap 2.
+    </div>
+}
+else
+{
+    var panelen = ZaagplanService.VanBestellijst(items);
+    var resultaat = ZaagplanService.Bereken(panelen, _plaatBreedte, _plaatHoogte, _zaagbreedte, _draaiToe);
+    var totaalPanelen = items.Sum(i => i.Aantal);
+    var totaalGeplaatst = resultaat.Platen.Sum(p => p.Plaatsingen.Count);
+
+    <div class="zaagplan-toolbar card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-6 col-lg-3">
+                    <label class="form-label fw-semibold">Plaatbreedte (mm)</label>
+                    <input class="form-control" type="number" step="1" min="100"
+                           @bind="_plaatBreedte" @bind:event="oninput" inputmode="decimal" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <label class="form-label fw-semibold">Plaathoogte (mm)</label>
+                    <input class="form-control" type="number" step="1" min="100"
+                           @bind="_plaatHoogte" @bind:event="oninput" inputmode="decimal" />
+                </div>
+                <div class="col-6 col-lg-2">
+                    <label class="form-label fw-semibold">Zaagbreedte (mm)</label>
+                    <input class="form-control" type="number" step="0.5" min="0" max="20"
+                           @bind="_zaagbreedte" @bind:event="oninput" inputmode="decimal" />
+                </div>
+                <div class="col-6 col-lg-2">
+                    <label class="form-label">
+                        <input type="checkbox" class="form-check-input me-1" @bind="_draaiToe" />
+                        Draaien toestaan
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold text-primary">@resultaat.Platen.Count</div>
+                <small class="text-muted">Platen nodig</small>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold text-primary">@totaalGeplaatst / @totaalPanelen</div>
+                <small class="text-muted">Panelen geplaatst</small>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold text-primary">@FormatMm(_plaatBreedte) × @FormatMm(_plaatHoogte)</div>
+                <small class="text-muted">Plaatformaat</small>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold text-primary">@FormatMm(_zaagbreedte)</div>
+                <small class="text-muted">Zaagbreedte</small>
+            </div>
+        </div>
+    </div>
+
+    if (resultaat.NietGeplaatst.Count > 0)
+    {
+        <div class="alert alert-danger mb-4">
+            <strong>Let op:</strong> @resultaat.NietGeplaatst.Sum(p => p.Aantal) paneel(en) passen niet op een plaat van @FormatMm(_plaatBreedte) × @FormatMm(_plaatHoogte) mm:
+            <ul class="mb-0 mt-2">
+                @foreach (var p in resultaat.NietGeplaatst)
+                {
+                    <li>@p.Naam — @FormatMm(p.Breedte) × @FormatMm(p.Hoogte) mm (@p.Aantal×)</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="zaagplan-platen">
+        @foreach (var plaat in resultaat.Platen)
+        {
+            <div class="zaagplan-plaat-card card border-0 shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <ZaagplanVisueel Plaat="plaat" />
+                    <div class="zaagplan-plaat-meta mt-2 small text-muted">
+                        @plaat.Plaatsingen.Count paneel(en) op deze plaat
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<StapNavigatie HuidigeStap="zaagplan"
+               VorigeHref="bestellijst"
+               VorigeLabel="Terug naar bestellijst" />
+
+@code {
+    private double _plaatBreedte = 2800;
+    private double _plaatHoogte = 2070;
+    private double _zaagbreedte = 4;
+    private bool _draaiToe = true;
+
+    private static string FormatMm(double value) => $"{value:0.#}";
+}

@@ -1,0 +1,76 @@
+@using System.Globalization
+
+@{
+    var schaal = MaxBreedte / Math.Max(Plaat.Breedte, 1);
+    var svgW = Plaat.Breedte * schaal + Padding * 2;
+    var svgH = Plaat.Hoogte * schaal + Padding * 2 + TitelHoogte;
+}
+
+<svg width="@Fmt(svgW)" height="@Fmt(svgH)" class="zaagplan-plaat-svg">
+    @* Titel *@
+    @((MarkupString)$"<text x=\"{Fmt(svgW / 2)}\" y=\"20\" font-size=\"13\" font-weight=\"bold\" fill=\"#333\" text-anchor=\"middle\">Plaat {Plaat.Nummer} — {Plaat.Breedte:0.#} × {Plaat.Hoogte:0.#} mm</text>")
+
+    @* Achtergrond plaat *@
+    <rect x="@Fmt(Padding)" y="@Fmt(Padding + TitelHoogte)"
+          width="@Fmt(Plaat.Breedte * schaal)" height="@Fmt(Plaat.Hoogte * schaal)"
+          fill="#f5f0e8" stroke="#8b7355" stroke-width="2" rx="2" />
+
+    @* Geplaatste panelen *@
+    @for (int i = 0; i < Plaat.Plaatsingen.Count; i++)
+    {
+        var p = Plaat.Plaatsingen[i];
+        var px = Padding + p.X * schaal;
+        var py = Padding + TitelHoogte + p.Y * schaal;
+        var pw = p.Breedte * schaal;
+        var ph = p.Hoogte * schaal;
+        var kleur = PaneelKleuren[i % PaneelKleuren.Length];
+
+        <rect x="@Fmt(px)" y="@Fmt(py)" width="@Fmt(pw)" height="@Fmt(ph)"
+              fill="@kleur" stroke="#5b7ea1" stroke-width="1.2" rx="1" opacity="0.85" />
+
+        @((MarkupString)BouwPaneelLabel(p, px, py, pw, ph))
+    }
+
+    @* Afmetingen plaat *@
+    @((MarkupString)$"<text x=\"{Fmt(svgW / 2)}\" y=\"{Fmt(svgH - 4)}\" font-size=\"10\" fill=\"#888\" text-anchor=\"middle\">{Plaat.Breedte:0.#} mm breed</text>")
+    @((MarkupString)$"<text x=\"{Fmt(10)}\" y=\"{Fmt(Padding + TitelHoogte + Plaat.Hoogte * schaal / 2)}\" font-size=\"10\" fill=\"#888\" text-anchor=\"middle\" transform=\"rotate(-90, {Fmt(10)}, {Fmt(Padding + TitelHoogte + Plaat.Hoogte * schaal / 2)})\">{Plaat.Hoogte:0.#} mm hoog</text>")
+</svg>
+
+@code {
+    [Parameter, EditorRequired] public ZaagplanPlaat Plaat { get; set; } = default!;
+    [Parameter] public double MaxBreedte { get; set; } = 600;
+
+    private const double Padding = 28;
+    private const double TitelHoogte = 28;
+    private const double MaxLabelFontSize = 11;
+    private const double MinLabelFontSize = 5;
+    private const double MinLeesbareFontSize = 6;
+    private const double LabelBreedteFactor = 8;
+    private const double LabelHoogteFactor = 3;
+
+    private static readonly string[] PaneelKleuren =
+    [
+        "#dce6f0", "#d5f5e3", "#f5deb3", "#e8d5c4", "#d4d4e8",
+        "#c4e8e8", "#f0e6d2", "#c4d8e8", "#e8e4d4", "#d4e8d4"
+    ];
+
+    private string BouwPaneelLabel(ZaagplanPlaatsing p, double px, double py, double pw, double ph)
+    {
+        var cx = px + pw / 2;
+        var cy = py + ph / 2;
+        var labelFontSize = Math.Min(Math.Min(pw / LabelBreedteFactor, ph / LabelHoogteFactor), MaxLabelFontSize);
+        if (labelFontSize < MinLeesbareFontSize)
+            return "";
+
+        var maatTekst = p.Gedraaid
+            ? $"{p.Hoogte:0.#}×{p.Breedte:0.#} ↻"
+            : $"{p.Breedte:0.#}×{p.Hoogte:0.#}";
+
+        return $"<text x=\"{Fmt(cx)}\" y=\"{Fmt(cy - 2)}\" font-size=\"{Fmt(labelFontSize)}\" fill=\"#18446f\" text-anchor=\"middle\" dominant-baseline=\"auto\">{Encode(p.Naam)}</text>"
+             + $"<text x=\"{Fmt(cx)}\" y=\"{Fmt(cy + labelFontSize + 1)}\" font-size=\"{Fmt(Math.Max(labelFontSize - 1.5, MinLabelFontSize))}\" fill=\"#4b6580\" text-anchor=\"middle\" dominant-baseline=\"auto\">{Encode(maatTekst)}</text>";
+    }
+
+    private static string Fmt(double v) => VisualisatieHelper.Fmt(v);
+
+    private static string Encode(string v) => System.Net.WebUtility.HtmlEncode(v);
+}
