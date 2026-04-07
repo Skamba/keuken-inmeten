@@ -76,9 +76,7 @@ else
                 @for (int i = 0; i < resultaten.Count; i++)
                 {
                     var r = resultaten[i];
-                    var wandNaam = r.KastIds
-                        .Select(id => State.Wanden.Find(w => w.KastIds.Contains(id))?.Naam)
-                        .FirstOrDefault(n => n is not null) ?? "—";
+                    var wandNaam = State.WandNaamVoorKasten(r.KastIds);
                     <tr>
                         <td class="text-muted">@(i + 1)</td>
                         <td><strong>@r.KastNaam</strong></td>
@@ -292,13 +290,7 @@ else
             _uitgeklapt.Add(index);
     }
 
-    private static string TypeNaam(PaneelType type) => type switch
-    {
-        PaneelType.Deur => "Deur",
-        PaneelType.LadeFront => "Ladefront",
-        PaneelType.BlindPaneel => "Blind paneel",
-        _ => type.ToString()
-    };
+    private static string TypeNaam(PaneelType type) => VisualisatieHelper.PaneelTypeLabel(type);
 
     private static string ScharnierSamenvatting(PaneelResultaat resultaat)
     {

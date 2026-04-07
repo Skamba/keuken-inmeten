@@ -862,13 +862,7 @@ else
             ? $"x {x:0} · onder {y:0}"
             : "volledige span";
 
-    private static string TypeNaam(PaneelType type) => type switch
-    {
-        PaneelType.Deur => "Deur",
-        PaneelType.LadeFront => "Ladefront",
-        PaneelType.BlindPaneel => "Blind paneel",
-        _ => type.ToString()
-    };
+    private static string TypeNaam(PaneelType type) => VisualisatieHelper.PaneelTypeLabel(type);
 
     private static string FormatMm(double waarde) => $"{waarde:0.#} mm";
 }

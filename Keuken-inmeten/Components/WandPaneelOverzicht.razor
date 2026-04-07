@@ -147,25 +147,9 @@
         _ => t.ToString()
     };
 
-    private static string KastKleur(KastType type) => type switch
-    {
-        KastType.Onderkast => "#f5deb3",
-        KastType.Bovenkast => "#d4e6f1",
-        KastType.HogeKast  => "#d5f5e3",
-        _ => "#f5deb3"
-    };
+    private static string KastKleur(KastType type) => VisualisatieHelper.KastKleur(type);
 
-    private static string ApparaatKleur(ApparaatType type) => type switch
-    {
-        ApparaatType.Oven => "#e8d5c4",
-        ApparaatType.Magnetron => "#d4d4e8",
-        ApparaatType.Vaatwasser => "#c4d8e8",
-        ApparaatType.Koelkast => "#c4e8e8",
-        ApparaatType.Vriezer => "#c4d4f0",
-        ApparaatType.Kookplaat => "#e8d4c4",
-        ApparaatType.Afzuigkap => "#d8d8d8",
-        _ => "#d8d8d8"
-    };
+    private static string ApparaatKleur(ApparaatType type) => VisualisatieHelper.ApparaatKleur(type);
 
     private string PaneelMaatLabel(PaneelToewijzing toewijzing)
     {
@@ -175,5 +159,5 @@
         return $"{toewijzing.Breedte:0.#}×{toewijzing.Hoogte:0.#} mm";
     }
 
-    private static string Fmt(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
+    private static string Fmt(double v) => VisualisatieHelper.Fmt(v);
 }

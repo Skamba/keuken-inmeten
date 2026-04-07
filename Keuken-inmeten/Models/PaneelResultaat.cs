@@ -1,10 +1,12 @@
 namespace Keuken_inmeten.Models;
 
+using Keuken_inmeten.Services;
+
 public class Boorgat
 {
     public double X { get; set; }
     public double Y { get; set; }
-    public double Diameter { get; set; } = 35;
+    public double Diameter { get; set; } = ScharnierBerekeningService.CupDiameter;
     public BoorgatOnderbouwing? Onderbouwing { get; set; }
 }
 

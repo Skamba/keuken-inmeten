@@ -1,5 +1,7 @@
 namespace Keuken_inmeten.Models;
 
+using Keuken_inmeten.Services;
+
 /// <summary>
 /// Snapshot of all state for serialization to/from persistent storage.
 /// </summary>
@@ -10,6 +12,6 @@ public class KeukenData
     public List<Apparaat> Apparaten { get; set; } = [];
     public List<PaneelToewijzing> Toewijzingen { get; set; } = [];
     public List<KastTemplate> KastTemplates { get; set; } = [];
-    public double LaatstGebruiktePotHartVanRand { get; set; } = 22.5;
-    public double PaneelRandSpeling { get; set; } = 2.0;
+    public double LaatstGebruiktePotHartVanRand { get; set; } = ScharnierBerekeningService.CupCenterVanRand;
+    public double PaneelRandSpeling { get; set; } = PaneelSpelingService.DefaultRandSpeling;
 }

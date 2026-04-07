@@ -25,16 +25,10 @@ public static class BestellijstService
         for (int i = 0; i < resultaten.Count; i++)
         {
             var resultaat = resultaten[i];
-            var toewijzing = i < state.Toewijzingen.Count ? state.Toewijzingen[i] : null;
-            var kasten = resultaat.KastIds
-                .Select(id => state.Kasten.Find(k => k.Id == id))
-                .Where(k => k is not null)
-                .Cast<Kast>()
-                .ToList();
+            var toewijzing = state.Toewijzingen.Find(t => t.Id == resultaat.ToewijzingId);
+            var kasten = state.ZoekKasten(resultaat.KastIds.ToList());
 
-            var wandNaam = resultaat.KastIds
-                .Select(id => state.Wanden.Find(w => w.KastIds.Contains(id))?.Naam)
-                .FirstOrDefault(naam => !string.IsNullOrWhiteSpace(naam)) ?? "Onbekende wand";
+            var wandNaam = state.WandNaamVoorKasten(resultaat.KastIds, "Onbekende wand");
             var kastenLabel = string.Join(" + ", kasten.Select(k => k.Naam));
             var basisNaam = BepaalBasisNaam(resultaat, kasten);
             var contextParts = new List<string> { wandNaam };
@@ -172,13 +166,7 @@ public static class BestellijstService
             boorgaten);
     }
 
-    private static string TypeLabel(PaneelType type) => type switch
-    {
-        PaneelType.Deur => "Deur",
-        PaneelType.LadeFront => "Ladefront",
-        PaneelType.BlindPaneel => "Blind paneel",
-        _ => type.ToString()
-    };
+    private static string TypeLabel(PaneelType type) => VisualisatieHelper.PaneelTypeLabel(type);
 
-    private static string Fmt(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+    private static string Fmt(double value) => VisualisatieHelper.FmtData(value);
 }
