@@ -830,6 +830,34 @@ code {
     min-width: 260px;
 }
 
+/* ── Zaagplan ── */
+.zaagplan-toolbar {
+    background: var(--bs-body-bg, #fff);
+}
+
+.zaagplan-platen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.zaagplan-plaat-card {
+    flex: 0 1 auto;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.zaagplan-plaat-svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+}
+
+.zaagplan-plaat-meta {
+    font-size: 0.85rem;
+}
+
 /* ── Dark mode overrides ── */
 [data-bs-theme="dark"] {
     --bs-body-color: #dee2e6;
