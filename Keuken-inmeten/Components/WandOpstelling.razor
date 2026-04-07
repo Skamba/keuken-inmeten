@@ -136,8 +136,24 @@
                 }
 
                 @* Planken *@
-                @foreach (var plank in kast.Planken)
+                @{
+                    var plnSorted = kast.Planken.OrderByDescending(p => p.HoogteVanBodem).ToArray();
+                    var plnLabelYs = new double[plnSorted.Length];
+                    double plnPrevBottom = double.MinValue;
+                    for (int pi = 0; pi < plnSorted.Length; pi++)
+                    {
+                        var plnDik = Math.Max(wdPx, 2.0);
+                        var plnCentY = y + h - wdPx - plnSorted[pi].HoogteVanBodem * Schaal;
+                        var plnRectY = plnCentY - plnDik / 2;
+                        double plnIdealY = plnRectY - 2;
+                        double plnNudgedY = Math.Max(plnIdealY, plnPrevBottom + 1.0);
+                        plnLabelYs[pi] = plnNudgedY;
+                        plnPrevBottom = plnNudgedY + 10.0;
+                    }
+                }
+                @for (int pi = 0; pi < plnSorted.Length; pi++)
                 {
+                    var plank = plnSorted[pi];
                     var plankDiktePx = Math.Max(wdPx, 2.0);
                     var plankCenterY = y + h - wdPx - plank.HoogteVanBodem * Schaal;
                     var plankRectY = plankCenterY - plankDiktePx / 2;
@@ -151,7 +167,7 @@
                               fill="@(isPlankSelected ? "#a8d5ff" : "#c8a040")"
                               stroke="@(isPlankSelected ? "#0d6efd" : "#7a5e20")"
                               stroke-width="@(isPlankSelected ? "1.5" : "0.8")" />
-                        @((MarkupString)$"<text class=\"plank-label\" x=\"{Fmt(x + wdPx + 3)}\" y=\"{Fmt(plankRectY - 2)}\" font-size=\"9\" fill=\"{(isPlankSelected ? "#0d6efd" : "#7a5e20")}\" font-weight=\"bold\" text-anchor=\"start\" pointer-events=\"none\">{plank.HoogteVanBodem:F0} mm</text>")
+                        @((MarkupString)$"<text class=\"plank-label\" x=\"{Fmt(x + wdPx + 3)}\" y=\"{Fmt(plnLabelYs[pi])}\" font-size=\"9\" fill=\"{(isPlankSelected ? "#0d6efd" : "#7a5e20")}\" font-weight=\"bold\" text-anchor=\"start\" pointer-events=\"none\">{plank.HoogteVanBodem:F0} mm</text>")
                     </g>
                 }
 

@@ -36,20 +36,27 @@
     }
 
     @{
-        double lastLabelY = double.MinValue;
-        double minLabelGap = 16.0;
+        // Pre-compute nudged label Y positions so all labels are visible without overlap
+        var labelYs = new double[Resultaat.Boorgaten.Count];
+        double prevLabelBottom = double.MinValue;
+        for (int j = 0; j < Resultaat.Boorgaten.Count; j++)
+        {
+            double idealY = P + Resultaat.Boorgaten[j].Y * Scale;
+            double nudgedY = Math.Max(idealY, prevLabelBottom + 16.0);
+            labelYs[j] = nudgedY;
+            prevLabelBottom = nudgedY + 13.0;
+        }
     }
     @for (int i = 0; i < Resultaat.Boorgaten.Count; i++)
     {
         var boorgat = Resultaat.Boorgaten[i];
         var onderbouwing = boorgat.Onderbouwing;
         var y = P + boorgat.Y * Scale;
-        var showLabels = (y - lastLabelY) >= minLabelGap;
-        if (showLabels) lastLabelY = y;
+        var labelY = labelYs[i];
+        var nudged = (labelY - y) > 0.5;
         var cupCx = Resultaat.ScharnierZijde == ScharnierZijde.Links
             ? DeurX + CupOffset
             : DeurX + DeurW - CupOffset;
-        var labelY = i == 0 ? y + 4 : y;
 
         <line x1="@Fmt(KastX + KastW + 8)" y1="@Fmt(y)"
               x2="@Fmt(DeurX - 5)" y2="@Fmt(y)"
@@ -63,16 +70,20 @@
         <circle cx="@Fmt(LabelX - 18)" cy="@Fmt(y)" r="8" fill="#1b6ec2" />
         @SvgText(LabelX - 18, y + 3.5, $"{i + 1}", "font-size=\"9\" fill=\"white\" text-anchor=\"middle\" font-weight=\"700\"")
 
-        @if (showLabels)
+        @if (nudged)
         {
-            @SvgText(LabelX, labelY - 4, $"{FormatMm(boorgat.Y)} boven", "font-size=\"8.5\" fill=\"#555\" text-anchor=\"start\"")
-            @SvgText(LabelX, labelY + 9, $"{FormatMm(Resultaat.Hoogte - boorgat.Y)} onder", "font-size=\"8.5\" fill=\"#555\" text-anchor=\"start\"")
+            <line x1="@Fmt(LabelX - 18)" y1="@Fmt(y + 9)"
+                  x2="@Fmt(LabelX - 18)" y2="@Fmt(labelY - 5)"
+                  stroke="#bbb" stroke-width="0.7" stroke-dasharray="2,2" />
         }
+
+        @SvgText(LabelX, labelY - 4, $"{FormatMm(boorgat.Y)} boven", "font-size=\"8.5\" fill=\"#555\" text-anchor=\"start\"")
+        @SvgText(LabelX, labelY + 9, $"{FormatMm(Resultaat.Hoogte - boorgat.Y)} onder", "font-size=\"8.5\" fill=\"#555\" text-anchor=\"start\"")
 
         @if (onderbouwing is not null)
         {
             var boorgatKast = Kasten.FirstOrDefault(k => k.Naam == onderbouwing.KastNaam);
-            if (boorgatKast is not null && showLabels)
+            if (boorgatKast is not null)
             {
                 var kastBoven = onderbouwing.MontagePlaatMiddenInKast;
                 var kastOnder = boorgatKast.Hoogte - onderbouwing.MontagePlaatMiddenInKast;
