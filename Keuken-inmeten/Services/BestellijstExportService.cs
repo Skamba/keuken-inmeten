@@ -288,7 +288,7 @@ public static class BestellijstExportService
 
     public static string FormatMm(double value) => $"{value:0.#} mm";
 
-    private static string Fmt(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+    private static string Fmt(double value) => VisualisatieHelper.FmtData(value);
 
     private static string Encode(string value) => System.Net.WebUtility.HtmlEncode(value);
 

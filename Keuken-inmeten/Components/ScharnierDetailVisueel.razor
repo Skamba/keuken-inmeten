@@ -217,6 +217,6 @@
         return Math.Abs(y - o.GaatBovenY) < 0.5 || Math.Abs(y - o.GaatOnderY) < 0.5;
     }
 
-    private static string Fmt(double v)    => v.ToString("F1", CultureInfo.InvariantCulture);
+    private static string Fmt(double v)    => VisualisatieHelper.Fmt(v);
     private static string FormatMm(double v) => v.ToString("0.#", CultureInfo.InvariantCulture);
 }

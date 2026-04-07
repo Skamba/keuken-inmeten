@@ -81,11 +81,32 @@ public class KeukenStateService
     {
         var wand = Wanden.Find(w => w.Id == wandId);
         if (wand is null) return [];
-        return wand.KastIds
+        return ZoekKasten(wand.KastIds);
+    }
+
+    /// <summary>
+    /// Zoekt kasten op basis van een lijst met IDs.
+    /// Behoudt de volgorde van de IDs en negeert ontbrekende kasten.
+    /// </summary>
+    public List<Kast> ZoekKasten(List<Guid> kastIds)
+        => kastIds
             .Select(id => Kasten.Find(k => k.Id == id))
             .Where(k => k is not null)
             .ToList()!;
-    }
+
+    /// <summary>
+    /// Zoekt de wand die een bepaalde kast bevat.
+    /// </summary>
+    public KeukenWand? WandVoorKast(Guid kastId)
+        => Wanden.Find(w => w.KastIds.Contains(kastId));
+
+    /// <summary>
+    /// Zoekt de wandnaam voor een lijst met kastIDs (neemt de eerste match).
+    /// </summary>
+    public string WandNaamVoorKasten(IEnumerable<Guid> kastIds, string geenWandLabel = "—")
+        => kastIds
+            .Select(id => WandVoorKast(id)?.Naam)
+            .FirstOrDefault(naam => !string.IsNullOrWhiteSpace(naam)) ?? geenWandLabel;
 
     public void VerplaatsKastInWand(Guid wandId, int vanIndex, int naarIndex)
     {
@@ -273,14 +294,11 @@ public class KeukenStateService
 
         foreach (var toewijzing in Toewijzingen)
         {
-            var kasten = toewijzing.KastIds
-                .Select(id => Kasten.Find(k => k.Id == id))
-                .Where(k => k is not null)
-                .ToList()!;
+            var kasten = ZoekKasten(toewijzing.KastIds);
             if (kasten.Count > 0)
             {
-                var maatInfo = BerekenPaneelMaatInfo(toewijzing, kasten!);
-                resultaten.Add(ScharnierBerekeningService.BerekenPaneel(toewijzing, kasten!, maatInfo));
+                var maatInfo = BerekenPaneelMaatInfo(toewijzing, kasten);
+                resultaten.Add(ScharnierBerekeningService.BerekenPaneel(toewijzing, kasten, maatInfo));
             }
         }
 
@@ -289,12 +307,7 @@ public class KeukenStateService
 
     public PaneelMaatInfo? BerekenPaneelMaatInfo(PaneelToewijzing toewijzing)
     {
-        var kasten = toewijzing.KastIds
-            .Select(id => Kasten.Find(k => k.Id == id))
-            .Where(k => k is not null)
-            .Cast<Kast>()
-            .ToList();
-
+        var kasten = ZoekKasten(toewijzing.KastIds);
         return kasten.Count == 0 ? null : BerekenPaneelMaatInfo(toewijzing, kasten);
     }
 
@@ -325,11 +338,7 @@ public class KeukenStateService
             .Where(item => item.Id != toewijzing.Id && item.KastIds.Any(wand.KastIds.Contains))
             .Select(item =>
             {
-                var panelKasten = item.KastIds
-                    .Select(id => Kasten.Find(k => k.Id == id))
-                    .Where(k => k is not null)
-                    .Cast<Kast>()
-                    .ToList();
+                var panelKasten = ZoekKasten(item.KastIds);
                 return PaneelLayoutService.BerekenRechthoek(item, panelKasten);
             })
             .Where(rechthoek => rechthoek is not null)

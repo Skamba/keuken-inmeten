@@ -135,7 +135,7 @@
         }
     }
 
-    private static string Fmt(double value) => value.ToString("F1", CultureInfo.InvariantCulture);
+    private static string Fmt(double value) => VisualisatieHelper.Fmt(value);
     private static string FormatMm(double value) => $"{value:0.#} mm";
     private static string Encode(string value) => System.Net.WebUtility.HtmlEncode(value);
     private static MarkupString SvgText(double x, double y, string text, string extraAttributes = "")

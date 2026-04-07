@@ -53,13 +53,7 @@
         : 200;
     private double SvgHeight => MaxH + P * 2 + 24;
 
-    private static string KastKleur(KastType type) => type switch
-    {
-        KastType.Onderkast => "#f5deb3",
-        KastType.Bovenkast => "#d4e6f1",
-        KastType.HogeKast => "#d5f5e3",
-        _ => "#f5deb3"
-    };
+    private static string KastKleur(KastType type) => VisualisatieHelper.KastKleur(type);
 
-    private static string Fmt(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
+    private static string Fmt(double v) => VisualisatieHelper.Fmt(v);
 }
