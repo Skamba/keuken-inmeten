@@ -38,10 +38,12 @@
         <div class="flex-grow-1">
             <label class="form-label fw-semibold">Nieuwe wand</label>
             <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
-                   placeholder="bv. Linkerwand, Achterwand, Rechts bij raam" @onkeydown="WandToevoegenBijEnter" />
+                   placeholder="bv. Linkerwand, Achterwand, Rechts bij raam" @onkeydown="WandToevoegenBijEnter"
+                   data-testid="nieuwe-wand-naam-input" />
         </div>
         <button class="btn btn-primary" @onclick="WandToevoegen"
-                disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)">
+                disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)"
+                data-testid="wand-toevoegen-button">
             Wand toevoegen
         </button>
     </div>
@@ -63,7 +65,11 @@
     var vrijeBreedte = Math.Max(0, wand.Breedte - gevuldeBreedte);
     var toonPrimaireActies = actieveWandId != wand.Id || (!toonKastFormulier && !toonApparaatFormulier);
 
-    <div class="card mb-4 border-primary" @key="wand.Id">
+    <div class="card mb-4 border-primary"
+         @key="wand.Id"
+         data-testid="indeling-wand-card"
+         data-wand-id="@wand.Id"
+         data-wand-naam="@wand.Naam">
         <div class="card-header bg-primary bg-opacity-10">
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
                 <div>
@@ -94,10 +100,16 @@
                         <p class="text-muted small mb-0"><strong>+ Kast toevoegen</strong> is de hoofdactie. Voeg alleen een apparaat toe als het echt ruimte op deze wand inneemt.</p>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <button class="btn btn-primary" @onclick="() => OpenKastFormulier(wand.Id)">
+                        <button class="btn btn-primary"
+                                @onclick="() => OpenKastFormulier(wand.Id)"
+                                data-testid="open-kast-form-button"
+                                data-wand-id="@wand.Id">
                             + Kast toevoegen
                         </button>
-                        <button class="btn btn-outline-secondary" @onclick="() => OpenApparaatFormulier(wand.Id)">
+                        <button class="btn btn-outline-secondary"
+                                @onclick="() => OpenApparaatFormulier(wand.Id)"
+                                data-testid="open-apparaat-form-button"
+                                data-wand-id="@wand.Id">
                             + Apparaat toevoegen
                         </button>
                     </div>
@@ -275,7 +287,9 @@
     <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
          style="z-index: 1050; background: rgba(0,0,0,0.4); overflow-y: auto; padding: 2rem 1rem;"
          @onclick="SluitKastFormulier" @onclick:stopPropagation="false">
-        <div class="card border-success shadow-lg" style="max-width: 900px; width: 100%;"
+        <div class="card border-success shadow-lg"
+             style="max-width: 900px; width: 100%;"
+             data-testid="kast-form"
              @onclick:stopPropagation="true">
             <div class="card-header bg-success bg-opacity-10 d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">@(isBewerken ? "Kast bewerken" : "Kast toevoegen")</h5>
@@ -313,7 +327,10 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-4">
                     <label class="form-label">Wand</label>
-                    <select class="form-select" value="@actieveWandId" @onchange="OnWandGewijzigd">
+                    <select class="form-select"
+                            value="@actieveWandId"
+                            @onchange="OnWandGewijzigd"
+                            data-testid="kast-wand-select">
                         @foreach (var w in State.Wanden)
                         {
                             <option value="@w.Id">@w.Naam</option>
@@ -323,23 +340,27 @@
                 <div class="col-md-8">
                     <label class="form-label">Naam</label>
                     <input type="text" class="form-control" @bind="formKast.Naam" @bind:event="oninput"
-                           placeholder="bv. Onderkast spoelbak" />
+                           placeholder="bv. Onderkast spoelbak"
+                           data-testid="kast-naam-input" />
                 </div>
             </div>
 
             <div class="row g-3 mb-3">
                 <div class="col-md-4">
                     <label class="form-label">Breedte (mm)</label>
-                    <input type="number" class="form-control" @bind="formKast.Breedte" min="100" step="10" />
+                    <input type="number" class="form-control" @bind="formKast.Breedte" min="100" step="10"
+                           data-testid="kast-breedte-input" />
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Hoogte (mm)</label>
-                    <input type="number" class="form-control" @bind="formKast.Hoogte" @bind:after="AutoBerekenPosities" min="100" step="10" />
+                    <input type="number" class="form-control" @bind="formKast.Hoogte" @bind:after="AutoBerekenPosities" min="100" step="10"
+                           data-testid="kast-hoogte-input" />
                     <div class="form-text">Type: <span class="badge @TypeBadge(InferKastType(formKast.Hoogte))">@InferKastType(formKast.Hoogte)</span></div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Diepte (mm)</label>
-                    <input type="number" class="form-control" @bind="formKast.Diepte" min="100" step="10" />
+                    <input type="number" class="form-control" @bind="formKast.Diepte" min="100" step="10"
+                           data-testid="kast-diepte-input" />
                 </div>
             </div>
 
@@ -386,7 +407,8 @@
 
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-primary" @onclick="KastOpslaan"
-                        disabled="@string.IsNullOrWhiteSpace(formKast.Naam)">
+                        disabled="@string.IsNullOrWhiteSpace(formKast.Naam)"
+                        data-testid="kast-opslaan-button">
                     @(isBewerken ? "Opslaan" : "Kast toevoegen")
                 </button>
                 <button type="button" class="btn btn-outline-secondary" @onclick="SluitKastFormulier">

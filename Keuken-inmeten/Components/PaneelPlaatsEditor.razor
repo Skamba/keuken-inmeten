@@ -2,7 +2,7 @@
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
-<div class="wand-opstelling-container" style="text-align: center;">
+<div class="wand-opstelling-container" style="text-align: center;" data-testid="paneel-plaats-editor">
     <svg @ref="svgRef"
          viewBox="0 0 @Fmt(SvgWidth) @Fmt(SvgHeight)"
          class="border rounded bg-body wand-opstelling-svg"
@@ -57,7 +57,9 @@
             var dimH_my = (dimH_y1 + dimH_y2) / 2;
 
             <g class="paneel-kast-selecteerbaar @(isSelected ? "geselecteerd" : "")"
+               data-testid="paneel-kast"
                data-kast-id="@kast.Id"
+               data-kast-naam="@kast.Naam"
                style="cursor: pointer;">
                 <rect x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(h)"
                       fill="@KastKleur(kast.Type)" stroke="@(isSelected ? "#0d6efd" : "#8b7355")"

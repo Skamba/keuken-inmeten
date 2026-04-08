@@ -5,7 +5,9 @@
 @if (Feedback.HuidigeMelding is { } melding)
 {
     <div class="actie-feedback-container" aria-live="polite" aria-atomic="true">
-        <div class="actie-feedback-toast actie-feedback-toast--@TypeClass(melding.Type) shadow-lg" role="@RoleForType(melding.Type)">
+        <div class="actie-feedback-toast actie-feedback-toast--@TypeClass(melding.Type) shadow-lg"
+             role="@RoleForType(melding.Type)"
+             data-testid="actie-feedback-toast">
             <div class="actie-feedback-toast__message">@melding.Bericht</div>
             <div class="actie-feedback-toast__actions">
                 @if (!string.IsNullOrWhiteSpace(melding.ActieLabel) && melding.Actie is not null)

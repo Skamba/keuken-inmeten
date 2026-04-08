@@ -47,7 +47,10 @@ else
                 var conceptVoorWand = ActieveWandId == wand.Id ? conceptPaneel : null;
                 var vrijeSegmentenVoorWand = ActieveWandId == wand.Id ? VrijeSegmentenVoorSelectie() : [];
 
-                <div class="mb-3 border @(wandHasSelection ? "border-primary" : "") rounded overflow-hidden">
+                <div class="mb-3 border @(wandHasSelection ? "border-primary" : "") rounded overflow-hidden"
+                     data-testid="paneel-wand-card"
+                     data-wand-id="@wand.Id"
+                     data-wand-naam="@wand.Naam">
                     <div class="d-flex justify-content-between align-items-center px-2 py-1 @(wandHasSelection ? "bg-primary bg-opacity-10" : "bg-light")">
                         <small class="fw-semibold">@wand.Naam</small>
                         @if (wandHasSelection)
@@ -412,7 +415,8 @@ else
                                     @(IsBewerkModus ? "Reset naar origineel" : "Reset naar selectie")
                                 </button>
                                 <button type="button" class="btn btn-primary flex-grow-1" @onclick="PaneelOpslaan"
-                                        disabled="@(!kanOpslaan)">
+                                        disabled="@(!kanOpslaan)"
+                                        data-testid="paneel-opslaan-button">
                                     @(IsBewerkModus ? "Paneel opslaan" : "+ Paneel toevoegen")
                                 </button>
                             </div>

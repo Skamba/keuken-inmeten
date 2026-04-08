@@ -62,8 +62,12 @@ else
                 </div>
                 <div class="col-lg-4">
                     <div class="bestellijst-export-acties">
-                        <button class="btn btn-primary" @onclick="ExporteerPdf">PDF met visuals</button>
-                        <button class="btn btn-outline-secondary" @onclick="ExporteerExcel">Excel alleen lijst</button>
+                        <button class="btn btn-primary"
+                                @onclick="ExporteerPdf"
+                                data-testid="bestellijst-pdf-export-button">PDF met visuals</button>
+                        <button class="btn btn-outline-secondary"
+                                @onclick="ExporteerExcel"
+                                data-testid="bestellijst-excel-export-button">Excel alleen lijst</button>
                     </div>
                 </div>
             </div>
@@ -168,7 +172,8 @@ else
                 </div>
 
                 <div class="table-responsive bestellijst-table-wrap mt-3">
-                    <table class="table table-hover align-middle bestellijst-table @(_toonTechnischeDetails ? "bestellijst-table--technisch" : null)">
+                    <table class="table table-hover align-middle bestellijst-table @(_toonTechnischeDetails ? "bestellijst-table--technisch" : null)"
+                           data-testid="bestellijst-tabel">
                         <thead class="table-light">
                             <tr>
                                 <th>Orderregel</th>

@@ -33,11 +33,29 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Install Playwright tooling
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run .NET tests
+        run: dotnet test Code.slnx -c Release --nologo
+
       - name: Publish Blazor app
         run: dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist
+
+      - name: Run Playwright E2E suite
+        run: npm run test:e2e
 
       - name: Rewrite base href for project site
         run: |
@@ -45,10 +63,18 @@ jobs:
 
       - name: Add static entrypoints for known app routes
         run: |
-          for route in kasten panelen resultaat bestellijst counter weather not-found; do
+          for route in kasten panelen verificatie bestellijst zaagplan not-found; do
             mkdir -p "dist/wwwroot/$route"
             cp dist/wwwroot/index.html "dist/wwwroot/$route/index.html"
           done
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          if-no-files-found: ignore
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
