@@ -14,21 +14,43 @@
         </summary>
 
         <div class="card-body pt-0">
-            <dl class="terminologie-list mb-0">
+            <div class="terminologie-list mb-0">
                 @foreach (var term in termen)
                 {
-                    <div class="terminologie-item">
-                        <dt>@term.Label <span class="text-muted fw-normal">(@term.TechnischeTerm)</span></dt>
-                        <dd class="text-muted mb-0">@term.Uitleg</dd>
-                    </div>
+                    <details class="terminologie-item">
+                        <summary class="terminologie-item-summary">
+                            <div>
+                                <div class="fw-semibold">@term.Label</div>
+                                <div class="small text-muted">Technische term: @term.TechnischeTerm</div>
+                            </div>
+                            <span class="terminologie-item-tag">Waarom is dit nodig?</span>
+                        </summary>
+
+                        <div class="terminologie-item-body">
+                            <div>
+                                <div class="terminologie-item-kop">Wat is het?</div>
+                                <div class="small text-muted">@term.Uitleg</div>
+                            </div>
+                            <div>
+                                <div class="terminologie-item-kop">Wanneer maakt het uit?</div>
+                                <div class="small text-muted">@term.WanneerRelevant</div>
+                            </div>
+                            <div class="small">
+                                <strong>Bijvoorbeeld:</strong> @term.Voorbeeld
+                            </div>
+                            <div class="small">
+                                <strong>Wat doet u nu?</strong> @term.WatNuDoen
+                            </div>
+                        </div>
+                    </details>
                 }
-            </dl>
+            </div>
         </div>
     </details>
 }
 
 @code {
-    [Parameter] public string Titel { get; set; } = "Wat betekent dit?";
-    [Parameter] public string Beschrijving { get; set; } = "Korte uitleg bij de meet- en CNC-termen op deze pagina.";
+    [Parameter] public string Titel { get; set; } = "Waarom is dit nodig?";
+    [Parameter] public string Beschrijving { get; set; } = "Open per term wat het betekent, wanneer het relevant is en wat u daarna moet doen.";
     [Parameter, EditorRequired] public string Sleutels { get; set; } = "";
 }
