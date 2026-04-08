@@ -58,12 +58,27 @@ export class IndelingPage {
     return formulier;
   }
 
+  async openApparaatFormulierVoorWand(wandNaam: string) {
+    await this.openWandWerkruimte(wandNaam);
+
+    const werkruimte = this.actieveWerkruimte(wandNaam);
+    await werkruimte.getByTestId('open-apparaat-form-button').click();
+
+    const formulier = this.page.getByTestId('apparaat-form');
+    await expect(formulier).toBeVisible();
+    return formulier;
+  }
+
   async expectKastFormStap(stapLabel: string) {
     await expect(this.page.getByTestId('kast-form-stap-label')).toContainText(stapLabel);
   }
 
   async gaNaarVolgendeKastFormStap() {
     await this.page.getByTestId('kast-form-volgende-button').click();
+  }
+
+  async gaNaarVolgendeApparaatFormStap() {
+    await this.page.getByTestId('apparaat-form-volgende-button').click();
   }
 
   async voegKastToeAanWand(wandNaam: string, kast: KastGegevens) {

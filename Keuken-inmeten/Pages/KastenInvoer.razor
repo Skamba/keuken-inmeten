@@ -41,8 +41,9 @@
         <div class="flex-grow-1">
             <label class="form-label fw-semibold">Nieuwe wand</label>
             <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
-                   placeholder="bv. Linkerwand, Achterwand, Rechts bij raam" @onkeydown="WandToevoegenBijEnter"
+                   @onkeydown="WandToevoegenBijEnter"
                    data-testid="nieuwe-wand-naam-input" />
+            <div class="form-text hulp-hint" data-testid="nieuwe-wand-naam-hint">Bijvoorbeeld Achterwand of Linkerwand bij raam. De naam blijft zichtbaar in samenvattingen en vervolgstappen terwijl u typt.</div>
         </div>
         <button class="btn btn-primary" @onclick="WandToevoegen"
                 disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)"
@@ -240,17 +241,23 @@ else
                         <div class="col-sm-4">
                             <label class="form-label small mb-0">Wandbreedte (mm)</label>
                             <input type="number" class="form-control form-control-sm"
+                                   data-testid="wand-breedte-input"
                                    value="@actieveWand.Breedte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Breedte), e)" />
+                            <div class="form-text hulp-hint" data-testid="wand-breedte-hint">Bijvoorbeeld 3000. Gebruik de totale wandbreedte die u in deze opstelling wilt vullen.</div>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label small mb-0">Wandhoogte (mm)</label>
                             <input type="number" class="form-control form-control-sm"
+                                   data-testid="wand-hoogte-input"
                                    value="@actieveWand.Hoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Hoogte), e)" />
+                            <div class="form-text hulp-hint" data-testid="wand-hoogte-hint">Bijvoorbeeld 2600. Gebruik de vrije hoogte van vloer tot plafond of tot een vast obstakel.</div>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label small mb-0">Hoogte van de plint (mm)</label>
                             <input type="number" class="form-control form-control-sm" min="0" step="10"
+                                   data-testid="wand-plint-input"
                                    value="@actieveWand.PlintHoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.PlintHoogte), e)" />
+                            <div class="form-text hulp-hint" data-testid="wand-plint-hint">Meestal 100. Gebruik 0 alleen als deze wand zonder plint wordt opgebouwd.</div>
                         </div>
                     </div>
                 </div>
@@ -486,8 +493,8 @@ else
                         <div class="col-md-8">
                             <label class="form-label">Naam</label>
                             <input type="text" class="form-control" @bind="formKast.Naam" @bind:event="oninput"
-                                   placeholder="bv. Onderkast spoelbak"
                                    data-testid="kast-naam-input" />
+                            <div class="form-text hulp-hint" data-testid="kast-naam-hint">Bijvoorbeeld Onderkast spoelbak. Kies een naam die u later in panelen en bestellijst snel herkent.</div>
                         </div>
                     </div>
                 }
@@ -497,18 +504,21 @@ else
                         <div class="col-md-4">
                             <label class="form-label">Breedte (mm)</label>
                             <input type="number" class="form-control" @bind="formKast.Breedte" min="100" step="10"
-                                   data-testid="kast-breedte-input" />
+                                    data-testid="kast-breedte-input" />
+                            <div class="form-text hulp-hint" data-testid="kast-breedte-hint">Bijvoorbeeld 600. Gebruik de buitenmaat van de kastbreedte.</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Hoogte (mm)</label>
                             <input type="number" class="form-control" @bind="formKast.Hoogte" @bind:after="AutoBerekenPosities" min="100" step="10"
-                                   data-testid="kast-hoogte-input" />
+                                    data-testid="kast-hoogte-input" />
+                            <div class="form-text hulp-hint" data-testid="kast-hoogte-hint">Bijvoorbeeld 720 voor een onderkast of rond 2000 voor een hoge kast.</div>
                             <div class="form-text">Type: <span class="badge @TypeBadge(InferKastType(formKast.Hoogte))">@InferKastType(formKast.Hoogte)</span></div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Diepte (mm)</label>
                             <input type="number" class="form-control" @bind="formKast.Diepte" min="100" step="10"
-                                   data-testid="kast-diepte-input" />
+                                    data-testid="kast-diepte-input" />
+                            <div class="form-text hulp-hint" data-testid="kast-diepte-hint">Bijvoorbeeld 560. Gebruik de buitendiepte van de kastromp.</div>
                         </div>
                     </div>
 
@@ -732,7 +742,8 @@ else
                         <div class="col-md-4">
                             <label class="form-label">Naam</label>
                             <input type="text" class="form-control" @bind="formApparaat.Naam" @bind:event="oninput"
-                                   placeholder="bv. Oven Bosch" />
+                                   data-testid="apparaat-naam-input" />
+                            <div class="form-text hulp-hint" data-testid="apparaat-naam-hint">Bijvoorbeeld Oven Bosch. Noem merk of functie zodat u het apparaat later in de wand en bestellijst herkent.</div>
                         </div>
                     </div>
                 }
@@ -741,15 +752,21 @@ else
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <label class="form-label">Breedte (mm)</label>
-                            <input type="number" class="form-control" @bind="formApparaat.Breedte" min="100" step="10" />
+                            <input type="number" class="form-control" @bind="formApparaat.Breedte" min="100" step="10"
+                                   data-testid="apparaat-breedte-input" />
+                            <div class="form-text hulp-hint" data-testid="apparaat-breedte-hint">Bijvoorbeeld 600. Gebruik de maat die echt wandruimte inneemt.</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Hoogte (mm)</label>
-                            <input type="number" class="form-control" @bind="formApparaat.Hoogte" min="10" step="10" />
+                            <input type="number" class="form-control" @bind="formApparaat.Hoogte" min="10" step="10"
+                                   data-testid="apparaat-hoogte-input" />
+                            <div class="form-text hulp-hint" data-testid="apparaat-hoogte-hint">Bijvoorbeeld 590 voor een inbouwoven of hoger voor een koelkastkastmodule.</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Diepte (mm)</label>
-                            <input type="number" class="form-control" @bind="formApparaat.Diepte" min="100" step="10" />
+                            <input type="number" class="form-control" @bind="formApparaat.Diepte" min="100" step="10"
+                                   data-testid="apparaat-diepte-input" />
+                            <div class="form-text hulp-hint" data-testid="apparaat-diepte-hint">Bijvoorbeeld 560. Gebruik de werkelijke diepte van het apparaat of de nis die het vraagt.</div>
                         </div>
                     </div>
 

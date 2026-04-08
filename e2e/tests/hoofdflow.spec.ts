@@ -42,6 +42,44 @@ test('kastpopup werkt als een korte ministepper', async ({ page }) => {
   await indeling.expectKastFormStap('Controle');
 });
 
+test('invoerhulp blijft zichtbaar bij wand-, kast- en apparaatvelden', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+
+  await indeling.goto();
+
+  await expect(page.getByTestId('nieuwe-wand-naam-hint')).toBeVisible();
+  await page.getByTestId('nieuwe-wand-naam-input').fill('Achterwand');
+  await expect(page.getByTestId('nieuwe-wand-naam-hint')).toBeVisible();
+  await page.getByTestId('wand-toevoegen-button').click();
+
+  await indeling.openWandWerkruimte('Achterwand');
+  await expect(page.getByTestId('wand-breedte-hint')).toBeVisible();
+  await expect(page.getByTestId('wand-hoogte-hint')).toBeVisible();
+  await expect(page.getByTestId('wand-plint-hint')).toBeVisible();
+
+  const kastForm = await indeling.openKastFormulierVoorWand('Achterwand');
+  await expect(page.getByTestId('kast-naam-hint')).toBeVisible();
+  await page.getByTestId('kast-naam-input').fill('Onderkast test');
+  await expect(page.getByTestId('kast-naam-hint')).toBeVisible();
+  await indeling.gaNaarVolgendeKastFormStap();
+  await expect(page.getByTestId('kast-breedte-hint')).toBeVisible();
+  await expect(page.getByTestId('kast-hoogte-hint')).toBeVisible();
+  await expect(page.getByTestId('kast-diepte-hint')).toBeVisible();
+  await kastForm.getByRole('button', { name: 'Annuleren' }).click();
+  await expect(kastForm).toBeHidden();
+
+  const apparaatForm = await indeling.openApparaatFormulierVoorWand('Achterwand');
+  await expect(page.getByTestId('apparaat-naam-hint')).toBeVisible();
+  await page.getByTestId('apparaat-naam-input').fill('Oven test');
+  await expect(page.getByTestId('apparaat-naam-hint')).toBeVisible();
+  await indeling.gaNaarVolgendeApparaatFormStap();
+  await expect(page.getByTestId('apparaat-breedte-hint')).toBeVisible();
+  await expect(page.getByTestId('apparaat-hoogte-hint')).toBeVisible();
+  await expect(page.getByTestId('apparaat-diepte-hint')).toBeVisible();
+  await apparaatForm.getByRole('button', { name: 'Annuleren' }).click();
+  await expect(apparaatForm).toBeHidden();
+});
+
 test('stap 2 toont maar één actieve wandwerkruimte tegelijk', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
@@ -156,6 +194,12 @@ test('bestellijst export loopt via een aparte previewflow', async ({ page }) => 
 
   await bestellijst.expectLoaded();
   await bestellijst.openExportFlow();
+  await expect(page.getByTestId('bestellijst-paneeltype-hint')).toBeVisible();
+  await expect(page.getByTestId('bestellijst-dikte-hint')).toBeVisible();
+  await page.getByTestId('bestellijst-paneeltype-input').fill('MDF wit');
+  await page.getByTestId('bestellijst-dikte-input').fill('19');
+  await expect(page.getByTestId('bestellijst-paneeltype-hint')).toBeVisible();
+  await expect(page.getByTestId('bestellijst-dikte-hint')).toBeVisible();
   await bestellijst.selecteerExportType('excel');
   await bestellijst.gaNaarExportPreview();
   await bestellijst.expectExportPreview('Excel alleen lijst');

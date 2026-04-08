@@ -49,7 +49,7 @@ public static class StapHulpHelper
                     "Kasten en apparaten toevoegen",
                     "Stap 1 blijft bewust rustig: voeg eerst de juiste objecten toe en verfijn technische details alleen als de standaard niet klopt.",
                     [
-                        "Gebruik de korte hints voor naam, wand en maatverwachtingen.",
+                        "Gebruik de korte hints voor naam, wand en maatverwachtingen; die voorbeelden blijven zichtbaar terwijl u typt.",
                         "Open info-knoppen bij wanddikte, systeemgaten en het eerste gat als u twijfelt over de betekenis van die maat.",
                         "Laat technische instellingen dicht als de kast de standaardopbouw volgt."
                     ]),
@@ -117,7 +117,8 @@ public static class StapHulpHelper
                     "Gebruik de basisweergave om aantallen, typen en wanden te controleren. Start export pas als de orderreview klopt; technische details en formaatkeuze staan los in de exportflow.",
                     [
                         "De technische toggle blijft alleen bedoeld voor review of overdracht van de tabel.",
-                        "Materiaal, dikte en formaat verschijnen pas wanneer u de aparte exportflow opent."
+                        "Materiaal, dikte en formaat verschijnen pas wanneer u de aparte exportflow opent.",
+                        "Voorbeeldwaarden bij paneeltype en dikte blijven zichtbaar naast het veld, ook als u al begint te typen."
                     ]),
                 new(
                     "Exportflow met preview",

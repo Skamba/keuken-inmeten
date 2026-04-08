@@ -132,8 +132,8 @@ else
                                     <input class="form-control"
                                            list="paneeltype-opties"
                                            @bind="_paneelType"
-                                           placeholder="Kies of typ een paneeltype"
                                            data-testid="bestellijst-paneeltype-input" />
+                                    <div class="form-text hulp-hint" data-testid="bestellijst-paneeltype-hint">Bijvoorbeeld MDF wit of berken multiplex. Deze naam wordt alleen in het exportbestand gebruikt.</div>
                                     <datalist id="paneeltype-opties">
                                         @foreach (var optie in PaneelTypeOpties)
                                         {
@@ -146,8 +146,8 @@ else
                                     <input class="form-control"
                                            @bind="_dikteMm"
                                            inputmode="decimal"
-                                           placeholder="Bijv. 19 of 18.4"
                                            data-testid="bestellijst-dikte-input" />
+                                    <div class="form-text hulp-hint" data-testid="bestellijst-dikte-hint">Bijvoorbeeld 19 of 18,4. Gebruik de werkelijke plaatdikte die u wilt bestellen of exporteren.</div>
                                 </div>
                             </div>
 
