@@ -10,7 +10,7 @@
 <StapIndicator HuidigeStap="bestellijst" />
 
 <h2 class="page-header">Stap 4: Bestellijst</h2>
-<p class="text-muted">Bekijk eerst compacte samenvattingen per wand en paneeltype. De bestellijst focust standaard op orderregels; boorgat- en CNC-details zet u alleen aan wanneer u ze nodig hebt.</p>
+<p class="text-muted">Bekijk eerst compacte samenvattingen per wand en paneeltype. De bestellijst focust standaard op orderregels; export kiest u daarna in een aparte korte flow met preview en bevestiging.</p>
 <div class="hulp-toolbar mb-3">
     <StapHulpDrawer StapId="bestellijst" />
 </div>
@@ -27,6 +27,9 @@
     var maxBoorgaten = items.Count == 0 ? 0 : items.Max(item => item.Boorgaten.Count);
     var totaalAantal = items.Sum(item => item.Aantal);
     var totaalBoorgaten = items.Sum(item => item.Aantal * item.Boorgaten.Count);
+    var exportDocument = BestellijstExportService.BouwDocument(items, DisplayPaneelType(), _dikteMm, DateTime.Now);
+    var gekozenExport = BestellijstExportFlowHelper.Voor(_exportType);
+    var exportPreviewPunten = BestellijstExportFlowHelper.MaakPreviewPunten(exportDocument, _exportType);
 }
 
 @if (routeGate is not null)
@@ -43,42 +46,19 @@ else
 {
     <div class="bestellijst-toolbar card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <div class="row g-3 align-items-end">
-                <div class="col-lg-5">
-                    <label class="form-label fw-semibold">Paneeltype</label>
-                    <input class="form-control"
-                           list="paneeltype-opties"
-                           @bind="_paneelType"
-                           placeholder="Kies of typ een paneeltype" />
-                    <datalist id="paneeltype-opties">
-                        @foreach (var optie in PaneelTypeOpties)
-                        {
-                            <option value="@optie"></option>
-                        }
-                    </datalist>
+            <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3">
+                <div>
+                    <div class="small fw-semibold text-uppercase text-primary-emphasis">Rustige review</div>
+                    <h5 class="mb-1">Controleer eerst de orderregels</h5>
+                    <p class="text-muted mb-0">De bestellijst blijft gericht op aantallen, maten en wanden. Start export pas als die review klopt; materiaal, dikte en formaat kiest u in een aparte exportflow.</p>
                 </div>
-                <div class="col-lg-3">
-                    <label class="form-label fw-semibold">Dikte (mm)</label>
-                    <input class="form-control"
-                           @bind="_dikteMm"
-                           inputmode="decimal"
-                           placeholder="Bijv. 19 of 18.4" />
+                <div class="bestellijst-export-entry">
+                    <button type="button"
+                            class="btn btn-primary"
+                            @onclick="OpenExportFlow"
+                            data-testid="bestellijst-open-exportflow-button">Start exportflow</button>
+                    <div class="small text-muted mt-2">Kies materiaal, dikte en formaat in drie korte stappen.</div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="bestellijst-export-acties">
-                        <button class="btn btn-primary"
-                                @onclick="ExporteerPdf"
-                                data-testid="bestellijst-pdf-export-button">PDF met visuals</button>
-                        <button class="btn btn-outline-secondary"
-                                @onclick="ExporteerExcel"
-                                data-testid="bestellijst-excel-export-button">Excel alleen lijst</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bestellijst-toolbar-meta mt-3">
-                <span><strong>Materiaal:</strong> @DisplayPaneelType()</span>
-                <span><strong>Dikte:</strong> @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</span>
             </div>
 
             <div class="row g-3 mt-1">
@@ -101,17 +81,236 @@ else
                     <div class="form-text hulp-hint">Standaard blijft de lijst gericht op orderregels. Schakel technische details alleen in voor controle of overdracht.</div>
                 </div>
                 <div class="col-lg-5">
-                    <HulpDetailsBlok Titel="Technische exportdetails"
-                                     Beschrijving="Open alleen als u de technische output of machinecoordinaten wilt nalopen."
-                                     CssClass="small h-100">
-                        <div class="mt-2"><strong>Machinecoordinaten (CNC-coordinaten):</strong> @BestellijstExportFormatter.FormatCncAssenSamenvatting()</div>
-                        <div class="mt-1"><strong>Max boorgaten per orderregel:</strong> @maxBoorgaten</div>
-                        <div class="mt-1"><strong>Boorgaten totaal:</strong> @totaalBoorgaten</div>
-                    </HulpDetailsBlok>
+                    <div class="bestellijst-export-samenvatting h-100">
+                        <div class="small fw-semibold text-uppercase text-muted mb-1">Export blijft apart</div>
+                        <div class="fw-semibold mb-1">PDF of Excel kiest u pas na een preview</div>
+                        <div class="small text-muted mb-2">De exportflow legt eerst uit welk formaat het beste past en laat dan zien wat er straks wordt gedownload of geopend.</div>
+                        <div class="small text-muted"><strong>Technische referentie:</strong> @BestellijstExportFormatter.FormatCncAssenSamenvatting() · max. @maxBoorgaten boorgaten per orderregel · @totaalBoorgaten boorgaten totaal</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    @if (_toonExportFlow)
+    {
+        <div class="hulp-drawer-overlay bestellijst-export-overlay" @onclick="SluitExportFlow">
+            <aside class="bestellijst-export-drawer card border-0 shadow-lg"
+                   role="dialog"
+                   aria-modal="true"
+                   aria-labelledby="bestellijst-export-drawer-title"
+                   @onclick:stopPropagation="true"
+                   data-testid="bestellijst-export-drawer">
+                <div class="card-header bg-primary bg-opacity-10 border-bottom">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Aparte exportflow</div>
+                            <h5 class="mb-1" id="bestellijst-export-drawer-title">Export voorbereiden</h5>
+                            <p class="text-muted mb-0">Kies eerst het formaat en controleer de preview. Pas in de laatste stap bevestigt u de export.</p>
+                        </div>
+                        <button type="button" class="btn-close" @onclick="SluitExportFlow" aria-label="Sluit exportflow"></button>
+                    </div>
+                </div>
+
+                <div class="card-body bestellijst-export-drawer-body">
+                    <div class="bestellijst-export-stappen mb-4" aria-label="Exportstappen">
+                        <div class="@ExportStapClass(BestellijstExportFlowStap.Kiezen)">1. Kies export</div>
+                        <div class="@ExportStapClass(BestellijstExportFlowStap.Preview)">2. Preview</div>
+                        <div class="@ExportStapClass(BestellijstExportFlowStap.Bevestigen)">3. Bevestigen</div>
+                    </div>
+
+                    @if (_exportFlowStap is BestellijstExportFlowStap.Kiezen)
+                    {
+                        <section data-testid="bestellijst-export-step-kies">
+                            <div class="small text-muted mb-3">
+                                Deze keuzes gelden alleen voor het exportbestand. De reviewtabel hieronder blijft rustig en verandert niet mee.
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-7">
+                                    <label class="form-label fw-semibold">Paneeltype</label>
+                                    <input class="form-control"
+                                           list="paneeltype-opties"
+                                           @bind="_paneelType"
+                                           placeholder="Kies of typ een paneeltype"
+                                           data-testid="bestellijst-paneeltype-input" />
+                                    <datalist id="paneeltype-opties">
+                                        @foreach (var optie in PaneelTypeOpties)
+                                        {
+                                            <option value="@optie"></option>
+                                        }
+                                    </datalist>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label fw-semibold">Dikte (mm)</label>
+                                    <input class="form-control"
+                                           @bind="_dikteMm"
+                                           inputmode="decimal"
+                                           placeholder="Bijv. 19 of 18.4"
+                                           data-testid="bestellijst-dikte-input" />
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <div class="fw-semibold mb-2">Bestandsformaat</div>
+                                <div class="row g-3">
+                                    @foreach (var optie in BestellijstExportFlowHelper.Opties)
+                                    {
+                                        var isGeselecteerd = _exportType == optie.Type;
+
+                                        <div class="col-md-6">
+                                            <button type="button"
+                                                    class="bestellijst-export-keuze @(isGeselecteerd ? "is-selected" : null)"
+                                                    @onclick="@(() => KiesExportType(optie.Type))"
+                                                    data-testid="@ExportTypeTestId(optie.Type)">
+                                                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                                                    <div class="fw-semibold">@optie.Label</div>
+                                                    @if (isGeselecteerd)
+                                                    {
+                                                        <span class="badge text-bg-primary">Gekozen</span>
+                                                    }
+                                                </div>
+                                                <div class="small text-muted mb-2">@optie.KorteBeschrijving</div>
+                                                <div class="small"><strong>Kies dit als:</strong> @optie.WanneerKiezen</div>
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </section>
+                    }
+                    else if (_exportFlowStap is BestellijstExportFlowStap.Preview)
+                    {
+                        <section data-testid="bestellijst-export-step-preview">
+                            <div class="row g-3">
+                                <div class="col-lg-7">
+                                    <div class="border rounded p-3 h-100">
+                                        <div class="small fw-semibold text-uppercase text-muted mb-1">Gekozen export</div>
+                                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
+                                            <h6 class="mb-0">@gekozenExport.Label</h6>
+                                            <span class="badge text-bg-light border">Stap 2 van 3</span>
+                                        </div>
+                                        <p class="text-muted small mb-3">@gekozenExport.KorteBeschrijving</p>
+                                        <div class="bestellijst-toolbar-meta">
+                                            <span><strong>Materiaal:</strong> @DisplayPaneelType()</span>
+                                            <span><strong>Dikte:</strong> @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</span>
+                                            <span><strong>Orderregels:</strong> @exportDocument.Orderregels</span>
+                                            <span><strong>Panelen:</strong> @exportDocument.TotaalAantal</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="border rounded p-3 h-100">
+                                        <div class="small fw-semibold text-uppercase text-muted mb-1">Wanneer kiest u dit?</div>
+                                        <div class="small text-muted mb-3">@gekozenExport.WanneerKiezen</div>
+                                        <div class="small"><strong>Wat ziet u straks?</strong> @gekozenExport.ResultaatUitleg</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-1">
+                                <div class="col-lg-7">
+                                    <div class="border rounded p-3 h-100">
+                                        <div class="small fw-semibold text-uppercase text-muted mb-2">Preview van het resultaat</div>
+                                        <ul class="small mb-0 ps-3" data-testid="bestellijst-export-preview">
+                                            @foreach (var punt in exportPreviewPunten)
+                                            {
+                                                <li class="mb-1">@punt</li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="border rounded p-3 h-100 bg-body-tertiary">
+                                        <div class="small fw-semibold text-uppercase text-muted mb-1">Voorbeeld</div>
+                                        <div class="small text-muted">@gekozenExport.Voorbeeld</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    }
+                    else
+                    {
+                        <section data-testid="bestellijst-export-step-bevestig">
+                            <div class="alert alert-light border">
+                                <div class="fw-semibold mb-1">Klaar om te exporteren</div>
+                                <div class="small text-muted mb-0">U hebt formaat, materiaal en preview gecontroleerd. Bevestig nu het bestand dat u wilt openen of downloaden.</div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <div class="border rounded p-3 h-100">
+                                        <div class="small fw-semibold text-uppercase text-muted mb-2">Uw keuzes</div>
+                                        <ul class="list-unstyled small mb-0 d-grid gap-2">
+                                            <li><strong>Formaat:</strong> @gekozenExport.Label</li>
+                                            <li><strong>Materiaal:</strong> @DisplayPaneelType()</li>
+                                            <li><strong>Dikte:</strong> @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</li>
+                                            <li><strong>Resultaat:</strong> @gekozenExport.ResultaatUitleg</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="border rounded p-3 h-100">
+                                        <div class="small fw-semibold text-uppercase text-muted mb-2">Wat gebeurt hierna?</div>
+                                        <ul class="small mb-0 ps-3">
+                                            @if (_exportType is BestellijstExportType.Excel)
+                                            {
+                                                <li class="mb-1">Uw browser downloadt direct een spreadsheetbestand.</li>
+                                                <li class="mb-1">Controleer daarna de Downloads-map of open het bestand meteen.</li>
+                                            }
+                                            else
+                                            {
+                                                <li class="mb-1">Uw browser opent een printweergave die u kunt bewaren als PDF.</li>
+                                                <li class="mb-1">Controleer of pop-ups of printweergave in deze browser zijn toegestaan.</li>
+                                            }
+                                            <li class="mb-1">De orderreview op de pagina blijft daarna beschikbaar.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    }
+                </div>
+
+                <div class="card-footer bg-transparent border-top d-flex justify-content-between flex-wrap gap-2">
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            @onclick="AnnuleerOfGaTerugInExportFlow"
+                            data-testid="bestellijst-export-back-button">
+                        @(_exportFlowStap is BestellijstExportFlowStap.Kiezen ? "Annuleren" : "Terug")
+                    </button>
+
+                    @if (_exportFlowStap is BestellijstExportFlowStap.Kiezen)
+                    {
+                        <button type="button"
+                                class="btn btn-primary"
+                                @onclick="GaNaarExportPreview"
+                                data-testid="bestellijst-export-next-button">
+                            Bekijk preview
+                        </button>
+                    }
+                    else if (_exportFlowStap is BestellijstExportFlowStap.Preview)
+                    {
+                        <button type="button"
+                                class="btn btn-primary"
+                                @onclick="GaNaarExportBevestiging"
+                                data-testid="bestellijst-export-next-button">
+                            Ga naar bevestigen
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                class="btn btn-primary"
+                                @onclick="BevestigExport"
+                                data-testid="bestellijst-export-confirm-button">
+                            @gekozenExport.BevestigLabel
+                        </button>
+                    }
+                </div>
+            </aside>
+        </div>
+    }
 
     <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
@@ -239,6 +438,13 @@ else
                VolgendeHref="zaagplan" />
 
 @code {
+    private enum BestellijstExportFlowStap
+    {
+        Kiezen = 1,
+        Preview = 2,
+        Bevestigen = 3
+    }
+
     private static readonly string[] PaneelTypeOpties =
     [
         "MDF gelakt",
@@ -251,11 +457,80 @@ else
     ];
 
     private BestellijstExportJsInterop? _exportInterop;
+    private BestellijstExportFlowStap _exportFlowStap = BestellijstExportFlowStap.Kiezen;
+    private BestellijstExportType _exportType = BestellijstExportType.Pdf;
     private string _paneelType = "MDF gelakt";
     private string _dikteMm = "19";
     private bool _toonTechnischeDetails;
+    private bool _toonExportFlow;
 
     private BestellijstExportJsInterop ExportInterop => _exportInterop ??= new(JS);
+
+    private void OpenExportFlow()
+    {
+        _toonExportFlow = true;
+        _exportFlowStap = BestellijstExportFlowStap.Kiezen;
+    }
+
+    private void SluitExportFlow()
+    {
+        _toonExportFlow = false;
+        _exportFlowStap = BestellijstExportFlowStap.Kiezen;
+    }
+
+    private void KiesExportType(BestellijstExportType type) => _exportType = type;
+
+    private void GaNaarExportPreview() => _exportFlowStap = BestellijstExportFlowStap.Preview;
+
+    private void GaNaarExportBevestiging() => _exportFlowStap = BestellijstExportFlowStap.Bevestigen;
+
+    private void GaTerugInExportFlow()
+    {
+        _exportFlowStap = _exportFlowStap switch
+        {
+            BestellijstExportFlowStap.Bevestigen => BestellijstExportFlowStap.Preview,
+            _ => BestellijstExportFlowStap.Kiezen
+        };
+    }
+
+    private void AnnuleerOfGaTerugInExportFlow()
+    {
+        if (_exportFlowStap is BestellijstExportFlowStap.Kiezen)
+        {
+            SluitExportFlow();
+            return;
+        }
+
+        GaTerugInExportFlow();
+    }
+
+    private async Task BevestigExport()
+    {
+        if (_exportType is BestellijstExportType.Excel)
+        {
+            await ExporteerExcel();
+            return;
+        }
+
+        await ExporteerPdf();
+    }
+
+    private string ExportStapClass(BestellijstExportFlowStap stap)
+    {
+        var huidigeStap = (int)_exportFlowStap;
+        var stapNummer = (int)stap;
+
+        return stapNummer == huidigeStap
+            ? "bestellijst-export-stap is-active"
+            : stapNummer < huidigeStap
+                ? "bestellijst-export-stap is-complete"
+                : "bestellijst-export-stap";
+    }
+
+    private static string ExportTypeTestId(BestellijstExportType type)
+        => type is BestellijstExportType.Pdf
+            ? "bestellijst-export-type-pdf"
+            : "bestellijst-export-type-excel";
 
     private async Task ExporteerExcel()
     {
@@ -272,6 +547,7 @@ else
                 xml,
                 "application/vnd.ms-excel;charset=utf-8");
 
+            SluitExportFlow();
             Feedback.ToonSucces("Excel-bestand gedownload. Controleer nu de Downloads-map of open het bestand direct.");
         }
         catch
@@ -291,6 +567,7 @@ else
 
             await ExportInterop.OpenPrintDocumentAsync(html);
 
+            SluitExportFlow();
             Feedback.ToonSucces("Printweergave geopend. Kies in de browser 'Opslaan als PDF' om het bestand te bewaren.");
         }
         catch

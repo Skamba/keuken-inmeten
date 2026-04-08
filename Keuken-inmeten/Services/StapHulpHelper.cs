@@ -109,22 +109,22 @@ public static class StapHulpHelper
         ["bestellijst"] = new(
             "bestellijst",
             "Hulp bij stap 4: Bestellijst",
-            "De bestellijst focust standaard op orderregels. Technische exportinformatie hoort beschikbaar te zijn zonder de hoofdweergave over te nemen.",
+            "De bestellijst focust standaard op orderregels. Export kiest u nu via een aparte korte flow met preview en bevestiging, zodat de reviewtabel rustig blijft.",
             StandaardHulpNiveaus,
             [
                 new(
                     "Orderregels versus techniek",
-                    "Gebruik de basisweergave om aantallen, typen en wanden te controleren. Open technische informatie alleen voor overdracht of nabewerking.",
+                    "Gebruik de basisweergave om aantallen, typen en wanden te controleren. Start export pas als de orderreview klopt; technische details en formaatkeuze staan los in de exportflow.",
                     [
-                        "De hint onder de technische toggle legt uit wanneer u CNC- en boorgatdetails nodig hebt.",
-                        "Het detailsblok bundelt exportinformatie zodat die niet permanent boven de tabel hangt."
+                        "De technische toggle blijft alleen bedoeld voor review of overdracht van de tabel.",
+                        "Materiaal, dikte en formaat verschijnen pas wanneer u de aparte exportflow opent."
                     ]),
                 new(
-                    "Diepere exporthulp",
-                    "De zijhulp helpt vooral bij de keuze tussen PDF en Excel en bij het beslissen of technische details nodig zijn.",
+                    "Exportflow met preview",
+                    "De zijhulp helpt vooral bij de keuze tussen PDF en Excel en laat eerst zien wat u straks downloadt of opent.",
                     [
-                        "Gebruik de verdiepende hulp als iemand de output deelt met een machinebewerker of werkvoorbereider.",
-                        "Laat de ordertabel verder de primaire interface blijven."
+                        "Gebruik de preview om te controleren of u een rustig PDF-document of juist een bewerkbare Excel-lijst nodig hebt.",
+                        "Bevestig pas in de laatste stap; zo blijft de bestellijstpagina zelf een rustige reviewweergave."
                     ])
             ]),
         ["zaagplan"] = new(

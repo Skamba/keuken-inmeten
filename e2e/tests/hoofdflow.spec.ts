@@ -128,6 +128,40 @@ test('stap 3 toont verificatie als taaklijst per wand', async ({ page }) => {
   await verificatie.openControleVoorWand('Linkerwand');
 });
 
+test('bestellijst export loopt via een aparte previewflow', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+  const verificatie = new VerificatiePage(page);
+  const bestellijst = new BestellijstPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast exportflow',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await panelen.selecteerEersteKastOpWand('Achterwand');
+  await panelen.voegPaneelToe();
+  await panelen.gaNaarVerificatie();
+
+  await verificatie.expectLoaded();
+  await verificatie.startVerificatie();
+  await verificatie.gaNaarBestellijst();
+
+  await bestellijst.expectLoaded();
+  await bestellijst.openExportFlow();
+  await bestellijst.selecteerExportType('excel');
+  await bestellijst.gaNaarExportPreview();
+  await bestellijst.expectExportPreview('Excel alleen lijst');
+  await bestellijst.gaNaarExportBevestiging();
+  await bestellijst.expectExportBevestiging('Excel alleen lijst');
+});
+
 test('hoofdflow van indeling tot export blijft werken', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);

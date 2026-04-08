@@ -1316,11 +1316,22 @@ code {
     color: var(--bs-secondary-color, #516173);
 }
 
+.bestellijst-export-entry {
+    text-align: left;
+}
+
 .bestellijst-export-acties {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
     justify-content: flex-start;
+}
+
+.bestellijst-export-samenvatting {
+    padding: 1rem;
+    border: 1px dashed var(--bs-border-color, #d0d7de);
+    border-radius: 0.95rem;
+    background: var(--bs-body-bg, #fff);
 }
 
 .bestellijst-export-status {
@@ -1331,6 +1342,74 @@ code {
 
 .bestellijst-export-status.fout {
     color: #b42318;
+}
+
+.bestellijst-export-overlay {
+    justify-content: flex-end;
+}
+
+.bestellijst-export-drawer {
+    width: min(36rem, 100%);
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    border-radius: 1rem 0 0 1rem;
+}
+
+.bestellijst-export-drawer-body {
+    overflow-y: auto;
+    padding-block: 1.25rem;
+}
+
+.bestellijst-export-stappen {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 0.75rem;
+}
+
+.bestellijst-export-stap {
+    border: 1px solid var(--bs-border-color, #d0d7de);
+    border-radius: 0.95rem;
+    padding: 0.8rem 0.95rem;
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-secondary-color, #516173);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.bestellijst-export-stap.is-active {
+    border-color: #0d6efd;
+    color: #0d6efd;
+    background: color-mix(in srgb, #0d6efd 8%, var(--bs-body-bg, #fff));
+}
+
+.bestellijst-export-stap.is-complete {
+    border-color: color-mix(in srgb, #0d6efd 45%, var(--bs-border-color, #d0d7de));
+    color: var(--bs-body-color, #212529);
+}
+
+.bestellijst-export-keuze {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color, #d0d7de);
+    border-radius: 1rem;
+    background: var(--bs-body-bg, #fff);
+    color: inherit;
+    text-align: left;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.bestellijst-export-keuze:hover {
+    border-color: color-mix(in srgb, #0d6efd 35%, var(--bs-border-color, #d0d7de));
+    box-shadow: 0 6px 18px rgba(13,110,253,0.08);
+    transform: translateY(-1px);
+}
+
+.bestellijst-export-keuze.is-selected {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 1px rgba(13,110,253,0.18);
+    background: color-mix(in srgb, #0d6efd 6%, var(--bs-body-bg, #fff));
 }
 
 .bestellijst-table-wrap {
@@ -1359,6 +1438,13 @@ code {
 @media (max-width: 1024px) {
     .bestellijst-table-wrap::after {
         display: block;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .bestellijst-export-drawer {
+        width: 100%;
+        border-radius: 0;
     }
 }
 

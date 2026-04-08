@@ -111,6 +111,41 @@ public class BestellijstRenderersTests
             new DateTime(2026, 4, 6, 14, 0, 0));
 }
 
+public class BestellijstExportFlowHelperTests
+{
+    [Fact]
+    public void Voor_geeft_taakgerichte_uitleg_per_exporttype()
+    {
+        var pdf = BestellijstExportFlowHelper.Voor(BestellijstExportType.Pdf);
+        var excel = BestellijstExportFlowHelper.Voor(BestellijstExportType.Excel);
+
+        Assert.Equal("PDF met visuals", pdf.Label);
+        Assert.Contains("printen", pdf.WanneerKiezen, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("Open printweergave", pdf.BevestigLabel);
+
+        Assert.Equal("Excel alleen lijst", excel.Label);
+        Assert.Contains("sorteren", excel.WanneerKiezen, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("Download Excel", excel.BevestigLabel);
+    }
+
+    [Fact]
+    public void MaakPreviewPunten_noemt_format-specifieke_previewinformatie()
+    {
+        var document = BestellijstExportService.BouwDocument(
+            [BestellijstExportTestData.MaakBestellijstItem()],
+            "MDF gelakt",
+            "19",
+            new DateTime(2026, 4, 6, 14, 0, 0));
+
+        var pdfPunten = BestellijstExportFlowHelper.MaakPreviewPunten(document, BestellijstExportType.Pdf);
+        var excelPunten = BestellijstExportFlowHelper.MaakPreviewPunten(document, BestellijstExportType.Excel);
+
+        Assert.Contains(pdfPunten, punt => punt.Contains("visual", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(excelPunten, punt => punt.Contains("B3 X/Y", StringComparison.Ordinal));
+        Assert.Contains(excelPunten, punt => punt.Contains("sorteren", StringComparison.OrdinalIgnoreCase));
+    }
+}
+
 internal static class BestellijstExportTestData
 {
     public static BestellijstItem MaakBestellijstItem() => new()
