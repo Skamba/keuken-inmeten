@@ -1478,10 +1478,42 @@ code {
     background: var(--bs-body-bg, #fff);
 }
 
+.zaagplan-toolbar-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    font-size: 0.86rem;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.zaagplan-weergave-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.zaagplan-weergave-toggle .btn {
+    flex: 1 1 12rem;
+}
+
+.zaagplan-geavanceerd {
+    border-top: 1px solid var(--bs-border-color, #d0d7de);
+    padding-top: 1rem;
+}
+
+.zaagplan-geavanceerd summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
 .zaagplan-platen {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
+}
+
+.zaagplan-platen--focus {
+    justify-content: center;
 }
 
 .zaagplan-plaat-card {
@@ -1490,11 +1522,19 @@ code {
     overflow-x: auto;
 }
 
+.zaagplan-plaat-card--focus {
+    width: min(100%, 48rem);
+}
+
 .zaagplan-plaat-svg {
     display: block;
     margin: 0 auto;
     max-width: 100%;
     height: auto;
+}
+
+.zaagplan-focus-toolbar {
+    background: var(--bs-body-bg, #fff);
 }
 
 .zaagplan-plaat-meta {

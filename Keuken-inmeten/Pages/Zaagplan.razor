@@ -6,7 +6,7 @@
 <StapIndicator HuidigeStap="zaagplan" />
 
 <h2 class="page-header">Stap 5: Zaagplan</h2>
-<p class="text-muted">Vul de afmetingen van een standaardplaat in en bekijk hoe de panelen optimaal over de platen verdeeld worden.</p>
+<p class="text-muted">Beoordeel eerst de plaatindeling. Alleen plaatformaat blijft standaard open; geavanceerde instellingen en één-plaat-focus zet u erbij wanneer u het resultaat wilt verfijnen.</p>
 <div class="hulp-toolbar mb-3">
     <StapHulpDrawer StapId="zaagplan" />
 </div>
@@ -36,72 +36,104 @@ else
     var resultaat = ZaagplanService.Bereken(panelen, _plaatBreedte, _plaatHoogte, _zaagbreedte, _draaiToe);
     var totaalPanelen = items.Sum(i => i.Aantal);
     var totaalGeplaatst = resultaat.Platen.Sum(p => p.Plaatsingen.Count);
+    var kanPlaatFocus = resultaat.Platen.Count > 0;
+    var isPlaatFocus = _weergave is ZaagplanWeergave.EenPlaat && kanPlaatFocus;
+    var actievePlaatIndex = ActievePlaatIndex(resultaat.Platen.Count);
+    var actievePlaat = isPlaatFocus ? resultaat.Platen[actievePlaatIndex] : null;
+    var platenVoorWeergave = actievePlaat is null
+        ? resultaat.Platen
+        : new List<ZaagplanPlaat> { actievePlaat };
 
     <div class="zaagplan-toolbar card border-0 shadow-sm mb-4">
         <div class="card-body">
+            <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3 mb-3">
+                <div>
+                    <div class="small fw-semibold text-uppercase text-primary-emphasis">Focusmodus</div>
+                    <h5 class="mb-1">Beoordeel eerst de plaatindeling</h5>
+                    <p class="text-muted mb-0">Houd alleen plaatafmetingen direct in beeld. Open zaagverlies of draaien pas als u het resultaat echt wilt bijsturen.</p>
+                </div>
+                <div class="small text-muted text-xl-end">
+                    <div class="fw-semibold text-uppercase">Resultaat</div>
+                    <div>@resultaat.Platen.Count plaat/platen · @totaalGeplaatst / @totaalPanelen panelen geplaatst</div>
+                </div>
+            </div>
+
             <div class="row g-3 align-items-end">
-                <div class="col-6 col-lg-3">
+                <div class="col-sm-6 col-xl-3">
                     <label class="form-label fw-semibold">Plaatbreedte (mm)</label>
                     <input class="form-control" type="number" step="1" min="100"
+                           data-testid="zaagplan-plaatbreedte-input"
                            @bind="_plaatBreedte" @bind:event="oninput" inputmode="decimal" />
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-sm-6 col-xl-3">
                     <label class="form-label fw-semibold">Plaathoogte (mm)</label>
                     <input class="form-control" type="number" step="1" min="100"
+                           data-testid="zaagplan-plaathoogte-input"
                            @bind="_plaatHoogte" @bind:event="oninput" inputmode="decimal" />
                 </div>
-                <div class="col-6 col-lg-2">
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <label class="form-label fw-semibold mb-0">Zaagverlies per snede (zaagbreedte, mm)</label>
-                        <HulpInfoKnop Titel="Zaagverlies per snede"
-                                      Tekst="Elke zaagsnede kost materiaal doordat het zaagblad een bepaalde breedte heeft. Dat verlies telt mee tussen twee panelen."
-                                      Voorbeeld="Een veelgebruikte startwaarde is 4 mm."
-                                      WatNuDoen="Gebruik de waarde van het zaagblad of de zaagstraat die u werkelijk inzet." />
+                <div class="col-xl-6">
+                    <div class="small fw-semibold text-uppercase text-muted mb-2">Weergave</div>
+                    <div class="zaagplan-weergave-toggle" data-testid="zaagplan-weergave-toggle">
+                        <button type="button"
+                                class="btn @(_weergave is ZaagplanWeergave.AllePlaten ? "btn-primary" : "btn-outline-secondary")"
+                                @onclick="ToonAllePlaten"
+                                data-testid="zaagplan-alle-platen-button">
+                            Alle platen
+                        </button>
+                        <button type="button"
+                                class="btn @(isPlaatFocus ? "btn-primary" : "btn-outline-secondary")"
+                                @onclick="@(() => ToonEenPlaat(resultaat.Platen.Count))"
+                                disabled="@(!kanPlaatFocus)"
+                                data-testid="zaagplan-een-plaat-button">
+                            Eén plaat tegelijk
+                        </button>
                     </div>
-                    <input class="form-control" type="number" step="0.5" min="0" max="20"
-                           @bind="_zaagbreedte" @bind:event="oninput" inputmode="decimal" />
-                    <div class="form-text hulp-hint">Dit is de breedte van het zaagblad die als verlies meetelt tussen twee panelen.</div>
-                </div>
-                <div class="col-6 col-lg-2">
-                    <div class="d-flex align-items-start gap-2">
-                        <label class="form-label mb-0">
-                            <input type="checkbox" class="form-check-input me-1" @bind="_draaiToe" />
-                            Draaien toestaan
-                        </label>
-                        <HulpInfoKnop Titel="Panelen draaien toestaan"
-                                      Tekst="Als draaien mag, probeert het zaagplan panelen ook 90 graden gedraaid te plaatsen om beter op de plaat te passen."
-                                      Voorbeeld="Laat dit aan als richting, nerf of zichtzijde niet vastligt."
-                                      WatNuDoen="Zet dit uit als het materiaal of de zichtzijde maar in één richting verwerkt mag worden." />
-                    </div>
-                    <div class="form-text hulp-hint">Gebruik dit alleen als materiaalrichting of zichtzijde geen vaste oriëntatie afdwingt.</div>
+                    <div class="form-text hulp-hint">Kies <strong>Eén plaat tegelijk</strong> als u per plaat rustig wilt controleren hoe de panelen liggen.</div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-lg-3">
-            <div class="border rounded p-3 text-center h-100">
-                <div class="fs-3 fw-bold text-primary">@resultaat.Platen.Count</div>
-                <small class="text-muted">Platen nodig</small>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="border rounded p-3 text-center h-100">
-                <div class="fs-3 fw-bold text-primary">@totaalGeplaatst / @totaalPanelen</div>
-                <small class="text-muted">Panelen geplaatst</small>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="border rounded p-3 text-center h-100">
-                <div class="fs-3 fw-bold text-primary">@FormatMm(_plaatBreedte) × @FormatMm(_plaatHoogte)</div>
-                <small class="text-muted">Plaatformaat</small>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="border rounded p-3 text-center h-100">
-                <div class="fs-3 fw-bold text-primary">@FormatMm(_zaagbreedte)</div>
-                <small class="text-muted">Zaagverlies per snede</small>
+            <details class="zaagplan-geavanceerd mt-3" data-testid="zaagplan-geavanceerde-instellingen">
+                <summary>Geavanceerde instellingen</summary>
+                <div class="row g-3 mt-2">
+                    <div class="col-lg-6">
+                        <div class="border rounded p-3 h-100 bg-body-tertiary">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label class="form-label fw-semibold mb-0">Zaagverlies per snede (zaagbreedte, mm)</label>
+                                <HulpInfoKnop Titel="Zaagverlies per snede"
+                                              Tekst="Elke zaagsnede kost materiaal doordat het zaagblad een bepaalde breedte heeft. Dat verlies telt mee tussen twee panelen."
+                                              Voorbeeld="Een veelgebruikte startwaarde is 4 mm."
+                                              WatNuDoen="Gebruik de waarde van het zaagblad of de zaagstraat die u werkelijk inzet." />
+                            </div>
+                            <input class="form-control" type="number" step="0.5" min="0" max="20"
+                                   data-testid="zaagplan-zaagbreedte-input"
+                                   @bind="_zaagbreedte" @bind:event="oninput" inputmode="decimal" />
+                            <div class="form-text hulp-hint mb-0">Dit is de breedte van het zaagblad die als verlies meetelt tussen twee panelen.</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="border rounded p-3 h-100 bg-body-tertiary">
+                            <div class="d-flex align-items-start gap-2">
+                                <label class="form-label mb-0">
+                                    <input type="checkbox" class="form-check-input me-1" @bind="_draaiToe" />
+                                    Draaien toestaan
+                                </label>
+                                <HulpInfoKnop Titel="Panelen draaien toestaan"
+                                              Tekst="Als draaien mag, probeert het zaagplan panelen ook 90 graden gedraaid te plaatsen om beter op de plaat te passen."
+                                              Voorbeeld="Laat dit aan als richting, nerf of zichtzijde niet vastligt."
+                                              WatNuDoen="Zet dit uit als het materiaal of de zichtzijde maar in één richting verwerkt mag worden." />
+                            </div>
+                            <div class="form-text hulp-hint mb-0">Gebruik dit alleen als materiaalrichting of zichtzijde geen vaste oriëntatie afdwingt.</div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <div class="zaagplan-toolbar-meta mt-3">
+                <span><strong>Platen:</strong> @resultaat.Platen.Count</span>
+                <span><strong>Geplaatst:</strong> @totaalGeplaatst / @totaalPanelen panelen</span>
+                <span><strong>Plaatformaat:</strong> @FormatMm(_plaatBreedte) × @FormatMm(_plaatHoogte) mm</span>
+                <span><strong>Zaagverlies:</strong> @FormatMm(_zaagbreedte) mm</span>
+                <span><strong>Draaien:</strong> @(_draaiToe ? "aan" : "uit")</span>
             </div>
         </div>
     </div>
@@ -119,29 +151,123 @@ else
         </div>
     }
 
-    <div class="zaagplan-platen">
-        @foreach (var plaat in resultaat.Platen)
+    @if (resultaat.Platen.Count == 0)
+    {
+        <div class="card border-0 bg-body-tertiary">
+            <div class="card-body py-4">
+                <h5 class="mb-1">Nog geen plaatindeling beschikbaar</h5>
+                <p class="text-muted mb-0">Pas het plaatformaat of de geavanceerde instellingen aan totdat minstens één paneel geplaatst kan worden.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-3">
+            <div>
+                <h5 class="mb-1">Plaatindeling</h5>
+                <p class="text-muted mb-0">
+                    @(isPlaatFocus
+                        ? "U bekijkt nu één plaat tegelijk. Gebruik de pijlen om de indeling plaat voor plaat na te lopen."
+                        : "Vergelijk alle platen tegelijk of schakel over naar één-plaat-focus als u de indeling rustiger wilt beoordelen.")
+                </p>
+            </div>
+            <div class="small text-muted text-lg-end">
+                <div class="fw-semibold text-uppercase">Actief</div>
+                <div>@(isPlaatFocus ? FormatPlaatTeller(actievePlaatIndex, resultaat.Platen.Count) : $"{resultaat.Platen.Count} platen in beeld")</div>
+            </div>
+        </div>
+
+        @if (isPlaatFocus && actievePlaat is not null)
         {
-            <div class="zaagplan-plaat-card card border-0 shadow-sm mb-4">
-                <div class="card-body text-center">
-                    <ZaagplanVisueel Plaat="plaat" />
-                    <div class="zaagplan-plaat-meta mt-2 small text-muted">
-                        @plaat.Plaatsingen.Count paneel(en) op deze plaat
+            <div class="zaagplan-focus-toolbar card border-0 shadow-sm mb-3" data-testid="zaagplan-focus-toolbar">
+                <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <div class="small fw-semibold text-uppercase text-muted mb-1">Één plaat tegelijk</div>
+                        <h6 class="mb-1">Plaat @actievePlaat.Nummer</h6>
+                        <div class="small text-muted">@actievePlaat.Plaatsingen.Count paneel(en) op deze plaat</div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                @onclick="VorigePlaat"
+                                disabled="@(actievePlaatIndex == 0)"
+                                data-testid="zaagplan-vorige-plaat">
+                            Vorige plaat
+                        </button>
+                        <button type="button"
+                                class="btn btn-primary"
+                                @onclick="@(() => VolgendePlaat(resultaat.Platen.Count))"
+                                disabled="@(actievePlaatIndex >= resultaat.Platen.Count - 1)"
+                                data-testid="zaagplan-volgende-plaat">
+                            Volgende plaat
+                        </button>
                     </div>
                 </div>
             </div>
         }
-    </div>
+
+        <div class="zaagplan-platen @(isPlaatFocus ? "zaagplan-platen--focus" : null)"
+             data-testid="@(isPlaatFocus ? "zaagplan-een-plaat-weergave" : "zaagplan-alle-platen-weergave")">
+            @foreach (var plaat in platenVoorWeergave)
+            {
+                <div class="zaagplan-plaat-card @(isPlaatFocus ? "zaagplan-plaat-card--focus" : null) card border-0 shadow-sm mb-4"
+                     data-testid="zaagplan-plaat-card"
+                     data-plaat-nummer="@plaat.Nummer">
+                    <div class="card-body text-center">
+                        <ZaagplanVisueel Plaat="plaat" />
+                        <div class="zaagplan-plaat-meta mt-2 small text-muted">
+                            @plaat.Plaatsingen.Count paneel(en) op deze plaat
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 }
 
 <StapNavigatie HuidigeStap="zaagplan"
                VorigeHref="bestellijst" />
 
 @code {
+    private enum ZaagplanWeergave
+    {
+        AllePlaten,
+        EenPlaat
+    }
+
     private double _plaatBreedte = 2800;
     private double _plaatHoogte = 2070;
     private double _zaagbreedte = 4;
     private bool _draaiToe = true;
+    private int _actievePlaatIndex;
+    private ZaagplanWeergave _weergave = ZaagplanWeergave.AllePlaten;
+
+    private void ToonAllePlaten() => _weergave = ZaagplanWeergave.AllePlaten;
+
+    private void ToonEenPlaat(int aantalPlaten)
+    {
+        if (aantalPlaten == 0)
+            return;
+
+        _weergave = ZaagplanWeergave.EenPlaat;
+        _actievePlaatIndex = Math.Min(_actievePlaatIndex, Math.Max(0, aantalPlaten - 1));
+    }
+
+    private void VorigePlaat() => _actievePlaatIndex = Math.Max(0, _actievePlaatIndex - 1);
+
+    private void VolgendePlaat(int aantalPlaten)
+    {
+        if (aantalPlaten == 0)
+            return;
+
+        _actievePlaatIndex = Math.Min(_actievePlaatIndex + 1, aantalPlaten - 1);
+    }
+
+    private int ActievePlaatIndex(int aantalPlaten)
+        => aantalPlaten == 0 ? 0 : Math.Clamp(_actievePlaatIndex, 0, aantalPlaten - 1);
+
+    private static string FormatPlaatTeller(int index, int totaal)
+        => totaal == 0 ? "Geen platen" : $"Plaat {index + 1} van {totaal}";
 
     private static string FormatMm(double value) => $"{value:0.#}";
 }

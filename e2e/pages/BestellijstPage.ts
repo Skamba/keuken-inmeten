@@ -58,4 +58,11 @@ export class BestellijstPage {
     await expect(this.page.getByTestId('actie-feedback-toast')).toContainText('Excel-bestand gedownload');
     return download;
   }
+
+  async gaNaarZaagplan() {
+    const knop = this.page.getByTestId('stap-navigatie-volgende');
+    await knop.scrollIntoViewIfNeeded();
+    await knop.click();
+    await expect(this.page).toHaveURL(/\/zaagplan$/);
+  }
 }

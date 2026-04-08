@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { BestellijstPage } from '../pages/BestellijstPage';
 import { IndelingPage } from '../pages/IndelingPage';
 import { PanelenPage } from '../pages/PanelenPage';
+import { ZaagplanPage } from '../pages/ZaagplanPage';
 import { VerificatiePage } from '../pages/VerificatiePage';
 
 test('stap 1 toont maar één actieve wandwerkruimte tegelijk', async ({ page }) => {
@@ -160,6 +161,51 @@ test('bestellijst export loopt via een aparte previewflow', async ({ page }) => 
   await bestellijst.expectExportPreview('Excel alleen lijst');
   await bestellijst.gaNaarExportBevestiging();
   await bestellijst.expectExportBevestiging('Excel alleen lijst');
+});
+
+test('zaagplan kan wisselen tussen alle platen en een plaat focus', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+  const verificatie = new VerificatiePage(page);
+  const bestellijst = new BestellijstPage(page);
+  const zaagplan = new ZaagplanPage(page);
+
+  await indeling.goto();
+
+  const wandNamen = ['Achterwand', 'Linkerwand', 'Rechterwand'];
+  for (const wandNaam of wandNamen) {
+    await indeling.voegWandToe(wandNaam);
+    await indeling.voegKastToeAanWand(wandNaam, {
+      naam: `Paneelkast ${wandNaam}`,
+      breedte: 1400,
+      hoogte: 1600,
+      diepte: 560,
+    });
+  }
+
+  await indeling.gaNaarPanelen();
+  await panelen.expectLoaded();
+
+  for (const wandNaam of wandNamen) {
+    await panelen.selecteerEersteKastOpWand(wandNaam);
+    await panelen.voegPaneelToe();
+  }
+
+  await panelen.gaNaarVerificatie();
+  await verificatie.expectLoaded();
+  await verificatie.startVerificatie();
+  await verificatie.gaNaarBestellijst();
+
+  await bestellijst.expectLoaded();
+  await bestellijst.gaNaarZaagplan();
+
+  await zaagplan.expectLoaded();
+  await zaagplan.expectGeavanceerdeInstellingenGesloten();
+  await zaagplan.expectAllePlatenWeergave(3);
+  await zaagplan.kiesEenPlaatTegelijk();
+  await zaagplan.expectPlaatFocus(1);
+  await zaagplan.gaNaarVolgendePlaat();
+  await zaagplan.expectPlaatFocus(2);
 });
 
 test('hoofdflow van indeling tot export blijft werken', async ({ page }) => {

@@ -130,22 +130,22 @@ public static class StapHulpHelper
         ["zaagplan"] = new(
             "zaagplan",
             "Hulp bij stap 5: Zaagplan",
-            "In het zaagplan zijn vooral plaatmaat, zaagverlies en draaien bepalend. Die termen verdienen korte uitleg dicht bij het veld en langere uitleg op aanvraag.",
+            "In het zaagplan blijft de plaatindeling nu dominant. Plaatmaat en weergave staan compact bovenaan; zaagverlies en draaien opent u alleen als geavanceerde instellingen.",
             StandaardHulpNiveaus,
             [
                 new(
                     "Instellingen compact houden",
-                    "Gebruik hints voor standaardwaarden en info-knoppen voor begrippen die invloed hebben op de berekening.",
+                    "Houd plaatafmetingen en de weergavekeuze direct in beeld. Open geavanceerde instellingen alleen voor zaagverlies of draaien.",
                     [
-                        "Zaagverlies per snede en draaien toestaan zijn goede kandidaten voor korte uitleg direct naast het veld.",
-                        "Open de drawer alleen als u de gevolgen voor opbrengst of plaatsbaarheid wilt doorgronden."
+                        "Plaatbreedte en plaathoogte blijven de primaire instellingen voor een snelle eerste check.",
+                        "Zaagverlies per snede en draaien toestaan mogen standaard dicht blijven achter `Geavanceerde instellingen`."
                     ]),
                 new(
                     "Resultaat lezen",
-                    "De hoofdtaak blijft het beoordelen van de plaatindeling; diepere hulp mag dat niet blokkeren.",
+                    "De hoofdtaak blijft het beoordelen van de plaatindeling; wissel zo nodig tussen alle platen en één plaat tegelijk.",
                     [
-                        "Gebruik de verdiepende hulp als panelen niet passen of als u de instellingen wilt vergelijken.",
-                        "Laat de visuele plaatindeling het dominante deel van de pagina."
+                        "Gebruik `Één plaat tegelijk` als u een specifieke plaat rustig wilt nalopen.",
+                        "Schakel terug naar `Alle platen` als u opbrengst of verdeling tussen platen wilt vergelijken."
                     ])
             ])
     };
