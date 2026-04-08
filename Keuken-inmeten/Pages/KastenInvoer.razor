@@ -57,125 +57,151 @@
 {
     var wandKasten = State.KastenVoorWand(wand.Id);
     var wandApparaten = State.ApparatenVoorWand(wand.Id);
+    var gevuldeBreedte = wand.TotaleBreedte(State.Kasten);
+    var vrijeBreedte = Math.Max(0, wand.Breedte - gevuldeBreedte);
+    var toonPrimaireActies = actieveWandId != wand.Id || (!toonKastFormulier && !toonApparaatFormulier);
 
     <div class="card mb-4 border-primary" @key="wand.Id">
-        <div class="card-header bg-primary bg-opacity-10 d-flex justify-content-between align-items-center">
-            @if (bewerkWandId == wand.Id)
-            {
-                <div class="d-flex gap-2 flex-grow-1 me-3">
-                    <input type="text" class="form-control form-control-sm" @bind="bewerkWandNaam" @bind:event="oninput" />
-                    <button class="btn btn-sm btn-outline-primary" @onclick="WandNaamOpslaan">Opslaan</button>
-                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => bewerkWandId = null">Annuleren</button>
+        <div class="card-header bg-primary bg-opacity-10">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h5 class="mb-0">@wand.Naam</h5>
+                        <span class="badge text-bg-light">@wandKasten.Count kast(en)</span>
+                        @if (wandApparaten.Count > 0)
+                        {
+                            <span class="badge text-bg-light">@wandApparaten.Count apparaat(en)</span>
+                        }
+                    </div>
+                    <div class="small text-muted">
+                        @gevuldeBreedte mm ingevuld · @vrijeBreedte mm vrije wandruimte
+                    </div>
                 </div>
-            }
-            else
-            {
-                <h5 class="mb-0">
-                    @wand.Naam
-                    <small class="text-muted fw-normal ms-2">
-                        @wandKasten.Count kast(en) · @wand.TotaleBreedte(State.Kasten) mm breed
-                    </small>
-                </h5>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary" @onclick="() => { bewerkWandId = wand.Id; bewerkWandNaam = wand.Naam; }"
-                            title="Naam wijzigen">
-                        Hernoemen
-                    </button>
-                    @if (bevestigVerwijderWandId == wand.Id)
-                    {
-                        <span class="btn btn-light disabled text-danger pe-none">Zeker?</span>
-                        <button class="btn btn-danger" @onclick="() => { State.VerwijderWand(wand.Id); bevestigVerwijderWandId = null; }">Ja</button>
-                        <button class="btn btn-outline-secondary" @onclick="() => bevestigVerwijderWandId = null">Nee</button>
-                    }
-                    else
-                    {
-                        <button class="btn btn-outline-danger" @onclick="() => bevestigVerwijderWandId = wand.Id"
-                                title="Wand verwijderen">
-                            Verwijderen
-                        </button>
-                    }
+                <div class="small text-muted">
+                    <div class="fw-semibold text-uppercase">Volgende stap</div>
+                    <div>Voeg kasten toe en controleer daarna de wandopstelling.</div>
                 </div>
-            }
+            </div>
         </div>
         <div class="card-body">
+            @if (toonPrimaireActies)
+            {
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 pb-3 border-bottom">
+                    <div>
+                        <h6 class="mb-1">Begin met de kasten op deze wand</h6>
+                        <p class="text-muted small mb-0"><strong>+ Kast toevoegen</strong> is de hoofdactie. Voeg alleen een apparaat toe als het echt ruimte op deze wand inneemt.</p>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-primary" @onclick="() => OpenKastFormulier(wand.Id)">
+                            + Kast toevoegen
+                        </button>
+                        <button class="btn btn-outline-secondary" @onclick="() => OpenApparaatFormulier(wand.Id)">
+                            + Apparaat toevoegen
+                        </button>
+                    </div>
+                </div>
+            }
+
             @* ── Wandafmetingen ── *@
-            <div class="d-flex gap-3 mb-3">
-                <div>
-                    <label class="form-label small mb-0">Wandbreedte (mm)</label>
-                    <input type="number" class="form-control form-control-sm" style="width: 120px;"
-                           value="@wand.Breedte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.Breedte), e)" />
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Afmetingen van deze wand</h6>
+                    <span class="text-muted small">Context voor de opstelling</span>
                 </div>
-                <div>
-                    <label class="form-label small mb-0">Wandhoogte (mm)</label>
-                    <input type="number" class="form-control form-control-sm" style="width: 120px;"
-                           value="@wand.Hoogte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.Hoogte), e)" />
-                </div>
-                <div>
-                    <label class="form-label small mb-0">Hoogte van de plint (mm)</label>
-                    <input type="number" class="form-control form-control-sm" style="width: 100px;" min="0" step="10"
-                           value="@wand.PlintHoogte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.PlintHoogte), e)" />
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                        <label class="form-label small mb-0">Wandbreedte (mm)</label>
+                        <input type="number" class="form-control form-control-sm"
+                               value="@wand.Breedte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.Breedte), e)" />
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label small mb-0">Wandhoogte (mm)</label>
+                        <input type="number" class="form-control form-control-sm"
+                               value="@wand.Hoogte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.Hoogte), e)" />
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label small mb-0">Hoogte van de plint (mm)</label>
+                        <input type="number" class="form-control form-control-sm" min="0" step="10"
+                               value="@wand.PlintHoogte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.PlintHoogte), e)" />
+                    </div>
                 </div>
             </div>
 
-            @* ── Kasten lijst compact ── *@
-            @if (wandKasten.Count > 0)
-            {
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    @foreach (var kast in wandKasten)
-                    {
-                        <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 small @(bewerkKastId == kast.Id && actieveWandId == wand.Id ? "border-primary bg-primary bg-opacity-10" : "")">
-                            <span class="badge @TypeBadge(kast.Type)">@kast.Type</span>
-                            <span class="fw-semibold">@kast.Naam</span>
-                            <span class="text-muted">@kast.Breedte×@kast.Hoogte</span>
-                            <button class="btn btn-outline-primary btn-sm px-1 ms-1" style="font-size: 0.75rem; line-height: 1.2;"
-                                    @onclick="() => BewerkKast(kast, wand.Id)" title="Kast bewerken">✎</button>
-                            <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
-                                    @onclick="() => KopieerKast(kast, wand.Id)" title="Kast kopiëren">⧉</button>
-                            @if (bevestigVerwijderKastId == kast.Id)
-                            {
-                                <span class="text-danger small ms-1 fw-semibold">Verwijderen?</span>
-                                <button class="btn btn-danger btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
-                                        @onclick="() => { VerwijderKast(kast.Id); bevestigVerwijderKastId = null; }" title="Bevestig verwijderen">Ja</button>
-                                <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
-                                        @onclick="() => bevestigVerwijderKastId = null" title="Annuleren">Nee</button>
-                            }
-                            else
-                            {
-                                <button class="btn btn-outline-danger btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
-                                        @onclick="() => bevestigVerwijderKastId = kast.Id" title="Kast verwijderen">×</button>
-                            }
-                        </div>
-                    }
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Kasten op deze wand</h6>
+                    <span class="text-muted small">@(wandKasten.Count == 0 ? "Nog geen kasten" : $"{wandKasten.Count} toegevoegd")</span>
                 </div>
-            }
+                @if (wandKasten.Count > 0)
+                {
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var kast in wandKasten)
+                        {
+                            <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 small @(bewerkKastId == kast.Id && actieveWandId == wand.Id ? "border-primary bg-primary bg-opacity-10" : "")">
+                                <span class="badge @TypeBadge(kast.Type)">@kast.Type</span>
+                                <span class="fw-semibold">@kast.Naam</span>
+                                <span class="text-muted">@kast.Breedte×@kast.Hoogte</span>
+                                <button class="btn btn-outline-primary btn-sm px-1 ms-1" style="font-size: 0.75rem; line-height: 1.2;"
+                                        @onclick="() => BewerkKast(kast, wand.Id)" title="Kast bewerken">✎</button>
+                                <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
+                                        @onclick="() => KopieerKast(kast, wand.Id)" title="Kast kopiëren">⧉</button>
+                                @if (bevestigVerwijderKastId == kast.Id)
+                                {
+                                    <span class="text-danger small ms-1 fw-semibold">Verwijderen?</span>
+                                    <button class="btn btn-danger btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
+                                            @onclick="() => { VerwijderKast(kast.Id); bevestigVerwijderKastId = null; }" title="Bevestig verwijderen">Ja</button>
+                                    <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
+                                            @onclick="() => bevestigVerwijderKastId = null" title="Annuleren">Nee</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-danger btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
+                                            @onclick="() => bevestigVerwijderKastId = kast.Id" title="Kast verwijderen">×</button>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="border rounded p-3 small text-muted bg-body-tertiary">
+                        Begin met <strong>+ Kast toevoegen</strong> om deze wand op te bouwen.
+                    </div>
+                }
+            </div>
 
-            @* ── Apparaten lijst compact ── *@
             @if (wandApparaten.Count > 0)
             {
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    @foreach (var apparaat in wandApparaten)
-                    {
-                        <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 small @(bewerkApparaatId == apparaat.Id && actieveWandId == wand.Id ? "border-danger bg-danger bg-opacity-10" : "")">
-                            <span class="badge bg-secondary">@ApparaatTypeLabel(apparaat.Type)</span>
-                            <span class="fw-semibold">@apparaat.Naam</span>
-                            <span class="text-muted">@apparaat.Breedte×@apparaat.Hoogte</span>
-                            <button class="btn btn-outline-primary btn-sm px-1 ms-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                    @onclick="() => BewerkApparaat(apparaat, wand.Id)" title="Bewerken">✎</button>
-                            @if (bevestigVerwijderApparaatId == apparaat.Id)
-                            {
-                                <span class="text-danger small ms-1">Weg?</span>
-                                <button class="btn btn-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                        @onclick="() => { VerwijderApparaat(apparaat.Id); bevestigVerwijderApparaatId = null; }">✓</button>
-                                <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                        @onclick="() => bevestigVerwijderApparaatId = null">✗</button>
-                            }
-                            else
-                            {
-                                <button class="btn btn-outline-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                        @onclick="() => bevestigVerwijderApparaatId = apparaat.Id" title="Verwijderen">×</button>
-                            }
-                        </div>
-                    }
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">Apparaten op deze wand</h6>
+                        <span class="text-muted small">@wandApparaten.Count toegevoegd</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var apparaat in wandApparaten)
+                        {
+                            <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 small @(bewerkApparaatId == apparaat.Id && actieveWandId == wand.Id ? "border-danger bg-danger bg-opacity-10" : "")">
+                                <span class="badge bg-secondary">@ApparaatTypeLabel(apparaat.Type)</span>
+                                <span class="fw-semibold">@apparaat.Naam</span>
+                                <span class="text-muted">@apparaat.Breedte×@apparaat.Hoogte</span>
+                                <button class="btn btn-outline-primary btn-sm px-1 ms-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                        @onclick="() => BewerkApparaat(apparaat, wand.Id)" title="Bewerken">✎</button>
+                                @if (bevestigVerwijderApparaatId == apparaat.Id)
+                                {
+                                    <span class="text-danger small ms-1">Weg?</span>
+                                    <button class="btn btn-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                            @onclick="() => { VerwijderApparaat(apparaat.Id); bevestigVerwijderApparaatId = null; }">✓</button>
+                                    <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                            @onclick="() => bevestigVerwijderApparaatId = null">✗</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
+                                            @onclick="() => bevestigVerwijderApparaatId = apparaat.Id" title="Verwijderen">×</button>
+                                }
+                            </div>
+                        }
+                    </div>
                 </div>
             }
 
@@ -183,7 +209,10 @@
             @if (wandKasten.Count > 0 || wandApparaten.Count > 0)
             {
                 <div class="mb-3">
-                    <h6 class="text-muted mb-2">Wandopstelling</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">Wandopstelling</h6>
+                        <span class="text-muted small">Controleer hier of alles goed staat</span>
+                    </div>
                     <WandOpstelling Kasten="@wandKasten"
                                     Apparaten="@wandApparaten"
                                     WandHoogte="@wand.Hoogte"
@@ -199,18 +228,41 @@
                 </div>
             }
 
-            @* ── Kast / Apparaat toevoegen knoppen ── *@
-            @if (actieveWandId != wand.Id || (!toonKastFormulier && !toonApparaatFormulier))
-            {
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-primary" @onclick="() => OpenKastFormulier(wand.Id)">
-                        + Kast toevoegen
-                    </button>
-                    <button class="btn btn-outline-secondary" @onclick="() => OpenApparaatFormulier(wand.Id)">
-                        + Apparaat toevoegen
-                    </button>
+            <details class="mt-3" open="@(bewerkWandId == wand.Id || bevestigVerwijderWandId == wand.Id)">
+                <summary class="small fw-semibold text-secondary">Meer acties voor deze wand</summary>
+                <div class="border rounded p-3 mt-2 bg-body-tertiary">
+                    <p class="text-muted small mb-3">Zelden gebruikte of destructieve acties staan hier zodat de hoofdtaak op deze wand rustig blijft.</p>
+
+                    @if (bewerkWandId == wand.Id)
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            <input type="text" class="form-control form-control-sm" style="max-width: 280px;" @bind="bewerkWandNaam" @bind:event="oninput" />
+                            <button class="btn btn-sm btn-outline-primary" @onclick="WandNaamOpslaan">Opslaan</button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => bewerkWandId = null">Annuleren</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => { bewerkWandId = wand.Id; bewerkWandNaam = wand.Naam; }">
+                                Wand hernoemen
+                            </button>
+                            @if (bevestigVerwijderWandId == wand.Id)
+                            {
+                                <span class="text-danger small fw-semibold align-self-center">Wand verwijderen?</span>
+                                <button class="btn btn-sm btn-danger" @onclick="() => { State.VerwijderWand(wand.Id); bevestigVerwijderWandId = null; }">Ja, verwijder</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigVerwijderWandId = null">Annuleren</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigVerwijderWandId = wand.Id">
+                                    Wand verwijderen
+                                </button>
+                            }
+                        </div>
+                    }
                 </div>
-            }
+            </details>
         </div>
     </div>
 }
