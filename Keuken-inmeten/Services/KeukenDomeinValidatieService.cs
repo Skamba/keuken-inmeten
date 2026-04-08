@@ -6,8 +6,8 @@ public static class KeukenDomeinValidatieService
 {
     private static readonly KeukenWand DefaultWand = new();
     private static readonly Kast DefaultKast = new();
-    private static readonly KastTemplate DefaultTemplate = new();
     private static readonly PaneelToewijzing DefaultToewijzing = new();
+    private static readonly Kast DefaultTemplateKast = IndelingFormulierHelper.NieuweKast();
 
     public static KeukenData NormaliseerData(KeukenData data) => new()
     {
@@ -64,13 +64,13 @@ public static class KeukenDomeinValidatieService
     {
         Id = template.Id,
         Naam = NormaliseerNaam(template.Naam),
-        Type = NormaliseerEnum(template.Type, DefaultTemplate.Type),
-        Breedte = NormaliseerPositieveMaat(template.Breedte, DefaultTemplate.Breedte),
-        Hoogte = NormaliseerPositieveMaat(template.Hoogte, DefaultTemplate.Hoogte),
-        Diepte = NormaliseerPositieveMaat(template.Diepte, DefaultTemplate.Diepte),
-        Wanddikte = NormaliseerPositieveMaat(template.Wanddikte, DefaultTemplate.Wanddikte),
-        GaatjesAfstand = NormaliseerPositieveMaat(template.GaatjesAfstand, DefaultTemplate.GaatjesAfstand),
-        EersteGaatVanBoven = NormaliseerPositieveMaat(template.EersteGaatVanBoven, DefaultTemplate.EersteGaatVanBoven),
+        Type = NormaliseerEnum(template.Type, DefaultTemplateKast.Type),
+        Breedte = NormaliseerPositieveMaat(template.Breedte, DefaultTemplateKast.Breedte),
+        Hoogte = NormaliseerPositieveMaat(template.Hoogte, DefaultTemplateKast.Hoogte),
+        Diepte = NormaliseerPositieveMaat(template.Diepte, DefaultTemplateKast.Diepte),
+        Wanddikte = NormaliseerPositieveMaat(template.Wanddikte, DefaultTemplateKast.Wanddikte),
+        GaatjesAfstand = NormaliseerPositieveMaat(template.GaatjesAfstand, DefaultTemplateKast.GaatjesAfstand),
+        EersteGaatVanBoven = NormaliseerPositieveMaat(template.EersteGaatVanBoven, DefaultTemplateKast.EersteGaatVanBoven),
         LaatstGebruikt = template.LaatstGebruikt
     };
 
