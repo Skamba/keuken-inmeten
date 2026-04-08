@@ -129,7 +129,7 @@ public class BestellijstExportFlowHelperTests
     }
 
     [Fact]
-    public void MaakPreviewPunten_noemt_format-specifieke_previewinformatie()
+    public void MaakPreviewPunten_noemt_formatspecifieke_previewinformatie()
     {
         var document = BestellijstExportService.BouwDocument(
             [BestellijstExportTestData.MaakBestellijstItem()],
