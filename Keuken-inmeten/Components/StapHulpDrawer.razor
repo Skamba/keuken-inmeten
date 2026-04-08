@@ -1,0 +1,77 @@
+@using Keuken_inmeten.Services
+
+@{
+    var context = StapHulpHelper.VoorStap(StapId);
+    var titelId = $"stap-hulp-{StapId}-titel";
+}
+
+<button type="button"
+        class="@ButtonClass"
+        @onclick="Openen"
+        aria-expanded="@isOpen">
+    @KnopLabel
+</button>
+
+@if (isOpen)
+{
+    <div class="hulp-drawer-overlay" @onclick="Sluiten">
+        <aside class="hulp-drawer card border-0 shadow-lg"
+               role="dialog"
+               aria-modal="true"
+               aria-labelledby="@titelId"
+               @onclick:stopPropagation="true">
+            <div class="hulp-drawer-header card-body border-bottom">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                        <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Verdiepende hulp</div>
+                        <h5 class="mb-2" id="@titelId">@context.Titel</h5>
+                        <p class="text-muted mb-0">@context.Intro</p>
+                    </div>
+                    <button type="button" class="btn-close" @onclick="Sluiten" aria-label="Sluit hulp"></button>
+                </div>
+            </div>
+
+            <div class="card-body hulp-drawer-body">
+                <div class="alert alert-light border mb-4">
+                    <div class="fw-semibold mb-3">Zo gebruikt u de hulp in deze stap</div>
+                    <div class="hulp-niveaus-grid">
+                        @foreach (var niveau in context.Niveaus)
+                        {
+                            <div class="hulp-niveau-kaart">
+                                <div class="fw-semibold mb-1">@niveau.Titel</div>
+                                <div class="small text-muted mb-2">@niveau.Gebruik</div>
+                                <div class="small"><strong>Voorbeeld:</strong> @niveau.Voorbeeld</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @foreach (var sectie in context.Secties)
+                {
+                    <section class="mb-4">
+                        <h6 class="mb-1">@sectie.Titel</h6>
+                        <p class="small text-muted mb-2">@sectie.Beschrijving</p>
+                        <ul class="small mb-0 ps-3">
+                            @foreach (var punt in sectie.Punten)
+                            {
+                                <li class="mb-1">@punt</li>
+                            }
+                        </ul>
+                    </section>
+                }
+            </div>
+        </aside>
+    </div>
+}
+
+@code {
+    private bool isOpen;
+
+    [Parameter, EditorRequired] public string StapId { get; set; } = "";
+    [Parameter] public string KnopLabel { get; set; } = "Hulp bij deze stap";
+    [Parameter] public string ButtonClass { get; set; } = "btn btn-outline-secondary btn-sm hulp-drawer-toggle";
+
+    private void Openen() => isOpen = true;
+
+    private void Sluiten() => isOpen = false;
+}

@@ -165,6 +165,145 @@ html, body {
     margin-top: 0.2rem;
 }
 
+.hulp-toolbar {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.hulp-drawer-toggle {
+    white-space: nowrap;
+}
+
+.hulp-info-knop {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.hulp-info-trigger {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    list-style: none;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 999px;
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.hulp-info-trigger::-webkit-details-marker {
+    display: none;
+}
+
+.hulp-info-trigger::marker {
+    content: "";
+}
+
+.hulp-info-knop[open] .hulp-info-trigger {
+    background: var(--bs-primary-bg-subtle);
+    border-color: var(--bs-primary-border-subtle);
+    color: var(--bs-primary-text-emphasis);
+}
+
+.hulp-info-card {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 30;
+    width: min(20rem, calc(100vw - 2rem));
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    background: var(--bs-body-bg);
+}
+
+.hulp-hint {
+    color: var(--bs-secondary-color);
+}
+
+.hulp-details-blok {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    background: var(--bs-body-bg);
+}
+
+.hulp-details-summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    list-style: none;
+    padding: 0.9rem 1rem;
+}
+
+.hulp-details-summary::-webkit-details-marker {
+    display: none;
+}
+
+.hulp-details-summary::after {
+    content: "+";
+    color: var(--bs-secondary-color);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.hulp-details-blok[open] .hulp-details-summary::after {
+    content: "−";
+}
+
+.hulp-details-body {
+    padding: 0 1rem 1rem;
+}
+
+.hulp-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+    background: color-mix(in srgb, var(--bs-body-color) 18%, transparent);
+}
+
+.hulp-drawer {
+    width: min(27rem, 100%);
+    max-height: 100%;
+    overflow: auto;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1rem;
+    background: var(--bs-body-bg);
+}
+
+.hulp-drawer-body {
+    padding-block: 1.25rem;
+}
+
+.hulp-niveaus-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.hulp-niveau-kaart {
+    padding: 0.85rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    background: var(--bs-tertiary-bg);
+}
+
+@media (min-width: 768px) {
+    .hulp-niveaus-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 .card-header {
     border-radius: 0.5rem 0.5rem 0 0 !important;
     font-size: 0.95rem;

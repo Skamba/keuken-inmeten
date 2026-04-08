@@ -7,6 +7,9 @@
 
 <h2 class="page-header">Stap 5: Zaagplan</h2>
 <p class="text-muted">Vul de afmetingen van een standaardplaat in en bekijk hoe de panelen optimaal over de platen verdeeld worden.</p>
+<div class="hulp-toolbar mb-3">
+    <StapHulpDrawer StapId="zaagplan" />
+</div>
 
 <TerminologieUitleg Sleutels="zaagbreedte"
                     Beschrijving="Deze woordenlijst licht de zaagterm op deze pagina in gewone taal toe." />
@@ -48,16 +51,29 @@ else
                            @bind="_plaatHoogte" @bind:event="oninput" inputmode="decimal" />
                 </div>
                 <div class="col-6 col-lg-2">
-                    <label class="form-label fw-semibold">Zaagverlies per snede (zaagbreedte, mm)</label>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <label class="form-label fw-semibold mb-0">Zaagverlies per snede (zaagbreedte, mm)</label>
+                        <HulpInfoKnop Titel="Zaagverlies per snede"
+                                      Tekst="Elke zaagsnede kost materiaal doordat het zaagblad een bepaalde breedte heeft. Dat verlies telt mee tussen twee panelen."
+                                      Voorbeeld="Een veelgebruikte startwaarde is 4 mm."
+                                      WatNuDoen="Gebruik de waarde van het zaagblad of de zaagstraat die u werkelijk inzet." />
+                    </div>
                     <input class="form-control" type="number" step="0.5" min="0" max="20"
                            @bind="_zaagbreedte" @bind:event="oninput" inputmode="decimal" />
-                    <div class="form-text">Dit is de breedte van het zaagblad die als verlies meetelt tussen twee panelen.</div>
+                    <div class="form-text hulp-hint">Dit is de breedte van het zaagblad die als verlies meetelt tussen twee panelen.</div>
                 </div>
                 <div class="col-6 col-lg-2">
-                    <label class="form-label">
-                        <input type="checkbox" class="form-check-input me-1" @bind="_draaiToe" />
-                        Draaien toestaan
-                    </label>
+                    <div class="d-flex align-items-start gap-2">
+                        <label class="form-label mb-0">
+                            <input type="checkbox" class="form-check-input me-1" @bind="_draaiToe" />
+                            Draaien toestaan
+                        </label>
+                        <HulpInfoKnop Titel="Panelen draaien toestaan"
+                                      Tekst="Als draaien mag, probeert het zaagplan panelen ook 90 graden gedraaid te plaatsen om beter op de plaat te passen."
+                                      Voorbeeld="Laat dit aan als richting, nerf of zichtzijde niet vastligt."
+                                      WatNuDoen="Zet dit uit als het materiaal of de zichtzijde maar in één richting verwerkt mag worden." />
+                    </div>
+                    <div class="form-text hulp-hint">Gebruik dit alleen als materiaalrichting of zichtzijde geen vaste oriëntatie afdwingt.</div>
                 </div>
             </div>
         </div>

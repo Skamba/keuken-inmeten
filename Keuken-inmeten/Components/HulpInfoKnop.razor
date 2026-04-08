@@ -1,0 +1,31 @@
+<details class="hulp-info-knop">
+    <summary class="hulp-info-trigger" title="@AriaLabel" aria-label="@AriaLabel">
+        <span aria-hidden="true">i</span>
+    </summary>
+    <div class="hulp-info-card shadow-sm">
+        <div class="fw-semibold small mb-1">@Titel</div>
+        <div class="small text-muted">@Tekst</div>
+
+        @if (!string.IsNullOrWhiteSpace(Voorbeeld))
+        {
+            <div class="small mt-2">
+                <strong>Bijvoorbeeld:</strong> @Voorbeeld
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(WatNuDoen))
+        {
+            <div class="small mt-1">
+                <strong>Wat doet u nu?</strong> @WatNuDoen
+            </div>
+        }
+    </div>
+</details>
+
+@code {
+    [Parameter, EditorRequired] public string Titel { get; set; } = "";
+    [Parameter, EditorRequired] public string Tekst { get; set; } = "";
+    [Parameter] public string Voorbeeld { get; set; } = "";
+    [Parameter] public string WatNuDoen { get; set; } = "";
+    [Parameter] public string AriaLabel { get; set; } = "Meer uitleg";
+}

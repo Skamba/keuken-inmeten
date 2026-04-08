@@ -12,6 +12,9 @@
 
 <h2 class="page-header">Stap 3: Verificatie</h2>
 <p class="text-muted">Meet de maat in de opening na en controleer of de systeemgaten kloppen. Daarna controleert u of de maat om te bestellen logisch volgt uit opening en speling.</p>
+<div class="hulp-toolbar mb-3">
+    <StapHulpDrawer StapId="verificatie" />
+</div>
 
 <TerminologieUitleg Sleutels="openingsmaat,werkmaat,gaatjesrij,montageplaat,pothart"
                     Beschrijving="Deze woordenlijst helpt bij de controletermen die u in de verificatiestap ziet." />
@@ -270,8 +273,9 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
 
                         @if (r.MaatInfo is not null)
                         {
-                            <details class="verificatie-techniek ps-5 small text-muted">
-                                <summary>Technische uitleg en berekening</summary>
+                            <HulpDetailsBlok Titel="Technische uitleg en berekening"
+                                             Beschrijving="Open alleen als u wilt nalopen hoe opening, speling en bestelmaten samenhangen."
+                                             CssClass="verificatie-techniek ps-5 small text-muted">
                                 <div class="verificatie-afleiding mt-2">
                                     <div class="fw-semibold mb-1">@PaneelMaatUitlegHelper.MaatOmTeBestellenLabelMetTerm</div>
                                     <div>Breedte: @PaneelMaatUitlegHelper.BreedteFormule(r.MaatInfo)</div>
@@ -285,7 +289,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                                         <div>@PaneelMaatUitlegHelper.HoogteAftrekUitleg(r.MaatInfo)</div>
                                     }
                                 </div>
-                            </details>
+                            </HulpDetailsBlok>
                         }
                     </div>
 
@@ -333,8 +337,9 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                                 </div>
                             }
 
-                            <details class="verificatie-techniek ps-5">
-                                <summary>Technische verdieping en visualisatie</summary>
+                            <HulpDetailsBlok Titel="Technische verdieping en visualisatie"
+                                             Beschrijving="Open alleen als u de gatenrij en scharnieronderbouwing technisch wilt nalopen."
+                                             CssClass="verificatie-techniek ps-5">
                                 <div class="mt-3">
                                     <ScharnierOverzichtVisueel Resultaat="@r"
                                                                Toewijzing="@toewijzing"
@@ -345,7 +350,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                                         <span class="ms-3">Afstand scharnierpot tot rand: <strong>@FormatMm(potHartVanRand)</strong></span>
                                     </div>
                                 </div>
-                            </details>
+                            </HulpDetailsBlok>
                         </div>
                     }
                 </div>

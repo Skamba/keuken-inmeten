@@ -1,0 +1,23 @@
+<details class="hulp-details-blok @CssClass" open="@OpenByDefault">
+    <summary class="hulp-details-summary">
+        <div>
+            <div class="fw-semibold">@Titel</div>
+            @if (!string.IsNullOrWhiteSpace(Beschrijving))
+            {
+                <div class="small text-muted mt-1">@Beschrijving</div>
+            }
+        </div>
+    </summary>
+
+    <div class="hulp-details-body">
+        @ChildContent
+    </div>
+</details>
+
+@code {
+    [Parameter, EditorRequired] public string Titel { get; set; } = "";
+    [Parameter] public string Beschrijving { get; set; } = "";
+    [Parameter] public string CssClass { get; set; } = "";
+    [Parameter] public bool OpenByDefault { get; set; }
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+}

@@ -9,6 +9,9 @@
 
 <h2 class="page-header">Stap 2: Panelen</h2>
 <p class="text-muted">Volg deze mini-flow: 1. selecteer kast(en), 2. plaats of pas het paneel aan, 3. controleer maat en type, 4. sla op. Het paneel snapt automatisch aan kast- en paneelranden.</p>
+<div class="hulp-toolbar mb-3">
+    <StapHulpDrawer StapId="panelen" />
+</div>
 
 <TerminologieUitleg Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde,scharnierpot,pothart"
                     Beschrijving="Deze woordenlijst legt de belangrijkste paneel- en scharniertermen in gewone taal uit." />
@@ -255,7 +258,7 @@ else
                                     <button type="button" class="btn btn-outline-secondary" disabled>3. Controleer maat en type</button>
                                     <button type="button" class="btn btn-primary" disabled>4. Sla op</button>
                                 </div>
-                                <div class="form-text mt-2">Deze onderdelen worden actief zodra stap 1 klaar is.</div>
+                                <div class="form-text hulp-hint mt-2">Deze onderdelen worden actief zodra stap 1 klaar is.</div>
                             </div>
                         }
                         else
@@ -267,8 +270,9 @@ else
                                 Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de vrije ruimte langs rakende randen is afgetrokken.
                             </div>
 
-                            <div class="border rounded bg-light p-3 mb-3 small">
-                                <div class="fw-semibold mb-2">Zo leest u de tekening</div>
+                            <HulpDetailsBlok Titel="Zo leest u de tekening"
+                                             Beschrijving="Open alleen als u het verschil tussen de twee maatlagen wilt nalopen."
+                                             CssClass="mb-3 small">
                                 <div class="row g-3 align-items-center">
                                     <div class="col-sm-5">
                                         <svg viewBox="0 0 180 110" class="w-100" role="img" aria-label="Verschil tussen maat in de opening en maat om te bestellen">
@@ -287,7 +291,7 @@ else
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </HulpDetailsBlok>
 
                             <div class="small text-muted mb-3">
                                 <div><strong>Wand:</strong> @ActieveWandNaam</div>
@@ -295,13 +299,19 @@ else
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">@PaneelMaatUitlegHelper.RandSpelingLabel (randspeling, mm)</label>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">@PaneelMaatUitlegHelper.RandSpelingLabel (randspeling, mm)</label>
+                                    <HulpInfoKnop Titel="Vrije ruimte langs de rand"
+                                                  Tekst="Randspeling voorkomt dat een paneel klemt tegen een kast-, apparaat- of paneelrand. Die aftrek wordt meteen in de bestelmaten meegenomen."
+                                                  Voorbeeld="Standaard is dit vaak 2 mm per rakende rand."
+                                                  WatNuDoen="Laat de standaard staan tenzij uw beslag, spuitwerk of stelruimte om meer of minder speling vraagt." />
+                                </div>
                                 <input type="number"
                                        class="form-control"
                                        @bind="RandSpelingInput"
                                        min="0"
                                        step="0.5" />
-                                <div class="form-text">Standaard 2 mm. Elke rand die een andere kast-, apparaat- of paneelrand raakt, krijgt deze aftrek meteen mee in de maat om te bestellen.</div>
+                                <div class="form-text hulp-hint">Standaard 2 mm. Elke rand die een andere kast-, apparaat- of paneelrand raakt, krijgt deze aftrek meteen mee in de maat om te bestellen.</div>
                             </div>
 
                             <div class="mb-3">
@@ -321,7 +331,13 @@ else
                             @if (formToewijzing.Type == PaneelType.Deur)
                             {
                                 <div class="mb-3">
-                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Draairichting van de deur (scharnierzijde)</label>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">Draairichting van de deur (scharnierzijde)</label>
+                                        <HulpInfoKnop Titel="Draairichting van de deur"
+                                                      Tekst="De scharnierzijde bepaalt aan welke kant de scharnieren komen en welke kant van het paneel de technische boorgaten krijgt."
+                                                      Voorbeeld="Kiest u links, dan scharniert de deur links en opent hij naar rechts."
+                                                      WatNuDoen="Kies de kant waar de deur aan de kast wordt bevestigd." />
+                                    </div>
                                     <div class="d-flex gap-2">
                                         <button type="button"
                                                 class="btn btn-sm @(formToewijzing.ScharnierZijde == ScharnierZijde.Links ? "btn-primary" : "btn-outline-secondary")"
@@ -337,13 +353,19 @@ else
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Afstand hart scharnierpot tot rand (mm)</label>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">Afstand hart scharnierpot tot rand (mm)</label>
+                                        <HulpInfoKnop Titel="Afstand hart scharnierpot tot rand"
+                                                      Tekst="Dit is de maat van het midden van het 35 mm potgat naar de scharnierkant van het paneel."
+                                                      Voorbeeld="Een veelgebruikte standaard is 22,5 mm."
+                                                      WatNuDoen="Gebruik de maat van uw beslag of laat de laatst gebruikte standaard staan als die al klopt." />
+                                    </div>
                                     <input type="number"
                                            class="form-control"
                                            @bind="PotHartInput"
                                            min="@ScharnierBerekeningService.MinCupCenterVanRand"
                                            step="0.5" />
-                                    <div class="form-text">Technische term: pot-hart van rand. Deze maat wordt gebruikt voor alle 35 mm scharnierpotjes in dit deurpaneel en de laatst gebruikte waarde wordt onthouden.</div>
+                                    <div class="form-text hulp-hint">Technische term: pot-hart van rand. Deze maat wordt gebruikt voor alle 35 mm scharnierpotjes in dit deurpaneel en de laatst gebruikte waarde wordt onthouden.</div>
                                 </div>
                             }
 
@@ -381,15 +403,16 @@ else
 
                             @if (conceptMaatInfo is not null)
                             {
-                                <div class="border rounded bg-light p-3 mb-3 small">
-                                    <div class="fw-semibold mb-2">Van maat in de opening naar maat om te bestellen</div>
+                                <HulpDetailsBlok Titel="Van maat in de opening naar maat om te bestellen"
+                                                 Beschrijving="Open alleen als u de volledige aftrek per rand wilt nalopen."
+                                                 CssClass="mb-3 small">
                                     <div class="mb-1">@PaneelMaatUitlegHelper.MaatInOpeningLabelMetTerm <strong>@FormatMm(conceptMaatInfo.OpeningsRechthoek.Breedte)</strong> × <strong>@FormatMm(conceptMaatInfo.OpeningsRechthoek.Hoogte)</strong></div>
                                     <div class="mb-2">@PaneelMaatUitlegHelper.MaatOmTeBestellenLabelMetTerm <strong>@FormatMm(conceptMaatInfo.PaneelRechthoek.Breedte)</strong> × <strong>@FormatMm(conceptMaatInfo.PaneelRechthoek.Hoogte)</strong></div>
                                     <div><strong>Breedteformule:</strong> @PaneelMaatUitlegHelper.BreedteFormule(conceptMaatInfo)</div>
                                     <div class="mb-2">@PaneelMaatUitlegHelper.BreedteAftrekUitleg(conceptMaatInfo)</div>
                                     <div><strong>Hoogteformule:</strong> @PaneelMaatUitlegHelper.HoogteFormule(conceptMaatInfo)</div>
                                     <div>@PaneelMaatUitlegHelper.HoogteAftrekUitleg(conceptMaatInfo)</div>
-                                </div>
+                                </HulpDetailsBlok>
                             }
 
                             @if (vrijeSegmenten.Count > 0)

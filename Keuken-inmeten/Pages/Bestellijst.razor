@@ -11,6 +11,9 @@
 
 <h2 class="page-header">Stap 4: Bestellijst</h2>
 <p class="text-muted">Bekijk eerst compacte samenvattingen per wand en paneeltype. De bestellijst focust standaard op orderregels; boorgat- en CNC-details zet u alleen aan wanneer u ze nodig hebt.</p>
+<div class="hulp-toolbar mb-3">
+    <StapHulpDrawer StapId="bestellijst" />
+</div>
 
 <TerminologieUitleg Sleutels="absband,cnc"
                     Beschrijving="Deze woordenlijst helpt bij de technische termen in de bestellijst en export." />
@@ -85,19 +88,26 @@ else
                                class="form-check-input"
                                type="checkbox"
                                @bind="_toonTechnischeDetails" />
-                        <label class="form-check-label fw-semibold" for="toon-technische-bestellijst">
-                            Toon boorgat- en CNC-details in de tabel
-                        </label>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <label class="form-check-label fw-semibold" for="toon-technische-bestellijst">
+                                Toon boorgat- en CNC-details in de tabel
+                            </label>
+                            <HulpInfoKnop Titel="Technische details in de bestellijst"
+                                          Tekst="Deze kolommen zijn vooral bedoeld voor overdracht naar productie of controle van de boorgaten en CNC-bewerkingen."
+                                          Voorbeeld="Laat de technische details uit zolang u vooral aantallen, typen en afmetingen wilt reviewen."
+                                          WatNuDoen="Schakel deze optie alleen in als u de lijst technisch wilt nalopen of exporteren voor nabewerking." />
+                        </div>
                     </div>
-                    <div class="form-text">Standaard blijft de lijst gericht op orderregels. Schakel technische details alleen in voor controle of overdracht.</div>
+                    <div class="form-text hulp-hint">Standaard blijft de lijst gericht op orderregels. Schakel technische details alleen in voor controle of overdracht.</div>
                 </div>
                 <div class="col-lg-5">
-                    <details class="border rounded bg-body-tertiary p-3 small h-100">
-                        <summary class="fw-semibold">Technische exportdetails</summary>
+                    <HulpDetailsBlok Titel="Technische exportdetails"
+                                     Beschrijving="Open alleen als u de technische output of machinecoordinaten wilt nalopen."
+                                     CssClass="small h-100">
                         <div class="mt-2"><strong>Machinecoordinaten (CNC-coordinaten):</strong> @BestellijstExportFormatter.FormatCncAssenSamenvatting()</div>
                         <div class="mt-1"><strong>Max boorgaten per orderregel:</strong> @maxBoorgaten</div>
                         <div class="mt-1"><strong>Boorgaten totaal:</strong> @totaalBoorgaten</div>
-                    </details>
+                    </HulpDetailsBlok>
                 </div>
             </div>
         </div>

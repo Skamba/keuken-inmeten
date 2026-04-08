@@ -28,6 +28,9 @@
     }
 </div>
 <p class="text-muted">Maak wandindelingen aan en plaats kasten naast elkaar om uw keuken na te bouwen.</p>
+<div class="hulp-toolbar mb-3">
+    <StapHulpDrawer StapId="kasten" />
+</div>
 
 <TerminologieUitleg Sleutels="plinthoogte,wanddikte,gaatjesrij"
                     Beschrijving="Deze woordenlijst helpt bij de technische maten die u in stap 1 invult." />
@@ -421,7 +424,10 @@ else
                             })
                         </p>
                     </div>
-                    <span class="badge text-bg-light">Stap @kastFormStap/@LaatsteKastFormStap</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <StapHulpDrawer StapId="kasten" KnopLabel="Meer hulp" />
+                        <span class="badge text-bg-light">Stap @kastFormStap/@LaatsteKastFormStap</span>
+                    </div>
                 </div>
 
                 <div class="progress mb-3" style="height: 0.5rem;" data-testid="kast-form-progress">
@@ -527,22 +533,42 @@ else
 
                             @if (toonTechnischeInstellingen)
                             {
-                                <div class="mt-3">
-                                    <div class="row g-3 mb-3">
-                                        <div class="col-md-4">
-                                            <label class="form-label">Dikte van de kastwand (mm)</label>
-                                            <input type="number" class="form-control" @bind="formKast.Wanddikte" @bind:after="AutoBerekenPosities" min="1" step="1" />
+                                    <div class="mt-3">
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-4">
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <label class="form-label mb-0">Dikte van de kastwand (mm)</label>
+                                                    <HulpInfoKnop Titel="Dikte van de kastwand"
+                                                                  Tekst="Gebruik hier de werkelijke dikte van de zijplaten van deze kast. Die maat heeft invloed op systeemgaten en scharnieronderdelen."
+                                                                  Voorbeeld="Standaard is dit meestal 18 mm."
+                                                                  WatNuDoen="Laat de standaard staan tenzij deze kast met een andere plaatdikte wordt gebouwd." />
+                                                </div>
+                                                <input type="number" class="form-control" @bind="formKast.Wanddikte" @bind:after="AutoBerekenPosities" min="1" step="1" />
+                                                <div class="form-text hulp-hint">Gebruik alleen een afwijkende waarde als het materiaal van deze kast echt dikker of dunner is.</div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <label class="form-label mb-0">Afstand tussen systeemgaten (mm)</label>
+                                                    <HulpInfoKnop Titel="Rij systeemgaten"
+                                                                  Tekst="Dit is de vaste steek van de gatenrij in de kastzijwand. Die bepaalt waar de montageplaat en andere boringen uitkomen."
+                                                                  Voorbeeld="Voor veel keukenkasten is 32 mm de standaard."
+                                                                  WatNuDoen="Pas dit alleen aan als deze kast een andere gatensteek gebruikt dan de standaard." />
+                                                </div>
+                                                <input type="number" class="form-control" @bind="formKast.GaatjesAfstand" @bind:after="AutoBerekenPosities" min="1" step="1" />
+                                                <div class="form-text hulp-hint">De standaard gatensteek is meestal 32 mm.</div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <label class="form-label mb-0">Afstand onderkant bovenplank tot eerste gat (mm)</label>
+                                                    <HulpInfoKnop Titel="Eerste gat vanaf de bovenste plank"
+                                                                  Tekst="Deze maat bepaalt waar de eerste positie van de systeemgaten start ten opzichte van de bovenkant van de kastromp."
+                                                                  Voorbeeld="Bij veel kasten is dit 19 mm vanaf de onderkant van de bovenste plank."
+                                                                  WatNuDoen="Controleer deze maat alleen als uw leverancier of bestaand kasttype van de standaard afwijkt." />
+                                                </div>
+                                                <input type="number" class="form-control" @bind="formKast.EersteGaatVanBoven" @bind:after="AutoBerekenPosities" min="1" step="1" />
+                                                <div class="form-text hulp-hint">Meet vanaf de onderkant van de bovenste plank naar het eerste gat.</div>
+                                            </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Afstand tussen systeemgaten (mm)</label>
-                                            <input type="number" class="form-control" @bind="formKast.GaatjesAfstand" @bind:after="AutoBerekenPosities" min="1" step="1" />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Afstand onderkant bovenplank tot eerste gat (mm)</label>
-                                            <input type="number" class="form-control" @bind="formKast.EersteGaatVanBoven" @bind:after="AutoBerekenPosities" min="1" step="1" />
-                                            <div class="form-text">Meet vanaf de onderkant van de bovenste plank naar het eerste gat.</div>
-                                        </div>
-                                    </div>
 
                                     <p class="text-muted small mb-0"><em>Tip: dubbelklik in de wandopstelling om een plank toe te voegen. Sleep planken of gebruik de pijltjestoetsen. Selecteer een plank en druk Delete om hem te verwijderen.</em></p>
                                 </div>
@@ -663,7 +689,10 @@ else
                             })
                         </p>
                     </div>
-                    <span class="badge text-bg-light">Stap @apparaatFormStap/@LaatsteApparaatFormStap</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <StapHulpDrawer StapId="kasten" KnopLabel="Meer hulp" />
+                        <span class="badge text-bg-light">Stap @apparaatFormStap/@LaatsteApparaatFormStap</span>
+                    </div>
                 </div>
 
                 <div class="progress mb-3" style="height: 0.5rem;" data-testid="apparaat-form-progress">
