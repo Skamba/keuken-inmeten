@@ -10,6 +10,9 @@
 <h2 class="page-header">Stap 4: Bestellijst</h2>
 <p class="text-muted">Bundel identieke panelen tot orderregels, geef het materiaal mee en exporteer de lijst naar Excel of een printklare PDF met visuals.</p>
 
+<TerminologieUitleg Sleutels="absband,cnc"
+                    Beschrijving="Deze woordenlijst helpt bij de technische termen in de bestellijst en export." />
+
 @{
     var items = BestellijstService.BerekenItems(State);
     var maxBoorgaten = items.Count == 0 ? 0 : items.Max(item => item.Boorgaten.Count);
@@ -62,7 +65,7 @@ else
             </div>
 
             <div class="alert alert-light border small mt-3 mb-0">
-                <strong>CNC-coordinaten:</strong> @BestellijstExportService.FormatCncAssenSamenvatting()
+                <strong>Machinecoordinaten (CNC-coordinaten):</strong> @BestellijstExportService.FormatCncAssenSamenvatting()
             </div>
 
             @if (!string.IsNullOrWhiteSpace(_exportStatus))
@@ -107,7 +110,7 @@ else
                     <th class="text-center">Aantal</th>
                     <th class="text-end">Hoogte (mm)</th>
                     <th class="text-end">Breedte (mm)</th>
-                    <th>ABS-band</th>
+                    <th>Afwerkband (ABS-band)</th>
                     @for (int i = 0; i < maxBoorgaten; i++)
                     {
                         var nummer = i + 1;

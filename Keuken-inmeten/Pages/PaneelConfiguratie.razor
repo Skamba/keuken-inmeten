@@ -8,6 +8,9 @@
 <h2 class="page-header">Stap 2: Panelen configureren</h2>
 <p class="text-muted">Selecteer een of meer kasten en pas het paneel aan. Het paneel snapt automatisch aan kast- en paneelranden.</p>
 
+<TerminologieUitleg Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde,scharnierpot,pothart"
+                    Beschrijving="Deze woordenlijst legt de belangrijkste paneel- en scharniertermen in gewone taal uit." />
+
 @if (State.Kasten.Count == 0)
 {
     <div class="alert alert-warning">
@@ -84,7 +87,7 @@ else
                                 <th>Breedte</th>
                                 <th>Hoogte</th>
                                 <th>Plaatsing</th>
-                                <th>Scharnier</th>
+                                <th>Scharnierzijde</th>
                                 <th>Kast(en)</th>
                                 <th></th>
                             </tr>
@@ -109,7 +112,7 @@ else
                                     <td class="text-muted small">@PlaatsTekst(toewijzing)</td>
                                     <td class="text-muted small">
                                         @(toewijzing.Type == PaneelType.Deur
-                                            ? $"{toewijzing.ScharnierZijde.ToString().ToLower()} · pot {FormatMm(toewijzing.PotHartVanRand)}"
+                                            ? $"{toewijzing.ScharnierZijde.ToString().ToLower()} · hart scharnierpot {FormatMm(toewijzing.PotHartVanRand)}"
                                             : "—")
                                     </td>
                                     <td class="text-muted small">@kastenNamen</td>
@@ -167,7 +170,7 @@ else
                             var conceptMaatInfo = BerekenConceptMaatInfo();
 
                             <div class="alert alert-primary small py-2">
-                                Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand is de openingsmaat waar de snapping op werkt; de volle binnenvorm laat direct de echte werkmaat na speling zien.
+                                Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand is de ruimte waar het paneel in moet passen (openingsmaat); de volle binnenvorm laat direct de netto paneelmaat na vrije ruimte langs de rand (werkmaat na randspeling) zien.
                             </div>
 
                             <div class="small text-muted mb-3">
@@ -176,13 +179,13 @@ else
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Randspeling per raakrand (mm)</label>
+                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Vrije ruimte langs de rand (randspeling, mm)</label>
                                 <input type="number"
                                        class="form-control"
                                        @bind="RandSpelingInput"
                                        min="0"
                                        step="0.5" />
-                                <div class="form-text">Standaard 2 mm. Als twee tegenoverliggende randen raken, wordt de werkmaat dus 4 mm kleiner.</div>
+                                <div class="form-text">Standaard 2 mm. Raken twee tegenoverliggende randen, dan wordt de netto paneelmaat 4 mm kleiner.</div>
                             </div>
 
                             <div class="mb-3">
@@ -202,7 +205,7 @@ else
                             @if (formToewijzing.Type == PaneelType.Deur)
                             {
                                 <div class="mb-3">
-                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Scharnier zijde</label>
+                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Draairichting van de deur (scharnierzijde)</label>
                                     <div class="d-flex gap-2">
                                         <button type="button"
                                                 class="btn btn-sm @(formToewijzing.ScharnierZijde == ScharnierZijde.Links ? "btn-primary" : "btn-outline-secondary")"
@@ -218,13 +221,13 @@ else
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Hart 35mm-potje vanaf zijkant (mm)</label>
+                                    <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Afstand hart scharnierpot tot rand (mm)</label>
                                     <input type="number"
                                            class="form-control"
                                            @bind="PotHartInput"
                                            min="@ScharnierBerekeningService.MinCupCenterVanRand"
                                            step="0.5" />
-                                    <div class="form-text">Deze X-maat wordt gebruikt voor alle scharnierpotjes in dit deurpaneel en de laatst gebruikte waarde wordt onthouden.</div>
+                                    <div class="form-text">Technische term: pot-hart van rand. Deze maat wordt gebruikt voor alle 35 mm scharnierpotjes in dit deurpaneel en de laatst gebruikte waarde wordt onthouden.</div>
                                 </div>
                             }
 

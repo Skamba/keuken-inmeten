@@ -27,6 +27,9 @@
 </div>
 <p class="text-muted">Maak wandindelingen aan en plaats kasten naast elkaar om uw keuken na te bouwen.</p>
 
+<TerminologieUitleg Sleutels="plinthoogte,wanddikte,gaatjesrij"
+                    Beschrijving="Deze woordenlijst helpt bij de technische maten die u in stap 1 invult." />
+
 @* ──── Wand toevoegen ──── *@
 <div class="card mb-4">
     <div class="card-body d-flex align-items-end gap-3">
@@ -108,7 +111,7 @@
                            value="@wand.Hoogte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.Hoogte), e)" />
                 </div>
                 <div>
-                    <label class="form-label small mb-0">Plinthoogte (mm)</label>
+                    <label class="form-label small mb-0">Hoogte van de plint (mm)</label>
                     <input type="number" class="form-control form-control-sm" style="width: 100px;" min="0" step="10"
                            value="@wand.PlintHoogte" @onchange="e => WijzigWandAfmeting(wand, nameof(KeukenWand.PlintHoogte), e)" />
                 </div>
@@ -279,19 +282,19 @@
                     <input type="number" class="form-control" @bind="formKast.Diepte" min="100" step="10" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Wanddikte (mm)</label>
+                    <label class="form-label">Dikte van de kastwand (mm)</label>
                     <input type="number" class="form-control" @bind="formKast.Wanddikte" @bind:after="AutoBerekenPosities" min="1" step="1" />
                 </div>
             </div>
 
             @* ── Gaatjesrij ── *@
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="mb-0">Gaatjesrij</h6>
+                <h6 class="mb-0">Rij systeemgaten (gaatjesrij)</h6>
             </div>
             <p class="text-muted small mb-2">Rij gaten in de zijwand voor montage van scharnieren. Meet altijd vanaf de onderkant van de bovenste plank naar het eerste gat.</p>
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label class="form-label">Tussenafstand (mm)</label>
+                    <label class="form-label">Afstand tussen systeemgaten (mm)</label>
                     <input type="number" class="form-control" @bind="formKast.GaatjesAfstand" @bind:after="AutoBerekenPosities" min="1" step="1" />
                 </div>
                 <div class="col-md-6">

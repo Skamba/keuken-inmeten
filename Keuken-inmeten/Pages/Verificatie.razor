@@ -10,6 +10,9 @@
 <h2 class="page-header">Stap 3: Verificatie</h2>
 <p class="text-muted">Meet de bestaande kastopeningen na en controleer of de systeemgaten kloppen. Panelen worden daarna besteld op basis van uw maten.</p>
 
+<TerminologieUitleg Sleutels="openingsmaat,werkmaat,gaatjesrij,montageplaat,pothart"
+                    Beschrijving="Deze woordenlijst helpt bij de controletermen die u in de verificatiestap ziet." />
+
 @{
     var resultaten = State.BerekenResultaten();
 }
@@ -227,7 +230,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                                     @if (checks.ScharnierPositiesOk) { <span>&#10003;</span> } else { <span>2</span> }
                                 </button>
                                 <div>
-                                    <h6 class="mb-1 fw-bold">Controleer de gaatjesrij op de kastromp</h6>
+                                    <h6 class="mb-1 fw-bold">Controleer de rij systeemgaten (gaatjesrij) op de kastromp</h6>
                                     <p class="text-muted small mb-0">
                                         Open de kast en bekijk de @(r.ScharnierZijde == ScharnierZijde.Links ? "linker" : "rechter") zijwand.
                                         Tel de systeemgaten af van boven voor elk scharnier.
@@ -249,7 +252,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                                                 <div>
                                                     <div class="fw-semibold">Scharnier @(j + 1) — @o.KastNaam</div>
                                                     <div class="text-muted small">
-                                                        Montageplaat-midden tussen gat <strong>@o.GaatBovenIndex</strong> (@FormatMm(o.GaatBovenY) van boven)
+                                                        Midden van de scharnierplaat tussen gat <strong>@o.GaatBovenIndex</strong> (@FormatMm(o.GaatBovenY) van boven)
                                                         en gat <strong>@o.GaatOnderIndex</strong> (@FormatMm(o.GaatOnderY) van boven).
                                                         Midden op <strong>@FormatMm(o.MontagePlaatMiddenInKast)</strong> in de kast.
                                                     </div>
@@ -266,8 +269,8 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                                                            Kasten="@paneelKasten"
                                                            MaxHoogte="480" />
                                 <div class="small text-muted mt-2">
-                                    <span>Scharnierkant: <strong>@(r.ScharnierZijde == ScharnierZijde.Links ? "links" : "rechts")</strong></span>
-                                    <span class="ms-3">Hart potje vanaf rand: <strong>@FormatMm(potHartVanRand)</strong></span>
+                                    <span>Scharnierzijde: <strong>@(r.ScharnierZijde == ScharnierZijde.Links ? "links" : "rechts")</strong></span>
+                                    <span class="ms-3">Afstand scharnierpot tot rand: <strong>@FormatMm(potHartVanRand)</strong></span>
                                 </div>
                             </div>
                         </div>
@@ -333,7 +336,7 @@ else if (_fase == VerificatieFase.Afronding)
             {
                 <div class="verificatie-resultaat-icoon succes">&#10003;</div>
                 <h4 class="text-success">Alle @resultaten.Count kastmetingen gecontroleerd</h4>
-                <p class="text-muted">Alle opening- en gaatjesrij-controles zijn afgevinkt. U kunt doorgaan naar de bestellijst.</p>
+                <p class="text-muted">Alle controles op openingen en rijen systeemgaten zijn afgevinkt. U kunt doorgaan naar de bestellijst.</p>
             }
             else
             {
