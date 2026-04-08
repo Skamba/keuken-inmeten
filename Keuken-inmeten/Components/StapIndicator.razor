@@ -1,14 +1,13 @@
 @inject KeukenStateService State
 
 @{
-    var flowStatus = StappenFlowHelper.BepaalStatus(State);
     var stappen = StappenFlowHelper.AlleStappen;
     var huidigeIndex = stappen.ToList().FindIndex(stap => stap.Id == HuidigeStap);
 }
 
 <nav aria-label="Stappen" class="stap-indicator mb-4">
     <ol class="stap-indicator-list">
-        @for (int i = 0; i < stappen.Length; i++)
+        @for (int i = 0; i < stappen.Count; i++)
         {
             var stap = stappen[i];
             var nummer = i + 1;
