@@ -88,22 +88,22 @@ public static class StapHulpHelper
         ["verificatie"] = new(
             "verificatie",
             "Hulp bij stap 3: Verificatie",
-            "Verificatie draait om een korte checklist: eerst de maat in de opening, daarna pas de technische onderbouwing.",
+            "Verificatie draait om een taaklijst per wand en paneel: open alleen de controle die u nu echt wilt nalopen.",
             StandaardHulpNiveaus,
             [
                 new(
-                    "Checklist eerst, techniek daarna",
-                    "Gebruik de hoofdschermen om af te vinken wat u echt na moet meten; technische verdieping hoeft niet standaard open te staan.",
+                    "Taaklijst eerst, techniek daarna",
+                    "Gebruik de taaklijst om per wand en paneel te kiezen wat u nu controleert; technische verdieping hoeft niet standaard open te staan.",
                     [
-                        "Meet eerst de opening na en vergelijk daarna de maat om te bestellen.",
+                        "Open per paneel de taak en meet eerst de opening na; vergelijk daarna pas de maat om te bestellen.",
                         "Open details alleen als u de afleiding of scharnieronderbouwing wilt nalopen."
                     ]),
                 new(
-                    "Waar helpt de drawer bij?",
-                    "De verdiepende hulp zet de controlevolgorde en voorbeelden per paneeltype bij elkaar.",
+                    "Waar helpt de verdieping bij?",
+                    "De verdiepende hulp zet de controlevolgorde en voorbeelden per paneeltype bij elkaar zodra u een taak opent.",
                     [
                         "Gebruik deze hulp als u wilt weten wanneer een deur ook een scharniercontrole nodig heeft.",
-                        "De drawer is bedoeld voor taakgerichte uitleg, niet voor elke losse maat."
+                        "De verdieping is bedoeld voor taakgerichte uitleg, niet voor elke losse maat."
                     ])
             ]),
         ["bestellijst"] = new(

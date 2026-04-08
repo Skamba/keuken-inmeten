@@ -92,6 +92,42 @@ test('stap 2 scheidt editor en review expliciet', async ({ page }) => {
   await panelen.expectActieveWerkruimte('Achterwand');
 });
 
+test('stap 3 toont verificatie als taaklijst per wand', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+  const verificatie = new VerificatiePage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegWandToe('Linkerwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast achter',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.voegKastToeAanWand('Linkerwand', {
+    naam: 'Onderkast links',
+    breedte: 500,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await panelen.selecteerEersteKastOpWand('Achterwand');
+  await panelen.voegPaneelToe();
+  await panelen.selecteerEersteKastOpWand('Linkerwand');
+  await panelen.voegPaneelToe();
+  await panelen.gaNaarVerificatie();
+
+  await verificatie.expectLoaded();
+  await verificatie.expectTaaklijst();
+  await verificatie.expectTaakgroep('Achterwand');
+  await verificatie.expectTaakgroep('Linkerwand');
+  await verificatie.openControleVoorWand('Linkerwand');
+});
+
 test('hoofdflow van indeling tot export blijft werken', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);

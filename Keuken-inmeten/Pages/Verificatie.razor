@@ -31,39 +31,35 @@
 }
 else if (_fase == VerificatieFase.Overzicht)
 {
-    @* Wandoverzichten *@
-    @foreach (var wand in State.Wanden)
-    {
-        var wandKasten = State.KastenVoorWand(wand.Id);
-        if (wandKasten.Count == 0) continue;
-        var wandApparaten = State.ApparatenVoorWand(wand.Id);
-        var toewijzingenVoorWand = State.Toewijzingen
-            .Where(t => t.KastIds.Any(id => wandKasten.Any(k => k.Id == id)))
-            .ToList();
-        var resultatenOpId = resultaten
-            .Where(r => r.ToewijzingId != Guid.Empty)
-            .ToDictionary(r => r.ToewijzingId);
-
-        <div class="mb-3">
-            <div class="small fw-semibold text-muted mb-1">&#128205; @wand.Naam</div>
-            <div class="paneel-overzicht-scroll">
-                <WandPaneelOverzicht Kasten="@wandKasten"
-                                     Apparaten="@wandApparaten"
-                                     WandBreedte="@wand.Breedte"
-                                     WandHoogte="@wand.Hoogte"
-                                     PlintHoogte="@wand.PlintHoogte"
-                                     AlleToewijzingen="@toewijzingenVoorWand"
-                                     ResultatenOpToewijzingId="@resultatenOpId" />
-            </div>
-        </div>
-    }
-
     <div class="card mb-4">
         <div class="card-body">
-            <h5 class="card-title">Te controleren kastopeningen</h5>
-            <p class="text-muted small">Er zijn <strong>@resultaten.Count</strong> panelen. Meet voor elk paneel eerst de maat in de opening na en controleer daarna het gaatjespatroon op de kastromp.</p>
+            <h5 class="card-title">Verificatietaken per wand en paneel</h5>
+            <p class="text-muted small">Er zijn <strong>@resultaten.Count</strong> panelen. Open telkens een taak wanneer u de maat in de opening of de systeemgaten voor dat specifieke paneel wilt controleren. De detailcontrole opent daarna in een aparte focusstaat.</p>
 
             @{
+                var verificatieTaken = resultaten
+                    .Select((r, index) => new
+                    {
+                        Index = index,
+                        Resultaat = r,
+                        WandNaam = State.WandNaamVoorKasten(r.KastIds),
+                        Geverifieerd = AlleChecksVoorPaneel(index, r),
+                        OpenChecks = OpenChecksVoorPaneel(index, r),
+                        VolgendeControle = VolgendeControleTitel(index, r),
+                        OpeningB = r.MaatInfo?.OpeningsRechthoek.Breedte ?? r.Breedte,
+                        OpeningH = r.MaatInfo?.OpeningsRechthoek.Hoogte ?? r.Hoogte
+                    })
+                    .ToList();
+                var taakGroepen = State.Wanden
+                    .Select(wand => new
+                    {
+                        Wand = wand,
+                        Taken = verificatieTaken
+                            .Where(taak => taak.WandNaam == wand.Naam)
+                            .ToList()
+                    })
+                    .Where(groep => groep.Taken.Count > 0)
+                    .ToList();
                 var aantalAfgerond = Enumerable.Range(0, resultaten.Count).Count(i => AlleChecksVoorPaneel(i, resultaten[i]));
                 var eersteOngecontroleerd = Enumerable.Range(0, resultaten.Count)
                     .FirstOrDefault(i => !AlleChecksVoorPaneel(i, resultaten[i]), 0);
@@ -76,80 +72,84 @@ else if (_fase == VerificatieFase.Overzicht)
             <div class="row g-3 mb-3">
                 <div class="col-md-4">
                     <div class="border rounded p-3 h-100 bg-body-tertiary">
-                        <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Nu eerst controleren</div>
-                        <div class="fw-semibold">@(aantalAfgerond == resultaten.Count ? "Alle checklistcontroles zijn klaar" : VolgendeControleTitel(samenvattingPaneelIndex, volgendePaneel))</div>
-                        <div class="small text-muted">@((aantalAfgerond == resultaten.Count) ? "U kunt afronden of een paneel opnieuw openen." : $"Paneel {samenvattingPaneelIndex + 1} · {volgendePaneel.KastNaam}")</div>
+                        <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Volgende taak</div>
+                        <div class="fw-semibold">@(aantalAfgerond == resultaten.Count ? "Alle controles zijn klaar" : VolgendeControleTitel(samenvattingPaneelIndex, volgendePaneel))</div>
+                        <div class="small text-muted">@((aantalAfgerond == resultaten.Count) ? "U kunt afronden of een taak opnieuw openen." : $"Paneel {samenvattingPaneelIndex + 1} · {volgendePaneel.KastNaam}")</div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="border rounded p-3 h-100 bg-body-tertiary">
                         <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Voortgang</div>
-                        <div class="fw-semibold">@aantalAfgerond van @resultaten.Count panelen klaar</div>
-                        <div class="small text-muted">@((aantalAfgerond == resultaten.Count) ? "Alle checklistcontroles zijn afgevinkt." : "Gebruik de lijst hieronder om de volgende open check te kiezen.")</div>
+                        <div class="fw-semibold">@aantalAfgerond van @resultaten.Count taken klaar</div>
+                        <div class="small text-muted">@((aantalAfgerond == resultaten.Count) ? "Alle checklistcontroles zijn afgevinkt." : "Gebruik de taaklijst hieronder om de volgende open controle te kiezen.")</div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="border rounded p-3 h-100 bg-body-tertiary">
-                        <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Open checks</div>
+                        <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Open controles</div>
                         <div class="fw-semibold">@totaalOpenChecks nog te doen</div>
                         <div class="small text-muted">Checklist en voortgang staan voorop; technische verdieping opent pas op aanvraag.</div>
                     </div>
                 </div>
             </div>
 
-            <div class="table-responsive mb-3">
-                <table class="table table-sm table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Paneel</th>
-                            <th>Wand</th>
-                            <th>Nu controleren</th>
-                            <th class="text-end">Maat in opening B&#215;H</th>
-                            <th class="text-center">Open checks</th>
-                            <th class="text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (int i = 0; i < resultaten.Count; i++)
-                        {
-                            var r = resultaten[i];
-                            var idx = i;
-                            var wandNaam = State.WandNaamVoorKasten(r.KastIds);
-                            var geverifieerd = AlleChecksVoorPaneel(idx, r);
-                            var openingB = r.MaatInfo?.OpeningsRechthoek.Breedte ?? r.Breedte;
-                            var openingH = r.MaatInfo?.OpeningsRechthoek.Hoogte ?? r.Hoogte;
-                            <tr class="@(geverifieerd ? "table-success" : "")" style="cursor:pointer" @onclick="() => GaNaarPaneel(idx)">
-                                <td class="text-muted">@(i + 1)</td>
-                                <td>
-                                    <div class="fw-semibold">@r.KastNaam</div>
-                                    <div class="small text-muted">@TypeNaam(r.Type)</div>
-                                </td>
-                                <td class="text-muted small">@wandNaam</td>
-                                <td class="small">@VolgendeControleTitel(idx, r)</td>
-                                <td class="text-end text-nowrap">@FormatMm(openingB) &#215; @FormatMm(openingH)</td>
-                                <td class="text-center">@OpenChecksLabel(idx, r)</td>
-                                <td class="text-center">
-                                    @if (geverifieerd)
-                                    {
-                                        <span class="badge text-bg-success">Klaar</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge text-bg-light border">Nog te doen</span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="verificatie-taaklijst mb-3" data-testid="verificatie-taaklijst">
+                @foreach (var groep in taakGroepen)
+                {
+                    var openTaken = groep.Taken.Count(taak => !taak.Geverifieerd);
+
+                    <div class="card shadow-sm mb-3"
+                         data-testid="verificatie-taakgroep"
+                         data-wand-naam="@groep.Wand.Naam">
+                        <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                            <div>
+                                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Wand</div>
+                                <h6 class="mb-1">@groep.Wand.Naam</h6>
+                                <div class="small text-muted">@groep.Taken.Count taken in deze wand, @groep.Taken.Count(taak => taak.Geverifieerd) klaar</div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                                <span class="badge text-bg-light border">@groep.Taken.Count panelen</span>
+                                <span class="badge @(openTaken == 0 ? "text-bg-success" : "text-bg-light border")">@openTaken open</span>
+                            </div>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            @foreach (var taak in groep.Taken)
+                            {
+                                <div class="list-group-item"
+                                     data-testid="verificatie-taak-item"
+                                     data-wand-naam="@groep.Wand.Naam"
+                                     data-paneel-index="@taak.Index">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                        <div>
+                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                <span class="badge text-bg-light border">Paneel @(taak.Index + 1)</span>
+                                                <span class="fw-semibold">@taak.Resultaat.KastNaam</span>
+                                                <span class="badge @(taak.Geverifieerd ? "text-bg-success" : "text-bg-light border")">@(taak.Geverifieerd ? "Klaar" : "Nog te doen")</span>
+                                            </div>
+                                            <div class="small text-muted">@TypeNaam(taak.Resultaat.Type) · maat in opening @FormatMm(taak.OpeningB) &#215; @FormatMm(taak.OpeningH)</div>
+                                            <div class="small mt-1">@taak.VolgendeControle</div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3 flex-wrap justify-content-end">
+                                            <div class="small text-muted text-end">@OpenChecksLabel(taak.Index, taak.Resultaat)</div>
+                                            <button class="btn btn-outline-primary btn-sm"
+                                                    @onclick="() => GaNaarPaneel(taak.Index)"
+                                                    data-testid="verificatie-open-controle-button">
+                                                Open controle
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
 
             <div class="d-flex align-items-center gap-3">
                 <button class="btn btn-success btn-lg"
                         @onclick="() => GaNaarPaneel(eersteOngecontroleerd)"
                         data-testid="verificatie-start-button">
-                    @(alGestart ? "Ga verder met verificatie" : "Start verificatie") &#8594;
+                    @(alGestart ? "Open volgende taak" : "Start taaklijst") &#8594;
                 </button>
                 @if (alGestart)
                 {
@@ -180,7 +180,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                 <div class="fw-semibold">@Enumerable.Range(0, resultaten.Count).Count(i => AlleChecksVoorPaneel(i, resultaten[i])) van @resultaten.Count panelen klaar</div>
                 <div class="small text-muted">Paneel @(_paneelIndex + 1) van @resultaten.Count staat nu open.</div>
             </div>
-            <div class="small text-muted">@Enumerable.Range(0, resultaten.Count).Sum(i => OpenChecksVoorPaneel(i, resultaten[i])) open checks in deze stap</div>
+            <div class="small text-muted">@Enumerable.Range(0, resultaten.Count).Sum(i => OpenChecksVoorPaneel(i, resultaten[i])) open controles in deze stap</div>
         </div>
     </div>
 
@@ -235,9 +235,9 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                 </div>
                 <div class="col-md-4">
                     <div class="border rounded p-3 h-100 bg-body-tertiary">
-                        <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Open checks</div>
+                        <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Open controles</div>
                         <div class="fw-semibold">@OpenChecksLabel(_paneelIndex, r)</div>
-                        <div class="small text-muted">@aantalAfgevinkt van @totaalChecks checks afgevinkt</div>
+                        <div class="small text-muted">@aantalAfgevinkt van @totaalChecks controles afgevinkt</div>
                     </div>
                 </div>
             </div>
@@ -363,7 +363,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                         </div>
                         <div class="card card-body small bg-body-tertiary">
                             <div class="fw-semibold mb-1">Checkliststatus</div>
-                            <div>@aantalAfgevinkt van @totaalChecks checks afgevinkt</div>
+                            <div>@aantalAfgevinkt van @totaalChecks controles afgevinkt</div>
                             <div class="text-muted mb-3">@OpenChecksLabel(_paneelIndex, r)</div>
                             <div class="fw-semibold mb-1">Berekend paneel</div>
                             <div>@FormatMm(r.Breedte) &#215; @FormatMm(r.Hoogte)</div>
@@ -380,7 +380,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
             <hr />
             <div class="d-flex justify-content-between align-items-center">
                 <button class="btn btn-outline-secondary" @onclick="VorigePaneel">
-                    &#8592; @(_paneelIndex == 0 ? "Terug naar overzicht" : "Vorig paneel")
+                    &#8592; @(_paneelIndex == 0 ? "Terug naar taaklijst" : "Vorig paneel")
                 </button>
                 <div class="text-muted small">
                     @if (AlleChecksVoorPaneel(_paneelIndex, r))
@@ -427,7 +427,7 @@ else if (_fase == VerificatieFase.Afronding)
             }
 
             <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
-                <button class="btn btn-outline-secondary" @onclick="TerugNaarOverzicht">&#8592; Terug naar overzicht</button>
+                <button class="btn btn-outline-secondary" @onclick="TerugNaarOverzicht">&#8592; Terug naar taaklijst</button>
                 <button class="btn btn-outline-secondary" @onclick="DeelResultaat">&#128279; Deel link</button>
                 <button class="btn btn-outline-primary" @onclick="PrintResultaat">&#128424; Afdrukken</button>
             </div>
@@ -510,7 +510,7 @@ else if (_fase == VerificatieFase.Afronding)
         if (HeeftScharnierCheck(r) && checks?.ScharnierPositiesOk != true)
             return "Controleer de systeemgaten";
 
-        return "Alle checks voor dit paneel zijn klaar";
+        return "Alle controles voor dit paneel zijn klaar";
     }
 
     private string HuidigeControleHint(int index, PaneelResultaat r)
@@ -524,7 +524,7 @@ else if (_fase == VerificatieFase.Afronding)
     private string PaneelTabStatusTekst(int index, PaneelResultaat r)
         => AlleChecksVoorPaneel(index, r)
             ? "Klaar"
-            : $"{AantalAfgevinktVoorPaneel(index, r)}/{TotaalChecksVoorPaneel(r)} checks";
+            : $"{AantalAfgevinktVoorPaneel(index, r)}/{TotaalChecksVoorPaneel(r)} controles";
 
     private void GaNaarPaneel(int index)
     {
