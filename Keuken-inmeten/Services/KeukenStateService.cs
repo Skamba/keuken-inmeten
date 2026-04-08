@@ -32,25 +32,27 @@ public class KeukenStateService
 
     public void Laden(KeukenData data)
     {
+        var genormaliseerd = KeukenDomeinValidatieService.NormaliseerData(data);
         Wanden.Clear();
         Kasten.Clear();
         Apparaten.Clear();
         Toewijzingen.Clear();
         KastTemplates.Clear();
 
-        Wanden.AddRange(data.Wanden);
-        Kasten.AddRange(data.Kasten);
-        Apparaten.AddRange(data.Apparaten);
-        Toewijzingen.AddRange(data.Toewijzingen);
-        KastTemplates.AddRange(data.KastTemplates);
-        LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(data.LaatstGebruiktePotHartVanRand);
-        PaneelRandSpeling = PaneelSpelingService.NormaliseerRandSpeling(data.PaneelRandSpeling);
+        Wanden.AddRange(genormaliseerd.Wanden);
+        Kasten.AddRange(genormaliseerd.Kasten);
+        Apparaten.AddRange(genormaliseerd.Apparaten);
+        Toewijzingen.AddRange(genormaliseerd.Toewijzingen);
+        KastTemplates.AddRange(genormaliseerd.KastTemplates);
+        LaatstGebruiktePotHartVanRand = genormaliseerd.LaatstGebruiktePotHartVanRand;
+        PaneelRandSpeling = genormaliseerd.PaneelRandSpeling;
     }
 
     // --- Wanden ---
 
     public void VoegWandToe(KeukenWand wand)
     {
+        SynchroniseerWand(wand, KeukenDomeinValidatieService.NormaliseerWand(wand));
         Wanden.Add(wand);
         NotifyChanged();
     }
@@ -69,12 +71,15 @@ public class KeukenStateService
         NotifyChanged();
     }
 
-    public void WerkWandBij(KeukenWand wand)
+    public bool WerkWandBij(KeukenWand wand)
     {
         var index = Wanden.FindIndex(w => w.Id == wand.Id);
-        if (index >= 0)
-            Wanden[index] = wand;
+        if (index < 0)
+            return false;
+
+        Wanden[index] = KeukenDomeinValidatieService.NormaliseerWand(wand);
         NotifyChanged();
+        return true;
     }
 
     public bool HernoemWand(Guid id, string naam)
@@ -170,10 +175,14 @@ public class KeukenStateService
 
     // --- Kasten ---
 
-    public void VoegKastToe(Kast kast, Guid wandId)
+    public bool VoegKastToe(Kast kast, Guid wandId)
     {
-        VoegKastToeZonderNotify(kast, wandId);
+        SynchroniseerKast(kast, KeukenDomeinValidatieService.NormaliseerKast(kast));
+        if (!VoegKastToeZonderNotify(kast, wandId))
+            return false;
+
         NotifyChanged();
+        return true;
     }
 
     public void VerwijderAlleKasten()
@@ -199,13 +208,17 @@ public class KeukenStateService
             wand.KastIds.Remove(id);
     }
 
-    public void WerkKastBij(Kast kast)
+    public bool WerkKastBij(Kast kast)
     {
-        var index = Kasten.FindIndex(k => k.Id == kast.Id);
-        if (index >= 0)
-            Kasten[index] = kast;
-        BijwerkenKastTemplate(kast);
+        var genormaliseerd = KeukenDomeinValidatieService.NormaliseerKast(kast);
+        var index = Kasten.FindIndex(k => k.Id == genormaliseerd.Id);
+        if (index < 0)
+            return false;
+
+        Kasten[index] = genormaliseerd;
+        BijwerkenKastTemplate(genormaliseerd);
         NotifyChanged();
+        return true;
     }
 
     public bool VerplaatsKast(Guid id, double xPositie, double hoogteVanVloer)
@@ -214,11 +227,13 @@ public class KeukenStateService
         if (kast is null)
             return false;
 
-        if (ZijnBijnaGelijk(kast.XPositie, xPositie) && ZijnBijnaGelijk(kast.HoogteVanVloer, hoogteVanVloer))
+        var genormaliseerdeX = KeukenDomeinValidatieService.NormaliseerPositie(xPositie);
+        var genormaliseerdeHoogte = KeukenDomeinValidatieService.NormaliseerPositie(hoogteVanVloer);
+        if (ZijnBijnaGelijk(kast.XPositie, genormaliseerdeX) && ZijnBijnaGelijk(kast.HoogteVanVloer, genormaliseerdeHoogte))
             return false;
 
-        kast.XPositie = xPositie;
-        kast.HoogteVanVloer = hoogteVanVloer;
+        kast.XPositie = genormaliseerdeX;
+        kast.HoogteVanVloer = genormaliseerdeHoogte;
         NotifyChanged();
         return true;
     }
@@ -232,7 +247,7 @@ public class KeukenStateService
         var plank = new Plank
         {
             Id = plankId ?? Guid.NewGuid(),
-            HoogteVanBodem = hoogteVanBodem
+            HoogteVanBodem = KeukenDomeinValidatieService.NormaliseerPlankHoogte(hoogteVanBodem, kast.Hoogte)
         };
 
         VoegPlankToeZonderNotify(kast, plank, index);
@@ -244,10 +259,14 @@ public class KeukenStateService
     {
         var kast = Kasten.Find(item => item.Id == kastId);
         var plank = kast?.Planken.Find(item => item.Id == plankId);
-        if (plank is null || ZijnBijnaGelijk(plank.HoogteVanBodem, hoogteVanBodem))
+        if (plank is null || kast is null)
             return false;
 
-        plank.HoogteVanBodem = hoogteVanBodem;
+        var genormaliseerdeHoogte = KeukenDomeinValidatieService.NormaliseerPlankHoogte(hoogteVanBodem, kast.Hoogte);
+        if (ZijnBijnaGelijk(plank.HoogteVanBodem, genormaliseerdeHoogte))
+            return false;
+
+        plank.HoogteVanBodem = genormaliseerdeHoogte;
         NotifyChanged();
         return true;
     }
@@ -273,7 +292,7 @@ public class KeukenStateService
         var kopie = new Plank
         {
             Id = plank.Id,
-            HoogteVanBodem = plank.HoogteVanBodem
+            HoogteVanBodem = KeukenDomeinValidatieService.NormaliseerPlankHoogte(plank.HoogteVanBodem, kast.Hoogte)
         };
 
         VoegPlankToeZonderNotify(kast, kopie, index);
@@ -287,9 +306,11 @@ public class KeukenStateService
         if (wand is null)
             return false;
 
-        VoegKastToeZonderNotify(kast, wandId, kastIndex);
+        if (!VoegKastToeZonderNotify(KeukenDomeinValidatieService.NormaliseerKast(kast), wandId, kastIndex))
+            return false;
+
         foreach (var toewijzing in toewijzingen.OrderBy(item => item.Index))
-            VoegToewijzingToeZonderNotify(toewijzing.Toewijzing, toewijzing.Index);
+            VoegToewijzingToeZonderNotify(KeukenDomeinValidatieService.NormaliseerToewijzing(toewijzing.Toewijzing), toewijzing.Index);
 
         NotifyChanged();
         return true;
@@ -342,10 +363,14 @@ public class KeukenStateService
 
     // --- Apparaten ---
 
-    public void VoegApparaatToe(Apparaat apparaat, Guid wandId)
+    public bool VoegApparaatToe(Apparaat apparaat, Guid wandId)
     {
-        VoegApparaatToeZonderNotify(apparaat, wandId);
+        SynchroniseerApparaat(apparaat, KeukenDomeinValidatieService.NormaliseerApparaat(apparaat));
+        if (!VoegApparaatToeZonderNotify(apparaat, wandId))
+            return false;
+
         NotifyChanged();
+        return true;
     }
 
     public void VerwijderApparaat(Guid id)
@@ -361,12 +386,16 @@ public class KeukenStateService
             wand.ApparaatIds.Remove(id);
     }
 
-    public void WerkApparaatBij(Apparaat apparaat)
+    public bool WerkApparaatBij(Apparaat apparaat)
     {
-        var index = Apparaten.FindIndex(a => a.Id == apparaat.Id);
-        if (index >= 0)
-            Apparaten[index] = apparaat;
+        var genormaliseerd = KeukenDomeinValidatieService.NormaliseerApparaat(apparaat);
+        var index = Apparaten.FindIndex(a => a.Id == genormaliseerd.Id);
+        if (index < 0)
+            return false;
+
+        Apparaten[index] = genormaliseerd;
         NotifyChanged();
+        return true;
     }
 
     public bool VerplaatsApparaat(Guid id, double xPositie, double hoogteVanVloer)
@@ -375,11 +404,13 @@ public class KeukenStateService
         if (apparaat is null)
             return false;
 
-        if (ZijnBijnaGelijk(apparaat.XPositie, xPositie) && ZijnBijnaGelijk(apparaat.HoogteVanVloer, hoogteVanVloer))
+        var genormaliseerdeX = KeukenDomeinValidatieService.NormaliseerPositie(xPositie);
+        var genormaliseerdeHoogte = KeukenDomeinValidatieService.NormaliseerPositie(hoogteVanVloer);
+        if (ZijnBijnaGelijk(apparaat.XPositie, genormaliseerdeX) && ZijnBijnaGelijk(apparaat.HoogteVanVloer, genormaliseerdeHoogte))
             return false;
 
-        apparaat.XPositie = xPositie;
-        apparaat.HoogteVanVloer = hoogteVanVloer;
+        apparaat.XPositie = genormaliseerdeX;
+        apparaat.HoogteVanVloer = genormaliseerdeHoogte;
         NotifyChanged();
         return true;
     }
@@ -390,7 +421,9 @@ public class KeukenStateService
         if (wand is null)
             return false;
 
-        VoegApparaatToeZonderNotify(apparaat, wandId, index);
+        if (!VoegApparaatToeZonderNotify(KeukenDomeinValidatieService.NormaliseerApparaat(apparaat), wandId, index))
+            return false;
+
         NotifyChanged();
         return true;
     }
@@ -417,20 +450,21 @@ public class KeukenStateService
 
     public void VoegToewijzingToe(PaneelToewijzing toewijzing)
     {
-        VoegToewijzingToeZonderNotify(toewijzing);
+        VoegToewijzingToeZonderNotify(KeukenDomeinValidatieService.NormaliseerToewijzing(toewijzing));
         NotifyChanged();
     }
 
     public void WerkToewijzingBij(PaneelToewijzing toewijzing)
     {
-        var index = Toewijzingen.FindIndex(t => t.Id == toewijzing.Id);
+        var genormaliseerd = KeukenDomeinValidatieService.NormaliseerToewijzing(toewijzing);
+        var index = Toewijzingen.FindIndex(t => t.Id == genormaliseerd.Id);
         if (index < 0)
             return;
 
-        if (toewijzing.Type == PaneelType.Deur)
-            LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
+        if (genormaliseerd.Type == PaneelType.Deur)
+            LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(genormaliseerd.PotHartVanRand);
 
-        Toewijzingen[index] = toewijzing;
+        Toewijzingen[index] = genormaliseerd;
         NotifyChanged();
     }
 
@@ -442,7 +476,7 @@ public class KeukenStateService
 
     public bool HerstelToewijzing(PaneelToewijzing toewijzing, int index)
     {
-        VoegToewijzingToeZonderNotify(toewijzing, index);
+        VoegToewijzingToeZonderNotify(KeukenDomeinValidatieService.NormaliseerToewijzing(toewijzing), index);
         NotifyChanged();
         return true;
     }
@@ -499,19 +533,20 @@ public class KeukenStateService
             .ToList();
     }
 
-    private void VoegKastToeZonderNotify(Kast kast, Guid wandId, int? index = null)
+    private bool VoegKastToeZonderNotify(Kast kast, Guid wandId, int? index = null)
     {
-        Kasten.Add(kast);
         var wand = Wanden.Find(item => item.Id == wandId);
-        if (wand is not null)
-        {
-            if (index is int insertIndex)
-                wand.KastIds.Insert(Math.Clamp(insertIndex, 0, wand.KastIds.Count), kast.Id);
-            else
-                wand.KastIds.Add(kast.Id);
-        }
+        if (wand is null)
+            return false;
+
+        Kasten.Add(kast);
+        if (index is int insertIndex)
+            wand.KastIds.Insert(Math.Clamp(insertIndex, 0, wand.KastIds.Count), kast.Id);
+        else
+            wand.KastIds.Add(kast.Id);
 
         BijwerkenKastTemplate(kast);
+        return true;
     }
 
     private static void VoegPlankToeZonderNotify(Kast kast, Plank plank, int? index = null)
@@ -522,17 +557,19 @@ public class KeukenStateService
             kast.Planken.Add(plank);
     }
 
-    private void VoegApparaatToeZonderNotify(Apparaat apparaat, Guid wandId, int? index = null)
+    private bool VoegApparaatToeZonderNotify(Apparaat apparaat, Guid wandId, int? index = null)
     {
-        Apparaten.Add(apparaat);
         var wand = Wanden.Find(item => item.Id == wandId);
-        if (wand is not null)
-        {
-            if (index is int insertIndex)
-                wand.ApparaatIds.Insert(Math.Clamp(insertIndex, 0, wand.ApparaatIds.Count), apparaat.Id);
-            else
-                wand.ApparaatIds.Add(apparaat.Id);
-        }
+        if (wand is null)
+            return false;
+
+        Apparaten.Add(apparaat);
+        if (index is int insertIndex)
+            wand.ApparaatIds.Insert(Math.Clamp(insertIndex, 0, wand.ApparaatIds.Count), apparaat.Id);
+        else
+            wand.ApparaatIds.Add(apparaat.Id);
+
+        return true;
     }
 
     private void VoegToewijzingToeZonderNotify(PaneelToewijzing toewijzing, int? index = null)
@@ -548,6 +585,46 @@ public class KeukenStateService
 
     private static bool ZijnBijnaGelijk(double links, double rechts)
         => Math.Abs(links - rechts) < 0.001;
+
+    private static void SynchroniseerWand(KeukenWand doel, KeukenWand bron)
+    {
+        doel.Id = bron.Id;
+        doel.Naam = bron.Naam;
+        doel.Breedte = bron.Breedte;
+        doel.Hoogte = bron.Hoogte;
+        doel.PlintHoogte = bron.PlintHoogte;
+        doel.KastIds = bron.KastIds;
+        doel.ApparaatIds = bron.ApparaatIds;
+    }
+
+    private static void SynchroniseerKast(Kast doel, Kast bron)
+    {
+        doel.Id = bron.Id;
+        doel.Naam = bron.Naam;
+        doel.Type = bron.Type;
+        doel.Breedte = bron.Breedte;
+        doel.Hoogte = bron.Hoogte;
+        doel.Diepte = bron.Diepte;
+        doel.Wanddikte = bron.Wanddikte;
+        doel.GaatjesAfstand = bron.GaatjesAfstand;
+        doel.EersteGaatVanBoven = bron.EersteGaatVanBoven;
+        doel.HoogteVanVloer = bron.HoogteVanVloer;
+        doel.XPositie = bron.XPositie;
+        doel.MontagePlaatPosities = bron.MontagePlaatPosities;
+        doel.Planken = bron.Planken;
+    }
+
+    private static void SynchroniseerApparaat(Apparaat doel, Apparaat bron)
+    {
+        doel.Id = bron.Id;
+        doel.Naam = bron.Naam;
+        doel.Type = bron.Type;
+        doel.Breedte = bron.Breedte;
+        doel.Hoogte = bron.Hoogte;
+        doel.Diepte = bron.Diepte;
+        doel.HoogteVanVloer = bron.HoogteVanVloer;
+        doel.XPositie = bron.XPositie;
+    }
 }
 
 public sealed record GeindexeerdeToewijzing(PaneelToewijzing Toewijzing, int Index);

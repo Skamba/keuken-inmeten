@@ -39,14 +39,12 @@ public static class KeukenDataMigratieService
         return true;
     }
 
-    private static KeukenData MaakGenormaliseerdeKopie(KeukenData data, bool behoudTemplates) => new()
+    private static KeukenData MaakGenormaliseerdeKopie(KeukenData data, bool behoudTemplates)
     {
-        Wanden = [.. data.Wanden],
-        Kasten = [.. data.Kasten],
-        Apparaten = [.. data.Apparaten],
-        Toewijzingen = [.. data.Toewijzingen],
-        KastTemplates = behoudTemplates ? [.. data.KastTemplates] : [],
-        LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(data.LaatstGebruiktePotHartVanRand),
-        PaneelRandSpeling = PaneelSpelingService.NormaliseerRandSpeling(data.PaneelRandSpeling)
-    };
+        var genormaliseerd = KeukenDomeinValidatieService.NormaliseerData(data);
+        if (!behoudTemplates)
+            genormaliseerd.KastTemplates = [];
+
+        return genormaliseerd;
+    }
 }

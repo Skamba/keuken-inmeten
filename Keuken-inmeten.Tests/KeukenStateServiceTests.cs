@@ -148,6 +148,125 @@ public class KeukenStateServiceTests
         Assert.Equal(4, notificaties);
     }
 
+    [Fact]
+    public void VoegKastToe_normailseert_ongeldige_shape_buiten_ui_flow()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        state.VoegWandToe(wand);
+
+        state.VoegKastToe(new Kast
+        {
+            Naam = "  Testkast  ",
+            Breedte = -10,
+            Hoogte = 0,
+            Diepte = -20,
+            Wanddikte = -1,
+            GaatjesAfstand = 0,
+            EersteGaatVanBoven = -2,
+            XPositie = -50,
+            HoogteVanVloer = -25,
+            Planken = [new Plank { HoogteVanBodem = 9999 }]
+        }, wand.Id);
+
+        var kast = Assert.Single(state.Kasten);
+        Assert.Equal("Testkast", kast.Naam);
+        Assert.Equal(600, kast.Breedte);
+        Assert.Equal(720, kast.Hoogte);
+        Assert.Equal(560, kast.Diepte);
+        Assert.Equal(18, kast.Wanddikte);
+        Assert.Equal(32, kast.GaatjesAfstand);
+        Assert.Equal(19, kast.EersteGaatVanBoven);
+        Assert.Equal(0, kast.XPositie);
+        Assert.Equal(0, kast.HoogteVanVloer);
+        Assert.Equal(720, kast.Planken[0].HoogteVanBodem);
+        Assert.NotEmpty(kast.MontagePlaatPosities);
+    }
+
+    [Fact]
+    public void VoegKastToe_zonder_bestaande_wand_voegt_niets_toe()
+    {
+        var state = new KeukenStateService();
+
+        var toegevoegd = state.VoegKastToe(MaakKast("Losse kast"), Guid.NewGuid());
+
+        Assert.False(toegevoegd);
+        Assert.Empty(state.Kasten);
+    }
+
+    [Fact]
+    public void WerkKastBij_zonder_bestaande_kast_wordt_afgewezen_zonder_state_change()
+    {
+        var state = new KeukenStateService();
+        var notificaties = 0;
+        state.OnStateChanged += () => notificaties++;
+
+        var gewijzigd = state.WerkKastBij(MaakKast("Losse kast"));
+
+        Assert.False(gewijzigd);
+        Assert.Equal(0, notificaties);
+    }
+
+    [Fact]
+    public void Laden_gebruikt_dezelfde_domeinvalidatie_als_importpaden()
+    {
+        var state = new KeukenStateService();
+
+        state.Laden(new KeukenData
+        {
+            Wanden =
+            [
+                new KeukenWand
+                {
+                    Naam = "  Achterwand  ",
+                    Breedte = -10,
+                    Hoogte = 0
+                }
+            ],
+            Kasten =
+            [
+                new Kast
+                {
+                    Naam = "  Kast  ",
+                    Breedte = -10,
+                    Hoogte = 0,
+                    Diepte = -20,
+                    XPositie = -5
+                }
+            ],
+            Apparaten =
+            [
+                new Apparaat
+                {
+                    Naam = "  Oven  ",
+                    Type = (ApparaatType)99,
+                    Breedte = -1,
+                    Hoogte = -1,
+                    Diepte = -1,
+                    XPositie = -10
+                }
+            ],
+            Toewijzingen =
+            [
+                new PaneelToewijzing
+                {
+                    Type = (PaneelType)99,
+                    ScharnierZijde = (ScharnierZijde)99,
+                    PotHartVanRand = 5,
+                    Breedte = -1,
+                    Hoogte = 0,
+                    XPositie = -10
+                }
+            ]
+        });
+
+        Assert.Equal("Achterwand", Assert.Single(state.Wanden).Naam);
+        Assert.Equal(600, Assert.Single(state.Kasten).Breedte);
+        Assert.Equal(ApparaatType.Oven, Assert.Single(state.Apparaten).Type);
+        Assert.Equal(PaneelType.Deur, Assert.Single(state.Toewijzingen).Type);
+        Assert.Equal(1, state.Toewijzingen[0].Breedte);
+    }
+
     private static KeukenWand MaakWand(string naam) => new()
     {
         Naam = naam,
