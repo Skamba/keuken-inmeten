@@ -250,6 +250,12 @@
                 <hr class="my-2" />
             }
 
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Basisgegevens</h6>
+                <span class="text-muted small">Voldoende voor een standaardkast</span>
+            </div>
+            <p class="text-muted small mb-3">Vul eerst alleen de kerngegevens in. Technische kastdetails zijn alleen nodig als deze kast afwijkt van de standaard.</p>
+
             <div class="row g-3 mb-3">
                 <div class="col-md-4">
                     <label class="form-label">Wand</label>
@@ -268,47 +274,62 @@
             </div>
 
             <div class="row g-3 mb-3">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Breedte (mm)</label>
                     <input type="number" class="form-control" @bind="formKast.Breedte" min="100" step="10" />
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Hoogte (mm)</label>
                     <input type="number" class="form-control" @bind="formKast.Hoogte" @bind:after="AutoBerekenPosities" min="100" step="10" />
                     <div class="form-text">Type: <span class="badge @TypeBadge(InferKastType(formKast.Hoogte))">@InferKastType(formKast.Hoogte)</span></div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Diepte (mm)</label>
                     <input type="number" class="form-control" @bind="formKast.Diepte" min="100" step="10" />
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Dikte van de kastwand (mm)</label>
-                    <input type="number" class="form-control" @bind="formKast.Wanddikte" @bind:after="AutoBerekenPosities" min="1" step="1" />
+            </div>
+
+            <div class="card border-0 bg-body-tertiary mb-3">
+                <div class="card-body">
+                    <button type="button"
+                            class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center gap-3"
+                            @onclick="ToggleTechnischeInstellingen">
+                        <span class="text-start">
+                            <span class="d-block fw-semibold">Afwijkende gaatjesrij of kastdetails</span>
+                            <span class="small text-muted">Open alleen als deze kast afwijkt van de standaard voor wanddikte, systeemgaten of planken.</span>
+                        </span>
+                        <span class="fs-5" aria-hidden="true">@(toonTechnischeInstellingen ? "−" : "+")</span>
+                    </button>
+
+                    @if (toonTechnischeInstellingen)
+                    {
+                        <div class="mt-3">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Dikte van de kastwand (mm)</label>
+                                    <input type="number" class="form-control" @bind="formKast.Wanddikte" @bind:after="AutoBerekenPosities" min="1" step="1" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Afstand tussen systeemgaten (mm)</label>
+                                    <input type="number" class="form-control" @bind="formKast.GaatjesAfstand" @bind:after="AutoBerekenPosities" min="1" step="1" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Afstand onderkant bovenplank tot eerste gat (mm)</label>
+                                    <input type="number" class="form-control" @bind="formKast.EersteGaatVanBoven" @bind:after="AutoBerekenPosities" min="1" step="1" />
+                                    <div class="form-text">Meet vanaf de onderkant van de bovenste plank naar het eerste gat.</div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mb-3">
+                                <KastVisueel Kast="@formKast" MaxHoogte="160" />
+                            </div>
+
+                            <p class="text-muted small mb-0"><em>Tip: dubbelklik in de wandopstelling om een plank toe te voegen. Sleep planken of gebruik de pijltjestoetsen. Selecteer een plank en druk Delete om hem te verwijderen.</em></p>
+                        </div>
+                    }
                 </div>
             </div>
 
-            @* ── Gaatjesrij ── *@
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="mb-0">Rij systeemgaten (gaatjesrij)</h6>
-            </div>
-            <p class="text-muted small mb-2">Rij gaten in de zijwand voor montage van scharnieren. Meet altijd vanaf de onderkant van de bovenste plank naar het eerste gat.</p>
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">Afstand tussen systeemgaten (mm)</label>
-                    <input type="number" class="form-control" @bind="formKast.GaatjesAfstand" @bind:after="AutoBerekenPosities" min="1" step="1" />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Afstand onderkant bovenplank tot eerste gat (mm)</label>
-                    <input type="number" class="form-control" @bind="formKast.EersteGaatVanBoven" @bind:after="AutoBerekenPosities" min="1" step="1" />
-                    <div class="form-text">Meet vanaf de onderkant van de bovenste plank naar het eerste gat.</div>
-                </div>
-            </div>
-
-            <div class="text-center mb-3">
-                <KastVisueel Kast="@formKast" MaxHoogte="160" />
-            </div>
-
-            <p class="text-muted small mb-3"><em>Tip: dubbelklik in de wandopstelling om een plank toe te voegen. Sleep planken of gebruik de pijltjestoetsen. Selecteer een plank en druk Delete om hem te verwijderen.</em></p>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-primary" @onclick="KastOpslaan"
                         disabled="@string.IsNullOrWhiteSpace(formKast.Naam)">
@@ -409,6 +430,7 @@
     private bool isBewerken;
     private Guid? bewerkKastId;
     private bool toonKastFormulier;
+    private bool toonTechnischeInstellingen;
 
     private Apparaat formApparaat = NieuwApparaat();
     private bool isApparaatBewerken;
@@ -467,6 +489,7 @@
         formKast = NieuweKastMetVorigeWaarden();
         isBewerken = false;
         bewerkKastId = null;
+        toonTechnischeInstellingen = HeeftAfwijkendeTechnischeInstellingen(formKast);
         toonKastFormulier = true;
         AutoBerekenPosities();
     }
@@ -481,6 +504,7 @@
         formKast.GaatjesAfstand = template.GaatjesAfstand;
         formKast.EersteGaatVanBoven = template.EersteGaatVanBoven;
         formKast.Type = InferKastType(formKast.Hoogte);
+        toonTechnischeInstellingen = HeeftAfwijkendeTechnischeInstellingen(formKast);
         AutoBerekenPosities();
     }
 
@@ -490,6 +514,7 @@
         formKast = NieuweKast();
         isBewerken = false;
         bewerkKastId = null;
+        toonTechnischeInstellingen = false;
         toonKastFormulier = false;
     }
 
@@ -534,6 +559,7 @@
         formKast = NieuweKastMetVorigeWaarden();
         isBewerken = false;
         bewerkKastId = null;
+        toonTechnischeInstellingen = false;
         toonKastFormulier = false;
     }
 
@@ -565,8 +591,12 @@
             XPositie = kast.XPositie,
             MontagePlaatPosities = kast.MontagePlaatPosities
                 .Select(p => new MontagePlaatPositie { AfstandVanBoven = p.AfstandVanBoven, Zijde = p.Zijde })
+                .ToList(),
+            Planken = kast.Planken
+                .Select(p => new Plank { HoogteVanBodem = p.HoogteVanBodem })
                 .ToList()
         };
+        toonTechnischeInstellingen = HeeftAfwijkendeTechnischeInstellingen(formKast);
     }
 
     private Kast NieuweKastMetVorigeWaarden()
@@ -642,6 +672,15 @@
             .ThenBy(p => p.Zijde)
             .ToList();
     }
+
+    private void ToggleTechnischeInstellingen()
+        => toonTechnischeInstellingen = !toonTechnischeInstellingen;
+
+    private static bool HeeftAfwijkendeTechnischeInstellingen(Kast kast)
+        => Math.Abs(kast.Wanddikte - 18) > 0.001
+            || Math.Abs(kast.GaatjesAfstand - 32) > 0.001
+            || Math.Abs(kast.EersteGaatVanBoven - 19) > 0.001
+            || kast.Planken.Count > 0;
 
     private void WijzigWandAfmeting(KeukenWand wand, string eigenschap, ChangeEventArgs e)
     {
