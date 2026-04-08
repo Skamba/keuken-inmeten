@@ -19,10 +19,8 @@
 }
 else
 {
-    @{
-        var paneelReviewGroepen = OverzichtGroeperingHelper.GroepeerPaneelToewijzingen(State);
-        var paneelTypeTellingen = OverzichtGroeperingHelper.MaakTellingen(State.Toewijzingen, toewijzing => TypeNaam(toewijzing.Type));
-    }
+    var paneelReviewGroepen = OverzichtGroeperingHelper.GroepeerPaneelToewijzingen(State);
+    var paneelTypeTellingen = OverzichtGroeperingHelper.MaakTellingen(State.Toewijzingen, toewijzing => TypeNaam(toewijzing.Type));
 
     <div class="row g-4">
         <div class="col-xl-7 col-lg-6">
