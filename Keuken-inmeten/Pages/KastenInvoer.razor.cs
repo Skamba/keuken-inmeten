@@ -21,12 +21,20 @@ public partial class KastenInvoer
     private Guid? bewerkKastId;
     private bool toonKastFormulier;
     private bool toonTechnischeInstellingen;
+    private int kastFormStap = 1;
 
     private Apparaat formApparaat = NieuwApparaat();
     private bool isApparaatBewerken;
     private Guid? bewerkApparaatId;
     private bool toonApparaatFormulier;
     private Guid? bevestigVerwijderApparaatId;
+    private int apparaatFormStap = 1;
+
+    private const int LaatsteKastFormStap = 4;
+    private const int LaatsteApparaatFormStap = 3;
+
+    private static readonly string[] KastFormStappen = ["Basis", "Maten", "Techniek", "Controle"];
+    private static readonly string[] ApparaatFormStappen = ["Basis", "Maten", "Controle"];
 
     protected override void OnInitialized()
         => State.OnStateChanged += HandleStateChanged;
@@ -113,6 +121,7 @@ public partial class KastenInvoer
         formKast = NieuweKastMetVorigeWaarden();
         isBewerken = false;
         bewerkKastId = null;
+        kastFormStap = 1;
         toonTechnischeInstellingen = HeeftAfwijkendeTechnischeInstellingen(formKast);
         toonKastFormulier = true;
         AutoBerekenPosities();
@@ -130,6 +139,7 @@ public partial class KastenInvoer
         formKast = NieuweKast();
         isBewerken = false;
         bewerkKastId = null;
+        kastFormStap = 1;
         toonTechnischeInstellingen = false;
         toonKastFormulier = false;
     }
@@ -170,6 +180,7 @@ public partial class KastenInvoer
         formKast = NieuweKastMetVorigeWaarden();
         isBewerken = false;
         bewerkKastId = null;
+        kastFormStap = 1;
         toonTechnischeInstellingen = false;
         toonKastFormulier = false;
     }
@@ -186,6 +197,7 @@ public partial class KastenInvoer
         OpenWandWerkruimte(wandId);
         isBewerken = true;
         bewerkKastId = kast.Id;
+        kastFormStap = 1;
         toonKastFormulier = true;
         formKast = KopieerKast(kast);
         toonTechnischeInstellingen = HeeftAfwijkendeTechnischeInstellingen(formKast);
@@ -236,6 +248,48 @@ public partial class KastenInvoer
 
     private static bool HeeftAfwijkendeTechnischeInstellingen(Kast kast)
         => IndelingFormulierHelper.HeeftAfwijkendeTechnischeInstellingen(kast);
+
+    private static string KastFormStapLabel(int stap)
+        => KastFormStappen[stap - 1];
+
+    private static string ApparaatFormStapLabel(int stap)
+        => ApparaatFormStappen[stap - 1];
+
+    private static int StapVoortgang(int huidigeStap, int totaalStappen)
+        => (int)Math.Round(huidigeStap * 100.0 / totaalStappen, MidpointRounding.AwayFromZero);
+
+    private string ActieveWandNaam()
+        => actieveWandId is Guid id
+            ? State.Wanden.Find(wand => wand.Id == id)?.Naam ?? "Onbekende wand"
+            : "Geen wand gekozen";
+
+    private bool KanNaarVolgendeKastStap()
+        => kastFormStap switch
+        {
+            1 => actieveWandId is not null && !string.IsNullOrWhiteSpace(formKast.Naam),
+            2 => formKast.Breedte > 0 && formKast.Hoogte > 0 && formKast.Diepte > 0,
+            3 => !toonTechnischeInstellingen
+                || (formKast.Wanddikte > 0
+                    && formKast.GaatjesAfstand > 0
+                    && formKast.EersteGaatVanBoven > 0),
+            _ => false
+        };
+
+    private void VolgendeKastFormStap()
+    {
+        if (kastFormStap >= LaatsteKastFormStap || !KanNaarVolgendeKastStap())
+            return;
+
+        kastFormStap++;
+    }
+
+    private void VorigeKastFormStap()
+    {
+        if (kastFormStap <= 1)
+            return;
+
+        kastFormStap--;
+    }
 
     private void WijzigWandAfmeting(KeukenWand wand, string eigenschap, ChangeEventArgs e)
     {
@@ -294,6 +348,7 @@ public partial class KastenInvoer
         formApparaat = NieuwApparaat();
         isApparaatBewerken = false;
         bewerkApparaatId = null;
+        apparaatFormStap = 1;
         toonApparaatFormulier = true;
     }
 
@@ -303,6 +358,31 @@ public partial class KastenInvoer
         formApparaat = NieuwApparaat();
         isApparaatBewerken = false;
         bewerkApparaatId = null;
+        apparaatFormStap = 1;
+    }
+
+    private bool KanNaarVolgendeApparaatStap()
+        => apparaatFormStap switch
+        {
+            1 => !string.IsNullOrWhiteSpace(formApparaat.Naam),
+            2 => formApparaat.Breedte > 0 && formApparaat.Hoogte > 0 && formApparaat.Diepte > 0,
+            _ => false
+        };
+
+    private void VolgendeApparaatFormStap()
+    {
+        if (apparaatFormStap >= LaatsteApparaatFormStap || !KanNaarVolgendeApparaatStap())
+            return;
+
+        apparaatFormStap++;
+    }
+
+    private void VorigeApparaatFormStap()
+    {
+        if (apparaatFormStap <= 1)
+            return;
+
+        apparaatFormStap--;
     }
 
     private void OnApparaatTypeGewijzigd(ChangeEventArgs e)
@@ -357,6 +437,7 @@ public partial class KastenInvoer
         OpenWandWerkruimte(wandId);
         isApparaatBewerken = true;
         bewerkApparaatId = apparaat.Id;
+        apparaatFormStap = 1;
         toonApparaatFormulier = true;
         formApparaat = KopieerApparaat(apparaat);
     }

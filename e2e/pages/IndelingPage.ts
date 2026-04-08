@@ -47,7 +47,7 @@ export class IndelingPage {
     await expect(this.actieveWerkruimte(wandNaam)).toBeVisible();
   }
 
-  async voegKastToeAanWand(wandNaam: string, kast: KastGegevens) {
+  async openKastFormulierVoorWand(wandNaam: string) {
     await this.openWandWerkruimte(wandNaam);
 
     const werkruimte = this.actieveWerkruimte(wandNaam);
@@ -55,11 +55,30 @@ export class IndelingPage {
 
     const formulier = this.page.getByTestId('kast-form');
     await expect(formulier).toBeVisible();
+    return formulier;
+  }
+
+  async expectKastFormStap(stapLabel: string) {
+    await expect(this.page.getByTestId('kast-form-stap-label')).toContainText(stapLabel);
+  }
+
+  async gaNaarVolgendeKastFormStap() {
+    await this.page.getByTestId('kast-form-volgende-button').click();
+  }
+
+  async voegKastToeAanWand(wandNaam: string, kast: KastGegevens) {
+    const formulier = await this.openKastFormulierVoorWand(wandNaam);
+    const werkruimte = this.actieveWerkruimte(wandNaam);
 
     await this.page.getByTestId('kast-naam-input').fill(kast.naam);
+    await this.gaNaarVolgendeKastFormStap();
+
     await this.page.getByTestId('kast-breedte-input').fill(kast.breedte.toString());
     await this.page.getByTestId('kast-hoogte-input').fill(kast.hoogte.toString());
     await this.page.getByTestId('kast-diepte-input').fill(kast.diepte.toString());
+    await this.gaNaarVolgendeKastFormStap();
+    await this.gaNaarVolgendeKastFormStap();
+
     await this.page.getByTestId('kast-opslaan-button').click();
 
     await expect(formulier).toBeHidden();
