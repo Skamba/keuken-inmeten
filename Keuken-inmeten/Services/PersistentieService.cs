@@ -20,6 +20,10 @@ public class PersistentieService : IDisposable
     private bool _bewaarGepland;
     public bool HeeftGedeeldeLinkGeladen { get; private set; }
     public bool HeeftOngeldigeDeelLink { get; private set; }
+    public event Action? OnOpslagStatusChanged;
+    public bool HeeftOpslagStatus => !string.IsNullOrWhiteSpace(OpslagStatusTekst);
+    public string? OpslagStatusTekst { get; private set; }
+    public OpslagStatusType OpslagStatus { get; private set; } = OpslagStatusType.Opgeslagen;
 
     public PersistentieService(IJSRuntime js, KeukenStateService state, NavigationManager navigation)
     {
@@ -33,6 +37,7 @@ public class PersistentieService : IDisposable
     {
         if (_bewaarGepland) return;
         _bewaarGepland = true;
+        ZetOpslagStatus(OpslagStatusType.Bezig, "Automatisch opslaan...");
         _ = BewaarDebounced();
     }
 
@@ -97,10 +102,13 @@ public class PersistentieService : IDisposable
             var data = _state.Exporteren();
             var json = JsonSerializer.Serialize(data, JsonOpties);
             await _js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
+            ZetOpslagStatus(OpslagStatusType.Opgeslagen, $"Automatisch opgeslagen om {DateTime.Now:HH:mm}");
         }
         catch
         {
-            // Storage quota exceeded or unavailable — silently ignore
+            ZetOpslagStatus(
+                OpslagStatusType.Fout,
+                "Automatisch opslaan lukt niet. Houd dit tabblad open of deel een link.");
         }
     }
 
@@ -151,4 +159,18 @@ public class PersistentieService : IDisposable
     {
         _state.OnStateChanged -= OpStateGewijzigd;
     }
+
+    private void ZetOpslagStatus(OpslagStatusType status, string tekst)
+    {
+        OpslagStatus = status;
+        OpslagStatusTekst = tekst;
+        OnOpslagStatusChanged?.Invoke();
+    }
+}
+
+public enum OpslagStatusType
+{
+    Bezig,
+    Opgeslagen,
+    Fout
 }

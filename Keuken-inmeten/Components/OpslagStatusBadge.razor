@@ -1,0 +1,27 @@
+@inject PersistentieService Persistentie
+@implements IDisposable
+
+@if (Persistentie.HeeftOpslagStatus)
+{
+    <div class="opslag-status opslag-status--@StatusClass(Persistentie.OpslagStatus)">
+        <span class="opslag-status__dot" aria-hidden="true"></span>
+        <span>@Persistentie.OpslagStatusTekst</span>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+        => Persistentie.OnOpslagStatusChanged += HandleChanged;
+
+    public void Dispose()
+        => Persistentie.OnOpslagStatusChanged -= HandleChanged;
+
+    private void HandleChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private static string StatusClass(OpslagStatusType status) => status switch
+    {
+        OpslagStatusType.Bezig => "bezig",
+        OpslagStatusType.Fout => "fout",
+        _ => "opgeslagen"
+    };
+}

@@ -1,5 +1,6 @@
 @using System.Globalization
 @inject IJSRuntime JS
+@inject ActieFeedbackService Feedback
 @implements IAsyncDisposable
 
 <div class="wand-opstelling-container" style="text-align: center;">
@@ -403,16 +404,7 @@
         var plank = kast?.Planken.Find(p => p.Id == plankId);
         if (kast is null || plank is null) return;
 
-        kast.Planken.Remove(plank);
-
-        if (_geselecteerdeePlankId == plankId)
-        {
-            _geselecteerdeePlankId = null;
-            _geselecteerdeePlankKastId = null;
-        }
-
-        await OnKastGewijzigd.InvokeAsync(kastId);
-        StateHasChanged();
+        await VerwijderPlankMetUndoAsync(kast, plank);
     }
 
     [JSInvokable]
@@ -482,9 +474,8 @@
                     plank.HoogteVanBodem = Math.Max(kast.Wanddikte, plank.HoogteVanBodem - stap);
                 else if (key == "Delete")
                 {
-                    kast.Planken.Remove(plank);
-                    _geselecteerdeePlankId = null;
-                    _geselecteerdeePlankKastId = null;
+                    await VerwijderPlankMetUndoAsync(kast, plank);
+                    return;
                 }
                 await OnKastGewijzigd.InvokeAsync(kast.Id);
             }
@@ -507,6 +498,59 @@
         }
         StateHasChanged();
     }
+
+    private async Task VerwijderPlankMetUndoAsync(Kast kast, Plank plank)
+    {
+        var index = kast.Planken.FindIndex(item => item.Id == plank.Id);
+        var snapshot = new PlankVerwijderSnapshot(
+            kast.Id,
+            new Plank
+            {
+                Id = plank.Id,
+                HoogteVanBodem = plank.HoogteVanBodem
+            },
+            index);
+
+        kast.Planken.Remove(plank);
+
+        if (_geselecteerdeePlankId == plank.Id)
+        {
+            _geselecteerdeePlankId = null;
+            _geselecteerdeePlankKastId = null;
+        }
+
+        await OnKastGewijzigd.InvokeAsync(kast.Id);
+        Feedback.ToonInfo(
+            $"Plank in '{kast.Naam}' verwijderd.",
+            "Ongedaan maken",
+            () => HerstelPlankAsync(snapshot));
+        StateHasChanged();
+    }
+
+    private async Task HerstelPlankAsync(PlankVerwijderSnapshot snapshot)
+    {
+        var kast = Kasten.Find(item => item.Id == snapshot.KastId);
+        if (kast is null)
+        {
+            Feedback.ToonFout("Plank kan niet worden teruggezet omdat de kast niet meer bestaat.");
+            return;
+        }
+
+        var index = Math.Clamp(snapshot.Index, 0, kast.Planken.Count);
+        kast.Planken.Insert(index, new Plank
+        {
+            Id = snapshot.Plank.Id,
+            HoogteVanBodem = snapshot.Plank.HoogteVanBodem
+        });
+        _geselecteerdeePlankKastId = kast.Id;
+        _geselecteerdeePlankId = snapshot.Plank.Id;
+
+        await OnKastGewijzigd.InvokeAsync(kast.Id);
+        Feedback.ToonSucces($"Plank in '{kast.Naam}' is teruggezet.");
+        StateHasChanged();
+    }
+
+    private sealed record PlankVerwijderSnapshot(Guid KastId, Plank Plank, int Index);
 
     [JSInvokable]
     public async Task OnKopierenToets(string kastIdStr)

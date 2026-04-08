@@ -17,6 +17,11 @@ public class KeukenStateService
 
     private void NotifyChanged() => OnStateChanged?.Invoke();
 
+    /// <summary>
+    /// Signaleert een wijziging nadat geneste objecten rechtstreeks zijn aangepast.
+    /// </summary>
+    public void MarkeerGewijzigd() => NotifyChanged();
+
     // --- Persistentie helpers ---
 
     public KeukenData Exporteren() => new()

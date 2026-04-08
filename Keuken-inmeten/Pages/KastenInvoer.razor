@@ -1,5 +1,7 @@
 @page "/kasten"
 @inject KeukenStateService State
+@inject ActieFeedbackService Feedback
+@implements IDisposable
 
 <PageTitle>Stap 1 — Keuken indeling</PageTitle>
 
@@ -250,7 +252,7 @@
                             @if (bevestigVerwijderWandId == wand.Id)
                             {
                                 <span class="text-danger small fw-semibold align-self-center">Wand verwijderen?</span>
-                                <button class="btn btn-sm btn-danger" @onclick="() => { State.VerwijderWand(wand.Id); bevestigVerwijderWandId = null; }">Ja, verwijder</button>
+                                <button class="btn btn-sm btn-danger" @onclick="() => BevestigVerwijderWand(wand.Id)">Ja, verwijder</button>
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigVerwijderWandId = null">Annuleren</button>
                             }
                             else
@@ -490,6 +492,14 @@
     private bool toonApparaatFormulier;
     private Guid? bevestigVerwijderApparaatId;
 
+    protected override void OnInitialized()
+        => State.OnStateChanged += HandleStateChanged;
+
+    public void Dispose()
+        => State.OnStateChanged -= HandleStateChanged;
+
+    private void HandleStateChanged() => _ = InvokeAsync(StateHasChanged);
+
     private static Kast NieuweKast() => new()
     {
         Naam = "",
@@ -519,9 +529,11 @@
 
     private void VerwijderAlleKasten()
     {
+        var aantalKasten = State.Kasten.Count;
         State.VerwijderAlleKasten();
         bevestigVerwijderAlleKasten = false;
         SluitKastFormulier();
+        Feedback.ToonInfo($"{aantalKasten} kast(en) verwijderd. U kunt direct een nieuwe opstelling opbouwen.");
     }
 
     private void WandNaamOpslaan()
@@ -531,6 +543,7 @@
         if (wand is not null)
         {
             wand.Naam = bewerkWandNaam.Trim();
+            State.MarkeerGewijzigd();
         }
         bewerkWandId = null;
     }
@@ -701,8 +714,16 @@
 
     private void VerwijderKast(Guid id)
     {
+        var snapshot = MaakKastSnapshot(id);
+        if (snapshot is null)
+            return;
+
         State.VerwijderKast(id);
         if (bewerkKastId == id) SluitKastFormulier();
+        Feedback.ToonInfo(
+            $"Kast '{snapshot.Kast.Naam}' verwijderd.",
+            "Ongedaan maken",
+            () => HerstelKastAsync(snapshot));
     }
 
     private void VerplaatsKast(Guid wandId, int vanIndex, int naarIndex)
@@ -738,12 +759,26 @@
     {
         if (!double.TryParse(e.Value?.ToString(), out var waarde)) return;
 
+        var gewijzigd = false;
+
         if (eigenschap == nameof(KeukenWand.Breedte) && waarde > 0)
+        {
             wand.Breedte = waarde;
+            gewijzigd = true;
+        }
         else if (eigenschap == nameof(KeukenWand.Hoogte) && waarde > 0)
+        {
             wand.Hoogte = waarde;
+            gewijzigd = true;
+        }
         else if (eigenschap == nameof(KeukenWand.PlintHoogte) && waarde >= 0)
+        {
             wand.PlintHoogte = waarde;
+            gewijzigd = true;
+        }
+
+        if (gewijzigd)
+            State.MarkeerGewijzigd();
     }
 
     private void VerplaatsKastOpWand(Guid kastId, double xPositie, double hoogteVanVloer)
@@ -768,8 +803,7 @@
 
     private void KastGewijzigd(Guid kastId)
     {
-        // Planks are mutated directly on the shared kast object; just trigger re-render.
-        InvokeAsync(StateHasChanged);
+        State.MarkeerGewijzigd();
     }
 
     // --- Apparaten ---
@@ -859,9 +893,173 @@
 
     private void VerwijderApparaat(Guid id)
     {
+        var snapshot = MaakApparaatSnapshot(id);
+        if (snapshot is null)
+            return;
+
         State.VerwijderApparaat(id);
         if (bewerkApparaatId == id) SluitApparaatFormulier();
+        Feedback.ToonInfo(
+            $"Apparaat '{snapshot.Apparaat.Naam}' verwijderd.",
+            "Ongedaan maken",
+            () => HerstelApparaatAsync(snapshot));
     }
+
+    private void BevestigVerwijderWand(Guid wandId)
+    {
+        var wand = State.Wanden.Find(item => item.Id == wandId);
+        if (wand is null)
+            return;
+
+        var wandNaam = wand.Naam;
+        State.VerwijderWand(wandId);
+        bevestigVerwijderWandId = null;
+        bewerkWandId = null;
+
+        if (actieveWandId == wandId)
+        {
+            SluitKastFormulier();
+            SluitApparaatFormulier();
+            actieveWandId = null;
+        }
+
+        Feedback.ToonInfo($"Wand '{wandNaam}' verwijderd.");
+    }
+
+    private KastVerwijderSnapshot? MaakKastSnapshot(Guid id)
+    {
+        var kast = State.Kasten.Find(item => item.Id == id);
+        var wand = State.WandVoorKast(id);
+        if (kast is null || wand is null)
+            return null;
+
+        var gekoppeldeToewijzingen = State.Toewijzingen
+            .Select((toewijzing, index) => new ToewijzingSnapshot(KopieerToewijzing(toewijzing), index))
+            .Where(snapshot => snapshot.Toewijzing.KastIds.Contains(id))
+            .ToList();
+
+        return new KastVerwijderSnapshot(
+            KopieerKast(kast),
+            wand.Id,
+            wand.KastIds.IndexOf(id),
+            gekoppeldeToewijzingen);
+    }
+
+    private ApparaatVerwijderSnapshot? MaakApparaatSnapshot(Guid id)
+    {
+        var apparaat = State.Apparaten.Find(item => item.Id == id);
+        var wand = State.Wanden.Find(item => item.ApparaatIds.Contains(id));
+        if (apparaat is null || wand is null)
+            return null;
+
+        return new ApparaatVerwijderSnapshot(
+            KopieerApparaat(apparaat),
+            wand.Id,
+            wand.ApparaatIds.IndexOf(id));
+    }
+
+    private Task HerstelKastAsync(KastVerwijderSnapshot snapshot)
+    {
+        var wand = State.Wanden.Find(item => item.Id == snapshot.WandId);
+        if (wand is null)
+        {
+            Feedback.ToonFout("Kast kan niet worden teruggezet omdat de wand niet meer bestaat.");
+            return Task.CompletedTask;
+        }
+
+        State.Kasten.Add(KopieerKast(snapshot.Kast));
+        wand.KastIds.Insert(Math.Clamp(snapshot.KastIndex, 0, wand.KastIds.Count), snapshot.Kast.Id);
+
+        foreach (var toewijzing in snapshot.Toewijzingen.OrderBy(item => item.Index))
+        {
+            var index = Math.Clamp(toewijzing.Index, 0, State.Toewijzingen.Count);
+            State.Toewijzingen.Insert(index, KopieerToewijzing(toewijzing.Toewijzing));
+        }
+
+        State.MarkeerGewijzigd();
+        Feedback.ToonSucces($"Kast '{snapshot.Kast.Naam}' is teruggezet.");
+        return Task.CompletedTask;
+    }
+
+    private Task HerstelApparaatAsync(ApparaatVerwijderSnapshot snapshot)
+    {
+        var wand = State.Wanden.Find(item => item.Id == snapshot.WandId);
+        if (wand is null)
+        {
+            Feedback.ToonFout("Apparaat kan niet worden teruggezet omdat de wand niet meer bestaat.");
+            return Task.CompletedTask;
+        }
+
+        State.Apparaten.Add(KopieerApparaat(snapshot.Apparaat));
+        wand.ApparaatIds.Insert(Math.Clamp(snapshot.Index, 0, wand.ApparaatIds.Count), snapshot.Apparaat.Id);
+        State.MarkeerGewijzigd();
+        Feedback.ToonSucces($"Apparaat '{snapshot.Apparaat.Naam}' is teruggezet.");
+        return Task.CompletedTask;
+    }
+
+    private static Kast KopieerKast(Kast bron) => new()
+    {
+        Id = bron.Id,
+        Naam = bron.Naam,
+        Type = bron.Type,
+        Breedte = bron.Breedte,
+        Hoogte = bron.Hoogte,
+        Diepte = bron.Diepte,
+        Wanddikte = bron.Wanddikte,
+        GaatjesAfstand = bron.GaatjesAfstand,
+        EersteGaatVanBoven = bron.EersteGaatVanBoven,
+        HoogteVanVloer = bron.HoogteVanVloer,
+        XPositie = bron.XPositie,
+        MontagePlaatPosities = bron.MontagePlaatPosities
+            .Select(positie => new MontagePlaatPositie
+            {
+                AfstandVanBoven = positie.AfstandVanBoven,
+                Zijde = positie.Zijde
+            })
+            .ToList(),
+        Planken = bron.Planken
+            .Select(plank => new Plank
+            {
+                Id = plank.Id,
+                HoogteVanBodem = plank.HoogteVanBodem
+            })
+            .ToList()
+    };
+
+    private static Apparaat KopieerApparaat(Apparaat bron) => new()
+    {
+        Id = bron.Id,
+        Naam = bron.Naam,
+        Type = bron.Type,
+        Breedte = bron.Breedte,
+        Hoogte = bron.Hoogte,
+        Diepte = bron.Diepte,
+        HoogteVanVloer = bron.HoogteVanVloer,
+        XPositie = bron.XPositie
+    };
+
+    private static PaneelToewijzing KopieerToewijzing(PaneelToewijzing bron) => new()
+    {
+        Id = bron.Id,
+        KastIds = [.. bron.KastIds],
+        Type = bron.Type,
+        ScharnierZijde = bron.ScharnierZijde,
+        PotHartVanRand = bron.PotHartVanRand,
+        Breedte = bron.Breedte,
+        Hoogte = bron.Hoogte,
+        XPositie = bron.XPositie,
+        HoogteVanVloer = bron.HoogteVanVloer
+    };
+
+    private sealed record ToewijzingSnapshot(PaneelToewijzing Toewijzing, int Index);
+
+    private sealed record KastVerwijderSnapshot(
+        Kast Kast,
+        Guid WandId,
+        int KastIndex,
+        List<ToewijzingSnapshot> Toewijzingen);
+
+    private sealed record ApparaatVerwijderSnapshot(Apparaat Apparaat, Guid WandId, int Index);
 
     private void VerplaatsApparaatOpWand(Guid apparaatId, double xPositie, double hoogteVanVloer)
     {

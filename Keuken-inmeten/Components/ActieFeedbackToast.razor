@@ -1,0 +1,57 @@
+@inject ActieFeedbackService Feedback
+@inject NavigationManager Navigation
+@implements IDisposable
+
+@if (Feedback.HuidigeMelding is { } melding)
+{
+    <div class="actie-feedback-container" aria-live="polite" aria-atomic="true">
+        <div class="actie-feedback-toast actie-feedback-toast--@TypeClass(melding.Type) shadow-lg" role="@RoleForType(melding.Type)">
+            <div class="actie-feedback-toast__message">@melding.Bericht</div>
+            <div class="actie-feedback-toast__actions">
+                @if (!string.IsNullOrWhiteSpace(melding.ActieLabel) && melding.Actie is not null)
+                {
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            @onclick="Feedback.VoerActieUitAsync">
+                        @melding.ActieLabel
+                    </button>
+                }
+
+                <button type="button"
+                        class="btn btn-sm btn-link p-0 text-decoration-none actie-feedback-sluiten"
+                        @onclick="Feedback.Sluit">
+                    Sluiten
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        Feedback.OnChanged += HandleChanged;
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        Feedback.OnChanged -= HandleChanged;
+        Navigation.LocationChanged -= HandleLocationChanged;
+    }
+
+    private void HandleChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+        => Feedback.Sluit();
+
+    private static string TypeClass(ActieFeedbackType type) => type switch
+    {
+        ActieFeedbackType.Succes => "succes",
+        ActieFeedbackType.Fout => "fout",
+        _ => "info"
+    };
+
+    private static string RoleForType(ActieFeedbackType type)
+        => type == ActieFeedbackType.Fout ? "alert" : "status";
+}

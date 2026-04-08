@@ -2,6 +2,7 @@
 @inject KeukenStateService State
 @inject PersistentieService Persistentie
 @inject IJSRuntime JS
+@inject ActieFeedbackService Feedback
 
 <PageTitle>Stap 3 — Verificatie</PageTitle>
 
@@ -422,10 +423,6 @@ else if (_fase == VerificatieFase.Afronding)
                 <button class="btn btn-outline-primary" @onclick="PrintResultaat">&#128424; Afdrukken</button>
             </div>
 
-            @if (!string.IsNullOrWhiteSpace(_deelStatus))
-            {
-                <div class="deel-status mt-2 @(_deelStatusIsFout ? "fout" : "")">@_deelStatus</div>
-            }
         </div>
     </div>
 }
@@ -441,8 +438,6 @@ else if (_fase == VerificatieFase.Afronding)
 
     private VerificatieFase _fase = VerificatieFase.Overzicht;
     private int _paneelIndex;
-    private string? _deelStatus;
-    private bool _deelStatusIsFout;
 
     private class VerificatieChecks
     {
@@ -573,18 +568,25 @@ else if (_fase == VerificatieFase.Afronding)
             var deelUrl = Persistentie.MaakDeelUrl("verificatie");
             var resultaat = await JS.InvokeAsync<string>("keukenShare.shareUrl", deelUrl, "Keuken-inmeten", "Bekijk deze keukenconfiguratie");
 
-            (_deelStatus, _deelStatusIsFout) = resultaat switch
+            switch (resultaat)
             {
-                "shared" => ("De share-sheet is geopend met de publieke GitHub Pages-link.", false),
-                "copied" => ("De publieke deellink is gekopieerd naar het klembord.", false),
-                "cancelled" => ("Delen geannuleerd; de link is niet verstuurd.", false),
-                _ => ("Delen lukte niet in deze browser.", true)
-            };
+                case "shared":
+                    Feedback.ToonSucces("De share-sheet is geopend. Kies nu de app of het contact waarmee u wilt delen.");
+                    break;
+                case "copied":
+                    Feedback.ToonSucces("De deellink is gekopieerd. Plak hem nu in mail, chat of notities.");
+                    break;
+                case "cancelled":
+                    Feedback.ToonInfo("Delen geannuleerd. U kunt opnieuw delen of de URL uit de adresbalk kopieren.");
+                    break;
+                default:
+                    Feedback.ToonFout("Delen lukt hier niet. Kopieer de URL uit de adresbalk en deel die handmatig.");
+                    break;
+            }
         }
         catch
         {
-            _deelStatus = "Deellink maken of kopieren lukte niet.";
-            _deelStatusIsFout = true;
+            Feedback.ToonFout("Deellink maken of kopieren lukte niet. Controleer of de browser delen of klembordtoegang toestaat.");
         }
     }
 }

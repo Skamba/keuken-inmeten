@@ -1,5 +1,7 @@
 @page "/panelen"
 @inject KeukenStateService State
+@inject ActieFeedbackService Feedback
+@implements IDisposable
 
 <PageTitle>Stap 2 — Panelen configureren</PageTitle>
 
@@ -446,8 +448,14 @@ else
 
     protected override void OnInitialized()
     {
+        State.OnStateChanged += HandleStateChanged;
         formToewijzing.PotHartVanRand = State.LaatstGebruiktePotHartVanRand;
     }
+
+    public void Dispose()
+        => State.OnStateChanged -= HandleStateChanged;
+
+    private void HandleStateChanged() => _ = InvokeAsync(StateHasChanged);
 
     private bool IsBewerkModus => bewerkToewijzingId is not null;
 
@@ -965,11 +973,21 @@ else
 
     private void VerwijderPaneel(Guid toewijzingId)
     {
+        var index = State.Toewijzingen.FindIndex(item => item.Id == toewijzingId);
+        var toewijzing = index >= 0 ? State.Toewijzingen[index] : null;
+        if (toewijzing is null)
+            return;
+
         if (bewerkToewijzingId == toewijzingId)
             bewerkToewijzingId = null;
 
+        var snapshot = new PaneelVerwijderSnapshot(KopieerToewijzing(toewijzing), index);
         State.VerwijderToewijzing(toewijzingId);
         ResetConceptPaneel();
+        Feedback.ToonInfo(
+            $"Paneel {index + 1} verwijderd.",
+            "Ongedaan maken",
+            () => HerstelPaneelAsync(snapshot));
     }
 
     private Guid? VindWandId(Guid kastId)
@@ -986,6 +1004,30 @@ else
             ? Math.Round(best.target)
             : RondRaster(waarde);
     }
+
+    private Task HerstelPaneelAsync(PaneelVerwijderSnapshot snapshot)
+    {
+        var index = Math.Clamp(snapshot.Index, 0, State.Toewijzingen.Count);
+        State.Toewijzingen.Insert(index, KopieerToewijzing(snapshot.Toewijzing));
+        State.MarkeerGewijzigd();
+        Feedback.ToonSucces($"Paneel {index + 1} is teruggezet.");
+        return Task.CompletedTask;
+    }
+
+    private static PaneelToewijzing KopieerToewijzing(PaneelToewijzing bron) => new()
+    {
+        Id = bron.Id,
+        KastIds = [.. bron.KastIds],
+        Type = bron.Type,
+        ScharnierZijde = bron.ScharnierZijde,
+        PotHartVanRand = bron.PotHartVanRand,
+        Breedte = bron.Breedte,
+        Hoogte = bron.Hoogte,
+        XPositie = bron.XPositie,
+        HoogteVanVloer = bron.HoogteVanVloer
+    };
+
+    private sealed record PaneelVerwijderSnapshot(PaneelToewijzing Toewijzing, int Index);
 
     private static double SnapPositieMetBehoudVanMaat(double waarde, double maat, IEnumerable<double> targets, double drempel)
     {

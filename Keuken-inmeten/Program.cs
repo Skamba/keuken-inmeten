@@ -10,6 +10,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddSingleton<KeukenStateService>();
 builder.Services.AddScoped<PersistentieService>();
+builder.Services.AddScoped<ActieFeedbackService>();
 
 var host = builder.Build();
 
