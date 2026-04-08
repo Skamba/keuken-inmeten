@@ -15,6 +15,7 @@ public partial class PaneelConfiguratie
     private Guid? bewerkToewijzingId;
     private Guid? geopendeWandId;
     private bool toonEditorDrawer;
+    private bool reviewWeergaveActief;
 
     protected override void OnInitialized()
     {
@@ -36,10 +37,14 @@ public partial class PaneelConfiguratie
             conceptPaneel = null;
         }
 
+        if (reviewWeergaveActief && State.Toewijzingen.Count == 0)
+            reviewWeergaveActief = false;
+
         _ = InvokeAsync(StateHasChanged);
     }
 
     private bool IsBewerkModus => bewerkToewijzingId is not null;
+    private bool IsReviewWeergaveActief => reviewWeergaveActief && State.Toewijzingen.Count > 0;
 
     private KeukenWand? GeopendeWand
         => geopendeWandId is Guid id ? State.Wanden.FirstOrDefault(wand => wand.Id == id) : null;
@@ -185,6 +190,7 @@ public partial class PaneelConfiguratie
         if (wandId is null)
             return;
 
+        reviewWeergaveActief = false;
         geopendeWandId = wandId;
         toonEditorDrawer = true;
         bewerkToewijzingId = null;
@@ -224,6 +230,7 @@ public partial class PaneelConfiguratie
             geselecteerdeKastIds.Clear();
         }
 
+        reviewWeergaveActief = false;
         geopendeWandId = wandId;
         toonEditorDrawer = true;
         ResetConceptPaneel();
@@ -238,10 +245,24 @@ public partial class PaneelConfiguratie
         ResetConceptPaneel();
     }
 
+    private void ActiveerEditorWeergave() => reviewWeergaveActief = false;
+
+    private void ActiveerReviewWeergave()
+    {
+        if (State.Toewijzingen.Count == 0)
+            return;
+
+        reviewWeergaveActief = true;
+        toonEditorDrawer = false;
+    }
+
     private void OpenEditorDrawer()
     {
         if (geopendeWandId is not null)
+        {
+            reviewWeergaveActief = false;
             toonEditorDrawer = true;
+        }
     }
 
     private void SluitEditorDrawer() => toonEditorDrawer = false;
@@ -428,6 +449,7 @@ public partial class PaneelConfiguratie
         else
             State.VoegToewijzingToe(toewijzing);
 
+        reviewWeergaveActief = false;
         toonEditorDrawer = false;
         bewerkToewijzingId = null;
         ResetConceptPaneel();
@@ -464,6 +486,7 @@ public partial class PaneelConfiguratie
         if (toewijzing is null)
             return;
 
+        reviewWeergaveActief = false;
         geopendeWandId = VindWandIdVoorToewijzing(toewijzing);
         toonEditorDrawer = true;
         bewerkToewijzingId = toewijzingId;

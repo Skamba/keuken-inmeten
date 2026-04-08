@@ -70,6 +70,28 @@ test('stap 2 toont maar één actieve wandwerkruimte tegelijk', async ({ page })
   await panelen.expectActieveWerkruimte('Linkerwand');
 });
 
+test('stap 2 scheidt editor en review expliciet', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast review',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await panelen.selecteerEersteKastOpWand('Achterwand');
+  await panelen.voegPaneelToe();
+  await panelen.openReviewWeergave();
+  await panelen.bewerkEerstePaneelInReview();
+  await panelen.expectActieveWerkruimte('Achterwand');
+});
+
 test('hoofdflow van indeling tot export blijft werken', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);

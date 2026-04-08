@@ -25,8 +25,24 @@ export class PanelenPage {
       await openKnop.click();
     }
 
+    await this.expectEditorWeergave();
     await this.expectActieveWerkruimte(wandNaam);
     await expect(this.page.getByTestId('paneel-editor-drawer')).toBeVisible();
+  }
+
+  async expectEditorWeergave() {
+    await expect(this.page.getByTestId('paneel-editor-weergave')).toBeVisible();
+    await expect(this.page.getByTestId('paneel-review-weergave')).toHaveCount(0);
+  }
+
+  async openReviewWeergave() {
+    await this.page.getByTestId('paneel-review-weergave-tab').click();
+    await this.expectReviewWeergave();
+  }
+
+  async expectReviewWeergave() {
+    await expect(this.page.getByTestId('paneel-review-weergave')).toBeVisible();
+    await expect(this.page.getByTestId('paneel-editor-weergave')).toHaveCount(0);
   }
 
   async expectActieveWerkruimte(wandNaam: string) {
@@ -47,6 +63,17 @@ export class PanelenPage {
     await this.page.getByTestId('paneel-opslaan-button').click();
     await expect(this.page.getByText('Paneel 1')).toBeVisible();
     await expect(this.page.getByTestId('paneel-editor-drawer')).toHaveCount(0);
+    await this.expectEditorWeergave();
+  }
+
+  async bewerkEerstePaneelInReview() {
+    await this.page
+      .getByTestId('paneel-review-weergave')
+      .getByRole('button', { name: 'Bewerk' })
+      .first()
+      .click();
+    await this.expectEditorWeergave();
+    await expect(this.page.getByTestId('paneel-editor-drawer')).toBeVisible();
   }
 
   async gaNaarVerificatie() {

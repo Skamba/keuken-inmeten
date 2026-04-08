@@ -64,14 +64,15 @@ public static class StapHulpHelper
         ["panelen"] = new(
             "panelen",
             "Hulp bij stap 2: Panelen",
-            "In deze stap opent u eerst precies één wand als werkcontext, kiest daarna de juiste kast(en) en past pas daarna maat, richting en technische details van het paneel aan.",
+            "In deze stap opent u eerst precies één wand als werkcontext, kiest daarna de juiste kast(en) en past pas daarna maat, richting en technische details van het paneel aan. Review van toegewezen panelen opent u pas apart wanneer u lijst, status en acties wilt nalopen.",
             StandaardHulpNiveaus,
             [
                 new(
                     "Volgorde in de paneelflow",
-                    "De editor werkt het best als u eerst de wand vastzet en daarna selecteren, plaatsen, controleren en opslaan uit elkaar houdt.",
+                    "De editor werkt het best als u eerst de wand vastzet en daarna selecteren, plaatsen, controleren en opslaan uit elkaar houdt. Review hoort pas daarna in een aparte weergave.",
                     [
                         "Open eerst één wand zodat de visualisatie en paneel-editor dezelfde context gebruiken.",
+                        "Schakel pas naar Toegewezen panelen als u lijst, status en acties wilt nalopen zonder het canvas erbij.",
                         "Gebruik hints voor standaardwaarden zoals randspeling.",
                         "Open info-knoppen bij scharnierzijde en pot-hart als een term technisch voelt.",
                         "Gebruik details om de maatberekening of de leesrichting van de tekening na te lopen."
@@ -81,7 +82,7 @@ public static class StapHulpHelper
                     "De zijhulp is vooral nuttig als de opening niet vanzelfsprekend is of als meerdere kasten en apparaten binnen dezelfde wand elkaar raken.",
                     [
                         "Open de verdiepende hulp bij complexe combinaties met apparaten, vrije segmenten of afwijkende scharnierkeuzes.",
-                        "Laat niet-actieve wanden verder compact zodat plaatsen en opslaan de hoofdtaak blijven."
+                        "Laat niet-actieve wanden verder compact en gebruik review apart, zodat plaatsen en opslaan de hoofdtaak blijven."
                     ])
             ]),
         ["verificatie"] = new(
