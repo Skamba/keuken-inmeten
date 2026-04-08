@@ -74,7 +74,7 @@ else
 
             <div class="bestellijst-toolbar-meta mt-3">
                 <span><strong>Materiaal:</strong> @DisplayPaneelType()</span>
-                <span><strong>Dikte:</strong> @BestellijstExportService.FormatDikteLabel(_dikteMm)</span>
+                <span><strong>Dikte:</strong> @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</span>
             </div>
 
             <div class="row g-3 mt-1">
@@ -93,7 +93,7 @@ else
                 <div class="col-lg-5">
                     <details class="border rounded bg-body-tertiary p-3 small h-100">
                         <summary class="fw-semibold">Technische exportdetails</summary>
-                        <div class="mt-2"><strong>Machinecoordinaten (CNC-coordinaten):</strong> @BestellijstExportService.FormatCncAssenSamenvatting()</div>
+                        <div class="mt-2"><strong>Machinecoordinaten (CNC-coordinaten):</strong> @BestellijstExportFormatter.FormatCncAssenSamenvatting()</div>
                         <div class="mt-1"><strong>Max boorgaten per orderregel:</strong> @maxBoorgaten</div>
                         <div class="mt-1"><strong>Boorgaten totaal:</strong> @totaalBoorgaten</div>
                     </details>
@@ -250,8 +250,9 @@ else
         {
             var items = BestellijstService.BerekenItems(State);
             var generatedAt = DateTime.Now;
+            var document = BestellijstExportService.BouwDocument(items, DisplayPaneelType(), _dikteMm, generatedAt);
             var bestand = BestellijstExportService.MaakBestandsNaam("bestellijst", DisplayPaneelType(), "xls", generatedAt);
-            var xml = BestellijstExportService.BouwExcelXml(items, DisplayPaneelType(), _dikteMm, generatedAt);
+            var xml = BestellijstExcelRenderer.Render(document);
 
             await EnsureJsModuleAsync();
             await _jsModule!.InvokeVoidAsync(
@@ -273,7 +274,9 @@ else
         try
         {
             var items = BestellijstService.BerekenItems(State);
-            var html = BestellijstExportService.BouwPdfHtml(items, DisplayPaneelType(), _dikteMm, DateTime.Now);
+            var generatedAt = DateTime.Now;
+            var document = BestellijstExportService.BouwDocument(items, DisplayPaneelType(), _dikteMm, generatedAt);
+            var html = BestellijstPrintHtmlRenderer.Render(document);
 
             await EnsureJsModuleAsync();
             await _jsModule!.InvokeVoidAsync("openPrintDocument", html);
