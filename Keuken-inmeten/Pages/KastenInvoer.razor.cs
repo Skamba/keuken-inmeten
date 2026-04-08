@@ -34,7 +34,21 @@ public partial class KastenInvoer
     public void Dispose()
         => State.OnStateChanged -= HandleStateChanged;
 
-    private void HandleStateChanged() => _ = InvokeAsync(StateHasChanged);
+    private void HandleStateChanged()
+    {
+        if (actieveWandId.HasValue && !State.Wanden.Exists(wand => wand.Id == actieveWandId.Value))
+        {
+            actieveWandId = null;
+            bewerkKastId = null;
+            bewerkApparaatId = null;
+            bewerkWandId = null;
+            bevestigVerwijderWandId = null;
+            bevestigVerwijderKastId = null;
+            bevestigVerwijderApparaatId = null;
+        }
+
+        _ = InvokeAsync(StateHasChanged);
+    }
 
     private static Kast NieuweKast() => IndelingFormulierHelper.NieuweKast();
 
@@ -71,9 +85,31 @@ public partial class KastenInvoer
         bewerkWandId = null;
     }
 
-    private void OpenKastFormulier(Guid wandId)
+    private void OpenWandWerkruimte(Guid wandId)
     {
         actieveWandId = wandId;
+        bewerkKastId = null;
+        bewerkApparaatId = null;
+        bewerkWandId = null;
+        bevestigVerwijderWandId = null;
+        bevestigVerwijderKastId = null;
+        bevestigVerwijderApparaatId = null;
+    }
+
+    private void SluitWandWerkruimte()
+    {
+        actieveWandId = null;
+        bewerkKastId = null;
+        bewerkApparaatId = null;
+        bewerkWandId = null;
+        bevestigVerwijderWandId = null;
+        bevestigVerwijderKastId = null;
+        bevestigVerwijderApparaatId = null;
+    }
+
+    private void OpenKastFormulier(Guid wandId)
+    {
+        OpenWandWerkruimte(wandId);
         formKast = NieuweKastMetVorigeWaarden();
         isBewerken = false;
         bewerkKastId = null;
@@ -91,7 +127,6 @@ public partial class KastenInvoer
 
     private void SluitKastFormulier()
     {
-        actieveWandId = null;
         formKast = NieuweKast();
         isBewerken = false;
         bewerkKastId = null;
@@ -141,14 +176,14 @@ public partial class KastenInvoer
 
     private void SelecteerKast(Guid kastId, Guid wandId)
     {
-        actieveWandId = wandId;
+        OpenWandWerkruimte(wandId);
         bewerkKastId = kastId;
         // Only highlight — edit form opens via the ✎ button
     }
 
     private void BewerkKast(Kast kast, Guid wandId)
     {
-        actieveWandId = wandId;
+        OpenWandWerkruimte(wandId);
         isBewerken = true;
         bewerkKastId = kast.Id;
         toonKastFormulier = true;
@@ -255,7 +290,7 @@ public partial class KastenInvoer
 
     private void OpenApparaatFormulier(Guid wandId)
     {
-        actieveWandId = wandId;
+        OpenWandWerkruimte(wandId);
         formApparaat = NieuwApparaat();
         isApparaatBewerken = false;
         bewerkApparaatId = null;
@@ -319,7 +354,7 @@ public partial class KastenInvoer
 
     private void BewerkApparaat(Apparaat apparaat, Guid wandId)
     {
-        actieveWandId = wandId;
+        OpenWandWerkruimte(wandId);
         isApparaatBewerken = true;
         bewerkApparaatId = apparaat.Id;
         toonApparaatFormulier = true;

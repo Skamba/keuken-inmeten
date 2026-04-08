@@ -14,6 +14,12 @@ export class IndelingPage {
     return this.page.locator(`[data-testid="indeling-wand-card"][data-wand-naam="${wandNaam}"]`);
   }
 
+  private actieveWerkruimte(wandNaam: string): Locator {
+    return this.page.locator(
+      `[data-testid="actieve-wand-werkruimte"][data-wand-naam="${wandNaam}"]`,
+    );
+  }
+
   async goto() {
     await this.page.goto('/kasten');
     await expect(this.page.getByRole('heading', { name: 'Stap 1: Indeling' })).toBeVisible();
@@ -25,9 +31,27 @@ export class IndelingPage {
     await expect(this.wandCard(naam)).toBeVisible();
   }
 
-  async voegKastToeAanWand(wandNaam: string, kast: KastGegevens) {
+  async openWandWerkruimte(wandNaam: string) {
     const wand = this.wandCard(wandNaam);
-    await wand.getByTestId('open-kast-form-button').click();
+    const openKnop = wand.getByTestId('open-wand-workspace-button');
+
+    if (await openKnop.isEnabled()) {
+      await openKnop.click();
+    }
+
+    await this.expectActieveWerkruimte(wandNaam);
+  }
+
+  async expectActieveWerkruimte(wandNaam: string) {
+    await expect(this.page.getByTestId('actieve-wand-werkruimte')).toHaveCount(1);
+    await expect(this.actieveWerkruimte(wandNaam)).toBeVisible();
+  }
+
+  async voegKastToeAanWand(wandNaam: string, kast: KastGegevens) {
+    await this.openWandWerkruimte(wandNaam);
+
+    const werkruimte = this.actieveWerkruimte(wandNaam);
+    await werkruimte.getByTestId('open-kast-form-button').click();
 
     const formulier = this.page.getByTestId('kast-form');
     await expect(formulier).toBeVisible();
@@ -39,7 +63,7 @@ export class IndelingPage {
     await this.page.getByTestId('kast-opslaan-button').click();
 
     await expect(formulier).toBeHidden();
-    await expect(wand).toContainText(kast.naam);
+    await expect(werkruimte).toContainText(kast.naam);
   }
 
   async gaNaarPanelen() {

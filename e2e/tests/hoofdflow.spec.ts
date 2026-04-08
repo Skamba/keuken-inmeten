@@ -4,6 +4,20 @@ import { IndelingPage } from '../pages/IndelingPage';
 import { PanelenPage } from '../pages/PanelenPage';
 import { VerificatiePage } from '../pages/VerificatiePage';
 
+test('stap 1 toont maar één actieve wandwerkruimte tegelijk', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegWandToe('Linkerwand');
+
+  await indeling.openWandWerkruimte('Achterwand');
+  await indeling.expectActieveWerkruimte('Achterwand');
+
+  await indeling.openWandWerkruimte('Linkerwand');
+  await indeling.expectActieveWerkruimte('Linkerwand');
+});
+
 test('hoofdflow van indeling tot export blijft werken', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
