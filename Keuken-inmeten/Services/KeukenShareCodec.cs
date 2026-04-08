@@ -8,16 +8,8 @@ public static class KeukenShareCodec
 {
     private const string VersiePrefixV1 = "v1.";
     private const string VersiePrefixV2 = "v2.";
-
-    private const double DefaultWandBreedte = 3000;
-    private const double DefaultWandHoogte = 2600;
-    private const double DefaultPlintHoogte = 100;
-    private const double DefaultKastBreedte = 600;
-    private const double DefaultKastHoogte = 720;
-    private const double DefaultKastDiepte = 560;
-    private const double DefaultKastWanddikte = 18;
-    private const double DefaultGaatjesAfstand = 32;
-    private const double DefaultEersteGaatVanBoven = 19;
+    private static readonly KeukenWand DefaultWand = KeukenDomeinDefaults.NieuweWand();
+    private static readonly Kast DefaultKast = KeukenDomeinDefaults.NieuweKast();
 
     private static readonly JsonSerializerOptions LegacyJsonOpties = new()
     {
@@ -122,9 +114,9 @@ public static class KeukenShareCodec
                 .. data.Wanden.Select(wand => new CompactWall
                 {
                     Name = string.IsNullOrWhiteSpace(wand.Naam) ? null : wand.Naam,
-                    Width = IsBijnaGelijk(wand.Breedte, DefaultWandBreedte) ? null : Round1(wand.Breedte),
-                    Height = IsBijnaGelijk(wand.Hoogte, DefaultWandHoogte) ? null : Round1(wand.Hoogte),
-                    PlinthHeight = IsBijnaGelijk(wand.PlintHoogte, DefaultPlintHoogte) ? null : Round1(wand.PlintHoogte),
+                    Width = IsBijnaGelijk(wand.Breedte, DefaultWand.Breedte) ? null : Round1(wand.Breedte),
+                    Height = IsBijnaGelijk(wand.Hoogte, DefaultWand.Hoogte) ? null : Round1(wand.Hoogte),
+                    PlinthHeight = IsBijnaGelijk(wand.PlintHoogte, DefaultWand.PlintHoogte) ? null : Round1(wand.PlintHoogte),
                     CabinetIndexes = BouwIndexLijst(wand.KastIds, kastenOpIndex),
                     ApplianceIndexes = BouwIndexLijst(wand.ApparaatIds, apparatenOpIndex)
                 })
@@ -134,12 +126,12 @@ public static class KeukenShareCodec
                 .. data.Kasten.Select(kast => new CompactCabinet
                 {
                     Name = string.IsNullOrWhiteSpace(kast.Naam) ? null : kast.Naam,
-                    Width = IsBijnaGelijk(kast.Breedte, DefaultKastBreedte) ? null : Round1(kast.Breedte),
-                    Height = IsBijnaGelijk(kast.Hoogte, DefaultKastHoogte) ? null : Round1(kast.Hoogte),
-                    Depth = IsBijnaGelijk(kast.Diepte, DefaultKastDiepte) ? null : Round1(kast.Diepte),
-                    WallThickness = IsBijnaGelijk(kast.Wanddikte, DefaultKastWanddikte) ? null : Round1(kast.Wanddikte),
-                    HoleSpacing = IsBijnaGelijk(kast.GaatjesAfstand, DefaultGaatjesAfstand) ? null : Round1(kast.GaatjesAfstand),
-                    FirstHoleBelowTopShelf = IsBijnaGelijk(kast.EersteGaatVanBoven, DefaultEersteGaatVanBoven) ? null : Round1(kast.EersteGaatVanBoven),
+                    Width = IsBijnaGelijk(kast.Breedte, DefaultKast.Breedte) ? null : Round1(kast.Breedte),
+                    Height = IsBijnaGelijk(kast.Hoogte, DefaultKast.Hoogte) ? null : Round1(kast.Hoogte),
+                    Depth = IsBijnaGelijk(kast.Diepte, DefaultKast.Diepte) ? null : Round1(kast.Diepte),
+                    WallThickness = IsBijnaGelijk(kast.Wanddikte, DefaultKast.Wanddikte) ? null : Round1(kast.Wanddikte),
+                    HoleSpacing = IsBijnaGelijk(kast.GaatjesAfstand, DefaultKast.GaatjesAfstand) ? null : Round1(kast.GaatjesAfstand),
+                    FirstHoleBelowTopShelf = IsBijnaGelijk(kast.EersteGaatVanBoven, DefaultKast.EersteGaatVanBoven) ? null : Round1(kast.EersteGaatVanBoven),
                     X = standaardKastPosities.TryGetValue(kast.Id, out var standaardKastX) && IsBijnaGelijk(kast.XPositie, standaardKastX)
                         ? null
                         : Round1(kast.XPositie),
@@ -296,9 +288,9 @@ public static class KeukenShareCodec
         {
             Id = wallIds[index],
             Naam = wand.Name ?? "",
-            Breedte = wand.Width ?? DefaultWandBreedte,
-            Hoogte = wand.Height ?? DefaultWandHoogte,
-            PlintHoogte = wand.PlinthHeight ?? DefaultPlintHoogte,
+            Breedte = wand.Width ?? DefaultWand.Breedte,
+            Hoogte = wand.Height ?? DefaultWand.Hoogte,
+            PlintHoogte = wand.PlinthHeight ?? DefaultWand.PlintHoogte,
             KastIds = MapIds(wand.CabinetIndexes, cabinetIds),
             ApparaatIds = MapIds(wand.ApplianceIndexes, applianceIds)
         }).ToList();
@@ -350,19 +342,19 @@ public static class KeukenShareCodec
 
     private static Kast BouwKast(CompactCabinet bron, Guid id, double standaardX)
     {
-        var hoogte = bron.Height ?? DefaultKastHoogte;
-        var wanddikte = bron.WallThickness ?? DefaultKastWanddikte;
-        var eersteGaatVanBoven = bron.FirstHoleBelowTopShelf ?? DefaultEersteGaatVanBoven;
-        var gaatjesAfstand = bron.HoleSpacing ?? DefaultGaatjesAfstand;
+        var hoogte = bron.Height ?? DefaultKast.Hoogte;
+        var wanddikte = bron.WallThickness ?? DefaultKast.Wanddikte;
+        var eersteGaatVanBoven = bron.FirstHoleBelowTopShelf ?? DefaultKast.EersteGaatVanBoven;
+        var gaatjesAfstand = bron.HoleSpacing ?? DefaultKast.GaatjesAfstand;
 
         return new Kast
         {
             Id = id,
             Naam = bron.Name ?? "",
             Type = InferKastType(hoogte),
-            Breedte = bron.Width ?? DefaultKastBreedte,
+            Breedte = bron.Width ?? DefaultKast.Breedte,
             Hoogte = hoogte,
-            Diepte = bron.Depth ?? DefaultKastDiepte,
+            Diepte = bron.Depth ?? DefaultKast.Diepte,
             Wanddikte = wanddikte,
             GaatjesAfstand = gaatjesAfstand,
             EersteGaatVanBoven = eersteGaatVanBoven,
@@ -410,7 +402,7 @@ public static class KeukenShareCodec
                     continue;
 
                 standaard[index] = Round1(lopendeX);
-                lopendeX += data.Cabinets[index].Width ?? DefaultKastBreedte;
+                lopendeX += data.Cabinets[index].Width ?? DefaultKast.Breedte;
             }
         }
 
@@ -429,9 +421,9 @@ public static class KeukenShareCodec
             {
                 Id = Guid.NewGuid(),
                 Naam = wand.Name ?? "",
-                Breedte = wand.Width ?? DefaultWandBreedte,
-                Hoogte = wand.Height ?? DefaultWandHoogte,
-                PlintHoogte = wand.PlinthHeight ?? DefaultPlintHoogte
+                Breedte = wand.Width ?? DefaultWand.Breedte,
+                Hoogte = wand.Height ?? DefaultWand.Hoogte,
+                PlintHoogte = wand.PlinthHeight ?? DefaultWand.PlintHoogte
             };
             var wandKasten = (wand.CabinetIndexes ?? [])
                 .Where(index => index >= 0 && index < data.Cabinets.Count)

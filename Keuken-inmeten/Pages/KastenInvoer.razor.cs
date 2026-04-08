@@ -44,7 +44,9 @@ public partial class KastenInvoer
     private void WandToevoegen()
     {
         if (string.IsNullOrWhiteSpace(nieuweWandNaam)) return;
-        State.VoegWandToe(new KeukenWand { Naam = nieuweWandNaam.Trim() });
+        var wand = IndelingFormulierHelper.NieuweWand();
+        wand.Naam = nieuweWandNaam.Trim();
+        State.VoegWandToe(wand);
         nieuweWandNaam = "";
     }
 

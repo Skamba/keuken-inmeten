@@ -4,14 +4,9 @@ using Keuken_inmeten.Models;
 
 public static class IndelingFormulierHelper
 {
-    public static Kast NieuweKast() => new()
-    {
-        Naam = "",
-        Type = KastType.Onderkast,
-        Breedte = 600,
-        Hoogte = 720,
-        Diepte = 560
-    };
+    public static Kast NieuweKast() => KeukenDomeinDefaults.NieuweKast();
+
+    public static KeukenWand NieuweWand() => KeukenDomeinDefaults.NieuweWand();
 
     public static Apparaat NieuwApparaat(ApparaatType type = ApparaatType.Oven)
     {
@@ -60,9 +55,9 @@ public static class IndelingFormulierHelper
     };
 
     public static bool HeeftAfwijkendeTechnischeInstellingen(Kast kast)
-        => Math.Abs(kast.Wanddikte - 18) > 0.001
-            || Math.Abs(kast.GaatjesAfstand - 32) > 0.001
-            || Math.Abs(kast.EersteGaatVanBoven - 19) > 0.001
+        => Math.Abs(kast.Wanddikte - KeukenDomeinDefaults.KastDefaults.Wanddikte) > 0.001
+            || Math.Abs(kast.GaatjesAfstand - KeukenDomeinDefaults.KastDefaults.GaatjesAfstand) > 0.001
+            || Math.Abs(kast.EersteGaatVanBoven - KeukenDomeinDefaults.KastDefaults.EersteGaatVanBoven) > 0.001
             || kast.Planken.Count > 0;
 
     public static List<MontagePlaatPositie> BerekenMontageplaatPosities(Kast kast)
