@@ -20,7 +20,7 @@
 @if (items.Count == 0)
 {
     <div class="alert alert-warning">
-        Er is nog geen bestellijst beschikbaar. <a href="resultaat">Controleer eerst het resultaat</a> of voeg panelen toe in stap 2.
+        Er is nog geen bestellijst beschikbaar. <a href="verificatie">Doorloop eerst de verificatie</a> of voeg panelen toe in stap 2.
     </div>
 }
 else
@@ -151,8 +151,8 @@ else
 }
 
 <StapNavigatie HuidigeStap="bestellijst"
-               VorigeHref="resultaat"
-               VorigeLabel="Terug naar resultaat"
+               VorigeHref="verificatie"
+               VorigeLabel="Terug naar verificatie"
                VolgendeHref="zaagplan"
                VolgendeLabel="Naar zaagplan" />
 

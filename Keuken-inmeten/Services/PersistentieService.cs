@@ -80,7 +80,7 @@ public class PersistentieService : IDisposable
         }
     }
 
-    public string MaakDeelUrl(string route = "resultaat")
+    public string MaakDeelUrl(string route = "verificatie")
     {
         var token = KeukenShareCodec.Encode(_state.Exporteren());
         var basis = new Uri(_navigation.BaseUri);
