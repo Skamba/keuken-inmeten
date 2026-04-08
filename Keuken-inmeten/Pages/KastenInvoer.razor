@@ -220,13 +220,12 @@
                                     WandHoogte="@wand.Hoogte"
                                     WandBreedte="@wand.Breedte"
                                     PlintHoogte="@wand.PlintHoogte"
-                                    GeselecteerdeKastId="@(actieveWandId == wand.Id ? bewerkKastId : null)"
-                                    OnKastGeselecteerd="(id) => SelecteerKast(id, wand.Id)"
-                                    OnKastVerplaatst="(args) => VerplaatsKastOpWand(args.kastId, args.xPositie, args.hoogteVanVloer)"
-                                    OnKastGewijzigd="KastGewijzigd"
-                                    OnKastKopieren="KopieerNaarKlembord"
-                                    OnKastPlakken="() => PlakUitKlembord(wand.Id)"
-                                    OnApparaatVerplaatst="(args) => VerplaatsApparaatOpWand(args.apparaatId, args.xPositie, args.hoogteVanVloer)" />
+                                     GeselecteerdeKastId="@(actieveWandId == wand.Id ? bewerkKastId : null)"
+                                     OnKastGeselecteerd="(id) => SelecteerKast(id, wand.Id)"
+                                     OnKastVerplaatst="(args) => VerplaatsKastOpWand(args.kastId, args.xPositie, args.hoogteVanVloer)"
+                                     OnKastKopieren="KopieerNaarKlembord"
+                                     OnKastPlakken="() => PlakUitKlembord(wand.Id)"
+                                     OnApparaatVerplaatst="(args) => VerplaatsApparaatOpWand(args.apparaatId, args.xPositie, args.hoogteVanVloer)" />
                 </div>
             }
 
@@ -538,12 +537,7 @@
     private void WandNaamOpslaan()
     {
         if (bewerkWandId is null || string.IsNullOrWhiteSpace(bewerkWandNaam)) return;
-        var wand = State.Wanden.Find(w => w.Id == bewerkWandId);
-        if (wand is not null)
-        {
-            wand.Naam = bewerkWandNaam.Trim();
-            State.MarkeerGewijzigd();
-        }
+        State.HernoemWand(bewerkWandId.Value, bewerkWandNaam);
         bewerkWandId = null;
     }
 
@@ -758,37 +752,14 @@
     {
         if (!double.TryParse(e.Value?.ToString(), out var waarde)) return;
 
-        var gewijzigd = false;
-
-        if (eigenschap == nameof(KeukenWand.Breedte) && waarde > 0)
-        {
-            wand.Breedte = waarde;
-            gewijzigd = true;
-        }
-        else if (eigenschap == nameof(KeukenWand.Hoogte) && waarde > 0)
-        {
-            wand.Hoogte = waarde;
-            gewijzigd = true;
-        }
-        else if (eigenschap == nameof(KeukenWand.PlintHoogte) && waarde >= 0)
-        {
-            wand.PlintHoogte = waarde;
-            gewijzigd = true;
-        }
-
-        if (gewijzigd)
-            State.MarkeerGewijzigd();
+        var breedte = eigenschap == nameof(KeukenWand.Breedte) ? waarde : wand.Breedte;
+        var hoogte = eigenschap == nameof(KeukenWand.Hoogte) ? waarde : wand.Hoogte;
+        var plintHoogte = eigenschap == nameof(KeukenWand.PlintHoogte) ? waarde : wand.PlintHoogte;
+        State.WerkWandAfmetingenBij(wand.Id, breedte, hoogte, plintHoogte);
     }
 
     private void VerplaatsKastOpWand(Guid kastId, double xPositie, double hoogteVanVloer)
-    {
-        var kast = State.Kasten.Find(k => k.Id == kastId);
-        if (kast is null) return;
-
-        kast.XPositie = xPositie;
-        kast.HoogteVanVloer = hoogteVanVloer;
-        State.WerkKastBij(kast);
-    }
+        => State.VerplaatsKast(kastId, xPositie, hoogteVanVloer);
 
     private void KopieerNaarKlembord(Guid kastId) => _clipboardKastId = kastId;
 
@@ -798,11 +769,6 @@
         var kast = State.Kasten.Find(k => k.Id == _clipboardKastId.Value);
         if (kast is null) return;
         KopieerKast(kast, wandId);
-    }
-
-    private void KastGewijzigd(Guid kastId)
-    {
-        State.MarkeerGewijzigd();
     }
 
     // --- Apparaten ---
@@ -959,39 +925,27 @@
 
     private Task HerstelKastAsync(KastVerwijderSnapshot snapshot)
     {
-        var wand = State.Wanden.Find(item => item.Id == snapshot.WandId);
-        if (wand is null)
+        var hersteld = State.HerstelKastMetToewijzingen(
+            KopieerKast(snapshot.Kast),
+            snapshot.WandId,
+            snapshot.KastIndex,
+            [.. snapshot.Toewijzingen.Select(item => new GeindexeerdeToewijzing(KopieerToewijzing(item.Toewijzing), item.Index))]);
+        if (!hersteld)
         {
             Feedback.ToonFout("Kast kan niet worden teruggezet omdat de wand niet meer bestaat.");
             return Task.CompletedTask;
         }
-
-        State.Kasten.Add(KopieerKast(snapshot.Kast));
-        wand.KastIds.Insert(Math.Clamp(snapshot.KastIndex, 0, wand.KastIds.Count), snapshot.Kast.Id);
-
-        foreach (var toewijzing in snapshot.Toewijzingen.OrderBy(item => item.Index))
-        {
-            var index = Math.Clamp(toewijzing.Index, 0, State.Toewijzingen.Count);
-            State.Toewijzingen.Insert(index, KopieerToewijzing(toewijzing.Toewijzing));
-        }
-
-        State.MarkeerGewijzigd();
         Feedback.ToonSucces($"Kast '{snapshot.Kast.Naam}' is teruggezet.");
         return Task.CompletedTask;
     }
 
     private Task HerstelApparaatAsync(ApparaatVerwijderSnapshot snapshot)
     {
-        var wand = State.Wanden.Find(item => item.Id == snapshot.WandId);
-        if (wand is null)
+        if (!State.HerstelApparaat(KopieerApparaat(snapshot.Apparaat), snapshot.WandId, snapshot.Index))
         {
             Feedback.ToonFout("Apparaat kan niet worden teruggezet omdat de wand niet meer bestaat.");
             return Task.CompletedTask;
         }
-
-        State.Apparaten.Add(KopieerApparaat(snapshot.Apparaat));
-        wand.ApparaatIds.Insert(Math.Clamp(snapshot.Index, 0, wand.ApparaatIds.Count), snapshot.Apparaat.Id);
-        State.MarkeerGewijzigd();
         Feedback.ToonSucces($"Apparaat '{snapshot.Apparaat.Naam}' is teruggezet.");
         return Task.CompletedTask;
     }
@@ -1061,14 +1015,7 @@
     private sealed record ApparaatVerwijderSnapshot(Apparaat Apparaat, Guid WandId, int Index);
 
     private void VerplaatsApparaatOpWand(Guid apparaatId, double xPositie, double hoogteVanVloer)
-    {
-        var apparaat = State.Apparaten.Find(a => a.Id == apparaatId);
-        if (apparaat is null) return;
-
-        apparaat.XPositie = xPositie;
-        apparaat.HoogteVanVloer = hoogteVanVloer;
-        State.WerkApparaatBij(apparaat);
-    }
+        => State.VerplaatsApparaat(apparaatId, xPositie, hoogteVanVloer);
 
     private static string ApparaatTypeLabel(ApparaatType type) => type switch
     {

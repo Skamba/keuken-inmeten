@@ -1009,8 +1009,7 @@ else
     private Task HerstelPaneelAsync(PaneelVerwijderSnapshot snapshot)
     {
         var index = Math.Clamp(snapshot.Index, 0, State.Toewijzingen.Count);
-        State.Toewijzingen.Insert(index, KopieerToewijzing(snapshot.Toewijzing));
-        State.MarkeerGewijzigd();
+        State.HerstelToewijzing(KopieerToewijzing(snapshot.Toewijzing), index);
         Feedback.ToonSucces($"Paneel {index + 1} is teruggezet.");
         return Task.CompletedTask;
     }

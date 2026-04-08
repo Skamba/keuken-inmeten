@@ -17,11 +17,6 @@ public class KeukenStateService
 
     private void NotifyChanged() => OnStateChanged?.Invoke();
 
-    /// <summary>
-    /// Signaleert een wijziging nadat geneste objecten rechtstreeks zijn aangepast.
-    /// </summary>
-    public void MarkeerGewijzigd() => NotifyChanged();
-
     // --- Persistentie helpers ---
 
     public KeukenData Exporteren() => new()
@@ -82,6 +77,53 @@ public class KeukenStateService
         NotifyChanged();
     }
 
+    public bool HernoemWand(Guid id, string naam)
+    {
+        var wand = Wanden.Find(item => item.Id == id);
+        var opgeschoondeNaam = naam.Trim();
+        if (wand is null || string.IsNullOrWhiteSpace(opgeschoondeNaam) || wand.Naam == opgeschoondeNaam)
+            return false;
+
+        wand.Naam = opgeschoondeNaam;
+        NotifyChanged();
+        return true;
+    }
+
+    public bool WerkWandAfmetingenBij(Guid id, double breedte, double hoogte, double plintHoogte)
+    {
+        if (breedte <= 0 || hoogte <= 0 || plintHoogte < 0)
+            return false;
+
+        var wand = Wanden.Find(item => item.Id == id);
+        if (wand is null)
+            return false;
+
+        var gewijzigd = false;
+        if (!ZijnBijnaGelijk(wand.Breedte, breedte))
+        {
+            wand.Breedte = breedte;
+            gewijzigd = true;
+        }
+
+        if (!ZijnBijnaGelijk(wand.Hoogte, hoogte))
+        {
+            wand.Hoogte = hoogte;
+            gewijzigd = true;
+        }
+
+        if (!ZijnBijnaGelijk(wand.PlintHoogte, plintHoogte))
+        {
+            wand.PlintHoogte = plintHoogte;
+            gewijzigd = true;
+        }
+
+        if (!gewijzigd)
+            return false;
+
+        NotifyChanged();
+        return true;
+    }
+
     public List<Kast> KastenVoorWand(Guid wandId)
     {
         var wand = Wanden.Find(w => w.Id == wandId);
@@ -130,10 +172,7 @@ public class KeukenStateService
 
     public void VoegKastToe(Kast kast, Guid wandId)
     {
-        Kasten.Add(kast);
-        var wand = Wanden.Find(w => w.Id == wandId);
-        wand?.KastIds.Add(kast.Id);
-        BijwerkenKastTemplate(kast);
+        VoegKastToeZonderNotify(kast, wandId);
         NotifyChanged();
     }
 
@@ -167,6 +206,93 @@ public class KeukenStateService
             Kasten[index] = kast;
         BijwerkenKastTemplate(kast);
         NotifyChanged();
+    }
+
+    public bool VerplaatsKast(Guid id, double xPositie, double hoogteVanVloer)
+    {
+        var kast = Kasten.Find(item => item.Id == id);
+        if (kast is null)
+            return false;
+
+        if (ZijnBijnaGelijk(kast.XPositie, xPositie) && ZijnBijnaGelijk(kast.HoogteVanVloer, hoogteVanVloer))
+            return false;
+
+        kast.XPositie = xPositie;
+        kast.HoogteVanVloer = hoogteVanVloer;
+        NotifyChanged();
+        return true;
+    }
+
+    public Plank? VoegPlankToe(Guid kastId, double hoogteVanBodem, Guid? plankId = null, int? index = null)
+    {
+        var kast = Kasten.Find(item => item.Id == kastId);
+        if (kast is null)
+            return null;
+
+        var plank = new Plank
+        {
+            Id = plankId ?? Guid.NewGuid(),
+            HoogteVanBodem = hoogteVanBodem
+        };
+
+        VoegPlankToeZonderNotify(kast, plank, index);
+        NotifyChanged();
+        return plank;
+    }
+
+    public bool VerplaatsPlank(Guid kastId, Guid plankId, double hoogteVanBodem)
+    {
+        var kast = Kasten.Find(item => item.Id == kastId);
+        var plank = kast?.Planken.Find(item => item.Id == plankId);
+        if (plank is null || ZijnBijnaGelijk(plank.HoogteVanBodem, hoogteVanBodem))
+            return false;
+
+        plank.HoogteVanBodem = hoogteVanBodem;
+        NotifyChanged();
+        return true;
+    }
+
+    public bool VerwijderPlank(Guid kastId, Guid plankId)
+    {
+        var kast = Kasten.Find(item => item.Id == kastId);
+        var plank = kast?.Planken.Find(item => item.Id == plankId);
+        if (kast is null || plank is null)
+            return false;
+
+        kast.Planken.Remove(plank);
+        NotifyChanged();
+        return true;
+    }
+
+    public Plank? HerstelPlank(Guid kastId, Plank plank, int index)
+    {
+        var kast = Kasten.Find(item => item.Id == kastId);
+        if (kast is null)
+            return null;
+
+        var kopie = new Plank
+        {
+            Id = plank.Id,
+            HoogteVanBodem = plank.HoogteVanBodem
+        };
+
+        VoegPlankToeZonderNotify(kast, kopie, index);
+        NotifyChanged();
+        return kopie;
+    }
+
+    public bool HerstelKastMetToewijzingen(Kast kast, Guid wandId, int kastIndex, IReadOnlyList<GeindexeerdeToewijzing> toewijzingen)
+    {
+        var wand = Wanden.Find(item => item.Id == wandId);
+        if (wand is null)
+            return false;
+
+        VoegKastToeZonderNotify(kast, wandId, kastIndex);
+        foreach (var toewijzing in toewijzingen.OrderBy(item => item.Index))
+            VoegToewijzingToeZonderNotify(toewijzing.Toewijzing, toewijzing.Index);
+
+        NotifyChanged();
+        return true;
     }
 
     // --- Kast templates (eerder gebruikte kasten) ---
@@ -218,9 +344,7 @@ public class KeukenStateService
 
     public void VoegApparaatToe(Apparaat apparaat, Guid wandId)
     {
-        Apparaten.Add(apparaat);
-        var wand = Wanden.Find(w => w.Id == wandId);
-        wand?.ApparaatIds.Add(apparaat.Id);
+        VoegApparaatToeZonderNotify(apparaat, wandId);
         NotifyChanged();
     }
 
@@ -245,6 +369,32 @@ public class KeukenStateService
         NotifyChanged();
     }
 
+    public bool VerplaatsApparaat(Guid id, double xPositie, double hoogteVanVloer)
+    {
+        var apparaat = Apparaten.Find(item => item.Id == id);
+        if (apparaat is null)
+            return false;
+
+        if (ZijnBijnaGelijk(apparaat.XPositie, xPositie) && ZijnBijnaGelijk(apparaat.HoogteVanVloer, hoogteVanVloer))
+            return false;
+
+        apparaat.XPositie = xPositie;
+        apparaat.HoogteVanVloer = hoogteVanVloer;
+        NotifyChanged();
+        return true;
+    }
+
+    public bool HerstelApparaat(Apparaat apparaat, Guid wandId, int index)
+    {
+        var wand = Wanden.Find(item => item.Id == wandId);
+        if (wand is null)
+            return false;
+
+        VoegApparaatToeZonderNotify(apparaat, wandId, index);
+        NotifyChanged();
+        return true;
+    }
+
     public void StelPaneelRandSpelingIn(double waarde)
     {
         var genormaliseerd = PaneelSpelingService.NormaliseerRandSpeling(waarde);
@@ -267,10 +417,7 @@ public class KeukenStateService
 
     public void VoegToewijzingToe(PaneelToewijzing toewijzing)
     {
-        if (toewijzing.Type == PaneelType.Deur)
-            LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
-
-        Toewijzingen.Add(toewijzing);
+        VoegToewijzingToeZonderNotify(toewijzing);
         NotifyChanged();
     }
 
@@ -291,6 +438,13 @@ public class KeukenStateService
     {
         Toewijzingen.RemoveAll(t => t.Id == id);
         NotifyChanged();
+    }
+
+    public bool HerstelToewijzing(PaneelToewijzing toewijzing, int index)
+    {
+        VoegToewijzingToeZonderNotify(toewijzing, index);
+        NotifyChanged();
+        return true;
     }
 
     public List<PaneelResultaat> BerekenResultaten()
@@ -351,4 +505,56 @@ public class KeukenStateService
 
         return [.. buurKasten, .. buurApparaten, .. buurPanelen];
     }
+
+    private void VoegKastToeZonderNotify(Kast kast, Guid wandId, int? index = null)
+    {
+        Kasten.Add(kast);
+        var wand = Wanden.Find(item => item.Id == wandId);
+        if (wand is not null)
+        {
+            if (index is int insertIndex)
+                wand.KastIds.Insert(Math.Clamp(insertIndex, 0, wand.KastIds.Count), kast.Id);
+            else
+                wand.KastIds.Add(kast.Id);
+        }
+
+        BijwerkenKastTemplate(kast);
+    }
+
+    private static void VoegPlankToeZonderNotify(Kast kast, Plank plank, int? index = null)
+    {
+        if (index is int insertIndex)
+            kast.Planken.Insert(Math.Clamp(insertIndex, 0, kast.Planken.Count), plank);
+        else
+            kast.Planken.Add(plank);
+    }
+
+    private void VoegApparaatToeZonderNotify(Apparaat apparaat, Guid wandId, int? index = null)
+    {
+        Apparaten.Add(apparaat);
+        var wand = Wanden.Find(item => item.Id == wandId);
+        if (wand is not null)
+        {
+            if (index is int insertIndex)
+                wand.ApparaatIds.Insert(Math.Clamp(insertIndex, 0, wand.ApparaatIds.Count), apparaat.Id);
+            else
+                wand.ApparaatIds.Add(apparaat.Id);
+        }
+    }
+
+    private void VoegToewijzingToeZonderNotify(PaneelToewijzing toewijzing, int? index = null)
+    {
+        if (toewijzing.Type == PaneelType.Deur)
+            LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
+
+        if (index is int insertIndex)
+            Toewijzingen.Insert(Math.Clamp(insertIndex, 0, Toewijzingen.Count), toewijzing);
+        else
+            Toewijzingen.Add(toewijzing);
+    }
+
+    private static bool ZijnBijnaGelijk(double links, double rechts)
+        => Math.Abs(links - rechts) < 0.001;
 }
+
+public sealed record GeindexeerdeToewijzing(PaneelToewijzing Toewijzing, int Index);
