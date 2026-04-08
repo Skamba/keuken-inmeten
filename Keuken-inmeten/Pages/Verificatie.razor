@@ -8,7 +8,7 @@
 <StapIndicator HuidigeStap="verificatie" />
 
 <h2 class="page-header">Stap 3: Verificatie</h2>
-<p class="text-muted">Meet de bestaande kastopeningen na en controleer of de systeemgaten kloppen. Panelen worden daarna besteld op basis van uw maten.</p>
+<p class="text-muted">Meet de maat in de opening na en controleer of de systeemgaten kloppen. Daarna controleert u of de maat om te bestellen logisch volgt uit opening en speling.</p>
 
 <TerminologieUitleg Sleutels="openingsmaat,werkmaat,gaatjesrij,montageplaat,pothart"
                     Beschrijving="Deze woordenlijst helpt bij de controletermen die u in de verificatiestap ziet." />
@@ -55,7 +55,7 @@ else if (_fase == VerificatieFase.Overzicht)
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Te controleren kastopeningen</h5>
-            <p class="text-muted small">Er zijn <strong>@resultaten.Count</strong> panelen. Meet voor elk paneel de kastopening na en controleer het gaatjespatroon op de kastromp.</p>
+            <p class="text-muted small">Er zijn <strong>@resultaten.Count</strong> panelen. Meet voor elk paneel eerst de maat in de opening na en controleer daarna het gaatjespatroon op de kastromp.</p>
 
             <div class="table-responsive mb-3">
                 <table class="table table-sm table-hover align-middle">
@@ -65,7 +65,7 @@ else if (_fase == VerificatieFase.Overzicht)
                             <th>Kast</th>
                             <th>Wand</th>
                             <th>Type</th>
-                            <th class="text-end">Opening B&#215;H</th>
+                            <th class="text-end">Maat in opening B&#215;H</th>
                             <th class="text-center">Scharnieren</th>
                             <th class="text-center">Status</th>
                         </tr>
@@ -186,35 +186,39 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                                 @if (checks.MatenOk) { <span>&#10003;</span> } else { <span>1</span> }
                             </button>
                             <div>
-                                <h6 class="mb-1 fw-bold">Meet de kastopening na</h6>
-                                <p class="text-muted small mb-0">Meet met een meetlint de vrije binnenafmeting van de kast (opening zonder deuren). Vergelijk met de maten hieronder.</p>
+                                <h6 class="mb-1 fw-bold">Meet de maat in de opening na</h6>
+                                <p class="text-muted small mb-0">Meet met een meetlint de vrije binnenafmeting van de kast (opening zonder deuren). Vergelijk die met de maat in de opening hieronder; de maat om te bestellen staat er direct onder uitgelegd.</p>
                             </div>
                         </div>
 
                         <div class="verificatie-maten mb-3 ps-5">
                             <div class="verificatie-maat">
                                 <div class="verificatie-maat-waarde">@FormatMm(openingB)</div>
-                                <div class="verificatie-maat-label">breedte opening</div>
+                                <div class="verificatie-maat-label">breedte in opening</div>
                             </div>
                             <div class="verificatie-maat-keer">&#215;</div>
                             <div class="verificatie-maat">
                                 <div class="verificatie-maat-waarde">@FormatMm(openingH)</div>
-                                <div class="verificatie-maat-label">hoogte opening</div>
+                                <div class="verificatie-maat-label">hoogte in opening</div>
                             </div>
                         </div>
 
                         @if (r.MaatInfo is not null && r.MaatInfo.TotaleInkortingBreedte + r.MaatInfo.TotaleInkortingHoogte > 0.001)
                         {
                             <div class="verificatie-afleiding ps-5 small text-muted">
-                                <div class="fw-semibold mb-1">Hieruit volgt een paneel van:</div>
-                                <div>Breedte: @FormatMm(r.MaatInfo.PaneelRechthoek.Breedte) (@BreedteSpelingKort(r.MaatInfo))</div>
-                                <div>Hoogte: @FormatMm(r.MaatInfo.PaneelRechthoek.Hoogte) (@HoogteSpelingKort(r.MaatInfo))</div>
+                                <div class="fw-semibold mb-1">@PaneelMaatUitlegHelper.MaatOmTeBestellenLabelMetTerm</div>
+                                <div>Breedte: @PaneelMaatUitlegHelper.BreedteFormule(r.MaatInfo)</div>
+                                <div class="mb-1">@PaneelMaatUitlegHelper.BreedteAftrekUitleg(r.MaatInfo)</div>
+                                <div>Hoogte: @PaneelMaatUitlegHelper.HoogteFormule(r.MaatInfo)</div>
+                                <div>@PaneelMaatUitlegHelper.HoogteAftrekUitleg(r.MaatInfo)</div>
                             </div>
                         }
                         else if (r.MaatInfo is not null)
                         {
                             <div class="verificatie-afleiding ps-5 small text-muted">
-                                Paneel: @FormatMm(r.MaatInfo.PaneelRechthoek.Breedte) &#215; @FormatMm(r.MaatInfo.PaneelRechthoek.Hoogte) (geen spelingaftrek op vrije randen)
+                                <div class="fw-semibold mb-1">@PaneelMaatUitlegHelper.MaatOmTeBestellenLabelMetTerm</div>
+                                <div>Breedte: @PaneelMaatUitlegHelper.BreedteFormule(r.MaatInfo)</div>
+                                <div>Hoogte: @PaneelMaatUitlegHelper.HoogteFormule(r.MaatInfo)</div>
                             </div>
                         }
                     </div>
@@ -445,32 +449,6 @@ else if (_fase == VerificatieFase.Afronding)
         PaneelType.LadeFront => "bg-warning text-dark",
         _ => "bg-secondary"
     };
-
-    private static string BreedteSpelingKort(PaneelMaatInfo maatInfo)
-    {
-        var delen = SpelingDelen(maatInfo.RaaktLinks, maatInfo.InkortingLinks, "links",
-                                 maatInfo.RaaktRechts, maatInfo.InkortingRechts, "rechts").ToList();
-        return delen.Count == 0
-            ? "geen aftrek"
-            : $"opening {FormatMm(maatInfo.OpeningsRechthoek.Breedte)} − {string.Join(" − ", delen)}";
-    }
-
-    private static string HoogteSpelingKort(PaneelMaatInfo maatInfo)
-    {
-        var delen = SpelingDelen(maatInfo.RaaktOnder, maatInfo.InkortingOnder, "onder",
-                                 maatInfo.RaaktBoven, maatInfo.InkortingBoven, "boven").ToList();
-        return delen.Count == 0
-            ? "geen aftrek"
-            : $"opening {FormatMm(maatInfo.OpeningsRechthoek.Hoogte)} − {string.Join(" − ", delen)}";
-    }
-
-    private static IEnumerable<string> SpelingDelen(
-        bool eersteRaakt, double eersteWaarde, string eersteLabel,
-        bool tweedeRaakt, double tweedeWaarde, string tweedeLabel)
-    {
-        if (eersteRaakt) yield return $"{FormatMm(eersteWaarde)} {eersteLabel}";
-        if (tweedeRaakt) yield return $"{FormatMm(tweedeWaarde)} {tweedeLabel}";
-    }
 
     private static string FormatMm(double waarde)
         => $"{waarde:0.#} mm";
