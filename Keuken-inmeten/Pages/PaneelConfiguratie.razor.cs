@@ -428,7 +428,7 @@ public partial class PaneelConfiguratie
         else
             State.VoegToewijzingToe(toewijzing);
 
-        toonEditorDrawer = true;
+        toonEditorDrawer = false;
         bewerkToewijzingId = null;
         ResetConceptPaneel();
     }

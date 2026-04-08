@@ -46,6 +46,7 @@ export class PanelenPage {
   async voegPaneelToe() {
     await this.page.getByTestId('paneel-opslaan-button').click();
     await expect(this.page.getByText('Paneel 1')).toBeVisible();
+    await expect(this.page.getByTestId('paneel-editor-drawer')).toHaveCount(0);
   }
 
   async gaNaarVerificatie() {
