@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Keuken_inmeten.Models;
 using Keuken_inmeten.Services;
+using Keuken_inmeten.Services.Interop;
 
 namespace Keuken_inmeten.Components;
 
@@ -29,7 +30,7 @@ public partial class WandOpstelling
     private Guid? _geselecteerdeePlankId;
     private Guid? _geselecteerdeePlankKastId;
     private DotNetObjectReference<WandOpstelling>? dotNetRef;
-    private IJSObjectReference? jsModule;
+    private WandOpstellingJsInterop? jsInterop;
 
     private const double P = 50;
     private const double MaxVisueleHoogte = 500;
@@ -52,9 +53,8 @@ public partial class WandOpstelling
         if (firstRender)
         {
             dotNetRef = DotNetObjectReference.Create(this);
-            jsModule = await JS.InvokeAsync<IJSObjectReference>(
-                "import", "./Components/WandOpstelling.razor.js");
-            await jsModule.InvokeVoidAsync("init", svgRef, dotNetRef, LeesAlleen);
+            jsInterop = new WandOpstellingJsInterop(JS);
+            await jsInterop.InitAsync(svgRef, dotNetRef, LeesAlleen);
         }
     }
 
@@ -297,10 +297,10 @@ public partial class WandOpstelling
 
     public async ValueTask DisposeAsync()
     {
-        if (jsModule is not null)
+        if (jsInterop is not null)
         {
-            try { await jsModule.InvokeVoidAsync("dispose", svgRef); } catch { }
-            await jsModule.DisposeAsync();
+            await jsInterop.DisposeSvgAsync(svgRef);
+            await jsInterop.DisposeAsync();
         }
         dotNetRef?.Dispose();
     }

@@ -1,4 +1,5 @@
 @using System.Globalization
+@using Keuken_inmeten.Services.Interop
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
@@ -276,7 +277,7 @@
 
     private ElementReference svgRef;
     private DotNetObjectReference<PaneelPlaatsEditor>? dotNetRef;
-    private IJSObjectReference? jsModule;
+    private PaneelPlaatsEditorJsInterop? jsInterop;
 
     private const double P = 50;
     private const double MaxVisueleHoogte = 500;
@@ -308,9 +309,8 @@
             return;
 
         dotNetRef = DotNetObjectReference.Create(this);
-        jsModule = await JS.InvokeAsync<IJSObjectReference>(
-            "import", "./Components/PaneelPlaatsEditor.razor.js");
-        await jsModule.InvokeVoidAsync("init", svgRef, dotNetRef);
+        jsInterop = new PaneelPlaatsEditorJsInterop(JS);
+        await jsInterop.InitAsync(svgRef, dotNetRef);
     }
 
     [JSInvokable]
@@ -431,10 +431,10 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (jsModule is not null)
+        if (jsInterop is not null)
         {
-            try { await jsModule.InvokeVoidAsync("dispose", svgRef); } catch { }
-            await jsModule.DisposeAsync();
+            await jsInterop.DisposeSvgAsync(svgRef);
+            await jsInterop.DisposeAsync();
         }
 
         dotNetRef?.Dispose();

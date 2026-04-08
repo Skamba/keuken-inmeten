@@ -1,4 +1,5 @@
 @page "/bestellijst"
+@using Keuken_inmeten.Services.Interop
 @inject KeukenStateService State
 @inject IJSRuntime JS
 @inject ActieFeedbackService Feedback
@@ -239,10 +240,12 @@ else
         "Acrylaat"
     ];
 
-    private IJSObjectReference? _jsModule;
+    private BestellijstExportJsInterop? _exportInterop;
     private string _paneelType = "MDF gelakt";
     private string _dikteMm = "19";
     private bool _toonTechnischeDetails;
+
+    private BestellijstExportJsInterop ExportInterop => _exportInterop ??= new(JS);
 
     private async Task ExporteerExcel()
     {
@@ -254,9 +257,7 @@ else
             var bestand = BestellijstExportService.MaakBestandsNaam("bestellijst", DisplayPaneelType(), "xls", generatedAt);
             var xml = BestellijstExcelRenderer.Render(document);
 
-            await EnsureJsModuleAsync();
-            await _jsModule!.InvokeVoidAsync(
-                "downloadTextFile",
+            await ExportInterop.DownloadTextFileAsync(
                 bestand,
                 xml,
                 "application/vnd.ms-excel;charset=utf-8");
@@ -278,8 +279,7 @@ else
             var document = BestellijstExportService.BouwDocument(items, DisplayPaneelType(), _dikteMm, generatedAt);
             var html = BestellijstPrintHtmlRenderer.Render(document);
 
-            await EnsureJsModuleAsync();
-            await _jsModule!.InvokeVoidAsync("openPrintDocument", html);
+            await ExportInterop.OpenPrintDocumentAsync(html);
 
             Feedback.ToonSucces("Printweergave geopend. Kies in de browser 'Opslaan als PDF' om het bestand te bewaren.");
         }
@@ -287,12 +287,6 @@ else
         {
             Feedback.ToonFout("PDF-export lukte niet. Controleer of pop-ups zijn toegestaan en probeer opnieuw.");
         }
-    }
-
-    private async Task EnsureJsModuleAsync()
-    {
-        _jsModule ??= await JS.InvokeAsync<IJSObjectReference>(
-            "import", "./Pages/Bestellijst.razor.js");
     }
 
     private string DisplayPaneelType()
@@ -342,7 +336,7 @@ else
 
     public async ValueTask DisposeAsync()
     {
-        if (_jsModule is not null)
-            await _jsModule.DisposeAsync();
+        if (_exportInterop is not null)
+            await _exportInterop.DisposeAsync();
     }
 }

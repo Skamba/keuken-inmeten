@@ -1,8 +1,10 @@
 @page "/verificatie"
+@using Keuken_inmeten.Services.Interop
 @inject KeukenStateService State
 @inject PersistentieService Persistentie
 @inject IJSRuntime JS
 @inject ActieFeedbackService Feedback
+@implements IAsyncDisposable
 
 <PageTitle>Stap 3 — Verificatie</PageTitle>
 
@@ -556,9 +558,13 @@ else if (_fase == VerificatieFase.Afronding)
     private static string FormatMm(double waarde)
         => $"{waarde:0.#} mm";
 
+    private BrowserWindowJsInterop? _browserWindowInterop;
+
+    private BrowserWindowJsInterop BrowserWindowInterop => _browserWindowInterop ??= new(JS);
+
     private async Task PrintResultaat()
     {
-        await JS.InvokeVoidAsync("window.print");
+        await BrowserWindowInterop.PrintCurrentPageAsync();
     }
 
     private async Task DeelResultaat()
@@ -566,7 +572,7 @@ else if (_fase == VerificatieFase.Afronding)
         try
         {
             var deelUrl = Persistentie.MaakDeelUrl("verificatie");
-            var resultaat = await JS.InvokeAsync<string>("keukenShare.shareUrl", deelUrl, "Keuken-inmeten", "Bekijk deze keukenconfiguratie");
+            var resultaat = await BrowserWindowInterop.ShareUrlAsync(deelUrl, "Keuken-inmeten", "Bekijk deze keukenconfiguratie");
 
             switch (resultaat)
             {
@@ -588,5 +594,11 @@ else if (_fase == VerificatieFase.Afronding)
         {
             Feedback.ToonFout("Deellink maken of kopieren lukte niet. Controleer of de browser delen of klembordtoegang toestaat.");
         }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_browserWindowInterop is not null)
+            await _browserWindowInterop.DisposeAsync();
     }
 }

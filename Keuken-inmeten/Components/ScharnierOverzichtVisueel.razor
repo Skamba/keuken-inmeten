@@ -1,3 +1,4 @@
+@using Keuken_inmeten.Services.Interop
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
@@ -117,7 +118,7 @@
     private ElementReference viewerStage;
     private ElementReference viewerCanvas;
     private ElementReference viewerShell;
-    private IJSObjectReference? jsModule;
+    private ScharnierOverzichtViewerJsInterop? viewerInterop;
     private bool _viewerOpen;
     private bool _viewerInitialized;
     private double ViewerHoogte => Math.Max(720, MaxHoogte * 2.5);
@@ -127,9 +128,8 @@
         if (!_viewerOpen || _viewerInitialized)
             return;
 
-        jsModule ??= await JS.InvokeAsync<IJSObjectReference>(
-            "import", "./Components/ScharnierOverzichtVisueel.razor.js");
-        await jsModule.InvokeVoidAsync("init", viewerStage, viewerCanvas, viewerShell);
+        viewerInterop ??= new ScharnierOverzichtViewerJsInterop(JS);
+        await viewerInterop.InitAsync(viewerStage, viewerCanvas, viewerShell);
         _viewerInitialized = true;
         await InvokeAsync(StateHasChanged);
     }
@@ -142,9 +142,9 @@
 
     private async Task CloseViewer()
     {
-        if (jsModule is not null && _viewerInitialized)
+        if (viewerInterop is not null && _viewerInitialized)
         {
-            await jsModule.InvokeVoidAsync("dispose", viewerStage);
+            await viewerInterop.DisposeViewerAsync(viewerStage);
             _viewerInitialized = false;
         }
 
@@ -153,20 +153,20 @@
 
     private async Task ZoomInViewer()
     {
-        if (jsModule is not null && _viewerInitialized)
-            await jsModule.InvokeVoidAsync("zoomIn", viewerStage);
+        if (viewerInterop is not null && _viewerInitialized)
+            await viewerInterop.ZoomInAsync(viewerStage);
     }
 
     private async Task ZoomOutViewer()
     {
-        if (jsModule is not null && _viewerInitialized)
-            await jsModule.InvokeVoidAsync("zoomOut", viewerStage);
+        if (viewerInterop is not null && _viewerInitialized)
+            await viewerInterop.ZoomOutAsync(viewerStage);
     }
 
     private async Task ResetViewer()
     {
-        if (jsModule is not null && _viewerInitialized)
-            await jsModule.InvokeVoidAsync("reset", viewerStage);
+        if (viewerInterop is not null && _viewerInitialized)
+            await viewerInterop.ResetAsync(viewerStage);
     }
 
     private async Task HandleViewerKeyDown(KeyboardEventArgs e)
@@ -177,12 +177,12 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (jsModule is not null)
+        if (viewerInterop is not null)
         {
             if (_viewerInitialized)
-                await jsModule.InvokeVoidAsync("dispose", viewerStage);
+                await viewerInterop.DisposeViewerAsync(viewerStage);
 
-            await jsModule.DisposeAsync();
+            await viewerInterop.DisposeAsync();
         }
     }
 }

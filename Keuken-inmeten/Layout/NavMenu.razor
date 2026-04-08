@@ -1,5 +1,7 @@
-﻿@inject IJSRuntime JS
+﻿@using Keuken_inmeten.Services.Interop
+@inject IJSRuntime JS
 @inject KeukenStateService State
+@implements IAsyncDisposable
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -49,14 +51,17 @@
 @code {
     private bool collapseNavMenu = true;
     private string themeIcon = "🌙";
+    private ThemeJsInterop? themeInterop;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private ThemeJsInterop ThemeInterop => themeInterop ??= new(JS);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            var theme = await JS.InvokeAsync<string>("keukenTheme.get");
+            var theme = await ThemeInterop.GetThemeAsync();
             themeIcon = theme == "dark" ? "☀️" : "🌙";
             StateHasChanged();
         }
@@ -64,7 +69,7 @@
 
     private async Task ToggleTheme()
     {
-        var newTheme = await JS.InvokeAsync<string>("keukenTheme.toggle");
+        var newTheme = await ThemeInterop.ToggleThemeAsync();
         themeIcon = newTheme == "dark" ? "☀️" : "🌙";
     }
 
@@ -82,4 +87,10 @@
         "zaagplan" => "🪚",
         _ => "•"
     };
+
+    public async ValueTask DisposeAsync()
+    {
+        if (themeInterop is not null)
+            await themeInterop.DisposeAsync();
+    }
 }
