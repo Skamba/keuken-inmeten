@@ -6,7 +6,7 @@
 <StapIndicator HuidigeStap="panelen" />
 
 <h2 class="page-header">Stap 2: Panelen configureren</h2>
-<p class="text-muted">Selecteer een of meer kasten en pas het paneel aan. Het paneel snapt automatisch aan kast- en paneelranden.</p>
+<p class="text-muted">Volg deze mini-flow: 1. selecteer kast(en), 2. plaats of pas het paneel aan, 3. controleer maat en type, 4. sla op. Het paneel snapt automatisch aan kast- en paneelranden.</p>
 
 <TerminologieUitleg Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde,scharnierpot,pothart"
                     Beschrijving="Deze woordenlijst legt de belangrijkste paneel- en scharniertermen in gewone taal uit." />
@@ -22,7 +22,7 @@ else
     <div class="row g-4">
         <div class="col-xl-7 col-lg-6">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <small class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .06em;">Klik op een kast om te selecteren, sleep daarna het paneel</small>
+                <small class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .06em;">1. Selecteer kast(en) op een wand · 2. Plaats daarna het paneel in het schema</small>
                 @if (geselecteerdeKastIds.Count > 0)
                 {
                     <button class="btn btn-sm btn-link text-secondary p-0" @onclick="DeselecteerAlles">Alles deselecteren ×</button>
@@ -158,16 +158,61 @@ else
                         </div>
                     </div>
                     <div class="card-body">
+                        @{
+                            var kanOpslaan = KanPaneelOpslaan();
+                        }
+
+                        <div class="border rounded p-3 mb-3 bg-body-tertiary">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Begeleide flow</h6>
+                                <span class="badge text-bg-light">4 stappen</span>
+                            </div>
+                            <div class="d-grid gap-2 mb-3">
+                                @foreach (var stap in PaneelFlowStappen)
+                                {
+                                    var status = PaneelFlowStatus(stap.Id);
+                                    <div class="d-flex justify-content-between align-items-start gap-3 border rounded px-3 py-2 @PaneelFlowContainerClass(status)">
+                                        <div>
+                                            <div class="fw-semibold">@stap.Titel</div>
+                                            <div class="small text-muted">@stap.Beschrijving</div>
+                                        </div>
+                                        <span class="badge @PaneelFlowBadgeClass(status)">@PaneelFlowLabel(status)</span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="row g-3 small">
+                                <div class="col-md-4">
+                                    <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Nog te doen</div>
+                                    <div>@VolgendePaneelStapTekst()</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Geselecteerd</div>
+                                    <div>@GeselecteerdePaneelStatusTekst()</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Klaar om op te slaan</div>
+                                    <div>@(kanOpslaan ? "Ja, u kunt nu opslaan." : OpslaanStatusTekst())</div>
+                                </div>
+                            </div>
+                        </div>
+
                         @if (geselecteerdeKastIds.Count == 0)
                         {
                             <div class="text-center text-muted py-4">
                                 <div class="mb-3" style="font-size: 3rem; opacity: 0.15;">🪟</div>
-                                <p class="mb-0">Klik op een kast in het schema om te beginnen.</p>
+                                <p class="mb-3">Klik op een of meer kasten binnen dezelfde wand om te beginnen. Daarna worden plaatsing, maat, type en opslaan hier actief.</p>
+                                <div class="d-grid gap-2 col-lg-8 mx-auto">
+                                    <button type="button" class="btn btn-outline-secondary" disabled>2. Plaats of pas paneel aan</button>
+                                    <button type="button" class="btn btn-outline-secondary" disabled>3. Controleer maat en type</button>
+                                    <button type="button" class="btn btn-primary" disabled>4. Sla op</button>
+                                </div>
+                                <div class="form-text mt-2">Deze onderdelen worden actief zodra stap 1 klaar is.</div>
                             </div>
                         }
                         else
                         {
                             var conceptMaatInfo = BerekenConceptMaatInfo();
+                            var vrijeSegmenten = VrijeSegmentenVoorSelectie();
 
                             <div class="alert alert-primary small py-2">
                                 Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand is de ruimte waar het paneel in moet passen (openingsmaat); de volle binnenvorm laat direct de netto paneelmaat na vrije ruimte langs de rand (werkmaat na randspeling) zien.
@@ -274,14 +319,14 @@ else
                                 </div>
                             }
 
-                            @if (VrijeSegmentenVoorSelectie().Count > 0)
+                            @if (vrijeSegmenten.Count > 0)
                             {
                                 <div class="border rounded bg-light p-3 mb-3 small">
                                     <div class="fw-semibold mb-2">Vrije vakken</div>
                                     <div class="d-flex flex-wrap gap-2">
-                                        @for (int i = 0; i < VrijeSegmentenVoorSelectie().Count; i++)
+                                        @for (int i = 0; i < vrijeSegmenten.Count; i++)
                                         {
-                                            var segment = VrijeSegmentenVoorSelectie()[i];
+                                            var segment = vrijeSegmenten[i];
                                             <button type="button"
                                                     class="btn btn-sm btn-outline-success"
                                                     @onclick="() => GebruikVrijSegment(segment)">
@@ -297,10 +342,14 @@ else
                                     @(IsBewerkModus ? "Reset naar origineel" : "Reset naar selectie")
                                 </button>
                                 <button type="button" class="btn btn-primary flex-grow-1" @onclick="PaneelOpslaan"
-                                        disabled="@(conceptPaneel is null || formToewijzing.Breedte <= 0 || formToewijzing.Hoogte <= 0)">
+                                        disabled="@(!kanOpslaan)">
                                     @(IsBewerkModus ? "Paneel opslaan" : "+ Paneel toevoegen")
                                 </button>
                             </div>
+                            @if (!kanOpslaan)
+                            {
+                                <div class="form-text mt-2">@OpslaanStatusTekst()</div>
+                            }
                         }
                     </div>
                 </div>
@@ -317,6 +366,14 @@ else
                VolgendeDisabled="@(State.Toewijzingen.Count == 0)" />
 
 @code {
+    private static readonly (string Id, string Titel, string Beschrijving)[] PaneelFlowStappen =
+    [
+        ("selecteren", "1. Selecteer kast(en)", "Kies een of meer kasten binnen dezelfde wand."),
+        ("plaatsen", "2. Plaats of pas paneel aan", "Sleep het paneel of kies een vrij vak in het schema."),
+        ("controleren", "3. Controleer maat en type", "Check maat, type en eventuele scharnierinstellingen."),
+        ("opslaan", "4. Sla op", "Bewaar het paneel zodra de status groen is.")
+    ];
+
     private PaneelToewijzing formToewijzing = new();
     private readonly HashSet<Guid> geselecteerdeKastIds = [];
     private PaneelRechthoek? conceptPaneel;
@@ -366,6 +423,87 @@ else
 
     private string GeselecteerdeKastNamen =>
         string.Join(" + ", geselecteerdeKasten.Select(kast => kast.Naam));
+
+    private bool KanPaneelOpslaan()
+    {
+        if (conceptPaneel is null || geselecteerdeKastIds.Count == 0)
+            return false;
+
+        if (formToewijzing.Breedte <= 0 || formToewijzing.Hoogte <= 0)
+            return false;
+
+        return PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel).Count > 0;
+    }
+
+    private string VolgendePaneelStapTekst()
+        => geselecteerdeKastIds.Count == 0
+            ? "Selecteer eerst een of meer kasten binnen dezelfde wand."
+            : conceptPaneel is null
+                ? "Plaats of pas het paneel aan in het schema."
+                : KanPaneelOpslaan()
+                    ? "Sla het paneel op zodra maat en type kloppen."
+                    : "Controleer maat, type en plaatsing zodat het paneel weer een kast raakt.";
+
+    private string GeselecteerdePaneelStatusTekst()
+        => geselecteerdeKastIds.Count == 0
+            ? "Nog niets geselecteerd."
+            : $"{ActieveWandNaam} · {GeselecteerdeKastNamen}";
+
+    private string OpslaanStatusTekst()
+    {
+        if (geselecteerdeKastIds.Count == 0)
+            return "Nee, er is nog geen kastselectie.";
+
+        if (conceptPaneel is null)
+            return "Nee, er is nog geen paneelpositie.";
+
+        if (formToewijzing.Breedte <= 0 || formToewijzing.Hoogte <= 0)
+            return "Nee, breedte en hoogte moeten groter dan 0 zijn.";
+
+        return PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel).Count == 0
+            ? "Nee, het paneel moet minimaal een geselecteerde kast raken."
+            : "Ja, u kunt nu opslaan.";
+    }
+
+    private string PaneelFlowStatus(string stapId)
+    {
+        var heeftSelectie = geselecteerdeKastIds.Count > 0;
+        var heeftConceptPaneel = conceptPaneel is not null;
+        var kanOpslaan = KanPaneelOpslaan();
+
+        return stapId switch
+        {
+            "selecteren" => heeftSelectie ? "done" : "active",
+            "plaatsen" => !heeftSelectie ? "todo" : heeftConceptPaneel ? "done" : "active",
+            "controleren" => !heeftSelectie || !heeftConceptPaneel ? "todo" : kanOpslaan ? "done" : "active",
+            "opslaan" => kanOpslaan ? "active" : "todo",
+            _ => "todo"
+        };
+    }
+
+    private static string PaneelFlowContainerClass(string status)
+        => status switch
+        {
+            "done" => "border-success bg-success bg-opacity-10",
+            "active" => "border-primary bg-primary bg-opacity-10",
+            _ => "bg-light"
+        };
+
+    private static string PaneelFlowBadgeClass(string status)
+        => status switch
+        {
+            "done" => "bg-success",
+            "active" => "bg-primary",
+            _ => "bg-secondary"
+        };
+
+    private static string PaneelFlowLabel(string status)
+        => status switch
+        {
+            "done" => "Klaar",
+            "active" => "Nu",
+            _ => "Wacht"
+        };
 
     private double BreedteInput
     {
