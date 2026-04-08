@@ -8,7 +8,7 @@
 <StapIndicator HuidigeStap="verificatie" />
 
 <h2 class="page-header">Stap 3: Verificatie</h2>
-<p class="text-muted">Controleer stap voor stap of uw panelen passen op uw bestaande kasten. Meet na of de afmetingen kloppen en of de boorgaten op de juiste posities uitkomen.</p>
+<p class="text-muted">Meet de bestaande kastopeningen na en controleer of de systeemgaten kloppen. Panelen worden daarna besteld op basis van uw maten.</p>
 
 @{
     var resultaten = State.BerekenResultaten();
@@ -22,10 +22,37 @@
 }
 else if (_fase == VerificatieFase.Overzicht)
 {
+    @* Wandoverzichten *@
+    @foreach (var wand in State.Wanden)
+    {
+        var wandKasten = State.KastenVoorWand(wand.Id);
+        if (wandKasten.Count == 0) continue;
+        var wandApparaten = State.ApparatenVoorWand(wand.Id);
+        var toewijzingenVoorWand = State.Toewijzingen
+            .Where(t => t.KastIds.Any(id => wandKasten.Any(k => k.Id == id)))
+            .ToList();
+        var resultatenOpId = resultaten
+            .Where(r => r.ToewijzingId != Guid.Empty)
+            .ToDictionary(r => r.ToewijzingId);
+
+        <div class="mb-3">
+            <div class="small fw-semibold text-muted mb-1">&#128205; @wand.Naam</div>
+            <div class="paneel-overzicht-scroll">
+                <WandPaneelOverzicht Kasten="@wandKasten"
+                                     Apparaten="@wandApparaten"
+                                     WandBreedte="@wand.Breedte"
+                                     WandHoogte="@wand.Hoogte"
+                                     PlintHoogte="@wand.PlintHoogte"
+                                     AlleToewijzingen="@toewijzingenVoorWand"
+                                     ResultatenOpToewijzingId="@resultatenOpId" />
+            </div>
+        </div>
+    }
+
     <div class="card mb-4">
         <div class="card-body">
-            <h5 class="card-title">Te controleren panelen</h5>
-            <p>Er zijn <strong>@resultaten.Count</strong> panelen om te controleren. Doorloop ze een voor een om te verifi&#235;ren dat de maten en boorgaten kloppen.</p>
+            <h5 class="card-title">Te controleren kastopeningen</h5>
+            <p class="text-muted small">Er zijn <strong>@resultaten.Count</strong> panelen. Meet voor elk paneel de kastopening na en controleer het gaatjespatroon op de kastromp.</p>
 
             <div class="table-responsive mb-3">
                 <table class="table table-sm table-hover align-middle">
@@ -35,9 +62,8 @@ else if (_fase == VerificatieFase.Overzicht)
                             <th>Kast</th>
                             <th>Wand</th>
                             <th>Type</th>
-                            <th class="text-end">Breedte</th>
-                            <th class="text-end">Hoogte</th>
-                            <th class="text-center">Boorgaten</th>
+                            <th class="text-end">Opening B&#215;H</th>
+                            <th class="text-center">Scharnieren</th>
                             <th class="text-center">Status</th>
                         </tr>
                     </thead>
@@ -48,26 +74,32 @@ else if (_fase == VerificatieFase.Overzicht)
                             var idx = i;
                             var wandNaam = State.WandNaamVoorKasten(r.KastIds);
                             var geverifieerd = AlleChecksVoorPaneel(idx, r);
+                            var openingB = r.MaatInfo?.OpeningsRechthoek.Breedte ?? r.Breedte;
+                            var openingH = r.MaatInfo?.OpeningsRechthoek.Hoogte ?? r.Hoogte;
                             <tr class="@(geverifieerd ? "table-success" : "")" style="cursor:pointer" @onclick="() => GaNaarPaneel(idx)">
                                 <td class="text-muted">@(i + 1)</td>
                                 <td><strong>@r.KastNaam</strong></td>
-                                <td class="text-muted">@wandNaam</td>
-                                <td>
-                                    <span class="badge @TypeBadgeClass(r.Type)">@TypeNaam(r.Type)</span>
-                                </td>
-                                <td class="text-end">@r.Breedte mm</td>
-                                <td class="text-end">@r.Hoogte mm</td>
+                                <td class="text-muted small">@wandNaam</td>
+                                <td><span class="badge @TypeBadgeClass(r.Type)">@TypeNaam(r.Type)</span></td>
+                                <td class="text-end text-nowrap">@FormatMm(openingB) &#215; @FormatMm(openingH)</td>
                                 <td class="text-center">
-                                    <span class="badge bg-body-secondary border">@r.Boorgaten.Count</span>
+                                    @if (r.Type == PaneelType.Deur && r.Boorgaten.Count > 0)
+                                    {
+                                        <span class="badge bg-body-secondary border">@r.Boorgaten.Count</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
                                 </td>
                                 <td class="text-center">
                                     @if (geverifieerd)
                                     {
-                                        <span class="badge bg-success">&#10003; Gecontroleerd</span>
+                                        <span class="text-success fw-bold">&#10003;</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">Nog niet</span>
+                                        <span class="text-muted">&#8226;</span>
                                     }
                                 </td>
                             </tr>
@@ -77,12 +109,20 @@ else if (_fase == VerificatieFase.Overzicht)
             </div>
 
             @{
+                var aantalAfgerond = Enumerable.Range(0, resultaten.Count).Count(i => AlleChecksVoorPaneel(i, resultaten[i]));
                 var eersteOngecontroleerd = Enumerable.Range(0, resultaten.Count)
                     .FirstOrDefault(i => !AlleChecksVoorPaneel(i, resultaten[i]), 0);
+                var alGestart = aantalAfgerond > 0;
             }
-            <button class="btn btn-success btn-lg" @onclick="() => GaNaarPaneel(eersteOngecontroleerd)">
-                Start verificatie &#8594;
-            </button>
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-success btn-lg" @onclick="() => GaNaarPaneel(eersteOngecontroleerd)">
+                    @(alGestart ? "Ga verder met verificatie" : "Start verificatie") &#8594;
+                </button>
+                @if (alGestart)
+                {
+                    <span class="text-muted small">@aantalAfgerond van @resultaten.Count afgerond</span>
+                }
+            </div>
         </div>
     </div>
 }
@@ -91,20 +131,35 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
     var r = resultaten[_paneelIndex];
     var toewijzing = State.Toewijzingen.FirstOrDefault(t => t.Id == r.ToewijzingId) ?? State.Toewijzingen[_paneelIndex];
     var potHartVanRand = r.Boorgaten.FirstOrDefault()?.X ?? toewijzing.PotHartVanRand;
-    var paneelKasten = r.KastIds
-        .Select(id => State.Kasten.Find(k => k.Id == id))
-        .Where(k => k is not null)
-        .Cast<Kast>()
-        .ToList();
+    var paneelKasten = State.ZoekKasten(r.KastIds);
     var checks = GetChecks(_paneelIndex);
     var isDeur = r.Type == PaneelType.Deur && r.Boorgaten.Count > 0;
+    var openingB = r.MaatInfo?.OpeningsRechthoek.Breedte ?? r.Breedte;
+    var openingH = r.MaatInfo?.OpeningsRechthoek.Hoogte ?? r.Hoogte;
+    var aantalAfgevinkt = AantalAfgevinktVoorPaneel(_paneelIndex, r);
+    var totaalChecks = isDeur ? 2 : 1;
 
-    @* Progress bar *@
-    <div class="d-flex align-items-center gap-3 mb-3">
-        <div class="progress flex-grow-1" style="height: 6px;">
-            <div class="progress-bar bg-success" style="width: @ProgressPercentage(resultaten)%"></div>
-        </div>
-        <span class="text-muted small">Paneel @(_paneelIndex + 1) van @resultaten.Count</span>
+    @* Paneel-tabs navigatie *@
+    <div class="mb-3 verificatie-tabs">
+        <ul class="nav nav-pills nav-fill flex-wrap">
+            @for (int i = 0; i < resultaten.Count; i++)
+            {
+                var ri = resultaten[i];
+                var idx = i;
+                var isActief = idx == _paneelIndex;
+                var isOk = AlleChecksVoorPaneel(idx, ri);
+                <li class="nav-item">
+                    <button class="nav-link @(isActief ? "active" : "") @(isOk && !isActief ? "verificatie-tab-ok" : "")"
+                            @onclick="() => GaNaarPaneel(idx)">
+                        @if (isOk)
+                        {
+                            <span class="verificatie-tab-check">&#10003;</span>
+                        }
+                        @(i + 1). @ri.KastNaam
+                    </button>
+                </li>
+            }
+        </ul>
     </div>
 
     <div class="card mb-4">
@@ -113,147 +168,131 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                 <span class="badge @TypeBadgeClass(r.Type) me-2">@TypeNaam(r.Type)</span>
                 @r.KastNaam
             </h5>
-            <span class="text-muted">Wand: @State.WandNaamVoorKasten(r.KastIds)</span>
+            <span class="text-muted small">@State.WandNaamVoorKasten(r.KastIds)</span>
         </div>
         <div class="card-body">
-            <div class="row">
+            <div class="row g-4">
                 <div class="col-lg-8">
-                    @* -- Controle 1: Paneelmaten -- *@
-                    <div class="verificatie-sectie mb-4">
-                        <div class="d-flex align-items-start gap-2 mb-2">
-                            <div class="form-check mt-1">
-                                <input type="checkbox" class="form-check-input" id="check-maten-@_paneelIndex"
-                                       checked="@checks.MatenOk"
-                                       @onchange="() => ToggleCheck(_paneelIndex, c => c.MatenOk = !c.MatenOk)" />
-                            </div>
+
+                    @* ── Controle 1: Meet de kastopening na ── *@
+                    <div class="verificatie-check @(checks.MatenOk ? "verificatie-check-ok" : "") mb-4">
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <button class="verificatie-check-cirkel @(checks.MatenOk ? "ok" : "")"
+                                    @onclick="() => ToggleCheck(_paneelIndex, c => c.MatenOk = !c.MatenOk)"
+                                    title="@(checks.MatenOk ? "Vink af" : "Markeer als gecontroleerd")">
+                                @if (checks.MatenOk) { <span>&#10003;</span> } else { <span>1</span> }
+                            </button>
                             <div>
-                                <h6 class="mb-1">&#9312; Controleer de paneelmaten</h6>
-                                <p class="text-muted small mb-2">Leg een meetlint langs het paneel en controleer de breedte en hoogte.</p>
+                                <h6 class="mb-1 fw-bold">Meet de kastopening na</h6>
+                                <p class="text-muted small mb-0">Meet met een meetlint de vrije binnenafmeting van de kast (opening zonder deuren). Vergelijk met de maten hieronder.</p>
                             </div>
                         </div>
-                        <div class="border rounded p-3 bg-light">
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="mb-2">
-                                        <span class="text-muted">Breedte:</span>
-                                        <strong class="fs-5 ms-2">@r.Breedte mm</strong>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="mb-2">
-                                        <span class="text-muted">Hoogte:</span>
-                                        <strong class="fs-5 ms-2">@r.Hoogte mm</strong>
-                                    </div>
-                                </div>
+
+                        <div class="verificatie-maten mb-3 ps-5">
+                            <div class="verificatie-maat">
+                                <div class="verificatie-maat-waarde">@FormatMm(openingB)</div>
+                                <div class="verificatie-maat-label">breedte opening</div>
                             </div>
-                            @if (r.MaatInfo is not null)
-                            {
-                                <div class="small text-muted mt-2">
-                                    <div>@BreedteSpelingTekst(r.MaatInfo)</div>
-                                    <div>@HoogteSpelingTekst(r.MaatInfo)</div>
-                                </div>
-                            }
+                            <div class="verificatie-maat-keer">&#215;</div>
+                            <div class="verificatie-maat">
+                                <div class="verificatie-maat-waarde">@FormatMm(openingH)</div>
+                                <div class="verificatie-maat-label">hoogte opening</div>
+                            </div>
                         </div>
+
+                        @if (r.MaatInfo is not null && r.MaatInfo.TotaleInkortingBreedte + r.MaatInfo.TotaleInkortingHoogte > 0.001)
+                        {
+                            <div class="verificatie-afleiding ps-5 small text-muted">
+                                <div class="fw-semibold mb-1">Hieruit volgt een paneel van:</div>
+                                <div>Breedte: @FormatMm(r.MaatInfo.PaneelRechthoek.Breedte) (@BreedteSpelingKort(r.MaatInfo))</div>
+                                <div>Hoogte: @FormatMm(r.MaatInfo.PaneelRechthoek.Hoogte) (@HoogteSpelingKort(r.MaatInfo))</div>
+                            </div>
+                        }
+                        else if (r.MaatInfo is not null)
+                        {
+                            <div class="verificatie-afleiding ps-5 small text-muted">
+                                Paneel: @FormatMm(r.MaatInfo.PaneelRechthoek.Breedte) &#215; @FormatMm(r.MaatInfo.PaneelRechthoek.Hoogte) (geen spelingaftrek op vrije randen)
+                            </div>
+                        }
                     </div>
 
                     @if (isDeur)
                     {
-                        @* -- Controle 2: Scharnierposities -- *@
-                        <div class="verificatie-sectie mb-4">
-                            <div class="d-flex align-items-start gap-2 mb-2">
-                                <div class="form-check mt-1">
-                                    <input type="checkbox" class="form-check-input" id="check-scharnieren-@_paneelIndex"
-                                           checked="@checks.ScharnierPositiesOk"
-                                           @onchange="() => ToggleCheck(_paneelIndex, c => c.ScharnierPositiesOk = !c.ScharnierPositiesOk)" />
-                                </div>
+                        @* ── Controle 2: Controleer de gaatjesrij ── *@
+                        <div class="verificatie-check @(checks.ScharnierPositiesOk ? "verificatie-check-ok" : "") mb-4">
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <button class="verificatie-check-cirkel @(checks.ScharnierPositiesOk ? "ok" : "")"
+                                        @onclick="() => ToggleCheck(_paneelIndex, c => c.ScharnierPositiesOk = !c.ScharnierPositiesOk)"
+                                        title="@(checks.ScharnierPositiesOk ? "Vink af" : "Markeer als gecontroleerd")">
+                                    @if (checks.ScharnierPositiesOk) { <span>&#10003;</span> } else { <span>2</span> }
+                                </button>
                                 <div>
-                                    <h6 class="mb-1">&#9313; Controleer de scharnierposities</h6>
-                                    <p class="text-muted small mb-2">Vergelijk het scharnieroverzicht hieronder met uw kast. Links ziet u de kastromp met systeemgaten, rechts het paneel met 35mm-boringen. De rode lijnen tonen waar de scharnieren komen.</p>
+                                    <h6 class="mb-1 fw-bold">Controleer de gaatjesrij op de kastromp</h6>
+                                    <p class="text-muted small mb-0">
+                                        Open de kast en bekijk de @(r.ScharnierZijde == ScharnierZijde.Links ? "linker" : "rechter") zijwand.
+                                        Tel de systeemgaten af van boven voor elk scharnier.
+                                    </p>
                                 </div>
                             </div>
-                            <div class="border rounded p-3 bg-light">
+
+                            @if (r.Boorgaten.Any(g => g.Onderbouwing is not null))
+                            {
+                                <div class="verificatie-instructies ps-5 mb-3">
+                                    @for (int j = 0; j < r.Boorgaten.Count; j++)
+                                    {
+                                        var g = r.Boorgaten[j];
+                                        var o = g.Onderbouwing;
+                                        if (o is not null)
+                                        {
+                                            <div class="verificatie-instructie">
+                                                <div class="verificatie-instructie-nr">@(j + 1)</div>
+                                                <div>
+                                                    <div class="fw-semibold">Scharnier @(j + 1) — @o.KastNaam</div>
+                                                    <div class="text-muted small">
+                                                        Montageplaat-midden tussen gat <strong>@o.GaatBovenIndex</strong> (@FormatMm(o.GaatBovenY) van boven)
+                                                        en gat <strong>@o.GaatOnderIndex</strong> (@FormatMm(o.GaatOnderY) van boven).
+                                                        Midden op <strong>@FormatMm(o.MontagePlaatMiddenInKast)</strong> in de kast.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            }
+
+                            <div class="ps-5">
                                 <ScharnierOverzichtVisueel Resultaat="@r"
-                                                          Toewijzing="@toewijzing"
-                                                          Kasten="@paneelKasten" />
+                                                           Toewijzing="@toewijzing"
+                                                           Kasten="@paneelKasten"
+                                                           MaxHoogte="480" />
                                 <div class="small text-muted mt-2">
-                                    <span>Scharnier zijde: <strong>@r.ScharnierZijde</strong></span>
+                                    <span>Scharnierkant: <strong>@(r.ScharnierZijde == ScharnierZijde.Links ? "links" : "rechts")</strong></span>
                                     <span class="ms-3">Hart potje vanaf rand: <strong>@FormatMm(potHartVanRand)</strong></span>
                                 </div>
                             </div>
                         </div>
-
-                        @* -- Controle 3: Boorgaten -- *@
-                        <div class="verificatie-sectie mb-4">
-                            <div class="d-flex align-items-start gap-2 mb-2">
-                                <div class="form-check mt-1">
-                                    <input type="checkbox" class="form-check-input" id="check-boorgaten-@_paneelIndex"
-                                           checked="@checks.BoorgatenOk"
-                                           @onchange="() => ToggleCheck(_paneelIndex, c => c.BoorgatenOk = !c.BoorgatenOk)" />
-                                </div>
-                                <div>
-                                    <h6 class="mb-1">&#9314; Controleer de boorgaten</h6>
-                                    <p class="text-muted small mb-2">Meet voor elk boorgat de afstand vanaf de bovenkant van het paneel naar het hart van het 35mm-gat. Controleer of elke Y-positie klopt.</p>
-                                </div>
-                            </div>
-                            <div class="border rounded p-3 bg-light">
-                                <div class="table-responsive">
-                                    <table class="table table-sm mb-2">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>X van @(r.ScharnierZijde == ScharnierZijde.Links ? "linker" : "rechter") rand</th>
-                                                <th>Y van boven</th>
-                                                <th>Y van onder</th>
-                                                <th>&#216;</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @for (int j = 0; j < r.Boorgaten.Count; j++)
-                                            {
-                                                var g = r.Boorgaten[j];
-                                                <tr>
-                                                    <td>@(j + 1)</td>
-                                                    <td>@FormatMm(g.X)</td>
-                                                    <td><strong>@FormatMm(g.Y)</strong></td>
-                                                    <td>@FormatMm(r.Hoogte - g.Y)</td>
-                                                    <td>@g.Diameter mm</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                                @if (r.Boorgaten.Any(g => g.Onderbouwing is not null))
-                                {
-                                    <details class="mt-2">
-                                        <summary class="small text-muted" style="cursor:pointer">Toon onderbouwing per scharnier</summary>
-                                        <div class="mt-2">
-                                            @for (int j = 0; j < r.Boorgaten.Count; j++)
-                                            {
-                                                var g = r.Boorgaten[j];
-                                                var o = g.Onderbouwing;
-                                                @if (o is not null)
-                                                {
-                                                    <div class="border rounded p-2 mb-2 small bg-body-secondary">
-                                                        <div class="fw-semibold">Scharnier @(j + 1) op @FormatMm(g.Y) vanaf boven</div>
-                                                        <div class="text-muted">@FormatMm(r.Hoogte - g.Y) vanaf onder</div>
-                                                        <div>Kast <strong>@o.KastNaam</strong>, montageplaat-midden tussen gat @o.GaatBovenIndex (@FormatMm(o.GaatBovenY)) en gat @o.GaatOnderIndex (@FormatMm(o.GaatOnderY)).</div>
-                                                        <div class="text-muted">@WaaromPastTekst(r, o)</div>
-                                                    </div>
-                                                }
-                                            }
-                                        </div>
-                                    </details>
-                                }
-                            </div>
-                        </div>
                     }
                 </div>
-                <div class="col-lg-4 text-center">
-                    <PaneelVisueel Resultaat="@r" />
+
+                @* ── Rechterkolom: paneel visualisatie ── *@
+                <div class="col-lg-4">
+                    <div class="sticky-top" style="top: 4rem;">
+                        <div class="text-center mb-2">
+                            <PaneelVisueel Resultaat="@r" MaxHoogte="200" />
+                        </div>
+                        <div class="card card-body small bg-body-tertiary">
+                            <div class="fw-semibold mb-1">Berekend paneel</div>
+                            <div>@FormatMm(r.Breedte) &#215; @FormatMm(r.Hoogte)</div>
+                            @if (isDeur)
+                            {
+                                <div class="text-muted">@r.Boorgaten.Count boorgaten &#216;@(r.Boorgaten.FirstOrDefault()?.Diameter ?? 35) mm</div>
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            @* Panel navigation *@
+            @* Navigatie onderaan *@
             <hr />
             <div class="d-flex justify-content-between align-items-center">
                 <button class="btn btn-outline-secondary" @onclick="VorigePaneel">
@@ -266,11 +305,18 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                     }
                     else
                     {
-                        <span>Vink de controles af als ze kloppen</span>
+                        <span>@aantalAfgevinkt van @totaalChecks controles afgevinkt</span>
                     }
                 </div>
                 <button class="btn btn-success" @onclick="VolgendPaneel">
-                    @(_paneelIndex < resultaten.Count - 1 ? "Volgend paneel &#8594;" : "Afronden &#8594;")
+                    @if (_paneelIndex < resultaten.Count - 1)
+                    {
+                        <span>Paneel @(_paneelIndex + 2) &#8594;</span>
+                    }
+                    else
+                    {
+                        <span>Afronden &#8594;</span>
+                    }
                 </button>
             </div>
         </div>
@@ -285,18 +331,18 @@ else if (_fase == VerificatieFase.Afronding)
         <div class="card-body text-center py-5">
             @if (alleGeverifieerd)
             {
-                <div class="display-1 text-success mb-3">&#10003;</div>
-                <h4 class="text-success">Alle @resultaten.Count panelen geverifieerd</h4>
-                <p class="text-muted">Alle controles zijn afgevinkt. U kunt doorgaan naar de bestellijst.</p>
+                <div class="verificatie-resultaat-icoon succes">&#10003;</div>
+                <h4 class="text-success">Alle @resultaten.Count kastmetingen gecontroleerd</h4>
+                <p class="text-muted">Alle opening- en gaatjesrij-controles zijn afgevinkt. U kunt doorgaan naar de bestellijst.</p>
             }
             else
             {
-                <div class="display-1 text-warning mb-3">&#9888;</div>
+                <div class="verificatie-resultaat-icoon waarschuwing">&#9888;</div>
                 <h4>@aantalGeverifieerd van @resultaten.Count panelen afgevinkt</h4>
-                <p class="text-muted">Niet alle controles zijn afgevinkt. U kunt teruggaan om ontbrekende controles te voltooien, of toch doorgaan.</p>
+                <p class="text-muted">Niet alle controles zijn afgevinkt. U kunt teruggaan om de ontbrekende controles te voltooien, of toch doorgaan.</p>
             }
 
-            <div class="d-flex justify-content-center gap-3 mt-4">
+            <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
                 <button class="btn btn-outline-secondary" @onclick="TerugNaarOverzicht">&#8592; Terug naar overzicht</button>
                 <button class="btn btn-outline-secondary" @onclick="DeelResultaat">&#128279; Deel link</button>
                 <button class="btn btn-outline-primary" @onclick="PrintResultaat">&#128424; Afdrukken</button>
@@ -328,7 +374,6 @@ else if (_fase == VerificatieFase.Afronding)
     {
         public bool MatenOk { get; set; }
         public bool ScharnierPositiesOk { get; set; }
-        public bool BoorgatenOk { get; set; }
     }
 
     private readonly Dictionary<int, VerificatieChecks> _checks = [];
@@ -351,14 +396,17 @@ else if (_fase == VerificatieFase.Afronding)
         if (!_checks.TryGetValue(index, out var checks)) return false;
         if (!checks.MatenOk) return false;
         if (r.Type == PaneelType.Deur && r.Boorgaten.Count > 0)
-            return checks.ScharnierPositiesOk && checks.BoorgatenOk;
+            return checks.ScharnierPositiesOk;
         return true;
     }
 
-    private string ProgressPercentage(List<PaneelResultaat> resultaten)
+    private int AantalAfgevinktVoorPaneel(int index, PaneelResultaat r)
     {
-        var aantalOk = Enumerable.Range(0, resultaten.Count).Count(i => AlleChecksVoorPaneel(i, resultaten[i]));
-        return (aantalOk * 100.0 / resultaten.Count).ToString("0", System.Globalization.CultureInfo.InvariantCulture);
+        if (!_checks.TryGetValue(index, out var checks)) return 0;
+        var count = checks.MatenOk ? 1 : 0;
+        if (r.Type == PaneelType.Deur && r.Boorgaten.Count > 0 && checks.ScharnierPositiesOk)
+            count++;
+        return count;
     }
 
     private void GaNaarPaneel(int index)
@@ -395,38 +443,22 @@ else if (_fase == VerificatieFase.Afronding)
         _ => "bg-secondary"
     };
 
-    private static string WaaromPastTekst(PaneelResultaat resultaat, BoorgatOnderbouwing onderbouwing)
+    private static string BreedteSpelingKort(PaneelMaatInfo maatInfo)
     {
-        var delen = new List<string>
-        {
-            $"Past binnen het paneel: hart op {FormatMm(onderbouwing.AfstandTotBoven)} van boven en {FormatMm(onderbouwing.AfstandTotOnder)} van onder",
-            $"{FormatMm(onderbouwing.AfstandTotIdealeVerdeling)} van de ideale verdeling voor {resultaat.Boorgaten.Count} scharnieren",
-            $"midden gaatjesrij op {FormatMm(onderbouwing.MontagePlaatMiddenInKast)} in de kast"
-        };
-
-        if (onderbouwing.AfstandTotDichtstbijzijndeNaad is double afstandNaad)
-            delen.Add($"{FormatMm(afstandNaad)} vrij tot dichtstbijzijnde naad");
-
-        if (onderbouwing.AfstandTotDichtstbijzijndePlank is double afstandPlank)
-            delen.Add($"{FormatMm(afstandPlank)} vrij tot dichtstbijzijnde plank");
-
-        return string.Join(", ", delen) + ".";
+        var delen = SpelingDelen(maatInfo.RaaktLinks, maatInfo.InkortingLinks, "links",
+                                 maatInfo.RaaktRechts, maatInfo.InkortingRechts, "rechts").ToList();
+        return delen.Count == 0
+            ? "geen aftrek"
+            : $"opening {FormatMm(maatInfo.OpeningsRechthoek.Breedte)} − {string.Join(" − ", delen)}";
     }
 
-    private static string BreedteSpelingTekst(PaneelMaatInfo maatInfo)
+    private static string HoogteSpelingKort(PaneelMaatInfo maatInfo)
     {
-        if (maatInfo.TotaleInkortingBreedte <= 0.001)
-            return $"Breedte blijft {FormatMm(maatInfo.PaneelRechthoek.Breedte)}; links en rechts raken geen andere rand.";
-
-        return $"Breedte: opening {FormatMm(maatInfo.OpeningsRechthoek.Breedte)} -> paneel {FormatMm(maatInfo.PaneelRechthoek.Breedte)}. {string.Join(" + ", SpelingDelen(maatInfo.RaaktLinks, maatInfo.InkortingLinks, "links", maatInfo.RaaktRechts, maatInfo.InkortingRechts, "rechts"))} aftrek.";
-    }
-
-    private static string HoogteSpelingTekst(PaneelMaatInfo maatInfo)
-    {
-        if (maatInfo.TotaleInkortingHoogte <= 0.001)
-            return $"Hoogte blijft {FormatMm(maatInfo.PaneelRechthoek.Hoogte)}; boven en onder raken geen andere rand.";
-
-        return $"Hoogte: opening {FormatMm(maatInfo.OpeningsRechthoek.Hoogte)} -> paneel {FormatMm(maatInfo.PaneelRechthoek.Hoogte)}. {string.Join(" + ", SpelingDelen(maatInfo.RaaktOnder, maatInfo.InkortingOnder, "onder", maatInfo.RaaktBoven, maatInfo.InkortingBoven, "boven"))} aftrek.";
+        var delen = SpelingDelen(maatInfo.RaaktOnder, maatInfo.InkortingOnder, "onder",
+                                 maatInfo.RaaktBoven, maatInfo.InkortingBoven, "boven").ToList();
+        return delen.Count == 0
+            ? "geen aftrek"
+            : $"opening {FormatMm(maatInfo.OpeningsRechthoek.Hoogte)} − {string.Join(" − ", delen)}";
     }
 
     private static IEnumerable<string> SpelingDelen(

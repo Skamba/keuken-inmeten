@@ -1069,3 +1069,72 @@ code {
 [data-bs-theme="dark"] svg text[fill="#888"] {
     fill: #aaa;
 }
+
+/* ── Verificatie ── */
+.verificatie-tabs .nav-link { font-size: 0.85rem; padding: 0.35rem 0.5rem; }
+.verificatie-tab-ok { color: var(--bs-success) !important; }
+.verificatie-tab-check { font-size: 0.7rem; margin-right: 0.2rem; }
+
+.verificatie-check {
+    border-left: 3px solid var(--bs-border-color, #dee2e6);
+    padding-left: 1rem;
+    transition: border-color 0.2s;
+}
+.verificatie-check-ok { border-left-color: var(--bs-success); }
+
+.verificatie-check-cirkel {
+    width: 36px; height: 36px; flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid var(--bs-border-color, #adb5bd);
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    font-weight: 700; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s;
+}
+.verificatie-check-cirkel.ok {
+    background: var(--bs-success);
+    border-color: var(--bs-success);
+    color: #fff;
+}
+.verificatie-check-cirkel:hover:not(.ok) {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+.verificatie-maten {
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+}
+.verificatie-maat { text-align: center; }
+.verificatie-maat-waarde {
+    font-size: 1.8rem; font-weight: 700;
+    color: var(--bs-emphasis-color);
+    line-height: 1.1;
+}
+.verificatie-maat-label {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--bs-secondary-color);
+}
+.verificatie-maat-keer {
+    font-size: 1.4rem; color: var(--bs-secondary-color); margin-top: 0.5rem;
+}
+
+.verificatie-afleiding {
+    border-top: 1px dashed var(--bs-border-color, #dee2e6);
+    padding-top: 0.75rem;
+}
+
+.verificatie-instructies { display: flex; flex-direction: column; gap: 0.5rem; }
+.verificatie-instructie { display: flex; gap: 0.75rem; align-items: flex-start; }
+.verificatie-instructie-nr {
+    width: 24px; height: 24px; flex-shrink: 0;
+    background: var(--bs-primary); color: #fff;
+    border-radius: 50%;
+    font-size: 0.75rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.verificatie-resultaat-icoon { font-size: 4rem; line-height: 1; margin-bottom: 1rem; }
+.verificatie-resultaat-icoon.succes { color: var(--bs-success); }
+.verificatie-resultaat-icoon.waarschuwing { color: var(--bs-warning); }
+}
