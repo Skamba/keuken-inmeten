@@ -3,21 +3,24 @@
 @inject ActieFeedbackService Feedback
 @implements IDisposable
 
-<PageTitle>Stap 2 — Panelen configureren</PageTitle>
+<PageTitle>Stap 2 — Panelen</PageTitle>
 
 <StapIndicator HuidigeStap="panelen" />
 
-<h2 class="page-header">Stap 2: Panelen configureren</h2>
+<h2 class="page-header">Stap 2: Panelen</h2>
 <p class="text-muted">Volg deze mini-flow: 1. selecteer kast(en), 2. plaats of pas het paneel aan, 3. controleer maat en type, 4. sla op. Het paneel snapt automatisch aan kast- en paneelranden.</p>
 
 <TerminologieUitleg Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde,scharnierpot,pothart"
                     Beschrijving="Deze woordenlijst legt de belangrijkste paneel- en scharniertermen in gewone taal uit." />
 
-@if (State.Kasten.Count == 0)
+@{
+    var flowStatus = StappenFlowHelper.BepaalStatus(State);
+    var routeGate = StappenFlowHelper.BepaalRouteGate("panelen", flowStatus);
+}
+
+@if (routeGate is not null)
 {
-    <div class="alert alert-warning">
-        <a href="kasten">Voer eerst kasten in</a> voordat u panelen kunt configureren.
-    </div>
+    <StapRouteMelding Gate="@routeGate" />
 }
 else
 {
@@ -427,9 +430,7 @@ else
 
 <StapNavigatie HuidigeStap="panelen"
                VorigeHref="kasten"
-               VorigeLabel="Terug naar indeling"
                VolgendeHref="verificatie"
-               VolgendeLabel="Verificatie starten"
                VolgendeDisabled="@(State.Toewijzingen.Count == 0)" />
 
 @code {

@@ -15,6 +15,8 @@
                     Beschrijving="Deze woordenlijst helpt bij de technische termen in de bestellijst en export." />
 
 @{
+    var flowStatus = StappenFlowHelper.BepaalStatus(State);
+    var routeGate = StappenFlowHelper.BepaalRouteGate("bestellijst", flowStatus);
     var items = BestellijstService.BerekenItems(State);
     var wandGroepen = OverzichtGroeperingHelper.GroepeerBestellijstOpWand(items);
     var paneelTypeTellingen = OverzichtGroeperingHelper.MaakTellingen(items, item => item.PaneelRolLabel, item => item.Aantal);
@@ -23,10 +25,14 @@
     var totaalBoorgaten = items.Sum(item => item.Aantal * item.Boorgaten.Count);
 }
 
-@if (items.Count == 0)
+@if (routeGate is not null)
+{
+    <StapRouteMelding Gate="@routeGate" />
+}
+else if (items.Count == 0)
 {
     <div class="alert alert-warning">
-        Er is nog geen bestellijst beschikbaar. <a href="verificatie">Doorloop eerst de verificatie</a> of voeg panelen toe in stap 2.
+        Er is nog geen bestellijst beschikbaar. Controleer eerst of er in stap 2 panelen zijn toegewezen.
     </div>
 }
 else
@@ -214,9 +220,7 @@ else
 
 <StapNavigatie HuidigeStap="bestellijst"
                VorigeHref="verificatie"
-               VorigeLabel="Terug naar verificatie"
-               VolgendeHref="zaagplan"
-               VolgendeLabel="Naar zaagplan" />
+               VolgendeHref="zaagplan" />
 
 @code {
     private static readonly string[] PaneelTypeOpties =

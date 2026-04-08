@@ -15,14 +15,14 @@
                     Beschrijving="Deze woordenlijst helpt bij de controletermen die u in de verificatiestap ziet." />
 
 @{
+    var flowStatus = StappenFlowHelper.BepaalStatus(State);
+    var routeGate = StappenFlowHelper.BepaalRouteGate("verificatie", flowStatus);
     var resultaten = State.BerekenResultaten();
 }
 
-@if (resultaten.Count == 0)
+@if (routeGate is not null)
 {
-    <div class="alert alert-warning">
-        Geen panelen geconfigureerd. <a href="panelen">Ga terug om panelen toe te wijzen.</a>
-    </div>
+    <StapRouteMelding Gate="@routeGate" />
 }
 else if (_fase == VerificatieFase.Overzicht)
 {
@@ -429,9 +429,7 @@ else if (_fase == VerificatieFase.Afronding)
 
 <StapNavigatie HuidigeStap="verificatie"
                VorigeHref="panelen"
-               VorigeLabel="Terug naar panelen"
-               VolgendeHref="bestellijst"
-               VolgendeLabel="Naar bestellijst" />
+               VolgendeHref="bestellijst" />
 
 @code {
     private enum VerificatieFase { Overzicht, PaneelVerificatie, Afronding }

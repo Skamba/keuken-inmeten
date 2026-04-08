@@ -1,7 +1,13 @@
+@inject KeukenStateService State
+
+@{
+    var flowStatus = StappenFlowHelper.BepaalStatus(State);
+}
+
 <div class="stap-navigatie">
     @if (!string.IsNullOrEmpty(VorigeHref))
     {
-        <a href="@NormaliseerHref(VorigeHref)" class="btn btn-outline-secondary text-nowrap">← @VorigeLabel</a>
+        <a href="@NormaliseerHref(VorigeHref)" class="btn btn-outline-secondary text-nowrap">← @BepaalVorigeLabel()</a>
     }
     else
     {
@@ -9,15 +15,29 @@
     }
 
     <div class="stap-navigatie-stappen">
-        <a href="kasten" class="@(HuidigeStap == "kasten" ? "actief" : "")">1. Indeling</a>
-        <span class="stap-pijl">›</span>
-        <a href="panelen" class="@(HuidigeStap == "panelen" ? "actief" : "")">2. Panelen</a>
-        <span class="stap-pijl">›</span>
-        <a href="verificatie" class="@(HuidigeStap == "verificatie" ? "actief" : "")">3. Verificatie</a>
-        <span class="stap-pijl">›</span>
-        <a href="bestellijst" class="@(HuidigeStap == "bestellijst" ? "actief" : "")">4. Bestellijst</a>
-        <span class="stap-pijl">›</span>
-        <a href="zaagplan" class="@(HuidigeStap == "zaagplan" ? "actief" : "")">5. Zaagplan</a>
+        @for (var i = 0; i < StappenFlowHelper.AlleStappen.Count; i++)
+        {
+            var stap = StappenFlowHelper.AlleStappen[i];
+            var isActief = HuidigeStap == stap.Id;
+            var isNavigeerbaar = StappenFlowHelper.MagNavigeren(stap.Id, HuidigeStap, flowStatus);
+
+            @if (isNavigeerbaar)
+            {
+                <a href="@stap.Route" class="@(isActief ? "actief" : "")">@stap.Nummer. @stap.Label</a>
+            }
+            else
+            {
+                <span class="stap-navigatie-link vergrendeld"
+                      title="@StappenFlowHelper.BepaalRouteGate(stap.Id, flowStatus)?.Reden">
+                    @stap.Nummer. @stap.Label
+                </span>
+            }
+
+            @if (i < StappenFlowHelper.AlleStappen.Count - 1)
+            {
+                <span class="stap-pijl">›</span>
+            }
+        }
     </div>
 
     @if (Midden is not null)
@@ -27,13 +47,17 @@
 
     @if (!string.IsNullOrEmpty(VolgendeHref))
     {
-        @if (VolgendeDisabled)
+        @if (VolgendeDisabled || VolgendeIsVergrendeld(flowStatus))
         {
-            <span class="btn btn-success disabled text-nowrap" aria-disabled="true">@VolgendeLabel →</span>
+            <span class="btn btn-success disabled text-nowrap"
+                  aria-disabled="true"
+                  title="@VolgendeGateTekst(flowStatus)">
+                @BepaalVolgendeLabel() →
+            </span>
         }
         else
         {
-            <a href="@NormaliseerHref(VolgendeHref)" class="btn btn-success text-nowrap">@VolgendeLabel →</a>
+            <a href="@NormaliseerHref(VolgendeHref)" class="btn btn-success text-nowrap">@BepaalVolgendeLabel() →</a>
         }
     }
     else
@@ -45,12 +69,35 @@
 @code {
     [Parameter] public string HuidigeStap { get; set; } = "";
     [Parameter] public string? VorigeHref { get; set; }
-    [Parameter] public string VorigeLabel { get; set; } = "Vorige stap";
+    [Parameter] public string? VorigeLabel { get; set; }
     [Parameter] public string? VolgendeHref { get; set; }
-    [Parameter] public string VolgendeLabel { get; set; } = "Volgende stap";
+    [Parameter] public string? VolgendeLabel { get; set; }
     [Parameter] public bool VolgendeDisabled { get; set; }
     [Parameter] public RenderFragment? Midden { get; set; }
 
     private static string NormaliseerHref(string? href)
         => string.IsNullOrWhiteSpace(href) ? "" : href.TrimStart('/');
+
+    private string BepaalVorigeLabel()
+        => !string.IsNullOrWhiteSpace(VorigeLabel)
+            ? VorigeLabel
+            : string.IsNullOrWhiteSpace(VorigeHref)
+                ? "Vorige stap"
+                : StappenFlowHelper.MaakTerugNaarLabel(NormaliseerHref(VorigeHref));
+
+    private string BepaalVolgendeLabel()
+        => !string.IsNullOrWhiteSpace(VolgendeLabel)
+            ? VolgendeLabel
+            : string.IsNullOrWhiteSpace(VolgendeHref)
+                ? "Volgende stap"
+                : StappenFlowHelper.MaakVolgendeLabel(NormaliseerHref(VolgendeHref));
+
+    private bool VolgendeIsVergrendeld(StappenFlowStatus flowStatus)
+        => !string.IsNullOrWhiteSpace(VolgendeHref)
+            && !StappenFlowHelper.IsBeschikbaar(NormaliseerHref(VolgendeHref), flowStatus);
+
+    private string? VolgendeGateTekst(StappenFlowStatus flowStatus)
+        => string.IsNullOrWhiteSpace(VolgendeHref)
+            ? null
+            : StappenFlowHelper.BepaalRouteGate(NormaliseerHref(VolgendeHref), flowStatus)?.Reden;
 }

@@ -1,24 +1,30 @@
 @page "/zaagplan"
 @inject KeukenStateService State
 
-<PageTitle>Zaagplan</PageTitle>
+<PageTitle>Stap 5 — Zaagplan</PageTitle>
 
 <StapIndicator HuidigeStap="zaagplan" />
 
-<h2 class="page-header">Zaagplan</h2>
+<h2 class="page-header">Stap 5: Zaagplan</h2>
 <p class="text-muted">Vul de afmetingen van een standaardplaat in en bekijk hoe de panelen optimaal over de platen verdeeld worden.</p>
 
 <TerminologieUitleg Sleutels="zaagbreedte"
                     Beschrijving="Deze woordenlijst licht de zaagterm op deze pagina in gewone taal toe." />
 
 @{
+    var flowStatus = StappenFlowHelper.BepaalStatus(State);
+    var routeGate = StappenFlowHelper.BepaalRouteGate("zaagplan", flowStatus);
     var items = BestellijstService.BerekenItems(State);
 }
 
-@if (items.Count == 0)
+@if (routeGate is not null)
+{
+    <StapRouteMelding Gate="@routeGate" />
+}
+else if (items.Count == 0)
 {
     <div class="alert alert-warning">
-        Er zijn nog geen panelen beschikbaar. <a href="bestellijst">Ga eerst naar de bestellijst</a> of voeg panelen toe in stap 2.
+        Er is nog geen zaagplan beschikbaar. Controleer eerst of er panelen klaarstaan in de bestellijst.
     </div>
 }
 else
@@ -113,8 +119,7 @@ else
 }
 
 <StapNavigatie HuidigeStap="zaagplan"
-               VorigeHref="bestellijst"
-               VorigeLabel="Terug naar bestellijst" />
+               VorigeHref="bestellijst" />
 
 @code {
     private double _plaatBreedte = 2800;

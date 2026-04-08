@@ -12,8 +12,9 @@
     var aantalBestellijstItems = bestellijstItems.Count;
     var totaalBoorgaten = bestellijstItems.Sum(item => item.Aantal * item.Boorgaten.Count);
     var heeftProjectData = aantalWanden > 0 || aantalKasten > 0 || aantalPanelen > 0;
-    var vervolgStap = BepaalVervolgStap(aantalKasten, aantalPanelen);
-    var stappen = BouwStappen(aantalWanden, aantalKasten, aantalPanelen, aantalResultaten, aantalBestellijstItems);
+    var flowStatus = StappenFlowHelper.BepaalStatus(State);
+    var vervolgStap = StappenFlowHelper.BepaalVervolgStap(flowStatus);
+    var stappen = BouwStappen(flowStatus, aantalWanden, aantalKasten, aantalPanelen, aantalResultaten, aantalBestellijstItems);
 }
 
 <div class="container py-4 home-startflow">
@@ -29,7 +30,7 @@
                     </p>
 
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="@vervolgStap.Href" class="btn btn-primary btn-lg px-4">@vervolgStap.KnopLabel</a>
+                        <a href="@vervolgStap.Route" class="btn btn-primary btn-lg px-4">@StappenFlowHelper.MaakVolgendeLabel(vervolgStap.Id)</a>
                         <a href="#startflow-stappen" class="btn btn-outline-secondary btn-lg px-4">Bekijk alle stappen</a>
                     </div>
 
@@ -122,7 +123,7 @@
                 <h2 class="h3 mb-1">Zo loopt de startflow</h2>
                 <p class="text-muted mb-0">De volgorde en labels hieronder zijn gelijk aan de rest van de applicatie.</p>
             </div>
-            <div class="text-muted small">Vaste volgorde: Indeling → Panelen → Verificatie → Bestellijst → Zaagplan</div>
+            <div class="text-muted small">Vaste volgorde: @string.Join(" → ", StappenFlowHelper.AlleStappen.Select(stap => stap.Label))</div>
         </div>
 
         <div class="row g-3">
@@ -130,7 +131,7 @@
             {
                 <div class="col-md-6 col-xl">
                     <a href="@stap.Href" class="text-decoration-none text-reset d-block h-100">
-                        <article class="card h-100 border-0 shadow-sm home-stap-card home-flow-step">
+                        <article class="card h-100 border-0 shadow-sm home-stap-card home-flow-step @(stap.IsBeschikbaar ? null : "home-flow-step--vergrendeld")">
                             <div class="card-body d-flex flex-column gap-3">
                                 <div class="d-flex justify-content-between align-items-start gap-2">
                                     <span class="home-step-number">@stap.Nummer</span>
@@ -196,36 +197,58 @@
             </div>
 
             <div class="row g-3 align-items-stretch">
-                <div class="col-lg-4">
+                <div class="col-lg-6 col-xl">
                     <div class="home-example-step h-100">
                         <div class="home-example-label">Invoer</div>
-                        <h3 class="h5">Stap 1 en 2</h3>
+                        <h3 class="h5">1. @StappenFlowHelper.Stap("kasten").Label</h3>
                         <ul class="mb-0 text-muted small">
-                            <li>Achterwand met 3 kasten en een oven in het midden</li>
-                            <li>2 deuren en 1 ladefront geselecteerd</li>
-                            <li>Plank toegevoegd als referentie voor de gatenrij</li>
+                            <li>Achterwand toevoegen en 3 kasten plaatsen</li>
+                            <li>Een oven toevoegen waar hij echt ruimte inneemt</li>
+                            <li>Controleer of de wandopstelling logisch staat</li>
                         </ul>
                     </div>
                 </div>
-                <div class="col-lg-4">
+                <div class="col-lg-6 col-xl">
                     <div class="home-example-step h-100">
-                        <div class="home-example-label">Berekening</div>
-                        <h3 class="h5">Stap 3</h3>
+                        <div class="home-example-label">Toewijzen</div>
+                        <h3 class="h5">2. @StappenFlowHelper.Stap("panelen").Label</h3>
                         <ul class="mb-0 text-muted small">
-                            <li>Vrije opening (openingsmaat) en netto paneelmaat (werkmaat) worden naast elkaar gecontroleerd</li>
-                            <li>Scharnierzijde en boorgatposities worden zichtbaar</li>
+                            <li>2 deuren en 1 ladefront selecteren</li>
+                            <li>Paneelmaten en scharnierzijde instellen</li>
+                            <li>Plank gebruiken als referentie voor de gatenrij</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-xl">
+                    <div class="home-example-step h-100">
+                        <div class="home-example-label">Controle</div>
+                        <h3 class="h5">3. @StappenFlowHelper.Stap("verificatie").Label</h3>
+                        <ul class="mb-0 text-muted small">
+                            <li>Vrije opening en netto paneelmaat naast elkaar controleren</li>
+                            <li>Scharnierzijde en boorgatposities nalopen</li>
                             <li>U ziet meteen welke panelen nog controle nodig hebben</li>
                         </ul>
                     </div>
                 </div>
-                <div class="col-lg-4">
+                <div class="col-lg-6 col-xl">
                     <div class="home-example-step h-100">
-                        <div class="home-example-label">Uitkomst</div>
-                        <h3 class="h5">Stap 4 en 5</h3>
+                        <div class="home-example-label">Bestellen</div>
+                        <h3 class="h5">4. @StappenFlowHelper.Stap("bestellijst").Label</h3>
                         <ul class="mb-0 text-muted small">
                             <li>Bestellijst met aantallen, maten en boorgaten</li>
                             <li>Export naar Excel of printklare PDF</li>
-                            <li>Zaagplan op standaard plaatformaat</li>
+                            <li>Per wand en paneeltype compact gegroepeerd</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-xl">
+                    <div class="home-example-step h-100">
+                        <div class="home-example-label">Zagen</div>
+                        <h3 class="h5">5. @StappenFlowHelper.Stap("zaagplan").Label</h3>
+                        <ul class="mb-0 text-muted small">
+                            <li>Panelen verdelen over standaard plaatformaat</li>
+                            <li>Zaagverlies meenemen in de berekening</li>
+                            <li>Snel zien hoeveel platen u nodig hebt</li>
                         </ul>
                     </div>
                 </div>
@@ -235,80 +258,75 @@
 </div>
 
 @code {
-    private static StartStap[] BouwStappen(int aantalWanden, int aantalKasten, int aantalPanelen, int aantalResultaten, int aantalBestellijstItems)
+    private static StartStap[] BouwStappen(StappenFlowStatus flowStatus, int aantalWanden, int aantalKasten, int aantalPanelen, int aantalResultaten, int aantalBestellijstItems)
     {
-        var aanbevolenHref = BepaalVervolgStap(aantalKasten, aantalPanelen).Href;
+        var aanbevolenStap = StappenFlowHelper.BepaalVervolgStap(flowStatus);
 
-        return
-        [
-            MaakStap(
-                "kasten",
-                1,
-                "Indeling",
-                "Maak uw keuken na per wand en voeg apparaten toe als die ruimte innemen.",
-                aantalWanden > 0 ? $"{aantalWanden} wand(en) · {aantalKasten} kast(en)" : "Start met wanden en kasten",
-                aantalWanden > 0 || aantalKasten > 0,
-                aanbevolenHref == "kasten"),
-            MaakStap(
-                "panelen",
-                2,
-                "Panelen",
-                "Selecteer kasten en bepaal per paneel de maat, plaatsing en scharnierzijde.",
-                aantalPanelen > 0 ? $"{aantalPanelen} paneel/panelen toegewezen" : "Nog geen panelen toegewezen",
-                aantalPanelen > 0,
-                aanbevolenHref == "panelen"),
-            MaakStap(
-                "verificatie",
-                3,
-                "Verificatie",
-                "Controleer openingsmaten en boorgaten voordat u bestelt of exporteert.",
-                aantalResultaten > 0 ? $"{aantalResultaten} paneel/panelen klaar om te controleren" : "Beschikbaar zodra panelen zijn geplaatst",
-                aantalResultaten > 0,
-                aanbevolenHref == "verificatie"),
-            MaakStap(
-                "bestellijst",
-                4,
-                "Bestellijst",
-                "Bundel panelen tot orderregels met aantallen, materiaal en boorgaten.",
-                aantalBestellijstItems > 0 ? $"{aantalBestellijstItems} orderregel(s) beschikbaar" : "Na verificatie verschijnt hier uw bestellijst",
-                aantalBestellijstItems > 0,
-                false),
-            MaakStap(
-                "zaagplan",
-                5,
-                "Zaagplan",
-                "Verdeel de panelen over standaard platen om zagen voor te bereiden.",
-                aantalBestellijstItems > 0 ? "Gebruik de orderregels om platen slim te vullen" : "Bouwt voort op de panelen uit uw bestellijst",
-                aantalBestellijstItems > 0,
-                false)
-        ];
+        return StappenFlowHelper.AlleStappen
+            .Select(stap =>
+            {
+                var heeftData = stap.Id switch
+                {
+                    "kasten" => aantalWanden > 0 || aantalKasten > 0,
+                    "panelen" => aantalPanelen > 0,
+                    "verificatie" => aantalResultaten > 0,
+                    "bestellijst" => aantalBestellijstItems > 0,
+                    "zaagplan" => aantalBestellijstItems > 0,
+                    _ => false
+                };
+
+                var samenvatting = stap.Id switch
+                {
+                    "kasten" => aantalWanden > 0 ? $"{aantalWanden} wand(en) · {aantalKasten} kast(en)" : "Start met wanden en kasten",
+                    "panelen" => aantalPanelen > 0 ? $"{aantalPanelen} paneel/panelen toegewezen" : "Nog geen panelen toegewezen",
+                    "verificatie" => aantalResultaten > 0 ? $"{aantalResultaten} paneel/panelen klaar om te controleren" : "Beschikbaar zodra panelen zijn geplaatst",
+                    "bestellijst" => aantalBestellijstItems > 0 ? $"{aantalBestellijstItems} orderregel(s) beschikbaar" : "Verschijnt zodra er panelen klaarstaan",
+                    "zaagplan" => aantalBestellijstItems > 0 ? "Gebruik de orderregels om platen slim te vullen" : "Bouwt voort op de panelen uit uw bestellijst",
+                    _ => string.Empty
+                };
+
+                return MaakStap(
+                    stap,
+                    samenvatting,
+                    heeftData,
+                    stap.Id == aanbevolenStap.Id,
+                    StappenFlowHelper.BepaalRouteGate(stap.Id, flowStatus));
+            })
+            .ToArray();
     }
 
     private static StartStap MaakStap(
-        string href,
-        int nummer,
-        string titel,
-        string beschrijving,
+        AppStap stap,
         string samenvatting,
         bool heeftData,
-        bool isAanbevolen)
+        bool isAanbevolen,
+        StapRouteGate? routeGate)
     {
-        var badgeLabel = isAanbevolen ? "Volgende stap" : heeftData ? "Data aanwezig" : "Nog niet";
+        var badgeLabel = isAanbevolen
+            ? "Volgende stap"
+            : routeGate is not null
+                ? $"Eerst {routeGate.VereisteStap.Label}"
+                : heeftData
+                    ? "Beschikbaar"
+                    : "Klaar om te starten";
         var badgeClass = isAanbevolen
             ? "bg-primary-subtle text-primary-emphasis border border-primary-subtle"
-            : heeftData
-                ? "bg-success-subtle text-success-emphasis border border-success-subtle"
-                : "bg-body-tertiary text-body-secondary border";
+            : routeGate is not null
+                ? "bg-body-tertiary text-body-secondary border"
+                : heeftData
+                    ? "bg-success-subtle text-success-emphasis border border-success-subtle"
+                    : "bg-body-tertiary text-body-secondary border";
 
-        return new StartStap(href, nummer, titel, beschrijving, samenvatting, badgeLabel, badgeClass);
+        return new StartStap(
+            routeGate?.VereisteStap.Route ?? stap.Route,
+            stap.Nummer,
+            stap.Label,
+            stap.Beschrijving,
+            routeGate?.Reden ?? samenvatting,
+            badgeLabel,
+            badgeClass,
+            routeGate is null);
     }
-
-    private static StartActie BepaalVervolgStap(int aantalKasten, int aantalPanelen)
-        => aantalKasten == 0
-            ? new StartActie("kasten", "Begin met stap 1")
-            : aantalPanelen == 0
-                ? new StartActie("panelen", "Ga verder met stap 2")
-                : new StartActie("verificatie", "Ga naar stap 3");
 
     private sealed record StartStap(
         string Href,
@@ -317,7 +335,6 @@
         string Beschrijving,
         string Samenvatting,
         string BadgeLabel,
-        string BadgeClass);
-
-    private sealed record StartActie(string Href, string KnopLabel);
+        string BadgeClass,
+        bool IsBeschikbaar);
 }

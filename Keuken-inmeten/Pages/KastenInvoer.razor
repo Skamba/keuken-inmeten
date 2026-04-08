@@ -3,12 +3,12 @@
 @inject ActieFeedbackService Feedback
 @implements IDisposable
 
-<PageTitle>Stap 1 — Keuken indeling</PageTitle>
+<PageTitle>Stap 1 — Indeling</PageTitle>
 
 <StapIndicator HuidigeStap="kasten" />
 
 <div class="d-flex justify-content-between align-items-center mb-2">
-    <h2 class="page-header mb-0">Stap 1: Keuken indeling</h2>
+    <h2 class="page-header mb-0">Stap 1: Indeling</h2>
     @if (State.Kasten.Count > 0)
     {
         @if (bevestigVerwijderAlleKasten)
@@ -467,7 +467,6 @@
 
 <StapNavigatie HuidigeStap="kasten"
                VolgendeHref="panelen"
-               VolgendeLabel="Panelen configureren"
                VolgendeDisabled="@(State.Kasten.Count == 0)" />
 
 @code {

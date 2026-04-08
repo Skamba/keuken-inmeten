@@ -1,4 +1,5 @@
 ﻿@inject IJSRuntime JS
+@inject KeukenStateService State
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -10,37 +11,33 @@
 </div>
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    @{
+        var flowStatus = StappenFlowHelper.BepaalStatus(State);
+    }
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 🏠 Home
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="kasten">
-                📐 1. Indeling
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="panelen">
-                🪟 2. Panelen
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="verificatie">
-                ✅ 3. Verificatie
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="bestellijst">
-                🧾 4. Bestellijst
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="zaagplan">
-                🪚 5. Zaagplan
-            </NavLink>
-        </div>
+        @foreach (var stap in StappenFlowHelper.AlleStappen)
+        {
+            var gate = StappenFlowHelper.BepaalRouteGate(stap.Id, flowStatus);
+            <div class="nav-item px-3">
+                @if (gate is null)
+                {
+                    <NavLink class="nav-link" href="@stap.Route">
+                        @StapIcoon(stap.Id) @stap.Nummer. @stap.Label
+                    </NavLink>
+                }
+                else
+                {
+                    <span class="nav-link disabled" title="@gate.Reden">
+                        🔒 @stap.Nummer. @stap.Label
+                    </span>
+                }
+            </div>
+        }
         <div class="nav-item px-3 mt-auto">
             <button class="nav-link border-0 w-100 text-start theme-toggle" @onclick="ToggleTheme" title="Wissel tussen licht en donker thema">
                 @themeIcon Thema
@@ -75,4 +72,14 @@
     {
         collapseNavMenu = !collapseNavMenu;
     }
+
+    private static string StapIcoon(string stapId) => stapId switch
+    {
+        "kasten" => "📐",
+        "panelen" => "🪟",
+        "verificatie" => "✅",
+        "bestellijst" => "🧾",
+        "zaagplan" => "🪚",
+        _ => "•"
+    };
 }
