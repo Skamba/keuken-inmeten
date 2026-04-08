@@ -1,0 +1,481 @@
+using Microsoft.AspNetCore.Components;
+using Keuken_inmeten.Models;
+using Keuken_inmeten.Services;
+
+namespace Keuken_inmeten.Pages;
+
+public partial class PaneelConfiguratie
+{
+    private static IReadOnlyList<PaneelFlowStap> PaneelFlowStappen
+        => PaneelConfiguratieHelper.PaneelFlowStappen;
+
+    private PaneelToewijzing formToewijzing = new();
+    private readonly HashSet<Guid> geselecteerdeKastIds = [];
+    private PaneelRechthoek? conceptPaneel;
+    private Guid? bewerkToewijzingId;
+
+    protected override void OnInitialized()
+    {
+        State.OnStateChanged += HandleStateChanged;
+        formToewijzing.PotHartVanRand = State.LaatstGebruiktePotHartVanRand;
+    }
+
+    public void Dispose()
+        => State.OnStateChanged -= HandleStateChanged;
+
+    private void HandleStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private bool IsBewerkModus => bewerkToewijzingId is not null;
+
+    private int BewerkIndex =>
+        bewerkToewijzingId is Guid id
+            ? State.Toewijzingen.FindIndex(toewijzing => toewijzing.Id == id) + 1
+            : 0;
+
+    private PaneelToewijzing? BewerkteToewijzing =>
+        bewerkToewijzingId is Guid id
+            ? State.Toewijzingen.FirstOrDefault(toewijzing => toewijzing.Id == id)
+            : null;
+
+    private List<Kast> geselecteerdeKasten =>
+        geselecteerdeKastIds
+            .Select(id => State.Kasten.Find(k => k.Id == id))
+            .Where(k => k is not null)
+            .Cast<Kast>()
+            .ToList();
+
+    private Guid? ActieveWandId
+    {
+        get
+        {
+            var wandIds = geselecteerdeKastIds
+                .Select(VindWandId)
+                .Where(id => id is not null)
+                .Distinct()
+                .Cast<Guid>()
+                .ToList();
+
+            return wandIds.Count == 1 ? wandIds[0] : null;
+        }
+    }
+
+    private string ActieveWandNaam =>
+        ActieveWandId is Guid wandId ? State.Wanden.Find(w => w.Id == wandId)?.Naam ?? "—" : "—";
+
+    private string GeselecteerdeKastNamen =>
+        string.Join(" + ", geselecteerdeKasten.Select(kast => kast.Naam));
+
+    private PaneelFlowContext HuidigePaneelFlow => new(
+        HeeftSelectie: geselecteerdeKastIds.Count > 0,
+        HeeftConceptPaneel: conceptPaneel is not null,
+        HeeftGeldigeMaat: formToewijzing.Breedte > 0 && formToewijzing.Hoogte > 0,
+        RaaktGeselecteerdeKast: RaaktGeselecteerdeKast(),
+        ActieveWandNaam: ActieveWandNaam,
+        GeselecteerdeKastNamen: GeselecteerdeKastNamen);
+
+    private bool KanPaneelOpslaan()
+        => PaneelConfiguratieHelper.KanPaneelOpslaan(HuidigePaneelFlow);
+
+    private string VolgendePaneelStapTekst()
+        => PaneelConfiguratieHelper.BepaalVolgendePaneelStapTekst(HuidigePaneelFlow);
+
+    private string GeselecteerdePaneelStatusTekst()
+        => PaneelConfiguratieHelper.BepaalGeselecteerdePaneelStatusTekst(HuidigePaneelFlow);
+
+    private string OpslaanStatusTekst()
+        => PaneelConfiguratieHelper.BepaalOpslaanStatusTekst(HuidigePaneelFlow);
+
+    private string PaneelFlowStatus(string stapId)
+        => PaneelConfiguratieHelper.BepaalPaneelFlowStatus(stapId, HuidigePaneelFlow);
+
+    private static string PaneelFlowContainerClass(string status)
+        => PaneelConfiguratieHelper.PaneelFlowContainerClass(status);
+
+    private static string PaneelFlowBadgeClass(string status)
+        => PaneelConfiguratieHelper.PaneelFlowBadgeClass(status);
+
+    private static string PaneelFlowLabel(string status)
+        => PaneelConfiguratieHelper.PaneelFlowLabel(status);
+
+    private bool RaaktGeselecteerdeKast()
+        => conceptPaneel is not null
+            && PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel).Count > 0;
+
+    private double BreedteInput
+    {
+        get => conceptPaneel?.Breedte ?? 0;
+        set
+        {
+            if (conceptPaneel is null) return;
+            var voorstel = conceptPaneel.Kopie();
+            voorstel.Breedte = value;
+            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input-size", Paneel = voorstel });
+        }
+    }
+
+    private double HoogteInput
+    {
+        get => conceptPaneel?.Hoogte ?? 0;
+        set
+        {
+            if (conceptPaneel is null) return;
+            var voorstel = conceptPaneel.Kopie();
+            voorstel.Hoogte = value;
+            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input-size", Paneel = voorstel });
+        }
+    }
+
+    private double LinksInput
+    {
+        get => conceptPaneel?.XPositie ?? 0;
+        set
+        {
+            if (conceptPaneel is null) return;
+            var voorstel = conceptPaneel.Kopie();
+            voorstel.XPositie = value;
+            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input-position", Paneel = voorstel });
+        }
+    }
+
+    private double OnderkantInput
+    {
+        get => conceptPaneel?.HoogteVanVloer ?? 0;
+        set
+        {
+            if (conceptPaneel is null) return;
+            var voorstel = conceptPaneel.Kopie();
+            voorstel.HoogteVanVloer = value;
+            VerwerkConceptPaneel(new PaneelConceptWijziging { Bewerking = "input-position", Paneel = voorstel });
+        }
+    }
+
+    private double PotHartInput
+    {
+        get => formToewijzing.PotHartVanRand;
+        set => formToewijzing.PotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(value);
+    }
+
+    private double RandSpelingInput
+    {
+        get => State.PaneelRandSpeling;
+        set => State.StelPaneelRandSpelingIn(value);
+    }
+
+    private void ToggleKast(Guid kastId)
+    {
+        var wandId = VindWandId(kastId);
+        if (wandId is null)
+            return;
+
+        bewerkToewijzingId = null;
+
+        if (ActieveWandId is Guid actieveWandId && actieveWandId != wandId)
+            geselecteerdeKastIds.Clear();
+
+        if (!geselecteerdeKastIds.Add(kastId))
+            geselecteerdeKastIds.Remove(kastId);
+
+        ResetConceptPaneel();
+    }
+
+    private void DeselecteerWand(Guid wandId)
+    {
+        bewerkToewijzingId = null;
+
+        var wandKastIds = State.KastenVoorWand(wandId).Select(k => k.Id).ToList();
+        foreach (var id in wandKastIds)
+            geselecteerdeKastIds.Remove(id);
+
+        ResetConceptPaneel();
+    }
+
+    private void DeselecteerAlles()
+    {
+        bewerkToewijzingId = null;
+        geselecteerdeKastIds.Clear();
+        ResetConceptPaneel();
+    }
+
+    private void ResetConceptPaneel()
+    {
+        if (BewerkteToewijzing is { } bewerkteToewijzing)
+        {
+            LaadToewijzingInFormulier(bewerkteToewijzing);
+            return;
+        }
+
+        var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
+        if (selectieBereik is null)
+        {
+            conceptPaneel = null;
+            formToewijzing.XPositie = null;
+            formToewijzing.HoogteVanVloer = null;
+            formToewijzing.Breedte = 0;
+            formToewijzing.Hoogte = 0;
+            return;
+        }
+
+        conceptPaneel = BepaalStartRechthoek(selectieBereik);
+        UpdateFormVanConcept();
+    }
+
+    private void LaadToewijzingInFormulier(PaneelToewijzing toewijzing)
+    {
+        var kasten = State.Kasten
+            .Where(kast => toewijzing.KastIds.Contains(kast.Id))
+            .ToList();
+        var rechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
+
+        if (rechthoek is null)
+        {
+            bewerkToewijzingId = null;
+            ResetConceptPaneel();
+            return;
+        }
+
+        formToewijzing.Type = toewijzing.Type;
+        formToewijzing.ScharnierZijde = toewijzing.ScharnierZijde;
+        formToewijzing.PotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
+        conceptPaneel = rechthoek.Kopie();
+        UpdateFormVanConcept();
+    }
+
+    private void UpdateFormVanConcept()
+    {
+        if (conceptPaneel is null)
+            return;
+
+        formToewijzing.XPositie = Math.Round(conceptPaneel.XPositie, 1);
+        formToewijzing.HoogteVanVloer = Math.Round(conceptPaneel.HoogteVanVloer, 1);
+        formToewijzing.Breedte = Math.Round(conceptPaneel.Breedte, 1);
+        formToewijzing.Hoogte = Math.Round(conceptPaneel.Hoogte, 1);
+    }
+
+    private void VerwerkConceptPaneel(PaneelConceptWijziging wijziging)
+    {
+        var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
+        if (selectieBereik is null)
+            return;
+
+        var voorstel = PaneelLayoutService.ClampBinnen(wijziging.Paneel, selectieBereik);
+        conceptPaneel = wijziging.Bewerking.StartsWith("input-", StringComparison.Ordinal)
+            ? voorstel
+            : SnapPaneel(wijziging.Bewerking, voorstel, selectieBereik);
+        UpdateFormVanConcept();
+    }
+
+    private PaneelRechthoek SnapPaneel(string bewerking, PaneelRechthoek voorstel, PaneelRechthoek selectieBereik)
+        => PaneelConfiguratieHelper.SnapPaneel(
+            bewerking,
+            voorstel,
+            selectieBereik,
+            XTargets(selectieBereik),
+            YTargets(selectieBereik));
+
+    private IEnumerable<double> XTargets(PaneelRechthoek selectieBereik)
+    {
+        yield return selectieBereik.XPositie;
+        yield return selectieBereik.Rechterkant;
+
+        foreach (var kast in geselecteerdeKasten)
+        {
+            yield return kast.XPositie;
+            yield return kast.XPositie + kast.Breedte;
+        }
+
+        foreach (var paneel in BestaandePaneelRechthoeken())
+        {
+            yield return paneel.XPositie;
+            yield return paneel.Rechterkant;
+        }
+    }
+
+    private IEnumerable<double> YTargets(PaneelRechthoek selectieBereik)
+    {
+        yield return selectieBereik.HoogteVanVloer;
+        yield return selectieBereik.Bovenzijde;
+
+        foreach (var kast in geselecteerdeKasten)
+        {
+            yield return kast.HoogteVanVloer;
+            yield return kast.HoogteVanVloer + kast.Hoogte;
+        }
+
+        foreach (var paneel in BestaandePaneelRechthoeken())
+        {
+            yield return paneel.HoogteVanVloer;
+            yield return paneel.Bovenzijde;
+        }
+    }
+
+    private IEnumerable<PaneelRechthoek> BestaandePaneelRechthoeken()
+    {
+        if (ActieveWandId is not Guid actieveWandId)
+            yield break;
+
+        var wandKastIds = State.KastenVoorWand(actieveWandId).Select(kast => kast.Id).ToHashSet();
+        foreach (var toewijzing in State.Toewijzingen.Where(t => t.Id != bewerkToewijzingId && t.KastIds.Any(wandKastIds.Contains)))
+        {
+            var kasten = State.Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList();
+            var rechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
+            if (rechthoek is not null)
+                yield return rechthoek;
+        }
+    }
+
+    private List<PaneelRechthoek> VrijeSegmentenVoorSelectie()
+    {
+        var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
+        return selectieBereik is null
+            ? []
+            : PaneelConfiguratieHelper.BepaalVrijeSegmenten(selectieBereik, BestaandePaneelRechthoeken());
+    }
+
+    private PaneelRechthoek BepaalStartRechthoek(PaneelRechthoek selectieBereik)
+        => PaneelConfiguratieHelper.BepaalStartRechthoek(selectieBereik, VrijeSegmentenVoorSelectie());
+
+    private void GebruikVrijSegment(PaneelRechthoek segment)
+    {
+        conceptPaneel = segment.Kopie();
+        UpdateFormVanConcept();
+    }
+
+    private PaneelMaatInfo? BerekenConceptMaatInfo()
+    {
+        if (conceptPaneel is null)
+            return null;
+
+        if (ActieveWandId is not Guid wandId)
+            return null;
+
+        var wandKasten = State.KastenVoorWand(wandId);
+        var wandKastIds = wandKasten.Select(kast => kast.Id).ToHashSet();
+        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(wandKasten, conceptPaneel);
+        if (dragendeKasten.Count == 0)
+            return null;
+
+        var dragendeKastIds = dragendeKasten.Select(kast => kast.Id).ToHashSet();
+        var buurKasten = wandKasten
+            .Where(kast => !dragendeKastIds.Contains(kast.Id))
+            .Select(PaneelLayoutService.NaarRechthoek);
+        var buurApparaten = State.ApparatenVoorWand(wandId)
+            .Select(PaneelLayoutService.NaarRechthoek);
+        var buurPanelen = State.Toewijzingen
+            .Where(toewijzing => toewijzing.Id != bewerkToewijzingId && toewijzing.KastIds.Any(wandKastIds.Contains))
+            .Select(toewijzing =>
+            {
+                var kasten = State.Kasten
+                    .Where(kast => toewijzing.KastIds.Contains(kast.Id))
+                    .ToList();
+                return PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
+            })
+            .Where(rechthoek => rechthoek is not null)
+            .Cast<PaneelRechthoek>();
+
+        return PaneelSpelingService.BerekenMaatInfo(conceptPaneel, [.. buurKasten, .. buurApparaten, .. buurPanelen], State.PaneelRandSpeling);
+    }
+
+    private void PaneelOpslaan()
+    {
+        if (conceptPaneel is null || geselecteerdeKastIds.Count == 0)
+            return;
+
+        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel);
+        if (dragendeKasten.Count == 0)
+            return;
+
+        var toewijzing = new PaneelToewijzing
+        {
+            Id = bewerkToewijzingId ?? Guid.NewGuid(),
+            Type = formToewijzing.Type,
+            ScharnierZijde = formToewijzing.ScharnierZijde,
+            PotHartVanRand = PotHartInput,
+            KastIds = dragendeKasten.Select(kast => kast.Id).ToList(),
+            Breedte = Math.Round(conceptPaneel.Breedte, 1),
+            Hoogte = Math.Round(conceptPaneel.Hoogte, 1),
+            XPositie = Math.Round(conceptPaneel.XPositie, 1),
+            HoogteVanVloer = Math.Round(conceptPaneel.HoogteVanVloer, 1)
+        };
+
+        if (IsBewerkModus)
+            State.WerkToewijzingBij(toewijzing);
+        else
+            State.VoegToewijzingToe(toewijzing);
+
+        bewerkToewijzingId = null;
+        ResetConceptPaneel();
+    }
+
+    private List<PaneelToewijzing> ToewijzingenVoorWand(KeukenWand wand)
+    {
+        var wandKastIds = wand.KastIds.ToHashSet();
+        return State.Toewijzingen
+            .Where(t => t.Id != bewerkToewijzingId && t.KastIds.Any(wandKastIds.Contains))
+            .ToList();
+    }
+
+    private void BewerkPaneel(Guid toewijzingId)
+    {
+        var toewijzing = State.Toewijzingen.FirstOrDefault(item => item.Id == toewijzingId);
+        if (toewijzing is null)
+            return;
+
+        bewerkToewijzingId = toewijzingId;
+        geselecteerdeKastIds.Clear();
+        foreach (var kastId in toewijzing.KastIds)
+            geselecteerdeKastIds.Add(kastId);
+
+        ResetConceptPaneel();
+    }
+
+    private void AnnuleerBewerken()
+    {
+        bewerkToewijzingId = null;
+        ResetConceptPaneel();
+    }
+
+    private void VerwijderPaneel(Guid toewijzingId)
+    {
+        var index = State.Toewijzingen.FindIndex(item => item.Id == toewijzingId);
+        var toewijzing = index >= 0 ? State.Toewijzingen[index] : null;
+        if (toewijzing is null)
+            return;
+
+        if (bewerkToewijzingId == toewijzingId)
+            bewerkToewijzingId = null;
+
+        var snapshot = new PaneelVerwijderSnapshot(KopieerToewijzing(toewijzing), index);
+        State.VerwijderToewijzing(toewijzingId);
+        ResetConceptPaneel();
+        Feedback.ToonInfo(
+            $"Paneel {index + 1} verwijderd.",
+            "Ongedaan maken",
+            () => HerstelPaneelAsync(snapshot));
+    }
+
+    private Guid? VindWandId(Guid kastId)
+        => State.Wanden.FirstOrDefault(wand => wand.KastIds.Contains(kastId))?.Id;
+
+    private Task HerstelPaneelAsync(PaneelVerwijderSnapshot snapshot)
+    {
+        var index = Math.Clamp(snapshot.Index, 0, State.Toewijzingen.Count);
+        State.HerstelToewijzing(KopieerToewijzing(snapshot.Toewijzing), index);
+        Feedback.ToonSucces($"Paneel {index + 1} is teruggezet.");
+        return Task.CompletedTask;
+    }
+
+    private static PaneelToewijzing KopieerToewijzing(PaneelToewijzing bron)
+        => IndelingFormulierHelper.KopieerToewijzing(bron);
+
+    private sealed record PaneelVerwijderSnapshot(PaneelToewijzing Toewijzing, int Index);
+
+    private static string VrijSegmentLabel(int index, PaneelRechthoek segment)
+        => PaneelConfiguratieHelper.VrijSegmentLabel(index, segment);
+
+    private static string TypeNaam(PaneelType type) => VisualisatieHelper.PaneelTypeLabel(type);
+
+    private static string TypeBadgeClass(PaneelType type)
+        => PaneelConfiguratieHelper.TypeBadgeClass(type);
+
+    private static string FormatMm(double waarde) => $"{waarde:0.#} mm";
+}
