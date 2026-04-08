@@ -52,6 +52,16 @@ public class KeukenShareCodecTests
     }
 
     [Fact]
+    public void Onbekende_share_versie_wordt_afgewezen()
+    {
+        var decodedOk = KeukenShareCodec.TryDecode("v99.geen-geldige-data", out var decoded);
+
+        Assert.False(decodedOk);
+        Assert.Empty(decoded.Wanden);
+        Assert.Empty(decoded.Kasten);
+    }
+
+    [Fact]
     public void Legacy_v1_link_blijft_decodeerbaar()
     {
         var data = MaakVoorbeeldData();

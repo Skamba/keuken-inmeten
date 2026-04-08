@@ -33,7 +33,7 @@ public static class KeukenShareCodec
 
     public static string Encode(KeukenData data)
     {
-        var compact = MaakCompacteData(data);
+        var compact = MaakCompacteData(KeukenDataMigratieService.MaakHuidigeDeelData(data));
         var json = JsonSerializer.SerializeToUtf8Bytes(compact, CompactJsonOpties);
         return VersiePrefixV2 + NaarBase64Url(json);
     }
@@ -65,10 +65,14 @@ public static class KeukenShareCodec
             if (decoded is null)
                 return false;
 
-            data = BouwKeukenData(decoded);
-            return true;
+            var decodedData = BouwKeukenData(decoded);
+            return KeukenDataMigratieService.TryMigreerDeelData(KeukenDataMigratieService.HuidigeSchemaVersie, decodedData, out data);
         }
-        catch
+        catch (FormatException)
+        {
+            return false;
+        }
+        catch (JsonException)
         {
             return false;
         }
@@ -82,13 +86,13 @@ public static class KeukenShareCodec
         {
             var json = VanBase64Url(token[VersiePrefixV1.Length..]);
             var decoded = JsonSerializer.Deserialize<KeukenData>(json, LegacyJsonOpties);
-            if (decoded is null)
-                return false;
-
-            data = NormaliseerLegacy(decoded);
-            return true;
+            return KeukenDataMigratieService.TryMigreerDeelData(KeukenDataMigratieService.LegacySchemaVersie, decoded, out data);
         }
-        catch
+        catch (FormatException)
+        {
+            return false;
+        }
+        catch (JsonException)
         {
             return false;
         }
@@ -279,17 +283,6 @@ public static class KeukenShareCodec
 
         return result.Count == 0 ? null : result;
     }
-
-    private static KeukenData NormaliseerLegacy(KeukenData data) => new()
-    {
-        Wanden = [.. data.Wanden],
-        Kasten = [.. data.Kasten],
-        Apparaten = [.. data.Apparaten],
-        Toewijzingen = [.. data.Toewijzingen],
-        KastTemplates = [],
-        LaatstGebruiktePotHartVanRand = data.LaatstGebruiktePotHartVanRand,
-        PaneelRandSpeling = PaneelSpelingService.NormaliseerRandSpeling(data.PaneelRandSpeling)
-    };
 
     private static KeukenData BouwKeukenData(CompactShareData data)
     {

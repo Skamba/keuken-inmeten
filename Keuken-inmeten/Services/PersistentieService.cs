@@ -1,6 +1,5 @@
 namespace Keuken_inmeten.Services;
 
-using System.Text.Json;
 using Keuken_inmeten.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -8,11 +7,6 @@ using Microsoft.JSInterop;
 public class PersistentieService : IDisposable
 {
     private const string StorageKey = "keuken-inmeten-data";
-    private static readonly JsonSerializerOptions JsonOpties = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
 
     private readonly IJSRuntime _js;
     private readonly KeukenStateService _state;
@@ -70,19 +64,29 @@ public class PersistentieService : IDisposable
             return;
         }
 
+        string? json;
         try
         {
-            var json = await _js.InvokeAsync<string?>("localStorage.getItem", StorageKey);
-            if (string.IsNullOrEmpty(json)) return;
-
-            var data = JsonSerializer.Deserialize<KeukenData>(json, JsonOpties);
-            if (data is not null)
-                _state.Laden(data);
+            json = await _js.InvokeAsync<string?>("localStorage.getItem", StorageKey);
         }
-        catch
+        catch (JSException)
         {
-            // Corrupt or incompatible data — start fresh
+            ZetOpslagStatus(OpslagStatusType.Fout, "Opgeslagen keuken laden lukt niet in deze browser.");
+            return;
         }
+
+        if (string.IsNullOrEmpty(json))
+            return;
+
+        if (!KeukenPersistedStateCodec.TryDecode(json, out var data))
+        {
+            ZetOpslagStatus(
+                OpslagStatusType.Fout,
+                "De opgeslagen keuken is van een onbekende versie of beschadigd en kon niet worden geladen.");
+            return;
+        }
+
+        _state.Laden(data);
     }
 
     public string MaakDeelUrl(string route = "verificatie")
@@ -100,11 +104,11 @@ public class PersistentieService : IDisposable
         try
         {
             var data = _state.Exporteren();
-            var json = JsonSerializer.Serialize(data, JsonOpties);
+            var json = KeukenPersistedStateCodec.Encode(data);
             await _js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
             ZetOpslagStatus(OpslagStatusType.Opgeslagen, $"Automatisch opgeslagen om {DateTime.Now:HH:mm}");
         }
-        catch
+        catch (JSException)
         {
             ZetOpslagStatus(
                 OpslagStatusType.Fout,
