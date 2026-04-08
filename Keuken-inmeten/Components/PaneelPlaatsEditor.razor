@@ -338,37 +338,25 @@
         if (Toewijzingen is null)
             yield break;
 
-        var openingsOpToewijzingId = Toewijzingen
-            .Select(toewijzing => new
-            {
-                Toewijzing = toewijzing,
-                Rechthoek = PaneelLayoutService.BerekenRechthoek(
-                    toewijzing,
-                    Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList())
-            })
-            .Where(item => item.Rechthoek is not null)
-            .ToDictionary(item => item.Toewijzing.Id, item => item.Rechthoek!);
+        var paneelBronnen = PaneelBronnen();
+        var paneelBronOpToewijzingId = paneelBronnen
+            .Where(bron => bron.PaneelId is not null)
+            .ToDictionary(bron => bron.PaneelId!.Value);
 
         var index = 0;
         foreach (var toewijzing in Toewijzingen)
         {
-            if (!openingsOpToewijzingId.TryGetValue(toewijzing.Id, out var openingsRechthoek))
+            if (!paneelBronOpToewijzingId.TryGetValue(toewijzing.Id, out var paneelBron))
                 continue;
 
-            var kastenVoorPaneel = PaneelLayoutService.BepaalOverlappendeKasten(Kasten, openingsRechthoek);
-            var dragendeKastIds = kastenVoorPaneel.Select(kast => kast.Id).ToHashSet();
-            var buurKasten = Kasten
-                .Where(kast => !dragendeKastIds.Contains(kast.Id))
-                .Select(PaneelLayoutService.NaarRechthoek);
-            var buurApparaten = Apparaten.Select(PaneelLayoutService.NaarRechthoek);
-            var anderePanelen = openingsOpToewijzingId
-                .Where(item => item.Key != toewijzing.Id)
-                .Select(item => item.Value)
-                .ToList();
-            var werkRechthoek = PaneelSpelingService.BerekenMaatInfo(
-                openingsRechthoek,
-                [.. buurKasten, .. buurApparaten, .. anderePanelen],
-                RandSpelingPerRaakrand).PaneelRechthoek;
+            var geometrie = PaneelGeometrieService.Bereken(
+                paneelBron,
+                Kasten,
+                Apparaten,
+                paneelBronnen,
+                RandSpelingPerRaakrand);
+            var openingsRechthoek = geometrie.OpeningsRechthoek;
+            var werkRechthoek = geometrie.WerkRechthoek;
             index++;
             yield return new PaneelVisual(
                 toewijzing,
@@ -385,24 +373,29 @@
         if (ConceptPaneel is null)
             return null;
 
-        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(Kasten, ConceptPaneel);
-        if (dragendeKasten.Count == 0)
-            return null;
+        return PaneelGeometrieService.BerekenVoorConceptPaneel(
+            ConceptPaneel,
+            Kasten,
+            Apparaten,
+            PaneelBronnen(),
+            RandSpelingPerRaakrand)?.MaatInfo;
+    }
 
-        var dragendeKastIds = dragendeKasten.Select(kast => kast.Id).ToHashSet();
-        var buurKasten = Kasten
-            .Where(kast => !dragendeKastIds.Contains(kast.Id))
-            .Select(PaneelLayoutService.NaarRechthoek);
-        var buurApparaten = Apparaten.Select(PaneelLayoutService.NaarRechthoek);
-        var anderePanelen = Toewijzingen?
-            .Select(toewijzing => PaneelLayoutService.BerekenRechthoek(
-                toewijzing,
-                Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList()))
-            .Where(rechthoek => rechthoek is not null)
-            .Cast<PaneelRechthoek>()
-            .ToList() ?? [];
+    private PaneelGeometrieBron? PaneelBron(PaneelToewijzing toewijzing)
+        => PaneelGeometrieService.MaakBronVoorToewijzing(
+            toewijzing,
+            Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList());
 
-        return PaneelSpelingService.BerekenMaatInfo(ConceptPaneel, [.. buurKasten, .. buurApparaten, .. anderePanelen], RandSpelingPerRaakrand);
+    private List<PaneelGeometrieBron> PaneelBronnen()
+    {
+        if (Toewijzingen is null)
+            return [];
+
+        return Toewijzingen
+            .Select(PaneelBron)
+            .Where(bron => bron is not null)
+            .Cast<PaneelGeometrieBron>()
+            .ToList();
     }
 
     private static IEnumerable<HandlePositie> DraftHandles(double x, double y, double w, double h)

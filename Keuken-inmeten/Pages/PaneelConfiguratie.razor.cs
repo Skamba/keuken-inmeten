@@ -221,12 +221,8 @@ public partial class PaneelConfiguratie
 
     private void LaadToewijzingInFormulier(PaneelToewijzing toewijzing)
     {
-        var kasten = State.Kasten
-            .Where(kast => toewijzing.KastIds.Contains(kast.Id))
-            .ToList();
-        var rechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
-
-        if (rechthoek is null)
+        var paneelBron = PaneelBron(toewijzing);
+        if (paneelBron is null)
         {
             bewerkToewijzingId = null;
             ResetConceptPaneel();
@@ -236,7 +232,7 @@ public partial class PaneelConfiguratie
         formToewijzing.Type = toewijzing.Type;
         formToewijzing.ScharnierZijde = toewijzing.ScharnierZijde;
         formToewijzing.PotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
-        conceptPaneel = rechthoek.Kopie();
+        conceptPaneel = paneelBron.OpeningsRechthoek.Kopie();
         UpdateFormVanConcept();
     }
 
@@ -310,16 +306,12 @@ public partial class PaneelConfiguratie
 
     private IEnumerable<PaneelRechthoek> BestaandePaneelRechthoeken()
     {
-        if (ActieveWandId is not Guid actieveWandId)
-            yield break;
-
-        var wandKastIds = State.KastenVoorWand(actieveWandId).Select(kast => kast.Id).ToHashSet();
-        foreach (var toewijzing in State.Toewijzingen.Where(t => t.Id != bewerkToewijzingId && t.KastIds.Any(wandKastIds.Contains)))
+        foreach (var paneelBron in PaneelBronnenVoorActieveWand())
         {
-            var kasten = State.Kasten.Where(kast => toewijzing.KastIds.Contains(kast.Id)).ToList();
-            var rechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
-            if (rechthoek is not null)
-                yield return rechthoek;
+            if (paneelBron.PaneelId == bewerkToewijzingId)
+                continue;
+
+            yield return paneelBron.OpeningsRechthoek.Kopie();
         }
     }
 
@@ -349,30 +341,14 @@ public partial class PaneelConfiguratie
             return null;
 
         var wandKasten = State.KastenVoorWand(wandId);
-        var wandKastIds = wandKasten.Select(kast => kast.Id).ToHashSet();
-        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(wandKasten, conceptPaneel);
-        if (dragendeKasten.Count == 0)
-            return null;
-
-        var dragendeKastIds = dragendeKasten.Select(kast => kast.Id).ToHashSet();
-        var buurKasten = wandKasten
-            .Where(kast => !dragendeKastIds.Contains(kast.Id))
-            .Select(PaneelLayoutService.NaarRechthoek);
-        var buurApparaten = State.ApparatenVoorWand(wandId)
-            .Select(PaneelLayoutService.NaarRechthoek);
-        var buurPanelen = State.Toewijzingen
-            .Where(toewijzing => toewijzing.Id != bewerkToewijzingId && toewijzing.KastIds.Any(wandKastIds.Contains))
-            .Select(toewijzing =>
-            {
-                var kasten = State.Kasten
-                    .Where(kast => toewijzing.KastIds.Contains(kast.Id))
-                    .ToList();
-                return PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
-            })
-            .Where(rechthoek => rechthoek is not null)
-            .Cast<PaneelRechthoek>();
-
-        return PaneelSpelingService.BerekenMaatInfo(conceptPaneel, [.. buurKasten, .. buurApparaten, .. buurPanelen], State.PaneelRandSpeling);
+        var paneelBronnen = PaneelBronnenVoorActieveWand();
+        return PaneelGeometrieService.BerekenVoorConceptPaneel(
+            conceptPaneel,
+            wandKasten,
+            State.ApparatenVoorWand(wandId),
+            paneelBronnen,
+            State.PaneelRandSpeling,
+            bewerkToewijzingId)?.MaatInfo;
     }
 
     private void PaneelOpslaan()
@@ -411,6 +387,23 @@ public partial class PaneelConfiguratie
         var wandKastIds = wand.KastIds.ToHashSet();
         return State.Toewijzingen
             .Where(t => t.Id != bewerkToewijzingId && t.KastIds.Any(wandKastIds.Contains))
+            .ToList();
+    }
+
+    private PaneelGeometrieBron? PaneelBron(PaneelToewijzing toewijzing)
+        => PaneelGeometrieService.MaakBronVoorToewijzing(toewijzing, State.ZoekKasten(toewijzing.KastIds));
+
+    private List<PaneelGeometrieBron> PaneelBronnenVoorActieveWand()
+    {
+        if (ActieveWandId is not Guid actieveWandId)
+            return [];
+
+        var wandKastIds = State.KastenVoorWand(actieveWandId).Select(kast => kast.Id).ToHashSet();
+        return State.Toewijzingen
+            .Where(toewijzing => toewijzing.KastIds.Any(wandKastIds.Contains))
+            .Select(PaneelBron)
+            .Where(bron => bron is not null)
+            .Cast<PaneelGeometrieBron>()
             .ToList();
     }
 

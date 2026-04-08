@@ -472,38 +472,31 @@ public class KeukenStateService
 
     private PaneelMaatInfo? BerekenPaneelMaatInfo(PaneelToewijzing toewijzing, List<Kast> kasten)
     {
-        var openingsRechthoek = PaneelLayoutService.BerekenRechthoek(toewijzing, kasten);
-        if (openingsRechthoek is null)
-            return null;
+        var dragendeKastIds = kasten.Select(kast => kast.Id).ToHashSet();
+        var wand = Wanden.FirstOrDefault(item => item.KastIds.Any(dragendeKastIds.Contains));
 
-        var buurRechthoeken = BouwBuurRechthoeken(toewijzing, kasten);
-        return PaneelSpelingService.BerekenMaatInfo(openingsRechthoek, buurRechthoeken, PaneelRandSpeling);
+        List<Kast> wandKasten = wand is null ? [.. kasten] : KastenVoorWand(wand.Id);
+        List<Apparaat> wandApparaten = wand is null ? [] : ApparatenVoorWand(wand.Id);
+        List<PaneelGeometrieBron> paneelBronnen = wand is null ? [] : PaneelBronnenVoorWand(wand);
+
+        return PaneelGeometrieService.BerekenVoorToewijzing(
+            toewijzing,
+            kasten,
+            wandKasten,
+            wandApparaten,
+            paneelBronnen,
+            PaneelRandSpeling)?.MaatInfo;
     }
 
-    private List<PaneelRechthoek> BouwBuurRechthoeken(PaneelToewijzing toewijzing, List<Kast> dragendeKasten)
+    private List<PaneelGeometrieBron> PaneelBronnenVoorWand(KeukenWand wand)
     {
-        var dragendeKastIds = dragendeKasten.Select(kast => kast.Id).ToHashSet();
-        var wand = Wanden.FirstOrDefault(item => item.KastIds.Any(dragendeKastIds.Contains));
-        if (wand is null)
-            return [];
-
-        var buurKasten = Kasten
-            .Where(kast => wand.KastIds.Contains(kast.Id) && !dragendeKastIds.Contains(kast.Id))
-            .Select(PaneelLayoutService.NaarRechthoek);
-        var buurApparaten = Apparaten
-            .Where(apparaat => wand.ApparaatIds.Contains(apparaat.Id))
-            .Select(PaneelLayoutService.NaarRechthoek);
-        var buurPanelen = Toewijzingen
-            .Where(item => item.Id != toewijzing.Id && item.KastIds.Any(wand.KastIds.Contains))
-            .Select(item =>
-            {
-                var panelKasten = ZoekKasten(item.KastIds);
-                return PaneelLayoutService.BerekenRechthoek(item, panelKasten);
-            })
-            .Where(rechthoek => rechthoek is not null)
-            .Cast<PaneelRechthoek>();
-
-        return [.. buurKasten, .. buurApparaten, .. buurPanelen];
+        var wandKastIds = wand.KastIds.ToHashSet();
+        return Toewijzingen
+            .Where(item => item.KastIds.Any(wandKastIds.Contains))
+            .Select(item => PaneelGeometrieService.MaakBronVoorToewijzing(item, ZoekKasten(item.KastIds)))
+            .Where(bron => bron is not null)
+            .Cast<PaneelGeometrieBron>()
+            .ToList();
     }
 
     private void VoegKastToeZonderNotify(Kast kast, Guid wandId, int? index = null)
