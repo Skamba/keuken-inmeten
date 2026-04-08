@@ -1207,7 +1207,16 @@ code {
 }
 
 /* ── Verificatie ── */
-.verificatie-tabs .nav-link { font-size: 0.85rem; padding: 0.35rem 0.5rem; }
+.verificatie-tabs .nav-link {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    min-height: 3.5rem;
+}
 .verificatie-tab-ok { color: var(--bs-success) !important; }
 .verificatie-tab-check { font-size: 0.7rem; margin-right: 0.2rem; }
 
@@ -1258,6 +1267,21 @@ code {
 .verificatie-afleiding {
     border-top: 1px dashed var(--bs-border-color, #dee2e6);
     padding-top: 0.75rem;
+}
+
+.verificatie-techniek {
+    border-top: 1px dashed var(--bs-border-color, #dee2e6);
+    padding-top: 0.75rem;
+}
+
+.verificatie-techniek summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+}
+
+.verificatie-techniek[open] summary {
+    margin-bottom: 0.5rem;
 }
 
 .verificatie-instructies { display: flex; flex-direction: column; gap: 0.5rem; }
