@@ -8,13 +8,15 @@
 <StapIndicator HuidigeStap="bestellijst" />
 
 <h2 class="page-header">Stap 4: Bestellijst</h2>
-<p class="text-muted">Bundel identieke panelen tot orderregels, geef het materiaal mee en exporteer de lijst naar Excel of een printklare PDF met visuals.</p>
+<p class="text-muted">Bekijk eerst compacte samenvattingen per wand en paneeltype. De bestellijst focust standaard op orderregels; boorgat- en CNC-details zet u alleen aan wanneer u ze nodig hebt.</p>
 
 <TerminologieUitleg Sleutels="absband,cnc"
                     Beschrijving="Deze woordenlijst helpt bij de technische termen in de bestellijst en export." />
 
 @{
     var items = BestellijstService.BerekenItems(State);
+    var wandGroepen = OverzichtGroeperingHelper.GroepeerBestellijstOpWand(items);
+    var paneelTypeTellingen = OverzichtGroeperingHelper.MaakTellingen(items, item => item.PaneelRolLabel, item => item.Aantal);
     var maxBoorgaten = items.Count == 0 ? 0 : items.Max(item => item.Boorgaten.Count);
     var totaalAantal = items.Sum(item => item.Aantal);
     var totaalBoorgaten = items.Sum(item => item.Aantal * item.Boorgaten.Count);
@@ -64,14 +66,33 @@ else
                 <span><strong>Dikte:</strong> @BestellijstExportService.FormatDikteLabel(_dikteMm)</span>
             </div>
 
-            <div class="alert alert-light border small mt-3 mb-0">
-                <strong>Machinecoordinaten (CNC-coordinaten):</strong> @BestellijstExportService.FormatCncAssenSamenvatting()
-            </div>
-
             @if (!string.IsNullOrWhiteSpace(_exportStatus))
             {
                 <div class="bestellijst-export-status @(_exportStatusIsError ? "fout" : "")">@_exportStatus</div>
             }
+
+            <div class="row g-3 mt-1">
+                <div class="col-lg-7">
+                    <div class="form-check form-switch">
+                        <input id="toon-technische-bestellijst"
+                               class="form-check-input"
+                               type="checkbox"
+                               @bind="_toonTechnischeDetails" />
+                        <label class="form-check-label fw-semibold" for="toon-technische-bestellijst">
+                            Toon boorgat- en CNC-details in de tabel
+                        </label>
+                    </div>
+                    <div class="form-text">Standaard blijft de lijst gericht op orderregels. Schakel technische details alleen in voor controle of overdracht.</div>
+                </div>
+                <div class="col-lg-5">
+                    <details class="border rounded bg-body-tertiary p-3 small h-100">
+                        <summary class="fw-semibold">Technische exportdetails</summary>
+                        <div class="mt-2"><strong>Machinecoordinaten (CNC-coordinaten):</strong> @BestellijstExportService.FormatCncAssenSamenvatting()</div>
+                        <div class="mt-1"><strong>Max boorgaten per orderregel:</strong> @maxBoorgaten</div>
+                        <div class="mt-1"><strong>Boorgaten totaal:</strong> @totaalBoorgaten</div>
+                    </details>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -90,67 +111,109 @@ else
         </div>
         <div class="col-6 col-lg-3">
             <div class="border rounded p-3 text-center h-100">
-                <div class="fs-3 fw-bold text-primary">@totaalBoorgaten</div>
-                <small class="text-muted">Boorgaten totaal</small>
+                <div class="fs-3 fw-bold text-primary">@paneelTypeTellingen.Count</div>
+                <small class="text-muted">Paneeltypes</small>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="border rounded p-3 text-center h-100">
-                <div class="fs-3 fw-bold text-primary">@maxBoorgaten</div>
-                <small class="text-muted">Max boorgaten per regel</small>
+                <div class="fs-3 fw-bold text-primary">@wandGroepen.Count</div>
+                <small class="text-muted">Wanden met panelen</small>
             </div>
         </div>
     </div>
 
-    <div class="table-responsive bestellijst-table-wrap">
-        <table class="table table-hover align-middle bestellijst-table">
-            <thead class="table-light">
-                <tr>
-                    <th>Naam</th>
-                    <th class="text-center">Aantal</th>
-                    <th class="text-end">Hoogte (mm)</th>
-                    <th class="text-end">Breedte (mm)</th>
-                    <th>Afwerkband (ABS-band)</th>
-                    @for (int i = 0; i < maxBoorgaten; i++)
+    <div class="row g-3 mb-4">
+        <div class="col-xl-6">
+            <div class="border rounded p-3 h-100">
+                <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per wand</div>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var groep in wandGroepen)
                     {
-                        var nummer = i + 1;
-                        <th>Boorgat @nummer X (links)</th>
-                        <th>Boorgat @nummer Y (boven)</th>
+                        <span class="badge text-bg-light border">@groep.WandNaam · @groep.PanelenTotaal panelen</span>
                     }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in items)
-                {
-                    <tr>
-                        <td class="bestellijst-name">
-                            <div class="fw-semibold">@item.Naam</div>
-                            <div class="small text-muted">@item.PaneelRolLabel</div>
-                            <div class="small text-muted">@item.ContextLabel</div>
-                        </td>
-                        <td class="text-center fw-semibold">@item.Aantal</td>
-                        <td class="text-end">@FormatNumber(item.Hoogte)</td>
-                        <td class="text-end">@FormatNumber(item.Breedte)</td>
-                        <td>@item.AbsBandLabel</td>
-                        @for (int i = 0; i < maxBoorgaten; i++)
-                        {
-                            if (i < item.Boorgaten.Count)
-                            {
-                                var boorgat = item.Boorgaten[i];
-                                <td>@FormatNumber(BestellijstExportService.BerekenCncX(item, boorgat))</td>
-                                <td>@FormatNumber(BestellijstExportService.BerekenCncY(boorgat))</td>
-                            }
-                            else
-                            {
-                                <td class="text-muted">—</td>
-                                <td class="text-muted">—</td>
-                            }
-                        }
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="border rounded p-3 h-100">
+                <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per paneeltype</div>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var telling in paneelTypeTellingen)
+                    {
+                        <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
+
+    @foreach (var groep in wandGroepen)
+    {
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div>
+                        <h5 class="mb-1">@groep.WandNaam</h5>
+                        <div class="small text-muted">@groep.Orderregels orderregels · @groep.PanelenTotaal panelen</div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                        @foreach (var telling in groep.PaneelTypeTellingen)
+                        {
+                            <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="table-responsive bestellijst-table-wrap mt-3">
+                    <table class="table table-hover align-middle bestellijst-table @(_toonTechnischeDetails ? "bestellijst-table--technisch" : null)">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Orderregel</th>
+                                <th class="text-center">Aantal</th>
+                                <th>Maat</th>
+                                <th>Afwerking</th>
+                                <th>Kast(en)</th>
+                                @if (_toonTechnischeDetails)
+                                {
+                                    <th>Technische details</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in groep.Items)
+                            {
+                                var technischeDetails = TechnischeDetailLijnen(item);
+                                <tr>
+                                    <td class="bestellijst-name">
+                                        <div class="fw-semibold">@item.Naam</div>
+                                        <div class="small text-muted">@item.PaneelRolLabel</div>
+                                    </td>
+                                    <td class="text-center fw-semibold">@item.Aantal</td>
+                                    <td>
+                                        <div>@MaatLabel(item)</div>
+                                    </td>
+                                    <td>@item.AbsBandLabel</td>
+                                    <td class="small text-muted">@ContextSamenvatting(item)</td>
+                                    @if (_toonTechnischeDetails)
+                                    {
+                                        <td class="small">
+                                            <ul class="list-unstyled mb-0 d-grid gap-1">
+                                                @foreach (var detail in technischeDetails)
+                                                {
+                                                    <li>@detail</li>
+                                                }
+                                            </ul>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 <StapNavigatie HuidigeStap="bestellijst"
@@ -176,6 +239,7 @@ else
     private string _dikteMm = "19";
     private string? _exportStatus;
     private bool _exportStatusIsError;
+    private bool _toonTechnischeDetails;
 
     private async Task ExporteerExcel()
     {
@@ -233,6 +297,46 @@ else
 
     private string DisplayPaneelType()
         => string.IsNullOrWhiteSpace(_paneelType) ? "Onbekend paneeltype" : _paneelType.Trim();
+
+    private static string MaatLabel(BestellijstItem item)
+        => $"{FormatNumber(item.Hoogte)} hoog × {FormatNumber(item.Breedte)} breed";
+
+    private static string ContextSamenvatting(BestellijstItem item)
+    {
+        var context = item.ContextLabel?.Trim() ?? string.Empty;
+        var prefix = string.IsNullOrWhiteSpace(item.WandNaam) ? string.Empty : $"{item.WandNaam} • ";
+
+        if (!string.IsNullOrWhiteSpace(prefix) && context.StartsWith(prefix, StringComparison.CurrentCultureIgnoreCase))
+            context = context[prefix.Length..];
+
+        if (string.IsNullOrWhiteSpace(context))
+            return string.IsNullOrWhiteSpace(item.WandNaam) ? "—" : item.WandNaam;
+
+        return context;
+    }
+
+    private static List<string> TechnischeDetailLijnen(BestellijstItem item)
+    {
+        var regels = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(item.ScharnierLabel) && item.ScharnierLabel != "—")
+            regels.Add($"Scharnier: {item.ScharnierLabel}");
+
+        if (item.Boorgaten.Count == 0)
+        {
+            regels.Add("Geen boorgaten.");
+            return regels;
+        }
+
+        for (var i = 0; i < item.Boorgaten.Count; i++)
+        {
+            var boorgat = item.Boorgaten[i];
+            regels.Add(
+                $"B{i + 1}: X {FormatNumber(BestellijstExportService.BerekenCncX(item, boorgat))} · Y {FormatNumber(BestellijstExportService.BerekenCncY(boorgat))}");
+        }
+
+        return regels;
+    }
 
     private static string FormatNumber(double value) => value.ToString("0.#");
 

@@ -19,6 +19,11 @@
 }
 else
 {
+    @{
+        var paneelReviewGroepen = OverzichtGroeperingHelper.GroepeerPaneelToewijzingen(State);
+        var paneelTypeTellingen = OverzichtGroeperingHelper.MaakTellingen(State.Toewijzingen, toewijzing => TypeNaam(toewijzing.Type));
+    }
+
     <div class="row g-4">
         <div class="col-xl-7 col-lg-6">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -79,56 +84,94 @@ else
                 }
                 else
                 {
-                    <table class="table table-sm table-hover mb-0 border rounded">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3" style="width:2rem;">#</th>
-                                <th>Type</th>
-                                <th>Breedte</th>
-                                <th>Hoogte</th>
-                                <th>Plaatsing</th>
-                                <th>Scharnierzijde</th>
-                                <th>Kast(en)</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (int i = 0; i < State.Toewijzingen.Count; i++)
-                            {
-                                var toewijzing = State.Toewijzingen[i];
-                                var kastenNamen = string.Join(" + ", toewijzing.KastIds
-                                    .Select(id => State.Kasten.Find(k => k.Id == id)?.Naam)
-                                    .Where(n => n is not null));
-                                var rid = toewijzing.Id;
-                                <tr class="@(bewerkToewijzingId == rid ? "table-primary" : null)" @key="toewijzing.Id">
-                                    <td class="text-muted ps-3">@(i + 1)</td>
-                                    <td>
-                                        <span class="badge @(toewijzing.Type == PaneelType.Deur ? "bg-primary" : toewijzing.Type == PaneelType.LadeFront ? "bg-warning text-dark" : "bg-secondary")">
-                                            @TypeNaam(toewijzing.Type)
-                                        </span>
-                                    </td>
-                                    <td>@toewijzing.Breedte mm</td>
-                                    <td>@toewijzing.Hoogte mm</td>
-                                    <td class="text-muted small">@PlaatsTekst(toewijzing)</td>
-                                    <td class="text-muted small">
-                                        @(toewijzing.Type == PaneelType.Deur
-                                            ? $"{toewijzing.ScharnierZijde.ToString().ToLower()} · hart scharnierpot {FormatMm(toewijzing.PotHartVanRand)}"
-                                            : "—")
-                                    </td>
-                                    <td class="text-muted small">@kastenNamen</td>
-                                    <td class="text-end pe-2">
-                                        <button type="button"
-                                                class="btn btn-outline-primary btn-sm py-0 px-2 me-1"
-                                                @onclick="() => BewerkPaneel(rid)">
-                                            @(bewerkToewijzingId == rid ? "Open" : "Bewerk")
-                                        </button>
-                                        <button class="btn btn-outline-danger btn-sm py-0 px-1"
-                                                @onclick="() => VerwijderPaneel(rid)">×</button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                    <p class="text-muted small mb-3">Bekijk eerst per wand welke panelen al klaarstaan. Plaatsing en scharnierdetails blijven beschikbaar per paneel, maar staan niet meer standaard op het hoogste niveau.</p>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-5">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Samenvatting</div>
+                                <div class="fw-semibold">@paneelReviewGroepen.Count wand(en) met panelen</div>
+                                <div class="small text-muted">@State.Toewijzingen.Count paneeltoewijzingen klaar voor review of bewerking.</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-7">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per paneeltype</div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var telling in paneelTypeTellingen)
+                                    {
+                                        <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @foreach (var groep in paneelReviewGroepen)
+                    {
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                    <div>
+                                        <h6 class="mb-1">@groep.WandNaam</h6>
+                                        <div class="small text-muted">@groep.AantalPanelen paneel/panelen op deze wand</div>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                                        @foreach (var telling in groep.TypeTellingen)
+                                        {
+                                            <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="list-group list-group-flush mt-3">
+                                    @foreach (var item in groep.Items)
+                                    {
+                                        var isOpen = bewerkToewijzingId == item.Id;
+                                        <div class="list-group-item px-0" @key="item.Id">
+                                            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                                <div>
+                                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                        <span class="badge @TypeBadgeClass(item.Type)">@item.TypeLabel</span>
+                                                        <span class="fw-semibold">Paneel @item.Volgnummer</span>
+                                                        <span class="text-muted">@FormatMm(item.Breedte) × @FormatMm(item.Hoogte)</span>
+                                                        @if (isOpen)
+                                                        {
+                                                            <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">Open in editor</span>
+                                                        }
+                                                    </div>
+                                                    <div class="small text-muted">Kast(en): @item.KastenLabel</div>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button"
+                                                            class="btn btn-outline-primary btn-sm"
+                                                            @onclick="() => BewerkPaneel(item.Id)">
+                                                        @(isOpen ? "Open" : "Bewerk")
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-outline-danger btn-sm"
+                                                            @onclick="() => VerwijderPaneel(item.Id)">
+                                                        Verwijder
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <details class="mt-2 small">
+                                                <summary class="text-secondary">Plaatsing en technische details</summary>
+                                                <div class="mt-2 d-flex flex-wrap gap-3">
+                                                    <span><strong>Plaatsing:</strong> @item.PlaatsingLabel</span>
+                                                    @if (item.Type == PaneelType.Deur)
+                                                    {
+                                                        <span><strong>Scharnier:</strong> @item.ScharnierLabel</span>
+                                                    }
+                                                </div>
+                                            </details>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
                 }
             </div>
         </div>
@@ -991,12 +1034,15 @@ else
     private static string VrijSegmentLabel(int index, PaneelRechthoek segment)
         => $"Vak {index + 1} · {segment.Hoogte:0.#} hoog · onder {segment.HoogteVanVloer:0.#}";
 
-    private static string PlaatsTekst(PaneelToewijzing toewijzing)
-        => toewijzing.XPositie is double x && toewijzing.HoogteVanVloer is double y
-            ? $"x {x:0} · onder {y:0}"
-            : "volledige span";
-
     private static string TypeNaam(PaneelType type) => VisualisatieHelper.PaneelTypeLabel(type);
+
+    private static string TypeBadgeClass(PaneelType type)
+        => type switch
+        {
+            PaneelType.Deur => "bg-primary",
+            PaneelType.LadeFront => "bg-warning text-dark",
+            _ => "bg-secondary"
+        };
 
     private static string FormatMm(double waarde) => $"{waarde:0.#} mm";
 }

@@ -942,8 +942,12 @@ code {
 }
 
 .bestellijst-table {
-    min-width: 980px;
+    min-width: 720px;
     margin-bottom: 0;
+}
+
+.bestellijst-table--technisch {
+    min-width: 980px;
 }
 
 .bestellijst-table thead th {
