@@ -66,7 +66,7 @@
         {
             var toewijzing = GerelateerdeToewijzingen[pi];
             var panelKasten = toewijzing.KastIds
-                .Select(id => Kasten.Find(k => k.Id == id))
+                .Select(id => Kasten.FirstOrDefault(k => k.Id == id))
                 .Where(k => k is not null)
                 .Cast<Kast>()
                 .ToList();
@@ -101,7 +101,7 @@
             {
                 var t = GerelateerdeToewijzingen[li];
                 var kastenNamen = string.Join(" + ", t.KastIds
-                    .Select(id => Kasten.Find(k => k.Id == id)?.Naam)
+                    .Select(id => Kasten.FirstOrDefault(k => k.Id == id)?.Naam)
                     .Where(n => n is not null));
                 var kleur = PaneelKleuren[li % PaneelKleuren.Length];
                 <span class="badge small" style="background-color: @kleur;">
@@ -113,12 +113,12 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public List<Kast> Kasten { get; set; } = [];
-    [Parameter] public List<Apparaat> Apparaten { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<Kast> Kasten { get; set; } = [];
+    [Parameter] public IReadOnlyList<Apparaat> Apparaten { get; set; } = [];
     [Parameter] public double WandBreedte { get; set; } = 3000;
     [Parameter] public double WandHoogte { get; set; } = 2600;
     [Parameter] public double PlintHoogte { get; set; }
-    [Parameter, EditorRequired] public List<PaneelToewijzing> AlleToewijzingen { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<PaneelToewijzing> AlleToewijzingen { get; set; } = [];
     [Parameter] public IReadOnlyDictionary<Guid, PaneelResultaat>? ResultatenOpToewijzingId { get; set; }
 
     private List<PaneelToewijzing> GerelateerdeToewijzingen =>

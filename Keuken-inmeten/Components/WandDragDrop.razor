@@ -68,11 +68,11 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public List<Kast> Kasten { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<Kast> Kasten { get; set; } = [];
     [Parameter, EditorRequired] public Guid WandId { get; set; }
     [Parameter] public Guid? GeselecteerdeKastId { get; set; }
     [Parameter] public EventCallback<Guid> OnKastGeselecteerd { get; set; }
-    [Parameter] public EventCallback<(int vanIndex, int naarIndex)> OnKastVerplaatst { get; set; }
+    [Parameter] public EventCallback<KastVolgordeWijziging> OnKastVerplaatst { get; set; }
 
     private Guid? dragKastId;
     private int dragStartIndex = -1;
@@ -97,14 +97,9 @@
     {
         if (dragStartIndex < 0 || dragKastId is null) return;
 
-        var effectiveTarget = targetIndex;
-        if (effectiveTarget > dragStartIndex)
-            effectiveTarget--;
-
-        if (effectiveTarget != dragStartIndex)
-        {
-            await OnKastVerplaatst.InvokeAsync((dragStartIndex, effectiveTarget));
-        }
+        var wijziging = ComponentInteractieHelper.BepaalKastVolgordeWijziging(dragStartIndex, targetIndex);
+        if (wijziging is not null)
+            await OnKastVerplaatst.InvokeAsync(wijziging);
 
         HandleDragEnd();
     }

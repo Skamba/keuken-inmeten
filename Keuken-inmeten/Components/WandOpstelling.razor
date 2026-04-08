@@ -1,7 +1,6 @@
 @using System.Globalization
 @inject IJSRuntime JS
 @inject ActieFeedbackService Feedback
-@inject KeukenStateService State
 @implements IAsyncDisposable
 
 <div class="wand-opstelling-container" style="text-align: center;">
@@ -261,8 +260,8 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public List<Kast> Kasten { get; set; } = [];
-    [Parameter] public List<Apparaat> Apparaten { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<Kast> Kasten { get; set; } = [];
+    [Parameter] public IReadOnlyList<Apparaat> Apparaten { get; set; } = [];
     [Parameter] public double WandHoogte { get; set; } = 2600;
     [Parameter] public double WandBreedte { get; set; } = 3000;
     [Parameter] public double PlintHoogte { get; set; }
@@ -274,8 +273,9 @@
     [Parameter] public EventCallback<Guid> OnKastGeselecteerd { get; set; }
     [Parameter] public EventCallback<Guid> OnKastKopieren { get; set; }
     [Parameter] public EventCallback OnKastPlakken { get; set; }
-    [Parameter] public EventCallback<(Guid kastId, double xPositie, double hoogteVanVloer)> OnKastVerplaatst { get; set; }
-    [Parameter] public EventCallback<(Guid apparaatId, double xPositie, double hoogteVanVloer)> OnApparaatVerplaatst { get; set; }
+    [Parameter] public EventCallback<KastPositieWijziging> OnKastVerplaatst { get; set; }
+    [Parameter] public EventCallback<ApparaatPositieWijziging> OnApparaatVerplaatst { get; set; }
+    [Parameter] public EventCallback<WandPlankActie> OnPlankActie { get; set; }
     [Parameter] public IReadOnlyList<PaneelToewijzing>? Toewijzingen { get; set; }
 
     private ElementReference svgRef;
@@ -340,7 +340,7 @@
             var apparaatIdStr = kastIdStr["apparaat-".Length..];
             if (!Guid.TryParse(apparaatIdStr, out var apparaatId)) return;
 
-            var apparaat = Apparaten.Find(a => a.Id == apparaatId);
+            var apparaat = Apparaten.FirstOrDefault(a => a.Id == apparaatId);
             if (apparaat is null) return;
 
             var appXMm = (svgX - P) / Schaal;
@@ -350,14 +350,14 @@
             appXMm = Math.Clamp(Math.Round(appXMm / 10) * 10, 0, Math.Max(0, WandBreedte - apparaat.Breedte));
             appHoogteVanVloer = Math.Clamp(Math.Round(appHoogteVanVloer / 10) * 10, 0, Math.Max(0, WandHoogte - apparaat.Hoogte));
 
-            await OnApparaatVerplaatst.InvokeAsync((apparaatId, appXMm, appHoogteVanVloer));
+            await OnApparaatVerplaatst.InvokeAsync(ComponentInteractieHelper.MaakApparaatVerplaatsing(apparaatId, appXMm, appHoogteVanVloer));
             StateHasChanged();
             return;
         }
 
         if (!Guid.TryParse(kastIdStr, out var kastId)) return;
 
-        var kast = Kasten.Find(k => k.Id == kastId);
+        var kast = Kasten.FirstOrDefault(k => k.Id == kastId);
         if (kast is null) return;
 
         // SVG coords → mm
@@ -376,7 +376,7 @@
         xMm = Math.Clamp(xMm, 0, Math.Max(0, WandBreedte - kast.Breedte));
         hoogteVanVloer = Math.Clamp(hoogteVanVloer, 0, Math.Max(0, WandHoogte - kast.Hoogte));
 
-        await OnKastVerplaatst.InvokeAsync((kastId, xMm, hoogteVanVloer));
+        await OnKastVerplaatst.InvokeAsync(ComponentInteractieHelper.MaakKastVerplaatsing(kastId, xMm, hoogteVanVloer));
         StateHasChanged();
     }
 
@@ -400,36 +400,36 @@
         if (!Guid.TryParse(kastIdStr, out var kastId)) return;
         if (!Guid.TryParse(plankIdStr, out var plankId)) return;
 
-        var kast = Kasten.Find(k => k.Id == kastId);
-        var plank = kast?.Planken.Find(p => p.Id == plankId);
+        var kast = Kasten.FirstOrDefault(k => k.Id == kastId);
+        var plank = kast?.Planken.FirstOrDefault(p => p.Id == plankId);
         if (kast is null || plank is null) return;
 
         await VerwijderPlankMetUndoAsync(kast, plank);
     }
 
     [JSInvokable]
-    public Task OnPlankDrop(string kastIdStr, string plankIdStr, double svgCenterY)
+    public async Task OnPlankDrop(string kastIdStr, string plankIdStr, double svgCenterY)
     {
-        if (LeesAlleen) return Task.CompletedTask;
-        if (!Guid.TryParse(kastIdStr, out var kastId)) return Task.CompletedTask;
-        if (!Guid.TryParse(plankIdStr, out var plankId)) return Task.CompletedTask;
+        if (LeesAlleen) return;
+        if (!Guid.TryParse(kastIdStr, out var kastId)) return;
+        if (!Guid.TryParse(plankIdStr, out var plankId)) return;
 
-        var kast = Kasten.Find(k => k.Id == kastId);
-        if (kast is null) return Task.CompletedTask;
-        var plank = kast.Planken.Find(p => p.Id == plankId);
-        if (plank is null) return Task.CompletedTask;
+        var kast = Kasten.FirstOrDefault(k => k.Id == kastId);
+        if (kast is null) return;
+        var plank = kast.Planken.FirstOrDefault(p => p.Id == plankId);
+        if (plank is null) return;
 
         var kastBotY = VloerY - kast.HoogteVanVloer * Schaal;
         var wdPx = kast.Wanddikte * Schaal;
         var hoogteVanBodem = (kastBotY - wdPx - svgCenterY) / Schaal;
         hoogteVanBodem = Math.Round(Math.Clamp(hoogteVanBodem, kast.Wanddikte, kast.Hoogte - kast.Wanddikte * 2), 1);
 
-        State.VerplaatsPlank(kastId, plankId, hoogteVanBodem);
+        if (OnPlankActie.HasDelegate)
+            await OnPlankActie.InvokeAsync(ComponentInteractieHelper.MaakPlankVerplaatsing(kastId, plankId, hoogteVanBodem));
         _geselecteerdeePlankKastId = kastId;
         _geselecteerdeePlankId = plankId;
 
         StateHasChanged();
-        return Task.CompletedTask;
     }
 
     [JSInvokable]
@@ -438,7 +438,7 @@
         if (LeesAlleen) return;
         if (!Guid.TryParse(kastIdStr, out var kastId)) return;
 
-        var kast = Kasten.Find(k => k.Id == kastId);
+        var kast = Kasten.FirstOrDefault(k => k.Id == kastId);
         if (kast is null) return;
 
         var kastBotY = VloerY - kast.HoogteVanVloer * Schaal;
@@ -448,12 +448,12 @@
         hoogteVanBodem = Math.Round(hoogteVanBodem / gaatjesAfstand) * gaatjesAfstand;
         hoogteVanBodem = Math.Clamp(Math.Round(hoogteVanBodem, 1), kast.Wanddikte, kast.Hoogte - kast.Wanddikte * 2);
 
-        var nieuwePlank = State.VoegPlankToe(kastId, hoogteVanBodem);
-        if (nieuwePlank is null)
-            return;
+        var nieuwePlankId = Guid.NewGuid();
+        if (OnPlankActie.HasDelegate)
+            await OnPlankActie.InvokeAsync(ComponentInteractieHelper.MaakPlankToevoeging(kastId, nieuwePlankId, hoogteVanBodem));
 
         _geselecteerdeePlankKastId = kastId;
-        _geselecteerdeePlankId = nieuwePlank.Id;
+        _geselecteerdeePlankId = nieuwePlankId;
 
         await OnKastGeselecteerd.InvokeAsync(kastId);
         StateHasChanged();
@@ -465,8 +465,8 @@
         if (LeesAlleen) return;
         if (_geselecteerdeePlankId.HasValue && _geselecteerdeePlankKastId.HasValue)
         {
-            var kast = Kasten.Find(k => k.Id == _geselecteerdeePlankKastId.Value);
-            var plank = kast?.Planken.Find(p => p.Id == _geselecteerdeePlankId.Value);
+            var kast = Kasten.FirstOrDefault(k => k.Id == _geselecteerdeePlankKastId.Value);
+            var plank = kast?.Planken.FirstOrDefault(p => p.Id == _geselecteerdeePlankId.Value);
             if (plank != null && kast != null)
             {
                 double? nieuweHoogte = null;
@@ -481,12 +481,12 @@
                 }
 
                 if (nieuweHoogte.HasValue)
-                    State.VerplaatsPlank(kast.Id, plank.Id, nieuweHoogte.Value);
+                    await OnPlankActie.InvokeAsync(ComponentInteractieHelper.MaakPlankVerplaatsing(kast.Id, plank.Id, nieuweHoogte.Value));
             }
         }
         else if (GeselecteerdeKastId.HasValue)
         {
-            var kast = Kasten.Find(k => k.Id == GeselecteerdeKastId.Value);
+            var kast = Kasten.FirstOrDefault(k => k.Id == GeselecteerdeKastId.Value);
             if (kast != null)
             {
                 var xPositie = kast.XPositie;
@@ -500,13 +500,13 @@
                 else if (key == "ArrowDown")
                     hoogteVanVloer = Math.Max(0, kast.HoogteVanVloer - stap);
 
-                await OnKastVerplaatst.InvokeAsync((GeselecteerdeKastId.Value, xPositie, hoogteVanVloer));
+                await OnKastVerplaatst.InvokeAsync(ComponentInteractieHelper.MaakKastVerplaatsing(GeselecteerdeKastId.Value, xPositie, hoogteVanVloer));
             }
         }
         StateHasChanged();
     }
 
-    private Task VerwijderPlankMetUndoAsync(Kast kast, Plank plank)
+    private async Task VerwijderPlankMetUndoAsync(Kast kast, Plank plank)
     {
         var index = kast.Planken.FindIndex(item => item.Id == plank.Id);
         var snapshot = new PlankVerwijderSnapshot(
@@ -518,7 +518,8 @@
             },
             index);
 
-        State.VerwijderPlank(kast.Id, plank.Id);
+        if (OnPlankActie.HasDelegate)
+            await OnPlankActie.InvokeAsync(ComponentInteractieHelper.MaakPlankVerwijdering(kast.Id, plank.Id, plank.HoogteVanBodem, index));
 
         if (_geselecteerdeePlankId == plank.Id)
         {
@@ -531,31 +532,25 @@
             "Ongedaan maken",
             () => HerstelPlankAsync(snapshot));
         StateHasChanged();
-        return Task.CompletedTask;
     }
 
-    private Task HerstelPlankAsync(PlankVerwijderSnapshot snapshot)
+    private async Task HerstelPlankAsync(PlankVerwijderSnapshot snapshot)
     {
-        var kast = Kasten.Find(item => item.Id == snapshot.KastId);
+        var kast = Kasten.FirstOrDefault(item => item.Id == snapshot.KastId);
         if (kast is null)
         {
             Feedback.ToonFout("Plank kan niet worden teruggezet omdat de kast niet meer bestaat.");
-            return Task.CompletedTask;
+            return;
         }
 
-        var hersteldePlank = State.HerstelPlank(snapshot.KastId, snapshot.Plank, snapshot.Index);
-        if (hersteldePlank is null)
-        {
-            Feedback.ToonFout("Plank kan niet worden teruggezet omdat de kast niet meer bestaat.");
-            return Task.CompletedTask;
-        }
+        if (OnPlankActie.HasDelegate)
+            await OnPlankActie.InvokeAsync(ComponentInteractieHelper.MaakPlankHerstel(snapshot.KastId, snapshot.Plank.Id, snapshot.Plank.HoogteVanBodem, snapshot.Index));
 
         _geselecteerdeePlankKastId = kast.Id;
-        _geselecteerdeePlankId = hersteldePlank.Id;
+        _geselecteerdeePlankId = snapshot.Plank.Id;
 
         Feedback.ToonSucces($"Plank in '{kast.Naam}' is teruggezet.");
         StateHasChanged();
-        return Task.CompletedTask;
     }
 
     private sealed record PlankVerwijderSnapshot(Guid KastId, Plank Plank, int Index);

@@ -37,7 +37,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public List<Kast> Kasten { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<Kast> Kasten { get; set; } = [];
     [Parameter] public double MaxHoogte { get; set; } = 220;
 
     private const double P = 24;

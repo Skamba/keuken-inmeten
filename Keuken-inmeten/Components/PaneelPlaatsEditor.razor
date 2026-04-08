@@ -255,8 +255,8 @@
     private sealed record PaneelVisual(PaneelToewijzing Toewijzing, PaneelRechthoek OpeningsRechthoek, PaneelRechthoek WerkRechthoek, string Kleur, string Label, string SubLabel);
     private sealed record HandlePositie(string Naam, double X, double Y);
 
-    [Parameter, EditorRequired] public List<Kast> Kasten { get; set; } = [];
-    [Parameter] public List<Apparaat> Apparaten { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<Kast> Kasten { get; set; } = [];
+    [Parameter] public IReadOnlyList<Apparaat> Apparaten { get; set; } = [];
     [Parameter] public double WandHoogte { get; set; } = 2600;
     [Parameter] public double WandBreedte { get; set; } = 3000;
     [Parameter] public double PlintHoogte { get; set; }
@@ -327,23 +327,8 @@
         if (!OnConceptPaneelGewijzigd.HasDelegate)
             return;
 
-        var xMm = (svgX - P) / Schaal;
-        var topFromFloorMm = (VloerY - svgY) / Schaal;
-        var breedteMm = svgWidth / Schaal;
-        var hoogteMm = svgHeight / Schaal;
-        var hoogteVanVloer = topFromFloorMm - hoogteMm;
-
-        await OnConceptPaneelGewijzigd.InvokeAsync(new PaneelConceptWijziging
-        {
-            Bewerking = bewerking,
-            Paneel = new PaneelRechthoek
-            {
-                XPositie = xMm,
-                HoogteVanVloer = hoogteVanVloer,
-                Breedte = breedteMm,
-                Hoogte = hoogteMm
-            }
-        });
+        await OnConceptPaneelGewijzigd.InvokeAsync(
+            ComponentInteractieHelper.MaakPaneelConceptWijziging(bewerking, svgX, svgY, svgWidth, svgHeight, P, Schaal, VloerY));
 
         StateHasChanged();
     }

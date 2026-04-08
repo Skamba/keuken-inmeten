@@ -222,10 +222,11 @@
                                     PlintHoogte="@wand.PlintHoogte"
                                      GeselecteerdeKastId="@(actieveWandId == wand.Id ? bewerkKastId : null)"
                                      OnKastGeselecteerd="(id) => SelecteerKast(id, wand.Id)"
-                                     OnKastVerplaatst="(args) => VerplaatsKastOpWand(args.kastId, args.xPositie, args.hoogteVanVloer)"
-                                     OnKastKopieren="KopieerNaarKlembord"
-                                     OnKastPlakken="() => PlakUitKlembord(wand.Id)"
-                                     OnApparaatVerplaatst="(args) => VerplaatsApparaatOpWand(args.apparaatId, args.xPositie, args.hoogteVanVloer)" />
+                                      OnKastVerplaatst="VerplaatsKastOpWand"
+                                      OnKastKopieren="KopieerNaarKlembord"
+                                      OnKastPlakken="() => PlakUitKlembord(wand.Id)"
+                                      OnApparaatVerplaatst="VerplaatsApparaatOpWand"
+                                      OnPlankActie="VerwerkPlankActie" />
                 </div>
             }
 
@@ -758,8 +759,34 @@
         State.WerkWandAfmetingenBij(wand.Id, breedte, hoogte, plintHoogte);
     }
 
-    private void VerplaatsKastOpWand(Guid kastId, double xPositie, double hoogteVanVloer)
-        => State.VerplaatsKast(kastId, xPositie, hoogteVanVloer);
+    private void VerplaatsKastOpWand(KastPositieWijziging wijziging)
+        => State.VerplaatsKast(wijziging.KastId, wijziging.XPositie, wijziging.HoogteVanVloer);
+
+    private void VerwerkPlankActie(WandPlankActie actie)
+    {
+        switch (actie.Type)
+        {
+            case WandPlankActieType.Toevoegen:
+                State.VoegPlankToe(actie.KastId, actie.HoogteVanBodem, actie.PlankId);
+                break;
+            case WandPlankActieType.Verplaatsen:
+                State.VerplaatsPlank(actie.KastId, actie.PlankId, actie.HoogteVanBodem);
+                break;
+            case WandPlankActieType.Verwijderen:
+                State.VerwijderPlank(actie.KastId, actie.PlankId);
+                break;
+            case WandPlankActieType.Herstellen:
+                State.HerstelPlank(
+                    actie.KastId,
+                    new Plank
+                    {
+                        Id = actie.PlankId,
+                        HoogteVanBodem = actie.HoogteVanBodem
+                    },
+                    actie.Index);
+                break;
+        }
+    }
 
     private void KopieerNaarKlembord(Guid kastId) => _clipboardKastId = kastId;
 
@@ -1014,8 +1041,8 @@
 
     private sealed record ApparaatVerwijderSnapshot(Apparaat Apparaat, Guid WandId, int Index);
 
-    private void VerplaatsApparaatOpWand(Guid apparaatId, double xPositie, double hoogteVanVloer)
-        => State.VerplaatsApparaat(apparaatId, xPositie, hoogteVanVloer);
+    private void VerplaatsApparaatOpWand(ApparaatPositieWijziging wijziging)
+        => State.VerplaatsApparaat(wijziging.ApparaatId, wijziging.XPositie, wijziging.HoogteVanVloer);
 
     private static string ApparaatTypeLabel(ApparaatType type) => type switch
     {
