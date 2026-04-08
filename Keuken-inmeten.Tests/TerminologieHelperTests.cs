@@ -15,7 +15,7 @@ public class TerminologieHelperTests
         Assert.Contains("X- en Y-maten", term.Uitleg);
         Assert.Contains("productie", term.WanneerRelevant);
         Assert.Contains("X 37 mm", term.Voorbeeld);
-        Assert.Contains("technische details", term.WatNuDoen);
+        Assert.Contains("CNC-details", term.WatNuDoen);
     }
 
     [Fact]
