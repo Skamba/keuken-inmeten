@@ -10,6 +10,7 @@ public class PaneelConfiguratieHelperTests
     public void Flow_status_en_opslaanstekst_volgen_context()
     {
         var leeg = new PaneelFlowContext(
+            HeeftWandContext: false,
             HeeftSelectie: false,
             HeeftConceptPaneel: false,
             HeeftGeldigeMaat: false,
@@ -17,6 +18,7 @@ public class PaneelConfiguratieHelperTests
             ActieveWandNaam: string.Empty,
             GeselecteerdeKastNamen: string.Empty);
         var klaar = new PaneelFlowContext(
+            HeeftWandContext: true,
             HeeftSelectie: true,
             HeeftConceptPaneel: true,
             HeeftGeldigeMaat: true,
@@ -25,8 +27,8 @@ public class PaneelConfiguratieHelperTests
             GeselecteerdeKastNamen: "Kast 1");
 
         Assert.False(PaneelConfiguratieHelper.KanPaneelOpslaan(leeg));
-        Assert.Equal("Nee, er is nog geen kastselectie.", PaneelConfiguratieHelper.BepaalOpslaanStatusTekst(leeg));
-        Assert.Equal("active", PaneelConfiguratieHelper.BepaalPaneelFlowStatus("selecteren", leeg));
+        Assert.Equal("Nee, er is nog geen actieve wand.", PaneelConfiguratieHelper.BepaalOpslaanStatusTekst(leeg));
+        Assert.Equal("active", PaneelConfiguratieHelper.BepaalPaneelFlowStatus("wand", leeg));
 
         Assert.True(PaneelConfiguratieHelper.KanPaneelOpslaan(klaar));
         Assert.Equal("Ja, u kunt nu opslaan.", PaneelConfiguratieHelper.BepaalOpslaanStatusTekst(klaar));

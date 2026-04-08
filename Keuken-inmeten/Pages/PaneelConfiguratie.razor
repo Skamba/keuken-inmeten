@@ -8,7 +8,7 @@
 <StapIndicator HuidigeStap="panelen" />
 
 <h2 class="page-header">Stap 2: Panelen</h2>
-<p class="text-muted">Volg deze mini-flow: 1. selecteer kast(en), 2. plaats of pas het paneel aan, 3. controleer maat en type, 4. sla op. Het paneel snapt automatisch aan kast- en paneelranden.</p>
+<p class="text-muted">Werk in stap 2 nu per wand: open eerst precies één wand, selecteer daarna de juiste kast(en) en gebruik de paneel-editor als aparte werklaag om te plaatsen, controleren en op te slaan.</p>
 <div class="hulp-toolbar mb-3">
     <StapHulpDrawer StapId="panelen" />
 </div>
@@ -29,170 +29,388 @@ else
 {
     var paneelReviewGroepen = OverzichtGroeperingHelper.GroepeerPaneelToewijzingen(State);
     var paneelTypeTellingen = OverzichtGroeperingHelper.MaakTellingen(State.Toewijzingen, toewijzing => TypeNaam(toewijzing.Type));
+    var geopendeWand = GeopendeWand;
+    var gerangschiktePaneelReviewGroepen = geopendeWand is null
+        ? paneelReviewGroepen
+        : paneelReviewGroepen
+            .OrderBy(groep => groep.WandNaam == geopendeWand.Naam ? 0 : 1)
+            .ThenBy(groep => groep.WandNaam)
+            .ToList();
 
-    <div class="row g-4">
-        <div class="col-xl-7 col-lg-6">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <small class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .06em;">1. Selecteer kast(en) op een wand · 2. Plaats daarna het paneel in het schema</small>
-                @if (geselecteerdeKastIds.Count > 0)
-                {
-                    <button class="btn btn-sm btn-link text-secondary p-0" @onclick="DeselecteerAlles">Alles deselecteren ×</button>
-                }
+    <div class="paneel-pagina-shell @(toonEditorDrawer ? "editor-open" : null)">
+        <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3 mb-3">
+            <div>
+                <h5 class="mb-1">Wandenoverzicht</h5>
+                <p class="text-muted mb-0">Bekijk eerst rustige samenvattingskaarten per wand. Open daarna precies één wand om te selecteren, te plaatsen en op te slaan via de paneel-editor.</p>
             </div>
+            <div class="small text-muted">
+                <div class="fw-semibold text-uppercase">Werkmodus</div>
+                <div>@(geopendeWand is null ? "Nog geen wand geopend" : $"{geopendeWand.Naam} is nu actief")</div>
+            </div>
+        </div>
 
+        <div class="row g-3 mb-4">
             @foreach (var wand in State.Wanden)
             {
                 var wandKasten = State.KastenVoorWand(wand.Id);
-                if (wandKasten.Count == 0) continue;
-
                 var wandApparaten = State.ApparatenVoorWand(wand.Id);
-                var wandHasSelection = geselecteerdeKastIds.Any(id => wandKasten.Any(k => k.Id == id));
-                var conceptVoorWand = ActieveWandId == wand.Id ? conceptPaneel : null;
-                var vrijeSegmentenVoorWand = ActieveWandId == wand.Id ? VrijeSegmentenVoorSelectie() : [];
+                var wandPanelen = ToewijzingenVoorWand(wand);
+                var isActieveWerkruimte = geopendeWand?.Id == wand.Id;
 
-                <div class="mb-3 border @(wandHasSelection ? "border-primary" : "") rounded overflow-hidden"
-                     data-testid="paneel-wand-card"
-                     data-wand-id="@wand.Id"
-                     data-wand-naam="@wand.Naam">
-                    <div class="d-flex justify-content-between align-items-center px-2 py-1 @(wandHasSelection ? "bg-primary bg-opacity-10" : "bg-light")">
-                        <small class="fw-semibold">@wand.Naam</small>
-                        @if (wandHasSelection)
-                        {
-                            <button class="btn btn-sm btn-link text-secondary p-0 text-decoration-none" style="font-size: 0.8rem;" @onclick="() => DeselecteerWand(wand.Id)">× deselecteer wand</button>
-                        }
+                <div class="col-xl-6"
+                     @key="wand.Id">
+                    <div class="card h-100 indeling-wand-samenvatting @(isActieveWerkruimte ? "actief" : "")"
+                         data-testid="paneel-wand-card"
+                         data-wand-id="@wand.Id"
+                         data-wand-naam="@wand.Naam">
+                        <div class="card-body d-flex flex-column gap-3">
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                                <div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                        <h5 class="mb-0">@wand.Naam</h5>
+                                        @if (isActieveWerkruimte)
+                                        {
+                                            <span class="badge text-bg-primary">Nu open</span>
+                                            @if (toonEditorDrawer)
+                                            {
+                                                <span class="badge text-bg-light">Editor open</span>
+                                            }
+                                        }
+                                    </div>
+                                    <div class="small text-muted">
+                                        @(wandKasten.Count == 0
+                                            ? "Nog geen kasten op deze wand."
+                                            : $"{wandKasten.Count} kast(en), {wandPanelen.Count} paneel/panelen en {wandApparaten.Count} apparaat(en) in deze wandcontext.")
+                                    </div>
+                                </div>
+                                <div class="small text-muted text-lg-end">
+                                    <div class="fw-semibold text-uppercase">Status</div>
+                                    <div>@(isActieveWerkruimte ? "Nu actief" : wandKasten.Count == 0 ? "Nog geen paneelcontext" : "Samengevat")</div>
+                                </div>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-sm-3">
+                                    <div class="indeling-wand-metric">
+                                        <div class="small text-muted">Kasten</div>
+                                        <div class="fw-semibold">@wandKasten.Count</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="indeling-wand-metric">
+                                        <div class="small text-muted">Panelen</div>
+                                        <div class="fw-semibold">@wandPanelen.Count</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="indeling-wand-metric">
+                                        <div class="small text-muted">Apparaten</div>
+                                        <div class="fw-semibold">@wandApparaten.Count</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="indeling-wand-metric">
+                                        <div class="small text-muted">Breedte</div>
+                                        <div class="fw-semibold">@wand.Breedte mm</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="small text-muted">
+                                <div class="fw-semibold text-uppercase mb-1">Volgende stap</div>
+                                <div>
+                                    @(wandKasten.Count == 0
+                                        ? "Voeg in stap 1 eerst een kast toe voordat u deze wand voor panelen opent."
+                                        : isActieveWerkruimte
+                                            ? "Klik kasten in de tekening en werk verder in de paneel-editor."
+                                            : "Open deze wand om één duidelijke paneelwerkruimte en editorlaag te starten.")
+                                </div>
+                            </div>
+
+                            <div class="mt-auto">
+                                <button class="btn btn-primary"
+                                        @onclick="() => OpenWandWerkruimte(wand.Id)"
+                                        disabled="@(isActieveWerkruimte || wandKasten.Count == 0)"
+                                        data-testid="open-paneel-wand-button"
+                                        data-wand-id="@wand.Id">
+                                    @(wandKasten.Count == 0 ? "Nog geen kasten" : isActieveWerkruimte ? "Werkruimte geopend" : "Open wand")
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="paneel-overzicht-scroll">
-                        <PaneelPlaatsEditor Kasten="@wandKasten"
-                                            Apparaten="@wandApparaten"
-                                            WandHoogte="@wand.Hoogte"
-                                            WandBreedte="@wand.Breedte"
-                                            PlintHoogte="@wand.PlintHoogte"
+                </div>
+            }
+        </div>
+
+        @if (geopendeWand is null)
+        {
+            <div class="card mb-4 border-0 bg-body-tertiary indeling-wand-leeg">
+                <div class="card-body py-4">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                        <div>
+                            <h5 class="mb-1">Kies één wand om panelen te bewerken</h5>
+                            <p class="text-muted mb-0">De kaarten hierboven geven alleen de hoofdlijnen. Open een wand zodra u de kastselectie, paneelplaatsing en technische instellingen voor die wand wilt bewerken.</p>
+                        </div>
+                        <span class="badge text-bg-light indeling-workspace-hint">@State.Wanden.Count wand(en) klaar om te openen</span>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            var geopendeWandKasten = State.KastenVoorWand(geopendeWand.Id);
+            var geopendeWandApparaten = State.ApparatenVoorWand(geopendeWand.Id);
+            var geopendeWandPanelen = ToewijzingenVoorWand(geopendeWand);
+
+            <div class="card mb-4 border-primary shadow-sm indeling-actieve-werkruimte"
+                 data-testid="paneel-actieve-wand-werkruimte"
+                 data-wand-id="@geopendeWand.Id"
+                 data-wand-naam="@geopendeWand.Naam">
+                <div class="card-header bg-primary bg-opacity-10">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="small fw-semibold text-uppercase text-primary-emphasis">Actieve wand</div>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                <h5 class="mb-0">@geopendeWand.Naam</h5>
+                                <span class="badge text-bg-light">@geopendeWandKasten.Count kast(en)</span>
+                                <span class="badge text-bg-light">@geopendeWandPanelen.Count paneel/panelen</span>
+                                @if (geopendeWandApparaten.Count > 0)
+                                {
+                                    <span class="badge text-bg-light">@geopendeWandApparaten.Count apparaat(en)</span>
+                                }
+                            </div>
+                            <div class="small text-muted">De achtergrondpagina blijft context geven, maar alleen deze wand blijft nu groot in beeld en gekoppeld aan de paneel-editor.</div>
+                        </div>
+                        <div class="d-flex flex-column align-items-start align-items-sm-end gap-2">
+                            <div class="small text-muted text-sm-end">
+                                <div class="fw-semibold text-uppercase">Werklaag</div>
+                                <div>@(toonEditorDrawer ? "Paneel-editor staat open" : "Paneel-editor is gesloten")</div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                @if (!toonEditorDrawer)
+                                {
+                                    <button type="button"
+                                            class="btn btn-sm btn-primary"
+                                            @onclick="OpenEditorDrawer"
+                                            data-testid="open-paneel-editor-button">
+                                        Open paneel-editor
+                                    </button>
+                                }
+                                <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="SluitWandWerkruimte">
+                                    Werkruimte sluiten
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <div class="indeling-wand-metric h-100">
+                                <div class="small text-muted">Actieve selectie</div>
+                                <div class="fw-semibold">@(geselecteerdeKastIds.Count == 0 ? "Nog leeg" : $"{geselecteerdeKastIds.Count} kast(en)")</div>
+                                <div class="small text-muted">@GeselecteerdePaneelStatusTekst()</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="indeling-wand-metric h-100">
+                                <div class="small text-muted">Volgende stap</div>
+                                <div class="fw-semibold">@VolgendePaneelStapTekst()</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="indeling-wand-metric h-100">
+                                <div class="small text-muted">Editorstatus</div>
+                                <div class="fw-semibold">@(toonEditorDrawer ? "Open" : "Gesloten")</div>
+                                <div class="small text-muted">De mini-flow voor maat, type en opslaan staat in de editorlaag.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="paneel-overzicht-scroll border rounded">
+                        <PaneelPlaatsEditor Kasten="@geopendeWandKasten"
+                                            Apparaten="@geopendeWandApparaten"
+                                            WandHoogte="@geopendeWand.Hoogte"
+                                            WandBreedte="@geopendeWand.Breedte"
+                                            PlintHoogte="@geopendeWand.PlintHoogte"
                                             RandSpelingPerRaakrand="@State.PaneelRandSpeling"
                                             GeselecteerdeKastIds="@geselecteerdeKastIds"
-                                            SvgMaxHoogte="55vh"
-                                            BeperkTotContainerBreedte="false"
-                                            Toewijzingen="@ToewijzingenVoorWand(wand)"
-                                            VrijeSegmenten="@vrijeSegmentenVoorWand"
-                                            ConceptPaneel="@conceptVoorWand"
+                                            SvgMaxHoogte="65vh"
+                                            BeperkTotContainerBreedte="true"
+                                            Toewijzingen="@geopendeWandPanelen"
+                                            VrijeSegmenten="@VrijeSegmentenVoorSelectie()"
+                                            ConceptPaneel="@conceptPaneel"
                                             ConceptPaneelType="@formToewijzing.Type"
                                             ConceptPaneelScharnierZijde="@formToewijzing.ScharnierZijde"
                                             OnKastGeselecteerd="ToggleKast"
                                             OnConceptPaneelGewijzigd="VerwerkConceptPaneel" />
                     </div>
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
+                        <div class="small text-muted">
+                            Klik kast(en) in deze tekening om de editor te activeren. De rest van de pagina blijft compact en toont alleen samenvatting en review.
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (geselecteerdeKastIds.Count > 0)
+                            {
+                                <button type="button" class="btn btn-sm btn-link text-secondary p-0" @onclick="DeselecteerAlles">
+                                    Alles deselecteren ×
+                                </button>
+                            }
+                            @if (!toonEditorDrawer)
+                            {
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm"
+                                        @onclick="OpenEditorDrawer"
+                                        data-testid="open-paneel-editor-button-secondary">
+                                    Open paneel-editor
+                                </button>
+                            }
+                        </div>
+                    </div>
                 </div>
-            }
+            </div>
+        }
 
-            <div class="mt-4">
-                <h6 class="d-flex align-items-center gap-2 mb-2">
-                    Toegewezen panelen
-                    <span class="badge bg-secondary rounded-pill">@State.Toewijzingen.Count</span>
-                </h6>
-                @if (State.Toewijzingen.Count == 0)
+        <div class="mt-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+                <div>
+                    <h6 class="d-flex align-items-center gap-2 mb-1">
+                        Toegewezen panelen
+                        <span class="badge bg-secondary rounded-pill">@State.Toewijzingen.Count</span>
+                    </h6>
+                    <p class="text-muted small mb-0">De review blijft beschikbaar op de achtergrondpagina, maar de actieve wand hierboven bepaalt nu welke werkcontext en editorlaag u gebruikt.</p>
+                </div>
+                @if (geopendeWand is not null)
                 {
-                    <p class="text-muted small">Nog geen panelen. Selecteer een kast in het schema en voeg een paneel toe.</p>
+                    <span class="badge text-bg-light">Actieve wand: @geopendeWand.Naam</span>
                 }
-                else
-                {
-                    <p class="text-muted small mb-3">Bekijk eerst per wand welke panelen al klaarstaan. Plaatsing en scharnierdetails blijven beschikbaar per paneel, maar staan niet meer standaard op het hoogste niveau.</p>
+            </div>
 
-                    <div class="row g-3 mb-3">
-                        <div class="col-sm-5">
-                            <div class="border rounded p-3 h-100">
-                                <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Samenvatting</div>
-                                <div class="fw-semibold">@paneelReviewGroepen.Count wand(en) met panelen</div>
-                                <div class="small text-muted">@State.Toewijzingen.Count paneeltoewijzingen klaar voor review of bewerking.</div>
+            @if (State.Toewijzingen.Count == 0)
+            {
+                <p class="text-muted small">Nog geen panelen. Open een wand, selecteer een kast in het schema en voeg daarna een paneel toe.</p>
+            }
+            else
+            {
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-5">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Samenvatting</div>
+                            <div class="fw-semibold">@paneelReviewGroepen.Count wand(en) met panelen</div>
+                            <div class="small text-muted">@State.Toewijzingen.Count paneeltoewijzingen klaar voor review of bewerking.</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-7">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per paneeltype</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var telling in paneelTypeTellingen)
+                                {
+                                    <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
+                                }
                             </div>
                         </div>
-                        <div class="col-sm-7">
-                            <div class="border rounded p-3 h-100">
-                                <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per paneeltype</div>
-                                <div class="d-flex flex-wrap gap-2">
-                                    @foreach (var telling in paneelTypeTellingen)
+                    </div>
+                </div>
+
+                @foreach (var groep in gerangschiktePaneelReviewGroepen)
+                {
+                    var isActieveGroep = geopendeWand is not null && groep.WandNaam == geopendeWand.Naam;
+
+                    <div class="card shadow-sm mb-3 @(isActieveGroep ? "border-primary-subtle" : "border-0")">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                <div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                        <h6 class="mb-0">@groep.WandNaam</h6>
+                                        @if (isActieveGroep)
+                                        {
+                                            <span class="badge text-bg-primary">Nu actief</span>
+                                        }
+                                    </div>
+                                    <div class="small text-muted">@groep.AantalPanelen paneel/panelen op deze wand</div>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                                    @foreach (var telling in groep.TypeTellingen)
                                     {
                                         <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
                                     }
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    @foreach (var groep in paneelReviewGroepen)
-                    {
-                        <div class="card border-0 shadow-sm mb-3">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                                    <div>
-                                        <h6 class="mb-1">@groep.WandNaam</h6>
-                                        <div class="small text-muted">@groep.AantalPanelen paneel/panelen op deze wand</div>
-                                    </div>
-                                    <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                                        @foreach (var telling in groep.TypeTellingen)
-                                        {
-                                            <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
-                                        }
-                                    </div>
-                                </div>
+                            <div class="list-group list-group-flush mt-3">
+                                @foreach (var item in groep.Items)
+                                {
+                                    var isOpen = bewerkToewijzingId == item.Id;
 
-                                <div class="list-group list-group-flush mt-3">
-                                    @foreach (var item in groep.Items)
-                                    {
-                                        var isOpen = bewerkToewijzingId == item.Id;
-                                        <div class="list-group-item px-0" @key="item.Id">
-                                            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                                                <div>
-                                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                                        <span class="badge @TypeBadgeClass(item.Type)">@item.TypeLabel</span>
-                                                        <span class="fw-semibold">Paneel @item.Volgnummer</span>
-                                                        <span class="text-muted">@FormatMm(item.Breedte) × @FormatMm(item.Hoogte)</span>
-                                                        @if (isOpen)
-                                                        {
-                                                            <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">Open in editor</span>
-                                                        }
-                                                    </div>
-                                                    <div class="small text-muted">Kast(en): @item.KastenLabel</div>
-                                                </div>
-                                                <div class="d-flex gap-2">
-                                                    <button type="button"
-                                                            class="btn btn-outline-primary btn-sm"
-                                                            @onclick="() => BewerkPaneel(item.Id)">
-                                                        @(isOpen ? "Open" : "Bewerk")
-                                                    </button>
-                                                    <button type="button"
-                                                            class="btn btn-outline-danger btn-sm"
-                                                            @onclick="() => VerwijderPaneel(item.Id)">
-                                                        Verwijder
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <details class="mt-2 small">
-                                                <summary class="text-secondary">Plaatsing en technische details</summary>
-                                                <div class="mt-2 d-flex flex-wrap gap-3">
-                                                    <span><strong>Plaatsing:</strong> @item.PlaatsingLabel</span>
-                                                    @if (item.Type == PaneelType.Deur)
+                                    <div class="list-group-item px-0" @key="item.Id">
+                                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                            <div>
+                                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                    <span class="badge @TypeBadgeClass(item.Type)">@item.TypeLabel</span>
+                                                    <span class="fw-semibold">Paneel @item.Volgnummer</span>
+                                                    <span class="text-muted">@FormatMm(item.Breedte) × @FormatMm(item.Hoogte)</span>
+                                                    @if (isOpen)
                                                     {
-                                                        <span><strong>Scharnier:</strong> @item.ScharnierLabel</span>
+                                                        <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">Open in editor</span>
                                                     }
                                                 </div>
-                                            </details>
+                                                <div class="small text-muted">Kast(en): @item.KastenLabel</div>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button type="button"
+                                                        class="btn btn-outline-primary btn-sm"
+                                                        @onclick="() => BewerkPaneel(item.Id)">
+                                                    @(isOpen ? "Open" : "Bewerk")
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-outline-danger btn-sm"
+                                                        @onclick="() => VerwijderPaneel(item.Id)">
+                                                    Verwijder
+                                                </button>
+                                            </div>
                                         </div>
-                                    }
-                                </div>
+
+                                        <details class="mt-2 small">
+                                            <summary class="text-secondary">Plaatsing en technische details</summary>
+                                            <div class="mt-2 d-flex flex-wrap gap-3">
+                                                <span><strong>Plaatsing:</strong> @item.PlaatsingLabel</span>
+                                                @if (item.Type == PaneelType.Deur)
+                                                {
+                                                    <span><strong>Scharnier:</strong> @item.ScharnierLabel</span>
+                                                }
+                                            </div>
+                                        </details>
+                                    </div>
+                                }
                             </div>
                         </div>
-                    }
+                    </div>
                 }
-            </div>
+            }
         </div>
+    </div>
 
-        <div class="col-xl-5 col-lg-6">
-            <div class="sticky-top" style="top: 1rem;">
-                <div class="card @(geselecteerdeKastIds.Count > 0 ? "border-primary shadow-sm" : "")">
-                    <div class="card-header @(geselecteerdeKastIds.Count > 0 ? "bg-primary bg-opacity-10" : "bg-light")">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0" style="font-size: 1rem;">
-                                @(IsBewerkModus ? "Paneel bewerken" : geselecteerdeKastIds.Count > 0 ? "Paneel plaatsen" : "Paneel configureren")
-                            </h5>
+    @if (geopendeWand is not null && toonEditorDrawer)
+    {
+        var kanOpslaan = KanPaneelOpslaan();
+        var conceptMaatInfo = BerekenConceptMaatInfo();
+        var vrijeSegmenten = VrijeSegmentenVoorSelectie();
+
+        <section class="paneel-editor-drawer-layer">
+            <div class="paneel-editor-drawer"
+                 data-testid="paneel-editor-drawer"
+                 aria-labelledby="paneel-editor-drawer-title">
+                <div class="card border-0 h-100">
+                    <div class="card-header bg-primary bg-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center gap-3">
+                            <div>
+                                <div class="small fw-semibold text-uppercase text-primary-emphasis">Paneel-editor</div>
+                                <h5 id="paneel-editor-drawer-title" class="mb-0" style="font-size: 1rem;">
+                                    @(IsBewerkModus ? $"Paneel bewerken — {geopendeWand.Naam}" : $"Paneel plaatsen — {geopendeWand.Naam}")
+                                </h5>
+                            </div>
                             <div class="d-flex align-items-center gap-2">
                                 @if (IsBewerkModus)
                                 {
@@ -206,14 +424,16 @@ else
                                         @(IsBewerkModus ? $"Paneel {BewerkIndex}" : $"{geselecteerdeKastIds.Count} kast(en)")
                                     </span>
                                 }
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        @onclick="SluitEditorDrawer"
+                                        data-testid="close-paneel-editor-button">
+                                    Editor sluiten
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        @{
-                            var kanOpslaan = KanPaneelOpslaan();
-                        }
-
+                    <div class="card-body paneel-editor-drawer-body">
                         <div class="border rounded p-3 mb-3 bg-body-tertiary">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0">Begeleide flow</h6>
@@ -252,20 +472,17 @@ else
                         {
                             <div class="text-center text-muted py-4">
                                 <div class="mb-3" style="font-size: 3rem; opacity: 0.15;">🪟</div>
-                                <p class="mb-3">Klik op een of meer kasten binnen dezelfde wand om te beginnen. Daarna worden plaatsing, maat, type en opslaan hier actief.</p>
+                                <p class="mb-3">Klik op een of meer kasten binnen <strong>@geopendeWand.Naam</strong> om te beginnen. Daarna worden plaatsing, maat, type en opslaan hier actief.</p>
                                 <div class="d-grid gap-2 col-lg-8 mx-auto">
-                                    <button type="button" class="btn btn-outline-secondary" disabled>2. Plaats of pas paneel aan</button>
-                                    <button type="button" class="btn btn-outline-secondary" disabled>3. Controleer maat en type</button>
-                                    <button type="button" class="btn btn-primary" disabled>4. Sla op</button>
+                                    <button type="button" class="btn btn-outline-secondary" disabled>2. Selecteer kast(en)</button>
+                                    <button type="button" class="btn btn-outline-secondary" disabled>3. Plaats of pas paneel aan</button>
+                                    <button type="button" class="btn btn-primary" disabled>4. Controleer en sla op</button>
                                 </div>
-                                <div class="form-text hulp-hint mt-2">Deze onderdelen worden actief zodra stap 1 klaar is.</div>
+                                <div class="form-text hulp-hint mt-2">Deze onderdelen worden actief zodra een kastselectie op de actieve wand klaarstaat.</div>
                             </div>
                         }
                         else
                         {
-                            var conceptMaatInfo = BerekenConceptMaatInfo();
-                            var vrijeSegmenten = VrijeSegmentenVoorSelectie();
-
                             <div class="alert alert-primary small py-2">
                                 Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de vrije ruimte langs rakende randen is afgetrokken.
                             </div>
@@ -451,8 +668,8 @@ else
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+    }
 }
 
 <StapNavigatie HuidigeStap="panelen"

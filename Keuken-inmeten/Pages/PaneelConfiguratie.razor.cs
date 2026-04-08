@@ -13,6 +13,8 @@ public partial class PaneelConfiguratie
     private readonly HashSet<Guid> geselecteerdeKastIds = [];
     private PaneelRechthoek? conceptPaneel;
     private Guid? bewerkToewijzingId;
+    private Guid? geopendeWandId;
+    private bool toonEditorDrawer;
 
     protected override void OnInitialized()
     {
@@ -23,9 +25,24 @@ public partial class PaneelConfiguratie
     public void Dispose()
         => State.OnStateChanged -= HandleStateChanged;
 
-    private void HandleStateChanged() => _ = InvokeAsync(StateHasChanged);
+    private void HandleStateChanged()
+    {
+        if (geopendeWandId is Guid wandId && State.Wanden.All(wand => wand.Id != wandId))
+        {
+            geopendeWandId = null;
+            toonEditorDrawer = false;
+            bewerkToewijzingId = null;
+            geselecteerdeKastIds.Clear();
+            conceptPaneel = null;
+        }
+
+        _ = InvokeAsync(StateHasChanged);
+    }
 
     private bool IsBewerkModus => bewerkToewijzingId is not null;
+
+    private KeukenWand? GeopendeWand
+        => geopendeWandId is Guid id ? State.Wanden.FirstOrDefault(wand => wand.Id == id) : null;
 
     private int BewerkIndex =>
         bewerkToewijzingId is Guid id
@@ -66,11 +83,12 @@ public partial class PaneelConfiguratie
         string.Join(" + ", geselecteerdeKasten.Select(kast => kast.Naam));
 
     private PaneelFlowContext HuidigePaneelFlow => new(
+        HeeftWandContext: geopendeWandId is not null,
         HeeftSelectie: geselecteerdeKastIds.Count > 0,
         HeeftConceptPaneel: conceptPaneel is not null,
         HeeftGeldigeMaat: formToewijzing.Breedte > 0 && formToewijzing.Hoogte > 0,
         RaaktGeselecteerdeKast: RaaktGeselecteerdeKast(),
-        ActieveWandNaam: ActieveWandNaam,
+        ActieveWandNaam: GeopendeWand?.Naam ?? ActieveWandNaam,
         GeselecteerdeKastNamen: GeselecteerdeKastNamen);
 
     private bool KanPaneelOpslaan()
@@ -167,6 +185,8 @@ public partial class PaneelConfiguratie
         if (wandId is null)
             return;
 
+        geopendeWandId = wandId;
+        toonEditorDrawer = true;
         bewerkToewijzingId = null;
 
         if (ActieveWandId is Guid actieveWandId && actieveWandId != wandId)
@@ -195,6 +215,36 @@ public partial class PaneelConfiguratie
         geselecteerdeKastIds.Clear();
         ResetConceptPaneel();
     }
+
+    private void OpenWandWerkruimte(Guid wandId)
+    {
+        if (geopendeWandId != wandId)
+        {
+            bewerkToewijzingId = null;
+            geselecteerdeKastIds.Clear();
+        }
+
+        geopendeWandId = wandId;
+        toonEditorDrawer = true;
+        ResetConceptPaneel();
+    }
+
+    private void SluitWandWerkruimte()
+    {
+        geopendeWandId = null;
+        toonEditorDrawer = false;
+        bewerkToewijzingId = null;
+        geselecteerdeKastIds.Clear();
+        ResetConceptPaneel();
+    }
+
+    private void OpenEditorDrawer()
+    {
+        if (geopendeWandId is not null)
+            toonEditorDrawer = true;
+    }
+
+    private void SluitEditorDrawer() => toonEditorDrawer = false;
 
     private void ResetConceptPaneel()
     {
@@ -378,6 +428,7 @@ public partial class PaneelConfiguratie
         else
             State.VoegToewijzingToe(toewijzing);
 
+        toonEditorDrawer = true;
         bewerkToewijzingId = null;
         ResetConceptPaneel();
     }
@@ -413,6 +464,8 @@ public partial class PaneelConfiguratie
         if (toewijzing is null)
             return;
 
+        geopendeWandId = VindWandIdVoorToewijzing(toewijzing);
+        toonEditorDrawer = true;
         bewerkToewijzingId = toewijzingId;
         geselecteerdeKastIds.Clear();
         foreach (var kastId in toewijzing.KastIds)
@@ -448,6 +501,11 @@ public partial class PaneelConfiguratie
 
     private Guid? VindWandId(Guid kastId)
         => State.Wanden.FirstOrDefault(wand => wand.KastIds.Contains(kastId))?.Id;
+
+    private Guid? VindWandIdVoorToewijzing(PaneelToewijzing toewijzing)
+        => toewijzing.KastIds
+            .Select(VindWandId)
+            .FirstOrDefault(wandId => wandId is not null);
 
     private Task HerstelPaneelAsync(PaneelVerwijderSnapshot snapshot)
     {

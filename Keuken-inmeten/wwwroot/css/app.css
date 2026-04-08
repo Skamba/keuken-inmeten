@@ -585,6 +585,57 @@ code {
     background: var(--bs-body-bg, #fff);
 }
 
+.paneel-pagina-shell {
+    position: relative;
+}
+
+.paneel-editor-drawer-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1075;
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+    pointer-events: none;
+}
+
+.paneel-editor-drawer {
+    width: min(35rem, 100%);
+    max-width: 100%;
+    height: calc(100vh - 2rem);
+    overflow: auto;
+    pointer-events: auto;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1rem;
+    background: var(--bs-body-bg);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.18);
+}
+
+.paneel-editor-drawer .card {
+    background: transparent;
+}
+
+.paneel-editor-drawer-body {
+    padding-block: 1.25rem;
+}
+
+@media (max-width: 1199.98px) {
+    .paneel-editor-drawer-layer {
+        background: color-mix(in srgb, var(--bs-body-color) 12%, transparent);
+        pointer-events: auto;
+    }
+
+    .paneel-editor-drawer {
+        width: 100%;
+    }
+}
+
+@media (min-width: 1200px) {
+    .paneel-pagina-shell.editor-open {
+        padding-right: min(36rem, 48vw);
+    }
+}
+
 .wand-kast-sleepbaar {
     cursor: grab;
 }

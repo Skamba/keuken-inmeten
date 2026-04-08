@@ -6,34 +6,45 @@ public static class PaneelConfiguratieHelper
 {
     public static IReadOnlyList<PaneelFlowStap> PaneelFlowStappen { get; } =
     [
-        new("selecteren", "1. Selecteer kast(en)", "Kies een of meer kasten binnen dezelfde wand."),
-        new("plaatsen", "2. Plaats of pas paneel aan", "Sleep het paneel of kies een vrij vak in het schema."),
-        new("controleren", "3. Controleer maat en type", "Check maat, type en eventuele scharnierinstellingen."),
-        new("opslaan", "4. Sla op", "Bewaar het paneel zodra de status groen is.")
+        new("wand", "1. Kies wand", "Open precies één wand als actieve werkruimte."),
+        new("selecteren", "2. Selecteer kast(en)", "Kies een of meer kasten binnen die actieve wand."),
+        new("plaatsen", "3. Plaats of pas paneel aan", "Sleep het paneel of kies een vrij vak in het schema."),
+        new("opslaan", "4. Controleer en sla op", "Check maat en type en bewaar daarna het paneel.")
     ];
 
     public static bool KanPaneelOpslaan(PaneelFlowContext context)
-        => context.HeeftSelectie
+        => context.HeeftWandContext
+            && context.HeeftSelectie
             && context.HeeftConceptPaneel
             && context.HeeftGeldigeMaat
             && context.RaaktGeselecteerdeKast;
 
     public static string BepaalVolgendePaneelStapTekst(PaneelFlowContext context)
-        => !context.HeeftSelectie
-            ? "Selecteer eerst een of meer kasten binnen dezelfde wand."
-            : !context.HeeftConceptPaneel
-                ? "Plaats of pas het paneel aan in het schema."
-                : KanPaneelOpslaan(context)
-                    ? "Sla het paneel op zodra maat en type kloppen."
-                    : "Controleer maat, type en plaatsing zodat het paneel weer een kast raakt.";
+        => !context.HeeftWandContext
+            ? "Open eerst een wand om de paneel-editor te starten."
+            : !context.HeeftSelectie
+                ? "Selecteer eerst een of meer kasten binnen de actieve wand."
+                : !context.HeeftConceptPaneel
+                    ? "Plaats of pas het paneel aan in het schema."
+                    : KanPaneelOpslaan(context)
+                        ? "Sla het paneel op zodra maat en type kloppen."
+                        : "Controleer maat, type en plaatsing zodat het paneel weer een kast raakt.";
 
     public static string BepaalGeselecteerdePaneelStatusTekst(PaneelFlowContext context)
-        => !context.HeeftSelectie
-            ? "Nog niets geselecteerd."
+    {
+        if (!context.HeeftWandContext)
+            return "Nog geen wand geopend.";
+
+        return !context.HeeftSelectie
+            ? $"{context.ActieveWandNaam} · nog geen kasten geselecteerd."
             : $"{context.ActieveWandNaam} · {context.GeselecteerdeKastNamen}";
+    }
 
     public static string BepaalOpslaanStatusTekst(PaneelFlowContext context)
     {
+        if (!context.HeeftWandContext)
+            return "Nee, er is nog geen actieve wand.";
+
         if (!context.HeeftSelectie)
             return "Nee, er is nog geen kastselectie.";
 
@@ -50,14 +61,12 @@ public static class PaneelConfiguratieHelper
 
     public static string BepaalPaneelFlowStatus(string stapId, PaneelFlowContext context)
     {
-        var kanOpslaan = KanPaneelOpslaan(context);
-
         return stapId switch
         {
-            "selecteren" => context.HeeftSelectie ? "done" : "active",
-            "plaatsen" => !context.HeeftSelectie ? "todo" : context.HeeftConceptPaneel ? "done" : "active",
-            "controleren" => !context.HeeftSelectie || !context.HeeftConceptPaneel ? "todo" : kanOpslaan ? "done" : "active",
-            "opslaan" => kanOpslaan ? "active" : "todo",
+            "wand" => context.HeeftWandContext ? "done" : "active",
+            "selecteren" => !context.HeeftWandContext ? "todo" : context.HeeftSelectie ? "done" : "active",
+            "plaatsen" => !context.HeeftWandContext || !context.HeeftSelectie ? "todo" : context.HeeftConceptPaneel ? "done" : "active",
+            "opslaan" => !context.HeeftWandContext || !context.HeeftSelectie || !context.HeeftConceptPaneel ? "todo" : "active",
             _ => "todo"
         };
     }
@@ -236,6 +245,7 @@ public static class PaneelConfiguratieHelper
 public sealed record PaneelFlowStap(string Id, string Titel, string Beschrijving);
 
 public readonly record struct PaneelFlowContext(
+    bool HeeftWandContext,
     bool HeeftSelectie,
     bool HeeftConceptPaneel,
     bool HeeftGeldigeMaat,

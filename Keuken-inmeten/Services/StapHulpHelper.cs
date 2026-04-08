@@ -64,23 +64,24 @@ public static class StapHulpHelper
         ["panelen"] = new(
             "panelen",
             "Hulp bij stap 2: Panelen",
-            "In deze stap kiest u eerst de juiste kastcontext en pas daarna de maat, richting en technische details van het paneel.",
+            "In deze stap opent u eerst precies één wand als werkcontext, kiest daarna de juiste kast(en) en past pas daarna maat, richting en technische details van het paneel aan.",
             StandaardHulpNiveaus,
             [
                 new(
                     "Volgorde in de paneelflow",
-                    "De editor werkt het best als u selecteren, plaatsen, controleren en opslaan uit elkaar houdt.",
+                    "De editor werkt het best als u eerst de wand vastzet en daarna selecteren, plaatsen, controleren en opslaan uit elkaar houdt.",
                     [
+                        "Open eerst één wand zodat de visualisatie en paneel-editor dezelfde context gebruiken.",
                         "Gebruik hints voor standaardwaarden zoals randspeling.",
                         "Open info-knoppen bij scharnierzijde en pot-hart als een term technisch voelt.",
                         "Gebruik details om de maatberekening of de leesrichting van de tekening na te lopen."
                     ]),
                 new(
                     "Wanneer heeft u diepere hulp nodig?",
-                    "De zijhulp is vooral nuttig als de opening niet vanzelfsprekend is of als meerdere kasten en apparaten elkaar raken.",
+                    "De zijhulp is vooral nuttig als de opening niet vanzelfsprekend is of als meerdere kasten en apparaten binnen dezelfde wand elkaar raken.",
                     [
                         "Open de verdiepende hulp bij complexe combinaties met apparaten, vrije segmenten of afwijkende scharnierkeuzes.",
-                        "Laat het basisformulier verder compact zodat plaatsen en opslaan de hoofdtaak blijven."
+                        "Laat niet-actieve wanden verder compact zodat plaatsen en opslaan de hoofdtaak blijven."
                     ])
             ]),
         ["verificatie"] = new(

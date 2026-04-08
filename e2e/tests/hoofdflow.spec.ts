@@ -41,6 +41,35 @@ test('kastpopup werkt als een korte ministepper', async ({ page }) => {
   await indeling.expectKastFormStap('Controle');
 });
 
+test('stap 2 toont maar één actieve wandwerkruimte tegelijk', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegWandToe('Linkerwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast achter',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.voegKastToeAanWand('Linkerwand', {
+    naam: 'Onderkast links',
+    breedte: 500,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await panelen.openWandWerkruimte('Achterwand');
+  await panelen.expectActieveWerkruimte('Achterwand');
+
+  await panelen.openWandWerkruimte('Linkerwand');
+  await panelen.expectActieveWerkruimte('Linkerwand');
+});
+
 test('hoofdflow van indeling tot export blijft werken', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
