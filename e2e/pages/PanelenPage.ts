@@ -68,7 +68,8 @@ export class PanelenPage {
     await this.page.getByTestId('paneel-opslaan-button').click();
     await expect(this.page.getByTestId('paneel-editor-drawer')).toHaveCount(0);
     await this.expectEditorWeergave();
-    await expect(this.page.getByTestId('paneel-review-teaser')).toBeVisible();
+    await expect(this.page.getByTestId('paneel-review-teaser')).toHaveCount(0);
+    await expect(this.page.getByTestId('paneel-review-weergave-tab')).toBeEnabled();
   }
 
   async bewerkEerstePaneelInReview() {

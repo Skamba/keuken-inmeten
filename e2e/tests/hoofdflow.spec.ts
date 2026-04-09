@@ -335,6 +335,27 @@ test('stap 2 scheidt editor en review expliciet', async ({ page }) => {
   await panelen.expectActieveWerkruimte('Achterwand');
 });
 
+test('stap 2 gebruikt de reviewtab zonder extra review-banner', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast reviewtab',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await panelen.selecteerEersteKastOpWand('Achterwand');
+  await panelen.voegPaneelToe();
+  await expect(page.getByTestId('paneel-review-teaser')).toHaveCount(0);
+  await panelen.openReviewWeergave();
+});
+
 test('focuskaart toont geen extra toelichting onder open eerst één wand', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
