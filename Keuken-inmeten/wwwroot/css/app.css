@@ -2115,10 +2115,6 @@ code {
     background: var(--bs-tertiary-bg, #f8f9fa);
 }
 
-.bestellijst-export-voorbeeld {
-    background: var(--bs-body-bg, #fff);
-}
-
 .bestellijst-table-wrap {
     border: 1px solid var(--bs-border-color, #e3e8ef);
     border-radius: 0.9rem;
