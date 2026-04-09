@@ -18,15 +18,19 @@ export class PanelenPage {
   }
 
   async openWandWerkruimte(wandNaam: string) {
-    const wand = this.wandCard(wandNaam);
-    const openKnop = wand.getByTestId('open-paneel-wand-button');
-
-    if (await openKnop.isEnabled()) {
+    if (!(await this.actieveWerkruimte(wandNaam).isVisible())) {
+      const wand = this.wandCard(wandNaam);
+      const openKnop = wand.getByTestId('open-paneel-wand-button');
       await openKnop.click();
     }
 
     await this.expectEditorWeergave();
     await this.expectActieveWerkruimte(wandNaam);
+
+    if (!(await this.page.getByTestId('paneel-editor-drawer').isVisible())) {
+      await this.actieveWerkruimte(wandNaam).getByTestId('open-paneel-editor-button').click();
+    }
+
     await expect(this.page.getByTestId('paneel-editor-drawer')).toBeVisible();
   }
 

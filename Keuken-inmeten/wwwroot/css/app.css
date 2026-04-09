@@ -72,6 +72,51 @@ html, body {
     color: var(--bs-secondary-color);
 }
 
+.home-dashboard-card {
+    background: linear-gradient(180deg, var(--bs-body-bg) 0%, var(--bs-tertiary-bg) 100%);
+}
+
+.home-dashboard-list {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding-left: 1.1rem;
+}
+
+.home-quick-link {
+    text-align: left;
+}
+
+.home-quick-link-disabled {
+    padding: 0.75rem 1rem;
+    border: 1px dashed var(--bs-border-color);
+    border-radius: 0.75rem;
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-secondary-color);
+    font-size: 0.92rem;
+}
+
+.home-metric-card {
+    height: 100%;
+    padding: 1.25rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.85rem;
+    background: var(--bs-body-bg);
+}
+
+.home-metric-value {
+    font-size: clamp(1.75rem, 3vw, 2.35rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 0.35rem;
+}
+
+.home-help-details summary {
+    cursor: pointer;
+    color: var(--bs-primary, #0d6efd);
+    font-weight: 600;
+}
+
 .home-flow-step {
     border: 1px solid var(--bs-border-color);
     border-radius: 0.9rem;
@@ -117,7 +162,8 @@ html, body {
 
 @media (max-width: 991.98px) {
     .home-summary-card,
-    .home-example-step {
+    .home-example-step,
+    .home-metric-card {
         padding: 1rem;
     }
 }
@@ -788,9 +834,48 @@ code {
     align-self: flex-start;
 }
 
+.indeling-overige-wanden {
+    border-radius: 1rem;
+}
+
+.indeling-overige-wanden-lijst {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.indeling-overige-wand-schakelaar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.85rem;
+    background: var(--bs-body-bg);
+}
+
+.indeling-overige-wand-inhoud {
+    min-width: 0;
+}
+
+.indeling-overige-wand-inhoud h6 {
+    font-size: 0.95rem;
+}
+
+@media (min-width: 768px) {
+    .indeling-overige-wand-schakelaar {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
 @media (min-width: 992px) {
     .indeling-workspace-hint {
         align-self: center;
+    }
+
+    .indeling-overige-wanden-lijst {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -903,17 +988,17 @@ code {
 
 /* ── Stap Navigatie ── */
 .stap-navigatie {
-    position: sticky;
-    bottom: 0;
+    position: static;
     background: var(--bs-body-bg, #fff);
-    border-top: 1px solid var(--bs-border-color, #dee2e6);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 1rem;
     padding: 0.75rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    z-index: 200;
-    box-shadow: 0 -3px 12px rgba(0,0,0,0.08);
+    z-index: 1;
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.06);
     margin-top: 2rem;
 }
 
@@ -1541,6 +1626,27 @@ code {
     font-size: 0.85rem;
 }
 
+.zaagplan-waarschuwing {
+    border: 1px solid var(--bs-danger-border-subtle, #f1aeb5);
+}
+
+.zaagplan-waarschuwing-kern {
+    min-width: min(20rem, 100%);
+}
+
+.zaagplan-waarschuwing-acties {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.zaagplan-waarschuwing-actie {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.85rem;
+    background: var(--bs-body-bg);
+}
+
 /* ── Dark mode overrides ── */
 [data-bs-theme="dark"] {
     --bs-body-color: #dee2e6;
@@ -1556,7 +1662,7 @@ code {
 }
 
 [data-bs-theme="dark"] .stap-navigatie {
-    box-shadow: 0 -3px 12px rgba(0,0,0,0.25);
+    box-shadow: 0 0.75rem 2rem rgba(0,0,0,0.24);
 }
 
 [data-bs-theme="dark"] .deel-status {

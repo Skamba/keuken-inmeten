@@ -36,6 +36,7 @@ else
     var resultaat = ZaagplanService.Bereken(panelen, _plaatBreedte, _plaatHoogte, _zaagbreedte, _draaiToe);
     var totaalPanelen = items.Sum(i => i.Aantal);
     var totaalGeplaatst = resultaat.Platen.Sum(p => p.Plaatsingen.Count);
+    var nietGeplaatstAantal = resultaat.NietGeplaatst.Sum(p => p.Aantal);
     var kanPlaatFocus = resultaat.Platen.Count > 0;
     var isPlaatFocus = _weergave is ZaagplanWeergave.EenPlaat && kanPlaatFocus;
     var actievePlaatIndex = ActievePlaatIndex(resultaat.Platen.Count);
@@ -43,6 +44,13 @@ else
     var platenVoorWeergave = actievePlaat is null
         ? resultaat.Platen
         : new List<ZaagplanPlaat> { actievePlaat };
+    var grootsteNietGeplaatst = resultaat.NietGeplaatst
+        .OrderByDescending(p => Math.Max(p.Breedte, p.Hoogte))
+        .ThenByDescending(p => Math.Min(p.Breedte, p.Hoogte))
+        .FirstOrDefault();
+    var rotatieKanHelpen = !_draaiToe && resultaat.NietGeplaatst.Any(p => PastNaDraaien(p, _plaatBreedte, _plaatHoogte));
+    var minimalePlaatLangeZijde = grootsteNietGeplaatst is null ? 0 : Math.Max(grootsteNietGeplaatst.Breedte, grootsteNietGeplaatst.Hoogte);
+    var minimalePlaatKorteZijde = grootsteNietGeplaatst is null ? 0 : Math.Min(grootsteNietGeplaatst.Breedte, grootsteNietGeplaatst.Hoogte);
 
     <div class="zaagplan-toolbar card border-0 shadow-sm mb-4">
         <div class="card-body">
@@ -140,9 +148,54 @@ else
 
     if (resultaat.NietGeplaatst.Count > 0)
     {
-        <div class="alert alert-danger mb-4">
-            <strong>Let op:</strong> @resultaat.NietGeplaatst.Sum(p => p.Aantal) paneel(en) passen niet op een plaat van @FormatMm(_plaatBreedte) × @FormatMm(_plaatHoogte) mm:
-            <ul class="mb-0 mt-2">
+        <div class="alert alert-danger mb-4 zaagplan-waarschuwing" data-testid="zaagplan-niet-geplaatst-waarschuwing">
+            <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3">
+                <div>
+                    <div class="small fw-semibold text-uppercase text-danger-emphasis mb-1">Niet plaatsbaar op dit plaatformaat</div>
+                    <h5 class="mb-1">@nietGeplaatstAantal paneel(en) zijn groter dan @FormatMm(_plaatBreedte) × @FormatMm(_plaatHoogte) mm</h5>
+                    <p class="mb-0">Deze panelen passen niet eens los op de huidige plaatmaat. Pas eerst het plaatformaat aan of ga terug naar de bestellijst als een paneel bewust uit een andere plaat of materiaalsoort moet komen.</p>
+                </div>
+                @if (grootsteNietGeplaatst is not null)
+                {
+                    <div class="zaagplan-waarschuwing-kern card border-danger-subtle bg-body-tertiary">
+                        <div class="card-body py-3">
+                            <div class="small fw-semibold text-uppercase text-danger-emphasis">Grootste ontbrekende paneel</div>
+                            <div class="fw-semibold">@grootsteNietGeplaatst.Naam</div>
+                            <div class="small text-muted">@FormatMm(grootsteNietGeplaatst.Breedte) × @FormatMm(grootsteNietGeplaatst.Hoogte) mm</div>
+                            <div class="small text-muted">Richt op minstens @FormatMm(minimalePlaatLangeZijde) × @FormatMm(minimalePlaatKorteZijde) mm voor dit paneel.</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="zaagplan-waarschuwing-acties mt-3">
+                <div class="zaagplan-waarschuwing-actie">
+                    <div class="fw-semibold">1. Kies een grotere plaat</div>
+                    <div class="small text-muted">Vergroot vooral de langste zijde. De grootste ontbrekende maat vraagt nu minstens @FormatMm(minimalePlaatLangeZijde) × @FormatMm(minimalePlaatKorteZijde) mm.</div>
+                </div>
+
+                @if (rotatieKanHelpen)
+                {
+                    <div class="zaagplan-waarschuwing-actie">
+                        <div class="fw-semibold">2. Zet draaien aan als dat technisch mag</div>
+                        <div class="small text-muted">Minstens een ontbrekend paneel past wel zodra de plaat 90 graden gedraaid gebruikt mag worden.</div>
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm mt-2"
+                                @onclick="SchakelDraaienIn"
+                                data-testid="zaagplan-draaien-aanzetten">
+                            Zet draaien aan
+                        </button>
+                    </div>
+                }
+
+                <div class="zaagplan-waarschuwing-actie">
+                    <div class="fw-semibold">@((rotatieKanHelpen ? "3" : "2")). Controleer de bestellijst</div>
+                    <div class="small text-muted">Ga terug als een paneel bewust uit een andere plaatsoort moet komen of gesplitst moet worden voordat u gaat zagen.</div>
+                    <a href="bestellijst" class="btn btn-outline-secondary btn-sm mt-2">Terug naar bestellijst</a>
+                </div>
+            </div>
+
+            <ul class="mb-0 mt-3">
                 @foreach (var p in resultaat.NietGeplaatst)
                 {
                     <li>@p.Naam — @FormatMm(p.Breedte) × @FormatMm(p.Hoogte) mm (@p.Aantal×)</li>
@@ -265,6 +318,11 @@ else
 
     private int ActievePlaatIndex(int aantalPlaten)
         => aantalPlaten == 0 ? 0 : Math.Clamp(_actievePlaatIndex, 0, aantalPlaten - 1);
+
+    private void SchakelDraaienIn() => _draaiToe = true;
+
+    private static bool PastNaDraaien(ZaagplanPaneel paneel, double plaatBreedte, double plaatHoogte)
+        => paneel.Hoogte <= plaatBreedte && paneel.Breedte <= plaatHoogte;
 
     private static string FormatPlaatTeller(int index, int totaal)
         => totaal == 0 ? "Geen platen" : $"Plaat {index + 1} van {totaal}";

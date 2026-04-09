@@ -5,6 +5,26 @@ import { PanelenPage } from '../pages/PanelenPage';
 import { ZaagplanPage } from '../pages/ZaagplanPage';
 import { VerificatiePage } from '../pages/VerificatiePage';
 
+test('home toont een hervatdashboard zodra er projectdata bestaat', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast hervatten',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: 'Ga verder met uw keukenproject' })).toBeVisible();
+  await expect(page.getByTestId('home-project-dashboard')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Projectoverzicht' })).toBeVisible();
+  await expect(page.getByTestId('home-onboarding-help')).toBeVisible();
+});
+
 test('stap 1 toont maar één actieve wandwerkruimte tegelijk', async ({ page }) => {
   const indeling = new IndelingPage(page);
 
@@ -250,6 +270,47 @@ test('zaagplan kan wisselen tussen alle platen en een plaat focus', async ({ pag
   await zaagplan.expectPlaatFocus(1);
   await zaagplan.gaNaarVolgendePlaat();
   await zaagplan.expectPlaatFocus(2);
+});
+
+test('zaagplan-waarschuwing noemt directe vervolgstappen bij te kleine plaat', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+  const verificatie = new VerificatiePage(page);
+  const bestellijst = new BestellijstPage(page);
+  const zaagplan = new ZaagplanPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Hoge kast zaagplan',
+    breedte: 600,
+    hoogte: 2100,
+    diepte: 600,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await panelen.selecteerEersteKastOpWand('Achterwand');
+  await panelen.voegPaneelToe();
+  await panelen.gaNaarVerificatie();
+
+  await verificatie.expectLoaded();
+  await verificatie.startVerificatie();
+  await verificatie.gaNaarBestellijst();
+
+  await bestellijst.expectLoaded();
+  await bestellijst.gaNaarZaagplan();
+
+  await zaagplan.expectLoaded();
+  await page.getByTestId('zaagplan-plaatbreedte-input').fill('1000');
+  await page.getByTestId('zaagplan-plaatbreedte-input').press('Tab');
+  await page.getByTestId('zaagplan-plaathoogte-input').fill('1000');
+  await page.getByTestId('zaagplan-plaathoogte-input').press('Tab');
+
+  const waarschuwing = page.getByTestId('zaagplan-niet-geplaatst-waarschuwing');
+  await expect(waarschuwing).toBeVisible();
+  await expect(waarschuwing).toContainText('Kies een grotere plaat');
+  await expect(waarschuwing).toContainText('Terug naar bestellijst');
 });
 
 test('hoofdflow van indeling tot export blijft werken', async ({ page }) => {

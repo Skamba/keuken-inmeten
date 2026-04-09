@@ -28,16 +28,19 @@ export class IndelingPage {
   async voegWandToe(naam: string) {
     await this.page.getByTestId('nieuwe-wand-naam-input').fill(naam);
     await this.page.getByTestId('wand-toevoegen-button').click();
-    await expect(this.wandCard(naam)).toBeVisible();
+    await expect(this.wandCard(naam).or(this.actieveWerkruimte(naam))).toBeVisible();
   }
 
   async openWandWerkruimte(wandNaam: string) {
+    if (await this.actieveWerkruimte(wandNaam).isVisible()) {
+      await this.expectActieveWerkruimte(wandNaam);
+      return;
+    }
+
     const wand = this.wandCard(wandNaam);
     const openKnop = wand.getByTestId('open-wand-workspace-button');
 
-    if (await openKnop.isEnabled()) {
-      await openKnop.click();
-    }
+    await openKnop.click();
 
     await this.expectActieveWerkruimte(wandNaam);
   }
