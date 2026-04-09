@@ -13,7 +13,7 @@ public partial class KastenInvoer
     private Guid? bevestigVerwijderWandId;
     private Guid? bevestigVerwijderKastId;
     private Guid? _clipboardKastId;
-    private bool bevestigVerwijderAlleKasten;
+    private bool bevestigWisAlles;
 
     private Guid? actieveWandId;
     private Kast formKast = NieuweKast();
@@ -77,13 +77,13 @@ public partial class KastenInvoer
         if (e.Key == "Enter") WandToevoegen();
     }
 
-    private void VerwijderAlleKasten()
+    private async Task WisAllesAsync()
     {
-        var aantalKasten = State.Kasten.Count;
-        State.VerwijderAlleKasten();
-        bevestigVerwijderAlleKasten = false;
+        bevestigWisAlles = false;
         SluitKastFormulier();
-        Feedback.ToonInfo($"{aantalKasten} kast(en) verwijderd. U kunt direct een nieuwe opstelling opbouwen.");
+        SluitApparaatFormulier();
+        SluitWandWerkruimte();
+        await Projectbeheer.WisAllesAsync();
     }
 
     private void WandNaamOpslaan()

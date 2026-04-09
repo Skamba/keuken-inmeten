@@ -1,6 +1,7 @@
 @page "/kasten"
 @inject KeukenStateService State
 @inject ActieFeedbackService Feedback
+@inject ProjectBeheerService Projectbeheer
 @implements IDisposable
 
 <PageTitle>Stap 1 — Indeling</PageTitle>
@@ -9,20 +10,20 @@
 
 <div class="d-flex justify-content-between align-items-center mb-2">
     <h2 class="page-header mb-0">Stap 1: Indeling</h2>
-    @if (State.Kasten.Count > 0)
+    @if (State.HeeftProjectInhoud())
     {
-        @if (bevestigVerwijderAlleKasten)
+        @if (bevestigWisAlles)
         {
             <div class="d-flex align-items-center gap-2">
-                <span class="text-danger small fw-semibold">Alle @State.Kasten.Count kast(en) verwijderen?</span>
-                <button class="btn btn-sm btn-danger" @onclick="VerwijderAlleKasten">Ja, verwijder alles</button>
-                <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigVerwijderAlleKasten = false">Annuleren</button>
+                <span class="text-danger small fw-semibold">Hele keuken wissen? Alle wanden, kasten, panelen en apparaten worden teruggezet.</span>
+                <button class="btn btn-sm btn-danger" @onclick="WisAllesAsync">Ja, wis alles</button>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigWisAlles = false">Annuleren</button>
             </div>
         }
         else
         {
-            <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigVerwijderAlleKasten = true">
-                Verwijder alle kasten
+            <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigWisAlles = true">
+                Wis hele keuken
             </button>
         }
     }

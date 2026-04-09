@@ -48,6 +48,24 @@ public class KeukenStateService
         PaneelRandSpeling = genormaliseerd.PaneelRandSpeling;
     }
 
+    public bool HeeftProjectInhoud()
+        => Wanden.Count > 0 ||
+           Kasten.Count > 0 ||
+           Apparaten.Count > 0 ||
+           Toewijzingen.Count > 0 ||
+           KastTemplates.Count > 0 ||
+           !ZijnBijnaGelijk(LaatstGebruiktePotHartVanRand, ScharnierBerekeningService.CupCenterVanRand) ||
+           !ZijnBijnaGelijk(PaneelRandSpeling, PaneelSpelingService.DefaultRandSpeling);
+
+    public void Importeer(KeukenData data)
+    {
+        Laden(data);
+        NotifyChanged();
+    }
+
+    public void VerwijderAlles()
+        => Importeer(new KeukenData());
+
     // --- Wanden ---
 
     public void VoegWandToe(KeukenWand wand)

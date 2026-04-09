@@ -48,6 +48,85 @@ public class KeukenStateServiceTests
     }
 
     [Fact]
+    public void Importeer_vervangt_de_huidige_status_en_triggert_exact_een_state_change()
+    {
+        var state = new KeukenStateService();
+        var oudeWand = MaakWand("Oude wand");
+        state.VoegWandToe(oudeWand);
+
+        var notificaties = 0;
+        state.OnStateChanged += () => notificaties++;
+
+        var wandId = Guid.NewGuid();
+        var kastId = Guid.NewGuid();
+
+        state.Importeer(new KeukenData
+        {
+            LaatstGebruiktePotHartVanRand = 24.5,
+            PaneelRandSpeling = 1.5,
+            Wanden =
+            [
+                new KeukenWand
+                {
+                    Id = wandId,
+                    Naam = "Nieuwe wand",
+                    KastIds = [kastId]
+                }
+            ],
+            Kasten =
+            [
+                new Kast
+                {
+                    Id = kastId,
+                    Naam = "Nieuwe kast",
+                    Breedte = 600,
+                    Hoogte = 720,
+                    Diepte = 560
+                }
+            ]
+        });
+
+        Assert.Equal(1, notificaties);
+        var wand = Assert.Single(state.Wanden);
+        var kast = Assert.Single(state.Kasten);
+        Assert.Equal("Nieuwe wand", wand.Naam);
+        Assert.Equal("Nieuwe kast", kast.Naam);
+        Assert.DoesNotContain(state.Wanden, item => item.Id == oudeWand.Id);
+        Assert.Equal(24.5, state.LaatstGebruiktePotHartVanRand);
+        Assert.Equal(1.5, state.PaneelRandSpeling);
+    }
+
+    [Fact]
+    public void VerwijderAlles_wist_projectinhoud_en_herstelt_standaarden()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        state.VoegWandToe(wand);
+        state.VoegKastToe(MaakKast("Onderkast"), wand.Id);
+        state.StelPaneelRandSpelingIn(1.5);
+        state.VoegToewijzingToe(new PaneelToewijzing
+        {
+            Type = PaneelType.Deur,
+            PotHartVanRand = 24.5
+        });
+
+        var notificaties = 0;
+        state.OnStateChanged += () => notificaties++;
+
+        state.VerwijderAlles();
+
+        Assert.Equal(1, notificaties);
+        Assert.False(state.HeeftProjectInhoud());
+        Assert.Empty(state.Wanden);
+        Assert.Empty(state.Kasten);
+        Assert.Empty(state.Apparaten);
+        Assert.Empty(state.Toewijzingen);
+        Assert.Empty(state.KastTemplates);
+        Assert.Equal(ScharnierBerekeningService.CupCenterVanRand, state.LaatstGebruiktePotHartVanRand);
+        Assert.Equal(PaneelSpelingService.DefaultRandSpeling, state.PaneelRandSpeling);
+    }
+
+    [Fact]
     public void WerkToewijzingBij_vervangt_bestaande_toewijzing_en_bewaart_laatst_gebruikte_pot_hart_afstand()
     {
         var state = new KeukenStateService();

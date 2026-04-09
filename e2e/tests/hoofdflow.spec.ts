@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { BestellijstPage } from '../pages/BestellijstPage';
 import { IndelingPage } from '../pages/IndelingPage';
@@ -40,6 +41,52 @@ test('navbar deelt een link naar de huidige stap', async ({ page, context }) => 
   await expect
     .poll(async () => page.evaluate(() => navigator.clipboard.readText()))
     .toContain('/kasten?share=');
+});
+
+test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en terug importeren', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast export',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByTestId('nav-export-button').click();
+  const download = await downloadPromise;
+
+  expect(download.suggestedFilename()).toMatch(/^keuken-inmeten-\d{8}-\d{4}\.json$/);
+
+  const downloadPad = await download.path();
+  expect(downloadPad).not.toBeNull();
+
+  const jsonMetBom = await readFile(downloadPad!, 'utf8');
+  const exportJson = jsonMetBom.replace(/^\uFEFF/, '');
+  const exportData = JSON.parse(exportJson);
+
+  expect(exportData.schemaVersion).toBeGreaterThan(0);
+  expect(exportData.data.wanden).toHaveLength(1);
+
+  await page.getByRole('button', { name: 'Wis hele keuken' }).click();
+  await page.getByRole('button', { name: 'Ja, wis alles' }).click();
+
+  await expect(page.getByTestId('actie-feedback-toast')).toContainText('Het keukenproject is gewist.');
+  await expect(page.getByText('Begin door een wand toe te voegen.')).toBeVisible();
+
+  await page.getByTestId('nav-import-input').setInputFiles({
+    name: 'keuken-project.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(jsonMetBom, 'utf8'),
+  });
+
+  await expect(page.getByTestId('actie-feedback-toast')).toContainText("Project 'keuken-project.json' is geladen.");
+
+  await indeling.openWandWerkruimte('Achterwand');
+  await expect(page.getByTestId('actieve-wand-werkruimte')).toContainText('Onderkast export');
 });
 
 test('stap 1 toont maar één actieve wandwerkruimte tegelijk', async ({ page }) => {

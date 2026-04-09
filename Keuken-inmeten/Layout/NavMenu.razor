@@ -1,7 +1,9 @@
 ﻿@using Keuken_inmeten.Services.Interop
+@using Microsoft.AspNetCore.Components.Forms
 @inject IJSRuntime JS
 @inject KeukenStateService State
 @inject DeelLinkService Delen
+@inject ProjectBeheerService Projectbeheer
 @implements IAsyncDisposable
 
 <div class="top-row ps-3 navbar navbar-dark">
@@ -58,6 +60,30 @@
                 🔗 Deel link
             </button>
         </div>
+        <div class="nav-item px-3">
+            <button type="button"
+                    class="nav-link border-0 w-100 text-start nav-action-button"
+                    @onclick="ExporteerProject"
+                    title="Download het volledige keukenproject als JSON-bestand"
+                    data-testid="nav-export-button">
+                📤 Exporteer JSON
+            </button>
+        </div>
+        <div class="nav-item px-3">
+            <div class="nav-file-action">
+                <span class="nav-link nav-action-button"
+                      data-testid="nav-import-button">
+                    📥 Importeer JSON
+                </span>
+                <InputFile @key="importInputVersion"
+                           class="nav-file-input"
+                           accept=".json,application/json"
+                           aria-label="Importeer een keukenproject vanuit JSON"
+                           title="Importeer een opgeslagen keukenproject vanuit JSON"
+                           OnChange="ImporteerProject"
+                           data-testid="nav-import-input" />
+            </div>
+        </div>
         <div class="nav-item px-3 mt-auto">
             <button type="button"
                     class="nav-link border-0 w-100 text-start nav-action-button"
@@ -73,6 +99,7 @@
     private bool collapseNavMenu = true;
     private string themeIcon = "🌙";
     private ThemeJsInterop? themeInterop;
+    private int importInputVersion;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
@@ -99,6 +126,21 @@
 
     private Task DeelHuidigePagina()
         => Delen.DeelHuidigePaginaAsync();
+
+    private Task ExporteerProject()
+        => Projectbeheer.ExporteerAsync();
+
+    private async Task ImporteerProject(InputFileChangeEventArgs args)
+    {
+        try
+        {
+            await Projectbeheer.ImporteerAsync(args.File);
+        }
+        finally
+        {
+            importInputVersion++;
+        }
+    }
 
     private void ToggleNavMenu()
     {

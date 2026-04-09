@@ -12,6 +12,7 @@ builder.Services.AddSingleton<KeukenStateService>();
 builder.Services.AddScoped<PersistentieService>();
 builder.Services.AddScoped<ActieFeedbackService>();
 builder.Services.AddScoped<DeelLinkService>();
+builder.Services.AddScoped<ProjectBeheerService>();
 
 var host = builder.Build();
 

@@ -110,6 +110,24 @@ public class PersistentieService : IDisposable
         return MaakDeelUrl(route);
     }
 
+    public string ExporteerProjectJson()
+        => KeukenPersistedStateCodec.Encode(_state.Exporteren());
+
+    public bool TryDecodeProjectJson(string? json, out KeukenData data)
+        => KeukenPersistedStateCodec.TryDecode(json, out data);
+
+    public async Task ImporteerProjectAsync(KeukenData data)
+    {
+        _state.Importeer(data);
+        await SlaanAsync();
+    }
+
+    public async Task ResetProjectAsync()
+    {
+        _state.VerwijderAlles();
+        await SlaanAsync();
+    }
+
     public async Task SlaanAsync()
     {
         try

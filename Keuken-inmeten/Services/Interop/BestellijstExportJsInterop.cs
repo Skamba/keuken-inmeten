@@ -2,7 +2,7 @@ namespace Keuken_inmeten.Services.Interop;
 
 using Microsoft.JSInterop;
 
-public sealed class BestellijstExportJsInterop(IJSRuntime js) : JsModuleInterop(js, "./Pages/Bestellijst.razor.js")
+public sealed class BestellijstExportJsInterop(IJSRuntime js) : JsModuleInterop(js, "./js/browserWindowInterop.js")
 {
     public ValueTask DownloadTextFileAsync(string filename, string content, string mimeType)
         => InvokeVoidAsync("downloadTextFile", filename, content, mimeType);
