@@ -394,6 +394,7 @@ test('bestellijst export loopt via een aparte previewflow', async ({ page }) => 
 
   await bestellijst.expectLoaded();
   await bestellijst.openExportFlow();
+  await bestellijst.openExportMateriaalInstellingen();
   await expect(page.getByTestId('bestellijst-paneeltype-hint')).toBeVisible();
   await expect(page.getByTestId('bestellijst-dikte-hint')).toBeVisible();
   await page.getByTestId('bestellijst-paneeltype-input').fill('MDF wit');

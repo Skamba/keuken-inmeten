@@ -172,15 +172,17 @@ else
     }
     else if (overzichtWanden.Count > 0)
     {
-        <div class="card mb-4 border-0 bg-body-tertiary indeling-overige-wanden">
-            <div class="card-body">
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
-                    <div>
-                        <h5 class="mb-0">Andere wanden</h5>
-                        <div class="small text-muted">Wissel alleen als u op een andere wand wilt verderwerken.</div>
-                    </div>
-                    <span class="badge text-bg-light indeling-workspace-hint">@overzichtWanden.Count wand(en) direct beschikbaar</span>
+        <details class="indeling-overige-wanden mb-4"
+                 data-testid="indeling-overige-wanden-details">
+            <summary class="indeling-overige-wanden-summary"
+                     data-testid="indeling-overige-wanden-summary">
+                <div>
+                    <h5 class="mb-0">Andere wanden</h5>
+                    <div class="small text-muted">Open alleen als u naar een andere wand wilt wisselen.</div>
                 </div>
+                <span class="badge text-bg-light indeling-workspace-hint">@overzichtWanden.Count wand(en) beschikbaar</span>
+            </summary>
+            <div class="indeling-overige-wanden-body">
                 <div class="indeling-overige-wanden-lijst">
                     @foreach (var wand in overzichtWanden)
                     {
@@ -217,7 +219,7 @@ else
                     }
                 </div>
             </div>
-        </div>
+        </details>
     }
 
     @if (actieveWand is not null)
@@ -227,6 +229,7 @@ else
         var gevuldeBreedte = actieveWand.TotaleBreedte(State.Kasten);
         var vrijeBreedte = Math.Max(0, actieveWand.Breedte - gevuldeBreedte);
         var toonPrimaireActies = !toonKastFormulier && !toonApparaatFormulier;
+        var toonWandOpstelling = wandKasten.Count > 0 || wandApparaten.Count > 0;
 
         <div class="card mb-4 border-primary shadow-sm indeling-actieve-werkruimte"
              data-testid="actieve-wand-werkruimte"
@@ -249,7 +252,6 @@ else
                         </div>
                     </div>
                     <div class="d-flex flex-column align-items-start align-items-sm-end gap-2 indeling-workspace-state">
-                        <span class="badge text-bg-light border">Werkruimte open</span>
                         <button class="btn btn-sm btn-outline-secondary" @onclick="SluitWandWerkruimte">
                             Werkruimte sluiten
                         </button>
@@ -259,10 +261,11 @@ else
             <div class="card-body">
                 @if (toonPrimaireActies)
                 {
-                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 pb-3 border-bottom">
+                    <div class="indeling-werkstap mb-4">
                         <div>
-                            <h6 class="mb-1">Volgende stap op deze wand</h6>
-                            <p class="text-muted small mb-0">Voeg eerst een kast toe. Gebruik een apparaat alleen als het echt wandruimte inneemt.</p>
+                            <div class="small fw-semibold text-uppercase text-muted mb-1">Nu doen</div>
+                            <div class="fw-semibold">@(wandKasten.Count == 0 ? "Voeg eerst een kast toe." : "Werk kasten, apparaten en opstelling op deze wand bij.")</div>
+                            <div class="small text-muted">@(wandKasten.Count == 0 ? "Gebruik een apparaat alleen als het echt wandruimte inneemt." : "Open alleen het formulier dat u nu nodig hebt; de rest blijft rustig staan.")</div>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
                             <button class="btn btn-primary"
@@ -281,39 +284,70 @@ else
                     </div>
                 }
 
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="mb-0">Afmetingen van deze wand</h6>
-                        <span class="text-muted small">Context voor de opstelling</span>
+                <div class="indeling-workspace-grid mb-4">
+                    <div class="indeling-workspace-main">
+                        <div class="indeling-maten-kaart">
+                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
+                                <div>
+                                    <h6 class="mb-1">Wandmaten</h6>
+                                    <div class="small text-muted">Pas dit alleen aan als de basismaten van deze wand wijzigen.</div>
+                                </div>
+                                <div class="small text-muted">@actieveWand.Breedte × @actieveWand.Hoogte mm · plint @actieveWand.PlintHoogte mm</div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-sm-4">
+                                    <label class="form-label small mb-0">Wandbreedte (mm)</label>
+                                    <input type="number" class="form-control form-control-sm"
+                                           data-testid="wand-breedte-input"
+                                           value="@actieveWand.Breedte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Breedte), e)" />
+                                    <div class="form-text hulp-hint mb-0" data-testid="wand-breedte-hint">Totaal van deze wand, bijvoorbeeld 3000.</div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small mb-0">Wandhoogte (mm)</label>
+                                    <input type="number" class="form-control form-control-sm"
+                                           data-testid="wand-hoogte-input"
+                                           value="@actieveWand.Hoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Hoogte), e)" />
+                                    <div class="form-text hulp-hint mb-0" data-testid="wand-hoogte-hint">Vrije hoogte van vloer tot plafond, bijvoorbeeld 2600.</div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small mb-0">Plinthoogte (mm)</label>
+                                    <input type="number" class="form-control form-control-sm" min="0" step="10"
+                                           data-testid="wand-plint-input"
+                                           value="@actieveWand.PlintHoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.PlintHoogte), e)" />
+                                    <div class="form-text hulp-hint mb-0" data-testid="wand-plint-hint">Meestal 100; gebruik 0 alleen zonder plint.</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="row g-3">
-                        <div class="col-sm-4">
-                            <label class="form-label small mb-0">Wandbreedte (mm)</label>
-                            <input type="number" class="form-control form-control-sm"
-                                   data-testid="wand-breedte-input"
-                                   value="@actieveWand.Breedte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Breedte), e)" />
-                            <div class="form-text hulp-hint" data-testid="wand-breedte-hint">Bijvoorbeeld 3000. Gebruik de totale breedte van deze wand.</div>
+
+                    @if (toonWandOpstelling)
+                    {
+                        <div class="indeling-visualisatie-kaart">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <h6 class="mb-0">Wandopstelling</h6>
+                                    <div class="small text-muted">Live controle van maat, volgorde en vrije ruimte.</div>
+                                </div>
+                            </div>
+                            <WandOpstelling Kasten="@wandKasten"
+                                            Apparaten="@wandApparaten"
+                                            WandHoogte="@actieveWand.Hoogte"
+                                            WandBreedte="@actieveWand.Breedte"
+                                            PlintHoogte="@actieveWand.PlintHoogte"
+                                             GeselecteerdeKastId="@(actieveWandId == actieveWand.Id ? bewerkKastId : null)"
+                                             OnKastGeselecteerd="(id) => SelecteerKast(id, actieveWand.Id)"
+                                              OnKastVerplaatst="VerplaatsKastOpWand"
+                                              OnKastKopieren="KopieerNaarKlembord"
+                                              OnKastPlakken="() => PlakUitKlembord(actieveWand.Id)"
+                                              OnApparaatVerplaatst="VerplaatsApparaatOpWand"
+                                              OnPlankActie="VerwerkPlankActie" />
                         </div>
-                        <div class="col-sm-4">
-                            <label class="form-label small mb-0">Wandhoogte (mm)</label>
-                            <input type="number" class="form-control form-control-sm"
-                                   data-testid="wand-hoogte-input"
-                                   value="@actieveWand.Hoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Hoogte), e)" />
-                            <div class="form-text hulp-hint" data-testid="wand-hoogte-hint">Bijvoorbeeld 2600. Gebruik de vrije hoogte van vloer tot plafond.</div>
-                        </div>
-                        <div class="col-sm-4">
-                            <label class="form-label small mb-0">Hoogte van de plint (mm)</label>
-                            <input type="number" class="form-control form-control-sm" min="0" step="10"
-                                   data-testid="wand-plint-input"
-                                   value="@actieveWand.PlintHoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.PlintHoogte), e)" />
-                            <div class="form-text hulp-hint" data-testid="wand-plint-hint">Meestal 100. Gebruik 0 alleen zonder plint.</div>
-                        </div>
-                    </div>
+                    }
                 </div>
 
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="mb-0">Kasten op deze wand</h6>
+                        <h6 class="mb-0">Kasten</h6>
                         <span class="text-muted small">@(wandKasten.Count == 0 ? "Nog geen kasten" : $"{wandKasten.Count} toegevoegd")</span>
                     </div>
                     @if (wandKasten.Count > 0)
@@ -363,7 +397,7 @@ else
                     else
                     {
                         <div class="border rounded p-3 small text-muted bg-body-tertiary">
-                            Begin met <strong>+ Kast toevoegen</strong> om deze wand op te bouwen.
+                            Nog geen kasten. Begin met <strong>Kast toevoegen</strong>.
                         </div>
                     }
                 </div>
@@ -372,7 +406,7 @@ else
                 {
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0">Apparaten op deze wand</h6>
+                            <h6 class="mb-0">Apparaten</h6>
                             <span class="text-muted small">@wandApparaten.Count toegevoegd</span>
                         </div>
                         <div class="indeling-object-lijst">
@@ -412,28 +446,6 @@ else
                                 </div>
                             }
                         </div>
-                    </div>
-                }
-
-                @if (wandKasten.Count > 0 || wandApparaten.Count > 0)
-                {
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0">Wandopstelling</h6>
-                            <span class="text-muted small">Controleer hier of alles goed staat</span>
-                        </div>
-                        <WandOpstelling Kasten="@wandKasten"
-                                        Apparaten="@wandApparaten"
-                                        WandHoogte="@actieveWand.Hoogte"
-                                        WandBreedte="@actieveWand.Breedte"
-                                        PlintHoogte="@actieveWand.PlintHoogte"
-                                         GeselecteerdeKastId="@(actieveWandId == actieveWand.Id ? bewerkKastId : null)"
-                                         OnKastGeselecteerd="(id) => SelecteerKast(id, actieveWand.Id)"
-                                          OnKastVerplaatst="VerplaatsKastOpWand"
-                                          OnKastKopieren="KopieerNaarKlembord"
-                                          OnKastPlakken="() => PlakUitKlembord(actieveWand.Id)"
-                                          OnApparaatVerplaatst="VerplaatsApparaatOpWand"
-                                          OnPlankActie="VerwerkPlankActie" />
                     </div>
                 }
 

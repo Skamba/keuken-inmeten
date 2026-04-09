@@ -654,6 +654,8 @@ a, .btn-link {
 .paneel-review-samenvatting-details summary:focus-visible,
 .paneel-review-item-details summary:focus,
 .paneel-review-item-details summary:focus-visible,
+.indeling-overige-wanden-summary:focus,
+.indeling-overige-wanden-summary:focus-visible,
 .paneel-editor-empty-details summary:focus,
 .paneel-editor-empty-details summary:focus-visible,
 .bestellijst-overzicht-details summary:focus,
@@ -683,6 +685,8 @@ a, .btn-link {
 .terminologie-item-summary:focus-visible,
 .hulp-details-summary:focus,
 .hulp-details-summary:focus-visible,
+.indeling-overige-wanden-summary:focus,
+.indeling-overige-wanden-summary:focus-visible,
 .bestellijst-overzicht-details summary:focus,
 .bestellijst-overzicht-details summary:focus-visible,
 .zaagplan-geavanceerd summary:focus,
@@ -1218,11 +1222,76 @@ code {
 }
 
 .indeling-overige-wanden {
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--bs-border-color);
     border-radius: 1rem;
+    background: var(--bs-tertiary-bg);
 }
 
 .indeling-workspace-state {
     min-width: 9rem;
+}
+
+.indeling-overige-wanden-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.indeling-overige-wanden-summary::-webkit-details-marker {
+    display: none;
+}
+
+.indeling-overige-wanden-summary::marker {
+    content: "";
+}
+
+.indeling-overige-wanden-summary::after {
+    content: "+";
+    color: var(--bs-secondary-color, #516173);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.indeling-overige-wanden[open] .indeling-overige-wanden-summary::after {
+    content: "−";
+}
+
+.indeling-overige-wanden-body {
+    margin-top: 0.9rem;
+}
+
+.indeling-werkstap {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.95rem;
+    background: var(--bs-tertiary-bg);
+}
+
+.indeling-workspace-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.indeling-maten-kaart,
+.indeling-visualisatie-kaart {
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.95rem;
+    background: var(--bs-body-bg);
+}
+
+.indeling-visualisatie-kaart {
+    background: var(--bs-tertiary-bg);
 }
 
 .indeling-overige-wanden-lijst {
@@ -1297,6 +1366,18 @@ code {
 
     .indeling-overige-wanden-lijst {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1200px) {
+    .indeling-workspace-grid {
+        grid-template-columns: minmax(0, 1.05fr) minmax(20rem, 0.95fr);
+        align-items: start;
+    }
+
+    .indeling-visualisatie-kaart {
+        position: sticky;
+        top: 5rem;
     }
 }
 
@@ -1915,8 +1996,8 @@ code {
 .bestellijst-export-overlay {
     justify-content: flex-end;
     align-items: stretch;
-    background: color-mix(in srgb, var(--bs-body-color) 28%, transparent);
-    backdrop-filter: blur(4px);
+    background: color-mix(in srgb, #0f172a 52%, transparent);
+    backdrop-filter: blur(8px);
 }
 
 .bestellijst-export-drawer {
@@ -1928,6 +2009,7 @@ code {
     border-radius: 1rem 0 0 1rem;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 1.25rem 3rem rgba(15, 23, 42, 0.28);
 }
 
 .bestellijst-export-drawer .card-footer {
@@ -1942,6 +2024,7 @@ code {
     padding-block: 1.25rem;
     flex: 1 1 auto;
     min-height: 0;
+    overscroll-behavior: contain;
 }
 
 .bestellijst-export-stappen {
@@ -1981,6 +2064,14 @@ code {
         font-size: 0.78rem;
         text-align: center;
     }
+
+    .bestellijst-export-keuze {
+        padding: 0.85rem 0.9rem;
+    }
+
+    .bestellijst-export-keuze-samenvatting {
+        padding: 0.85rem 0.9rem;
+    }
 }
 
 .bestellijst-export-keuze {
@@ -2011,6 +2102,21 @@ code {
 .bestellijst-export-keuze.is-selected:focus-visible {
     border-color: color-mix(in srgb, var(--app-focus-ring-color) 45%, #0d6efd);
     box-shadow: 0 0 0 1px rgba(13,110,253,0.18), 0 0 0 0.12rem var(--app-focus-ring-inner), 0 0 0 0.32rem var(--app-focus-ring-soft);
+}
+
+.bestellijst-export-keuze-samenvatting {
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--bs-border-color, #d0d7de);
+    border-radius: 0.95rem;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+}
+
+.bestellijst-export-instellingen {
+    background: var(--bs-tertiary-bg, #f8f9fa);
+}
+
+.bestellijst-export-voorbeeld {
+    background: var(--bs-body-bg, #fff);
 }
 
 .bestellijst-table-wrap {

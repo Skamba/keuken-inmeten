@@ -28,7 +28,15 @@ export class IndelingPage {
   async voegWandToe(naam: string) {
     await this.page.getByTestId('nieuwe-wand-naam-input').fill(naam);
     await this.page.getByTestId('wand-toevoegen-button').click();
-    await expect(this.wandCard(naam).or(this.actieveWerkruimte(naam))).toBeVisible();
+    const resultaat = this.wandCard(naam).or(this.actieveWerkruimte(naam));
+    if (!(await resultaat.isVisible())) {
+      const overigeWandenSamenvatting = this.page.getByTestId('indeling-overige-wanden-summary');
+      if (await overigeWandenSamenvatting.isVisible()) {
+        await overigeWandenSamenvatting.click();
+      }
+    }
+
+    await expect(resultaat).toBeVisible();
   }
 
   async openWandWerkruimte(wandNaam: string) {
@@ -39,6 +47,14 @@ export class IndelingPage {
 
     const wand = this.wandCard(wandNaam);
     const openKnop = wand.getByTestId('open-wand-workspace-button');
+
+    if (!(await openKnop.isVisible())) {
+      const overigeWandenSamenvatting = this.page.getByTestId('indeling-overige-wanden-summary');
+      if (await overigeWandenSamenvatting.isVisible()) {
+        await overigeWandenSamenvatting.click();
+        await expect(openKnop).toBeVisible();
+      }
+    }
 
     await openKnop.click();
 

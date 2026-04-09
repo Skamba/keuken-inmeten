@@ -130,59 +130,74 @@ else
                     @if (_exportFlowStap is BestellijstExportFlowStap.Kiezen)
                     {
                         <section data-testid="bestellijst-export-step-kies">
-                            <div class="small text-muted mb-3">Deze keuzes gelden alleen voor het exportbestand.</div>
+                            <div class="small text-muted mb-3">Kies eerst het bestandsformaat. Materiaal in de export past u alleen aan als het bestand van uw standaardplaat moet afwijken.</div>
 
+                            <div class="fw-semibold mb-2">Bestandsformaat</div>
                             <div class="row g-3">
-                                <div class="col-md-7">
-                                    <label class="form-label fw-semibold">Paneeltype</label>
-                                    <input class="form-control"
-                                           list="paneeltype-opties"
-                                           @bind="_paneelType"
-                                           data-testid="bestellijst-paneeltype-input" />
-                                    <div class="form-text hulp-hint" data-testid="bestellijst-paneeltype-hint">Bijvoorbeeld MDF wit of berken multiplex.</div>
-                                    <datalist id="paneeltype-opties">
-                                        @foreach (var optie in PaneelTypeOpties)
-                                        {
-                                            <option value="@optie"></option>
-                                        }
-                                    </datalist>
-                                </div>
-                                <div class="col-md-5">
-                                    <label class="form-label fw-semibold">Dikte (mm)</label>
-                                    <input class="form-control"
-                                           @bind="_dikteMm"
-                                           inputmode="decimal"
-                                           data-testid="bestellijst-dikte-input" />
-                                    <div class="form-text hulp-hint" data-testid="bestellijst-dikte-hint">Gebruik hier de werkelijke plaatdikte, bijvoorbeeld 19 of 18,4.</div>
-                                </div>
-                            </div>
+                                @foreach (var optie in BestellijstExportFlowHelper.Opties)
+                                {
+                                    var isGeselecteerd = _exportType == optie.Type;
 
-                            <div class="mt-4">
-                                <div class="fw-semibold mb-2">Bestandsformaat</div>
-                                <div class="row g-3">
-                                    @foreach (var optie in BestellijstExportFlowHelper.Opties)
-                                    {
-                                        var isGeselecteerd = _exportType == optie.Type;
-
-                                        <div class="col-md-6">
-                                            <button type="button"
-                                                    class="bestellijst-export-keuze @(isGeselecteerd ? "is-selected" : null)"
-                                                    @onclick="@(() => KiesExportType(optie.Type))"
-                                                    data-testid="@ExportTypeTestId(optie.Type)">
-                                                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                                    <div class="col-md-6">
+                                        <button type="button"
+                                                class="bestellijst-export-keuze @(isGeselecteerd ? "is-selected" : null)"
+                                                @onclick="@(() => KiesExportType(optie.Type))"
+                                                data-testid="@ExportTypeTestId(optie.Type)">
+                                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                                <div>
                                                     <div class="fw-semibold">@optie.Label</div>
-                                                    @if (isGeselecteerd)
-                                                    {
-                                                        <span class="badge text-bg-primary">Gekozen</span>
-                                                    }
+                                                    <div class="small text-muted mt-1">@optie.KorteBeschrijving</div>
                                                 </div>
-                                                <div class="small text-muted mb-2">@optie.KorteBeschrijving</div>
-                                                <div class="small text-muted">@optie.WanneerKiezen</div>
-                                            </button>
-                                        </div>
-                                    }
-                                </div>
+                                                @if (isGeselecteerd)
+                                                {
+                                                    <span class="badge text-bg-primary">Gekozen</span>
+                                                }
+                                            </div>
+                                        </button>
+                                    </div>
+                                }
                             </div>
+
+                            <div class="bestellijst-export-keuze-samenvatting mt-3">
+                                <div class="small fw-semibold text-uppercase text-muted mb-1">Gekozen formaat</div>
+                                <div class="fw-semibold">@gekozenExport.Label</div>
+                                <div class="small text-muted">@gekozenExport.WanneerKiezen</div>
+                                <div class="small text-muted mt-1">@gekozenExport.ResultaatUitleg</div>
+                            </div>
+
+                            <details class="bestellijst-overzicht-details bestellijst-export-instellingen mt-4"
+                                     data-testid="bestellijst-export-instellingen">
+                                <summary data-testid="bestellijst-export-instellingen-summary">
+                                    <div>
+                                        <div class="fw-semibold">Materiaal in export</div>
+                                        <div class="small text-muted">@DisplayPaneelType() · @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</div>
+                                    </div>
+                                </summary>
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-7">
+                                        <label class="form-label fw-semibold">Paneeltype</label>
+                                        <input class="form-control"
+                                               list="paneeltype-opties"
+                                               @bind="_paneelType"
+                                               data-testid="bestellijst-paneeltype-input" />
+                                        <div class="form-text hulp-hint" data-testid="bestellijst-paneeltype-hint">Bijvoorbeeld MDF wit of berken multiplex.</div>
+                                        <datalist id="paneeltype-opties">
+                                            @foreach (var optie in PaneelTypeOpties)
+                                            {
+                                                <option value="@optie"></option>
+                                            }
+                                        </datalist>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label fw-semibold">Dikte (mm)</label>
+                                        <input class="form-control"
+                                               @bind="_dikteMm"
+                                               inputmode="decimal"
+                                               data-testid="bestellijst-dikte-input" />
+                                        <div class="form-text hulp-hint" data-testid="bestellijst-dikte-hint">Gebruik hier de werkelijke plaatdikte, bijvoorbeeld 19 of 18,4.</div>
+                                    </div>
+                                </div>
+                            </details>
                         </section>
                     }
                     else if (_exportFlowStap is BestellijstExportFlowStap.Preview)
@@ -227,10 +242,12 @@ else
                                     </div>
                                 </div>
                                 <div class="col-lg-5">
-                                    <div class="border rounded p-3 h-100 bg-body-tertiary">
-                                        <div class="small fw-semibold text-uppercase text-muted mb-1">Voorbeeld</div>
-                                        <div class="small text-muted">@gekozenExport.Voorbeeld</div>
-                                    </div>
+                                    <details class="bestellijst-overzicht-details h-100 bestellijst-export-voorbeeld">
+                                        <summary>
+                                            <span class="fw-semibold">Voorbeeld of gebruikssituatie</span>
+                                        </summary>
+                                        <div class="small text-muted mt-2">@gekozenExport.Voorbeeld</div>
+                                    </details>
                                 </div>
                             </div>
                         </section>

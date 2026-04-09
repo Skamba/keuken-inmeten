@@ -21,6 +21,16 @@ export class BestellijstPage {
     await this.page.getByTestId(type === 'pdf' ? 'bestellijst-export-type-pdf' : 'bestellijst-export-type-excel').click();
   }
 
+  async openExportMateriaalInstellingen() {
+    const paneeltypeInput = this.page.getByTestId('bestellijst-paneeltype-input');
+    if (await paneeltypeInput.isVisible()) {
+      return;
+    }
+
+    await this.page.getByTestId('bestellijst-export-instellingen-summary').click();
+    await expect(paneeltypeInput).toBeVisible();
+  }
+
   async gaNaarExportPreview() {
     await this.page.getByTestId('bestellijst-export-next-button').click();
     await expect(this.page.getByTestId('bestellijst-export-step-preview')).toBeVisible();
