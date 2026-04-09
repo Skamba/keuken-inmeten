@@ -265,6 +265,7 @@ test('verificatie-afronding toont bestellijst als primaire vervolgstap', async (
   await verificatie.startVerificatie();
   await verificatie.rondHuidigeVerificatieAf();
   await expect(page.getByTestId('verificatie-completion-primary-button')).toHaveText(/Ga naar bestellijst/);
+  await expect(page.getByTestId('verificatie-completion-primary-button')).toHaveAttribute('href', 'bestellijst');
   await verificatie.gaNaarBestellijstViaAfronding();
 
   await bestellijst.expectLoaded();
