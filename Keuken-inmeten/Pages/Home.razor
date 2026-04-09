@@ -50,21 +50,21 @@
                     @if (heeftProjectData)
                     {
                         <div class="home-summary-card home-dashboard-card home-resume-card h-100" data-testid="home-project-dashboard">
-                            <div class="small fw-semibold text-uppercase text-primary-emphasis mb-1">Nu hervatten</div>
+                            <div class="small fw-semibold text-uppercase text-primary-emphasis mb-1">Volgende stap</div>
                             <h2 class="h5 mb-1">@vervolgStap.Label</h2>
                             <p class="text-muted small mb-3">@vervolgStap.Beschrijving</p>
 
-                            <div class="small fw-semibold text-uppercase text-muted mb-2">Nu belangrijk</div>
-                            <dl class="home-resume-summary mb-0">
-                                <div class="home-resume-summary-row">
-                                    <dt>@aandachtBlok.Titel</dt>
-                                    <dd>@aandachtBlok.Tekst</dd>
-                                </div>
-                                <div class="home-resume-summary-row">
-                                    <dt>@boorgatBlok.Titel</dt>
-                                    <dd>@boorgatBlok.Tekst</dd>
-                                </div>
-                            </dl>
+                            <div class="small fw-semibold text-uppercase text-muted mb-2">Projectstatus</div>
+                            <ul class="home-resume-status mb-0">
+                                <li>
+                                    <strong>@aandachtBlok.Titel.</strong>
+                                    <span>@aandachtBlok.Tekst</span>
+                                </li>
+                                <li>
+                                    <strong>@boorgatBlok.Titel.</strong>
+                                    <span>@boorgatBlok.Tekst</span>
+                                </li>
+                            </ul>
                         </div>
                     }
                     else

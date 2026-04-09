@@ -10,7 +10,7 @@
 <StapIndicator HuidigeStap="bestellijst" />
 
 <h2 class="page-header">Stap 4: Bestellijst</h2>
-<p class="text-muted mb-3">Controleer hier aantallen, maten en wandcontext. Daarna opent export in drie korte stappen.</p>
+<p class="text-muted mb-3">Controleer hier de orderregels per wand. Export opent pas daarna.</p>
 <div class="stap-ondersteuning mb-3" data-testid="bestellijst-stap-ondersteuning">
     <StapHulpDrawer StapId="bestellijst" KnopLabel="Staphulp" />
     <TerminologieUitleg Compact="true"
@@ -50,53 +50,62 @@ else
             <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3">
                 <div>
                     <div class="small fw-semibold text-uppercase text-primary-emphasis">Ordercontrole</div>
-                    <h5 class="mb-1">Controleer eerst de orderregels</h5>
-                    <p class="text-muted mb-0">Kloppen aantallen, maten en wandcontext? Open daarna pas export.</p>
+                    <h5 class="mb-1">Controleer orderregels en open daarna export</h5>
+                    <p class="text-muted mb-0">Werk eerst de lijst hieronder na. Export en technische details blijven beschikbaar zodra u ze nodig hebt.</p>
                 </div>
                 <div class="bestellijst-export-entry">
                     <button type="button"
                             class="btn btn-primary"
                             @onclick="OpenExportFlow"
                             data-testid="bestellijst-open-exportflow-button">Export voorbereiden</button>
-                    <div class="small text-muted mt-2">Bestandsformaat kiest u pas in stap 1.</div>
+                    <div class="small text-muted mt-2">@items.Count orderregels · @totaalAantal panelen · @wandGroepen.Count wanden</div>
                 </div>
             </div>
 
             <div class="bestellijst-toolbar-meta">
-                <span><strong>@items.Count</strong> orderregels</span>
-                <span><strong>@totaalAantal</strong> panelen</span>
-                <span><strong>@wandGroepen.Count</strong> wanden</span>
+                <span>Bestandsformaat kiest u pas in stap 1 van de exportflow.</span>
                 @if (_toonTechnischeDetails)
                 {
-                    <span><strong>@totaalBoorgaten</strong> boorgaten zichtbaar</span>
+                    <span><strong>@totaalBoorgaten</strong> boorgaten zichtbaar voor controle of export</span>
                 }
             </div>
 
-            <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3">
-                <div class="form-check form-switch mb-0 flex-grow-1">
-                    <input id="toon-technische-bestellijst"
-                           class="form-check-input"
-                           type="checkbox"
-                           @bind="_toonTechnischeDetails" />
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <label class="form-check-label fw-semibold" for="toon-technische-bestellijst">
-                            Toon technische kolommen
-                        </label>
-                        <HulpInfoKnop Titel="Technische details in de bestellijst"
-                                      Tekst="Deze kolommen zijn vooral bedoeld voor overdracht naar productie of controle van de boorgaten en CNC-bewerkingen."
-                                      Voorbeeld="Laat de technische details uit zolang u vooral aantallen, typen en afmetingen wilt reviewen."
-                                      WatNuDoen="Schakel deze optie alleen in als u de lijst technisch wilt nalopen of exporteren voor nabewerking." />
+            <details class="bestellijst-overzicht-details bestellijst-techniek-details"
+                     data-testid="bestellijst-techniek-details">
+                <summary data-testid="bestellijst-tech-details-summary">
+                    <div>
+                        <div class="fw-semibold">Technische controle (optioneel)</div>
+                        <div class="small text-muted">@(_toonTechnischeDetails
+                            ? $"{totaalBoorgaten} boorgaten zichtbaar voor controle of export."
+                            : "Open alleen als u CNC-, boorgat- of productiegegevens wilt nalopen.")</div>
                     </div>
-                    <div class="form-text hulp-hint">Gebruik dit voor boorgaten, CNC en productiecontrole.</div>
+                </summary>
+                <div class="d-flex flex-column gap-3 mt-3">
+                    <div class="form-check form-switch mb-0 flex-grow-1">
+                        <input id="toon-technische-bestellijst"
+                               class="form-check-input"
+                               type="checkbox"
+                               @bind="_toonTechnischeDetails" />
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <label class="form-check-label fw-semibold" for="toon-technische-bestellijst">
+                                Toon technische kolommen
+                            </label>
+                            <HulpInfoKnop Titel="Technische details in de bestellijst"
+                                          Tekst="Deze kolommen zijn vooral bedoeld voor overdracht naar productie of controle van de boorgaten en CNC-bewerkingen."
+                                          Voorbeeld="Laat de technische details uit zolang u vooral aantallen, typen en afmetingen wilt reviewen."
+                                          WatNuDoen="Schakel deze optie alleen in als u de lijst technisch wilt nalopen of exporteren voor nabewerking." />
+                        </div>
+                        <div class="form-text hulp-hint">Gebruik dit voor boorgaten, CNC en productiecontrole.</div>
+                    </div>
+
+                    @if (_toonTechnischeDetails)
+                    {
+                        <div class="small text-muted bestellijst-toolbar-note">
+                            <strong>Technische weergave:</strong> @BestellijstExportFormatter.FormatCncAssenSamenvatting() · @totaalBoorgaten boorgaten totaal
+                        </div>
+                    }
                 </div>
-
-                @if (_toonTechnischeDetails)
-                {
-                    <div class="small text-muted bestellijst-toolbar-note">
-                        <strong>Technische weergave:</strong> @BestellijstExportFormatter.FormatCncAssenSamenvatting() · @totaalBoorgaten boorgaten totaal
-                    </div>
-                }
-            </div>
+            </details>
         </div>
     </div>
 
