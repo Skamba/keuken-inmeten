@@ -54,16 +54,21 @@ else
     var minimalePlaatKorteZijde = grootsteNietGeplaatst is null ? 0 : Math.Min(grootsteNietGeplaatst.Breedte, grootsteNietGeplaatst.Hoogte);
 
     <div class="zaagplan-toolbar card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3 mb-3">
+        <div class="card-body d-flex flex-column gap-3">
+            <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3">
                 <div>
-                    <div class="small fw-semibold text-uppercase text-primary-emphasis">Focusmodus</div>
-                    <h5 class="mb-1">Beoordeel eerst de plaatindeling</h5>
-                    <p class="text-muted mb-0">Houd alleen plaatafmetingen direct in beeld. Open zaagverlies of draaien pas als u het resultaat echt wilt bijsturen.</p>
+                    <div class="small fw-semibold text-uppercase text-primary-emphasis">Plaatinstellingen</div>
+                    <div class="fw-semibold">Houd alleen plaatmaat en weergave direct in beeld. Open extra instellingen pas als het resultaat daarom vraagt.</div>
                 </div>
-                <div class="small text-muted text-xl-end">
-                    <div class="fw-semibold text-uppercase">Resultaat</div>
-                    <div>@resultaat.Platen.Count plaat/platen · @totaalGeplaatst / @totaalPanelen panelen geplaatst</div>
+                <div class="zaagplan-kerncijfers">
+                    <div class="zaagplan-kerncijfer">
+                        <span class="zaagplan-kerncijfer-label">Plaatindeling</span>
+                        <strong>@resultaat.Platen.Count plaat/platen</strong>
+                    </div>
+                    <div class="zaagplan-kerncijfer">
+                        <span class="zaagplan-kerncijfer-label">Geplaatst</span>
+                        <strong>@totaalGeplaatst / @totaalPanelen panelen</strong>
+                    </div>
                 </div>
             </div>
 
@@ -97,12 +102,12 @@ else
                             Eén plaat tegelijk
                         </button>
                     </div>
-                    <div class="form-text hulp-hint">Kies <strong>Eén plaat tegelijk</strong> als u per plaat rustig wilt controleren hoe de panelen liggen.</div>
+                    <div class="form-text hulp-hint">Kies <strong>Eén plaat tegelijk</strong> als u plaat voor plaat rustig wilt nalopen.</div>
                 </div>
             </div>
 
-            <details class="zaagplan-geavanceerd mt-3" data-testid="zaagplan-geavanceerde-instellingen">
-                <summary>Geavanceerde instellingen</summary>
+            <details class="zaagplan-geavanceerd" data-testid="zaagplan-geavanceerde-instellingen">
+                <summary>Geavanceerde instellingen · zaagverlies @FormatMm(_zaagbreedte) mm · draaien @(_draaiToe ? "aan" : "uit")</summary>
                 <div class="row g-3 mt-2">
                     <div class="col-lg-6">
                         <div class="border rounded p-3 h-100 bg-body-tertiary">
@@ -136,14 +141,6 @@ else
                     </div>
                 </div>
             </details>
-
-            <div class="zaagplan-toolbar-meta mt-3">
-                <span><strong>Platen:</strong> @resultaat.Platen.Count</span>
-                <span><strong>Geplaatst:</strong> @totaalGeplaatst / @totaalPanelen panelen</span>
-                <span><strong>Plaatformaat:</strong> @FormatMm(_plaatBreedte) × @FormatMm(_plaatHoogte) mm</span>
-                <span><strong>Zaagverlies:</strong> @FormatMm(_zaagbreedte) mm</span>
-                <span><strong>Draaien:</strong> @(_draaiToe ? "aan" : "uit")</span>
-            </div>
         </div>
     </div>
 

@@ -114,7 +114,7 @@ else
                         <div>
                             <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Aparte exportflow</div>
                             <h5 class="mb-1" id="bestellijst-export-drawer-title">Export voorbereiden</h5>
-                            <p class="text-muted mb-0">Kies eerst het formaat en controleer de preview. Pas in de laatste stap bevestigt u de export.</p>
+                            <p class="text-muted mb-0">Kies het formaat, controleer de preview en bevestig daarna pas de export.</p>
                         </div>
                         <button type="button" class="btn-close" @onclick="SluitExportFlow" aria-label="Sluit exportflow"></button>
                     </div>
@@ -130,9 +130,7 @@ else
                     @if (_exportFlowStap is BestellijstExportFlowStap.Kiezen)
                     {
                         <section data-testid="bestellijst-export-step-kies">
-                            <div class="small text-muted mb-3">
-                                Deze keuzes gelden alleen voor het exportbestand. De reviewtabel verandert niet mee.
-                            </div>
+                            <div class="small text-muted mb-3">Deze keuzes gelden alleen voor het exportbestand.</div>
 
                             <div class="row g-3">
                                 <div class="col-md-7">
@@ -141,7 +139,7 @@ else
                                            list="paneeltype-opties"
                                            @bind="_paneelType"
                                            data-testid="bestellijst-paneeltype-input" />
-                                    <div class="form-text hulp-hint" data-testid="bestellijst-paneeltype-hint">Bijvoorbeeld MDF wit of berken multiplex. Deze naam wordt alleen in het exportbestand gebruikt.</div>
+                                    <div class="form-text hulp-hint" data-testid="bestellijst-paneeltype-hint">Bijvoorbeeld MDF wit of berken multiplex.</div>
                                     <datalist id="paneeltype-opties">
                                         @foreach (var optie in PaneelTypeOpties)
                                         {
@@ -155,7 +153,7 @@ else
                                            @bind="_dikteMm"
                                            inputmode="decimal"
                                            data-testid="bestellijst-dikte-input" />
-                                    <div class="form-text hulp-hint" data-testid="bestellijst-dikte-hint">Bijvoorbeeld 19 of 18,4. Gebruik de werkelijke plaatdikte die u wilt bestellen of exporteren.</div>
+                                    <div class="form-text hulp-hint" data-testid="bestellijst-dikte-hint">Gebruik hier de werkelijke plaatdikte, bijvoorbeeld 19 of 18,4.</div>
                                 </div>
                             </div>
 
@@ -179,7 +177,7 @@ else
                                                     }
                                                 </div>
                                                 <div class="small text-muted mb-2">@optie.KorteBeschrijving</div>
-                                                <div class="small"><strong>Kies dit als:</strong> @optie.WanneerKiezen</div>
+                                                <div class="small text-muted">@optie.WanneerKiezen</div>
                                             </button>
                                         </div>
                                     }

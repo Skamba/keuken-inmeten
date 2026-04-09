@@ -13,6 +13,7 @@
     var geopendeWand = GeopendeWand;
     var isReviewWeergaveActief = IsReviewWeergaveActief;
     var toonCompacteStapIntro = routeGate is null && geopendeWand is not null && !isReviewWeergaveActief;
+    var toonCompacteWeergaveTabs = toonEditorDrawer && !isReviewWeergaveActief && geopendeWand is not null;
 }
 
 <h2 class="page-header">Stap 2: Panelen</h2>
@@ -59,40 +60,56 @@ else
         : State.Wanden.Where(wand => wand.Id != geopendeWand.Id).ToList();
 
     <div class="paneel-pagina-shell @((toonEditorDrawer && !isReviewWeergaveActief) ? "editor-open" : null)">
-        <div class="border rounded p-3 mb-4 bg-body-tertiary paneel-weergave-tabs @(geopendeWand is not null ? "paneel-weergave-tabs--compact" : null)" data-testid="paneel-weergave-tabs">
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-                <div>
-                    <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Focus</div>
-                    <div class="fw-semibold">
-                        @(isReviewWeergaveActief
-                            ? "Review van toegewezen panelen"
-                            : geopendeWand is null
-                                ? "Open eerst één wand"
-                                : $"Editor — {geopendeWand.Naam}")
+        <div class="border rounded p-3 mb-4 bg-body-tertiary paneel-weergave-tabs @(geopendeWand is not null ? "paneel-weergave-tabs--compact" : null) @(toonCompacteWeergaveTabs ? "paneel-weergave-tabs--editor-open" : null)" data-testid="paneel-weergave-tabs">
+            @if (toonCompacteWeergaveTabs)
+            {
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Werklaag</div>
+                        <div class="fw-semibold">Editor open voor @geopendeWand?.Naam</div>
                     </div>
-                    <div class="small text-muted">
-                        @(isReviewWeergaveActief
-                            ? "Review staat los van de editor zodat lijst en acties rustiger scanbaar blijven."
-                            : geopendeWand is null
-                                ? "Begin met één wand. Review wordt pas nuttig zodra er panelen zijn."
-                                : toonEditorDrawer
-                                    ? "De editor staat open. Rond selectie, maat en opslaan in één werklaag af."
-                                    : "Werk op één wand tegelijk en open de editor zodra uw selectie klaarstaat.")
-                    </div>
-                </div>
-                <div class="d-flex flex-wrap align-items-center gap-2 paneel-weergave-meta">
-                    @if (geopendeWand is not null && !isReviewWeergaveActief)
-                    {
-                        <span class="badge text-bg-light border">Actief: @geopendeWand.Naam</span>
-                        <span class="badge text-bg-light border">@(toonEditorDrawer ? "Editor open" : "Editor klaar")</span>
-                    }
                     @if (reviewBeschikbaar)
                     {
-                        <span class="badge text-bg-light border">@State.Toewijzingen.Count paneel/panelen</span>
+                        <span class="badge text-bg-light border">@State.Toewijzingen.Count paneel/panelen klaar</span>
                     }
                 </div>
-            </div>
-            <ul class="nav nav-pills nav-fill flex-wrap mt-3">
+            }
+            else
+            {
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                    <div>
+                        <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Focus</div>
+                        <div class="fw-semibold">
+                            @(isReviewWeergaveActief
+                                ? "Review van toegewezen panelen"
+                                : geopendeWand is null
+                                    ? "Open eerst één wand"
+                                    : $"Editor — {geopendeWand.Naam}")
+                        </div>
+                        <div class="small text-muted">
+                            @(isReviewWeergaveActief
+                                ? "Review staat los van de editor zodat lijst en acties rustiger scanbaar blijven."
+                                : geopendeWand is null
+                                    ? "Begin met één wand. Review wordt pas nuttig zodra er panelen zijn."
+                                    : toonEditorDrawer
+                                        ? "De editor staat open. Rond selectie, maat en opslaan in één werklaag af."
+                                        : "Werk op één wand tegelijk en open de editor zodra uw selectie klaarstaat.")
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 paneel-weergave-meta">
+                        @if (geopendeWand is not null && !isReviewWeergaveActief)
+                        {
+                            <span class="badge text-bg-light border">Actief: @geopendeWand.Naam</span>
+                            <span class="badge text-bg-light border">@(toonEditorDrawer ? "Editor open" : "Editor klaar")</span>
+                        }
+                        @if (reviewBeschikbaar)
+                        {
+                            <span class="badge text-bg-light border">@State.Toewijzingen.Count paneel/panelen</span>
+                        }
+                    </div>
+                </div>
+            }
+            <ul class="nav nav-pills nav-fill flex-wrap @(toonCompacteWeergaveTabs ? "mt-2" : "mt-3")">
                 <li class="nav-item">
                     <button type="button"
                             class="nav-link @(!isReviewWeergaveActief ? "active" : "")"
@@ -544,7 +561,7 @@ else
                                         class="btn btn-sm btn-outline-secondary"
                                         @onclick="SluitEditorDrawer"
                                         data-testid="close-paneel-editor-button">
-                                    Editor sluiten
+                                    Sluiten
                                 </button>
                             </div>
                         </div>
@@ -560,45 +577,13 @@ else
                         else
                         {
                             <div class="paneel-editor-focus border rounded p-3 mb-3 bg-body-tertiary">
-                                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
-                                    <div>
-                                        <div class="small text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Volgende stap</div>
-                                        <div class="fw-semibold mb-1">@VolgendePaneelStapTekst()</div>
-                                        <div class="small text-muted">@PaneelEditorKernHintTekst(kanOpslaan)</div>
-                                    </div>
-                                    <div class="d-flex flex-wrap gap-2 align-items-start paneel-editor-focus-meta">
-                                        <span class="badge text-bg-light border">Wand: @ActieveWandNaam</span>
-                                        <span class="badge text-bg-light border">Geselecteerd: @PaneelEditorSelectieSamenvatting()</span>
-                                        <span class="badge @(kanOpslaan ? "text-bg-success" : "text-bg-light border")">Opslaan: @PaneelEditorOpslaanSamenvatting(kanOpslaan)</span>
-                                    </div>
+                                <div class="fw-semibold mb-1">@VolgendePaneelStapTekst()</div>
+                                <div class="small text-muted">@PaneelEditorKernHintTekst(kanOpslaan)</div>
+                                <div class="d-flex flex-wrap gap-2 align-items-start paneel-editor-focus-meta mt-2">
+                                    <span class="badge text-bg-light border">Selectie: @PaneelEditorSelectieSamenvatting()</span>
+                                    <span class="badge @(kanOpslaan ? "text-bg-success" : "text-bg-light border")">Opslaan: @PaneelEditorOpslaanSamenvatting(kanOpslaan)</span>
                                 </div>
                             </div>
-
-                            <HulpDetailsBlok Titel="Zo leest u de tekening"
-                                             Beschrijving="Open alleen als u maatlagen of sleepgedrag wilt nalopen."
-                                             CssClass="mb-3 small">
-                                <div class="text-muted mb-3">
-                                    Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de vrije ruimte langs rakende randen is afgetrokken.
-                                </div>
-                                <div class="row g-3 align-items-center">
-                                    <div class="col-sm-5">
-                                        <svg viewBox="0 0 180 110" class="w-100" role="img" aria-label="Verschil tussen maat in de opening en maat om te bestellen">
-                                            <rect x="20" y="16" width="120" height="72" fill="none" stroke="var(--bs-secondary-color)" stroke-width="2" stroke-dasharray="6 4" />
-                                            <rect x="32" y="28" width="96" height="48" fill="var(--bs-primary-bg-subtle)" stroke="var(--bs-primary)" stroke-width="2" />
-                                        </svg>
-                                    </div>
-                                    <div class="col-sm-7">
-                                        <div class="d-flex align-items-start gap-2 mb-2">
-                                            <span class="d-inline-block border border-2 border-secondary rounded flex-shrink-0" style="width: 1rem; height: 1rem; border-style: dashed;"></span>
-                                            <div><strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel</strong>: de vrije ruimte waar het paneel in moet passen.</div>
-                                        </div>
-                                        <div class="d-flex align-items-start gap-2">
-                                            <span class="d-inline-block border border-primary rounded bg-primary bg-opacity-10 flex-shrink-0" style="width: 1rem; height: 1rem;"></span>
-                                            <div><strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel</strong>: de maat die overblijft nadat de aftrek per rakende rand is toegepast.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </HulpDetailsBlok>
 
                             <div class="mb-3">
                                 <div class="d-flex align-items-center gap-2 mb-1">
@@ -734,6 +719,32 @@ else
                                     </div>
                                 </div>
                             }
+
+                            <HulpDetailsBlok Titel="Zo leest u de tekening"
+                                             Beschrijving="Open alleen als u maatlagen of sleepgedrag wilt nalopen."
+                                             CssClass="mb-3 small">
+                                <div class="text-muted mb-3">
+                                    Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de vrije ruimte langs rakende randen is afgetrokken.
+                                </div>
+                                <div class="row g-3 align-items-center">
+                                    <div class="col-sm-5">
+                                        <svg viewBox="0 0 180 110" class="w-100" role="img" aria-label="Verschil tussen maat in de opening en maat om te bestellen">
+                                            <rect x="20" y="16" width="120" height="72" fill="none" stroke="var(--bs-secondary-color)" stroke-width="2" stroke-dasharray="6 4" />
+                                            <rect x="32" y="28" width="96" height="48" fill="var(--bs-primary-bg-subtle)" stroke="var(--bs-primary)" stroke-width="2" />
+                                        </svg>
+                                    </div>
+                                    <div class="col-sm-7">
+                                        <div class="d-flex align-items-start gap-2 mb-2">
+                                            <span class="d-inline-block border border-2 border-secondary rounded flex-shrink-0" style="width: 1rem; height: 1rem; border-style: dashed;"></span>
+                                            <div><strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel</strong>: de vrije ruimte waar het paneel in moet passen.</div>
+                                        </div>
+                                        <div class="d-flex align-items-start gap-2">
+                                            <span class="d-inline-block border border-primary rounded bg-primary bg-opacity-10 flex-shrink-0" style="width: 1rem; height: 1rem;"></span>
+                                            <div><strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel</strong>: de maat die overblijft nadat de aftrek per rakende rand is toegepast.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </HulpDetailsBlok>
 
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-outline-secondary flex-grow-1" @onclick="ResetConceptPaneel">

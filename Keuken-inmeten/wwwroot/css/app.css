@@ -966,6 +966,10 @@ code {
     align-self: flex-start;
 }
 
+.paneel-weergave-tabs--editor-open {
+    padding-block: 0.85rem;
+}
+
 .paneel-editor-drawer-layer {
     position: fixed;
     inset: 0;
@@ -1088,8 +1092,8 @@ code {
         align-items: flex-end;
         justify-content: flex-end;
         padding: 0;
-        background: color-mix(in srgb, var(--bs-body-color) 18%, transparent);
-        backdrop-filter: blur(2px);
+        background: color-mix(in srgb, var(--bs-body-color) 24%, transparent);
+        backdrop-filter: blur(4px);
         pointer-events: none;
     }
 
@@ -1100,6 +1104,10 @@ code {
         margin-top: auto;
         border-radius: 1rem 1rem 0 0;
         border-bottom: 0;
+    }
+
+    .paneel-pagina-shell.editor-open .paneel-overige-wanden-strip {
+        display: none;
     }
 
     .paneel-editor-drawer--waiting {
@@ -1907,6 +1915,8 @@ code {
 .bestellijst-export-overlay {
     justify-content: flex-end;
     align-items: stretch;
+    background: color-mix(in srgb, var(--bs-body-color) 28%, transparent);
+    backdrop-filter: blur(4px);
 }
 
 .bestellijst-export-drawer {
@@ -1918,6 +1928,13 @@ code {
     border-radius: 1rem 0 0 1rem;
     display: flex;
     flex-direction: column;
+}
+
+.bestellijst-export-drawer .card-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    background: var(--bs-body-bg, #fff);
 }
 
 .bestellijst-export-drawer-body {
@@ -2032,8 +2049,15 @@ code {
 
     .bestellijst-export-drawer {
         width: 100%;
-        height: 100%;
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100vh;
+        max-height: 100dvh;
         border-radius: 0;
+    }
+
+    .bestellijst-export-drawer-body {
+        padding-block: 1rem;
     }
 }
 
@@ -2073,6 +2097,31 @@ code {
     background: var(--bs-body-bg, #fff);
 }
 
+.zaagplan-kerncijfers {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.zaagplan-kerncijfer {
+    min-width: 9.5rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--bs-border-color, #d0d7de);
+    border-radius: 0.85rem;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+}
+
+.zaagplan-kerncijfer-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color, #516173);
+}
+
 .zaagplan-toolbar-meta {
     display: flex;
     flex-wrap: wrap;
@@ -2097,6 +2146,10 @@ code {
 }
 
 .zaagplan-geavanceerd summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
     cursor: pointer;
     font-weight: 600;
 }
@@ -2155,6 +2208,16 @@ code {
     border: 1px solid var(--bs-border-color);
     border-radius: 0.85rem;
     background: var(--bs-body-bg);
+}
+
+@media (max-width: 767.98px) {
+    .zaagplan-kerncijfers {
+        justify-content: stretch;
+    }
+
+    .zaagplan-kerncijfer {
+        flex: 1 1 10rem;
+    }
 }
 
 /* ── Dark mode overrides ── */
@@ -2370,6 +2433,39 @@ code {
 }
 
 /* ── Verificatie ── */
+.verificatie-samenvatting {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.verificatie-samenvatting-item {
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.85rem;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+}
+
+.verificatie-samenvatting-label {
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.verificatie-taak-meta {
+    min-width: min(22rem, 100%);
+}
+
+.verificatie-taak-acties {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
 .verificatie-tabs .nav-link {
     font-size: 0.85rem;
     padding: 0.35rem 0.5rem;
@@ -2460,4 +2556,16 @@ code {
 .verificatie-resultaat-icoon { font-size: 4rem; line-height: 1; margin-bottom: 1rem; }
 .verificatie-resultaat-icoon.succes { color: var(--bs-success); }
 .verificatie-resultaat-icoon.waarschuwing { color: var(--bs-warning); }
+
+@media (min-width: 768px) {
+    .verificatie-samenvatting {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .verificatie-taak-acties {
+        width: 100%;
+        justify-content: space-between;
+    }
 }
