@@ -35,29 +35,15 @@
                     <p class="lead text-muted mb-4">
                         @(heeftProjectData
                             ? dashboardLead
-                            : "De app leidt u in vijf vaste stappen van indeling naar panelen, verificatie, bestellijst en zaagplan. Zo ziet u vooraf wat u moet verzamelen en wat u straks kunt bestellen of zagen.")
+                            : "Begin met wanden en kasten. Panelen, controle, bestellijst en zaagplan volgen daarna in vaste stappen.")
                     </p>
 
                     <div class="d-flex flex-wrap gap-2">
                         <a href="@vervolgStap.Route" class="btn btn-primary btn-lg px-4">@StappenFlowHelper.MaakVolgendeLabel(vervolgStap.Id)</a>
                         <a href="@(heeftProjectData ? "#project-overzicht" : "#startflow-stappen")" class="btn btn-outline-secondary btn-lg px-4">
-                            @(heeftProjectData ? "Bekijk projectoverzicht" : "Bekijk alle stappen")
+                            @(heeftProjectData ? "Projectdetails" : "Bekijk stappen")
                         </a>
                     </div>
-
-                    @if (heeftProjectData)
-                    {
-                        <div class="home-status-strip mt-4">
-                            <strong>Huidige projectstatus:</strong>
-                            <span>@aantalWanden wand(en)</span>
-                            <span>@aantalKasten kast(en)</span>
-                            <span>@aantalPanelen paneel/panelen</span>
-                            @if (aantalBestellijstItems > 0)
-                            {
-                                <span>@aantalBestellijstItems orderregel(s)</span>
-                            }
-                        </div>
-                    }
                 </div>
 
                 <div class="col-lg-5">
@@ -68,115 +54,52 @@
                             <h2 class="h5 mb-1">@vervolgStap.Label</h2>
                             <p class="text-muted small mb-3">@vervolgStap.Beschrijving</p>
 
-                            <div class="home-resume-checklist">
-                                <div class="home-resume-check">
-                                    <strong>@aandachtBlok.Titel</strong>
-                                    <div class="text-muted small">@aandachtBlok.Tekst</div>
+                            <div class="small fw-semibold text-uppercase text-muted mb-2">Nu belangrijk</div>
+                            <dl class="home-resume-summary mb-0">
+                                <div class="home-resume-summary-row">
+                                    <dt>@aandachtBlok.Titel</dt>
+                                    <dd>@aandachtBlok.Tekst</dd>
                                 </div>
-                                <div class="home-resume-check">
-                                    <strong>@boorgatBlok.Titel</strong>
-                                    <div class="text-muted small">@boorgatBlok.Tekst</div>
+                                <div class="home-resume-summary-row">
+                                    <dt>@boorgatBlok.Titel</dt>
+                                    <dd>@boorgatBlok.Tekst</dd>
                                 </div>
-                            </div>
-
-                            <div class="mt-3">
-                                <div class="small fw-semibold text-uppercase text-muted mb-2">Direct naar</div>
-                                <div class="home-resume-links">
-                                    <a href="kasten" class="btn btn-outline-secondary home-quick-link">Indeling</a>
-                                    @if (aantalKasten > 0)
-                                    {
-                                        <a href="panelen" class="btn btn-outline-secondary home-quick-link">Panelen</a>
-                                    }
-                                    @if (aantalPanelen > 0)
-                                    {
-                                        <a href="verificatie" class="btn btn-outline-secondary home-quick-link">Verificatie</a>
-                                    }
-                                    @if (aantalBestellijstItems > 0)
-                                    {
-                                        <a href="bestellijst" class="btn btn-outline-secondary home-quick-link">Bestellijst</a>
-                                        <a href="zaagplan" class="btn btn-outline-secondary home-quick-link">Zaagplan</a>
-                                    }
-                                </div>
-
-                                @if (aantalKasten == 0)
-                                {
-                                    <div class="home-inline-disabled mt-2">Panelen opent zodra er minstens een kast is toegevoegd.</div>
-                                }
-                            </div>
+                            </dl>
                         </div>
                     }
                     else
                     {
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <div class="home-summary-card h-100">
-                                    <h2 class="h5 mb-3">Dit hebt u nodig</h2>
-                                    <ul class="home-summary-list">
-                                        <li class="home-summary-item">
-                                            <span class="home-summary-icon">📐</span>
-                                            <div>
-                                                <strong>Wanden en kasten per wand</strong>
-                                                <div class="text-muted small">Breedte, hoogte en positie vormen de basis van alle volgende stappen.</div>
-                                            </div>
-                                        </li>
-                                        <li class="home-summary-item">
-                                            <span class="home-summary-icon">📏</span>
-                                            <div>
-                                                <strong>Kastmaten en gatenrij</strong>
-                                                <div class="text-muted small">Voor deuren en ladefronten gebruikt de app deze maten om openingen, werkmaten en boorgaten te berekenen.</div>
-                                            </div>
-                                        </li>
-                                        <li class="home-summary-item">
-                                            <span class="home-summary-icon">🧩</span>
-                                            <div>
-                                                <strong>Apparaten en planken waar relevant</strong>
-                                                <div class="text-muted small">Voeg ze alleen toe als ze de indeling, vrije ruimte of referentie voor de gatenrij beïnvloeden.</div>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div class="col-12">
-                                <div class="home-summary-card h-100">
-                                    <h2 class="h5 mb-3">Dit krijgt u eruit</h2>
-                                    <ul class="home-summary-list">
-                                        <li class="home-summary-item">
-                                            <span class="home-summary-icon">🪟</span>
-                                            <div>
-                                                <strong>Paneelmaten per opening</strong>
-                                                <div class="text-muted small">Inclusief draairichting van de deur (scharnierzijde), randspeling en paneeltype.</div>
-                                            </div>
-                                        </li>
-                                        <li class="home-summary-item">
-                                            <span class="home-summary-icon">🛠️</span>
-                                            <div>
-                                                <strong>Boorgaten en scharnierinfo</strong>
-                                                <div class="text-muted small">@(totaalBoorgaten > 0 ? $"{totaalBoorgaten} boorgat(en) zijn al berekend in uw huidige project." : "De verificatiestap laat zien waar de gaten en controlepunten horen.")</div>
-                                            </div>
-                                        </li>
-                                        <li class="home-summary-item">
-                                            <span class="home-summary-icon">🧾</span>
-                                            <div>
-                                                <strong>Bestellijst en zaagplan</strong>
-                                                <div class="text-muted small">@(aantalBestellijstItems > 0 ? $"{aantalBestellijstItems} orderregel(s) staan al klaar voor export of zaagoptimalisatie." : "Na verificatie rolt er een bestellijst uit, gevolgd door een zaagplan op plaatformaat.")</div>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
+                        <div class="home-summary-card h-100">
+                            <h2 class="h5 mb-3">Voor u start</h2>
+                            <ul class="home-summary-list home-summary-list--compact">
+                                <li class="home-summary-item">
+                                    <span class="home-summary-icon">📐</span>
+                                    <div>
+                                        <strong>Meet wanden en kasten per wand</strong>
+                                        <div class="text-muted small">Breedte, hoogte en positie vormen de basis van alle volgende stappen.</div>
+                                    </div>
+                                </li>
+                                <li class="home-summary-item">
+                                    <span class="home-summary-icon">🧩</span>
+                                    <div>
+                                        <strong>Voeg apparaten of planken alleen toe als ze echt iets veranderen</strong>
+                                        <div class="text-muted small">Gebruik ze alleen als ze wandruimte, vrije opening of gatenrij beïnvloeden.</div>
+                                    </div>
+                                </li>
+                                <li class="home-summary-item">
+                                    <span class="home-summary-icon">🧾</span>
+                                    <div>
+                                        <strong>Daarna volgen controle, bestellijst en zaagplan</strong>
+                                        <div class="text-muted small">Na paneeltoewijzing ziet u maten, boorgaten, orderregels en plaatindeling terug.</div>
+                                    </div>
+                                </li>
+                            </ul>
                         </div>
                     }
                 </div>
             </div>
         </div>
     </section>
-
-    @if (!heeftProjectData)
-    {
-        <TerminologieUitleg Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde"
-                            Beschrijving="Gebruik deze korte woordenlijst als u voor het eerst met de meettermen op de startpagina werkt." />
-    }
 
     @if (heeftProjectData)
     {
@@ -302,8 +225,8 @@
             <div class="card-body p-4">
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2">
                     <div>
-                        <h2 class="h4 mb-1">Extra uitleg en mini-voorbeeld</h2>
-                        <p class="text-muted mb-0">Open dit alleen als u meer context wilt bij apparaten, planken of de uiteindelijke output.</p>
+                        <h2 class="h4 mb-1">Meer uitleg (optioneel)</h2>
+                        <p class="text-muted mb-0">Open dit alleen als u voorbeelden of extra context wilt voordat u begint.</p>
                     </div>
                 </div>
 
@@ -410,8 +333,8 @@
             <div class="card-body p-4">
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2">
                     <div>
-                        <h2 class="h4 mb-1">Project overdragen of termen opfrissen?</h2>
-                        <p class="text-muted mb-0">Open deze compacte hulp alleen als u nog even de basis, uitzonderingen of de taal van de app wilt nalopen.</p>
+                        <h2 class="h4 mb-1">Extra hulp (optioneel)</h2>
+                        <p class="text-muted mb-0">Open dit alleen als u de basis of uitzonderingen nog even wilt nalopen.</p>
                     </div>
                 </div>
 
@@ -531,32 +454,32 @@
 
     private static string MaakDashboardLead(int aantalWanden, int aantalKasten, int aantalPanelen, int aantalBestellijstItems)
         => aantalBestellijstItems > 0
-            ? $"{aantalWanden} wand(en), {aantalKasten} kast(en), {aantalPanelen} paneel/panelen en {aantalBestellijstItems} orderregel(s) staan al klaar. Gebruik deze pagina vooral om snel te hervatten of bewust naar een andere stap te springen."
+            ? $"{aantalWanden} wand(en), {aantalKasten} kast(en) en {aantalPanelen} paneel/panelen staan klaar. Hervat nu bij de volgende controle- of uitvoerstap."
             : aantalPanelen > 0
-                ? "Uw indeling en paneeltoewijzing staan al klaar. Rond nu verificatie, bestellijst en zaagplan af."
-                : $"{aantalWanden} wand(en) en {aantalKasten} kast(en) zijn al ingevoerd. Ga nu direct verder met panelen toewijzen.";
+                ? "Uw indeling en paneeltoewijzing staan klaar. Rond nu verificatie af en werk daarna door naar bestellijst en zaagplan."
+                : $"{aantalWanden} wand(en) en {aantalKasten} kast(en) staan klaar. Ga nu verder met panelen toewijzen.";
 
     private static InfoBlok MaakAandachtBlok(int aantalPanelen, int aantalBestellijstItems)
         => aantalPanelen == 0
             ? new(
-                "Panelen ontbreken nog",
-                "Zonder paneeltoewijzing blijven verificatie, bestellijst en zaagplan vergrendeld.")
+                "Wijs eerst panelen toe",
+                "Zonder paneeltoewijzing blijven verificatie, bestellijst en zaagplan gesloten.")
             : aantalBestellijstItems == 0
                 ? new(
-                    "Controleer voordat u bestelt",
-                    "Loop eerst verificatie door zodat maten, scharnierzijde en boorgaten nog een laatste controle krijgen.")
+                    "Rond verificatie af",
+                    "Controleer eerst maat, scharnierzijde en boorgaten voordat u bestelt.")
                 : new(
                     "Bestellijst en zaagplan zijn klaar",
-                    "U kunt nu exporteren, orderregels nalopen en beoordelen of alle panelen op uw standaard plaatformaat passen.");
+                    "U kunt nu exporteren, orderregels nalopen en het plaatformaat controleren.");
 
     private static InfoBlok MaakBoorgatBlok(int totaalBoorgaten)
         => totaalBoorgaten > 0
             ? new(
                 $"{totaalBoorgaten} boorgat(en) al berekend",
-                "Deze informatie zit ook in de verificatie en de bestellijst, zodat u niet opnieuw hoeft na te rekenen.")
+                "U vindt deze terug in verificatie en bestellijst.")
             : new(
                 "Boorgaten verschijnen later",
-                "Zodra deuren of relevante fronten zijn toegewezen vult de app deze technische details automatisch aan.");
+                "Zodra deuren of relevante fronten zijn toegewezen vult de app deze automatisch aan.");
 
     private static string MaakOutputSamenvatting(int aantalResultaten, int aantalBestellijstItems, int totaalBoorgaten)
         => aantalBestellijstItems > 0

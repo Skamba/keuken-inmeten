@@ -45,22 +45,50 @@
 </div>
 
 @* ──── Wand toevoegen ──── *@
-<div class="card mb-4">
-    <div class="card-body d-flex flex-column flex-lg-row align-items-lg-end gap-3">
-        <div class="flex-grow-1">
-            <label class="form-label fw-semibold">Nieuwe wand</label>
-            <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
-                   @onkeydown="WandToevoegenBijEnter"
-                   data-testid="nieuwe-wand-naam-input" />
-            <div class="form-text hulp-hint" data-testid="nieuwe-wand-naam-hint">Bijvoorbeeld Achterwand of Linkerwand bij raam. De naam blijft zichtbaar in samenvattingen en vervolgstappen.</div>
+@if (State.Wanden.Count == 0)
+{
+    <div class="card mb-4">
+        <div class="card-body d-flex flex-column flex-lg-row align-items-lg-end gap-3">
+            <div class="flex-grow-1">
+                <label class="form-label fw-semibold">Nieuwe wand</label>
+                <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
+                       @onkeydown="WandToevoegenBijEnter"
+                       data-testid="nieuwe-wand-naam-input" />
+                <div class="form-text hulp-hint" data-testid="nieuwe-wand-naam-hint">Bijvoorbeeld Achterwand of Linkerwand bij raam. De naam blijft zichtbaar in samenvattingen en vervolgstappen.</div>
+            </div>
+            <button class="btn btn-primary" @onclick="WandToevoegen"
+                    disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)"
+                    data-testid="wand-toevoegen-button">
+                Wand toevoegen
+            </button>
         </div>
-        <button class="btn btn-primary" @onclick="WandToevoegen"
-                disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)"
-                data-testid="wand-toevoegen-button">
-            Wand toevoegen
-        </button>
     </div>
-</div>
+}
+else
+{
+    <div class="indeling-nieuwe-wand-strip mb-4">
+        <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-end gap-3">
+            <div>
+                <div class="fw-semibold">Nog een wand toevoegen</div>
+                <div class="small text-muted">Houd dit compact zolang u nog extra wanden in deze keuken nodig hebt.</div>
+            </div>
+            <div class="flex-grow-1">
+                <label class="form-label fw-semibold">Naam van de extra wand</label>
+                <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
+                       @onkeydown="WandToevoegenBijEnter"
+                       data-testid="nieuwe-wand-naam-input" />
+                <div class="form-text hulp-hint" data-testid="nieuwe-wand-naam-hint">Bijvoorbeeld Kopwand of Eilandzijde.</div>
+            </div>
+            <div class="d-flex justify-content-xl-end">
+                <button class="btn btn-primary" @onclick="WandToevoegen"
+                        disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)"
+                        data-testid="wand-toevoegen-button">
+                    Wand toevoegen
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @if (State.Wanden.Count == 0)
 {
@@ -149,6 +177,7 @@ else
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
                     <div>
                         <h5 class="mb-0">Andere wanden</h5>
+                        <div class="small text-muted">Wissel alleen als u op een andere wand wilt verderwerken.</div>
                     </div>
                     <span class="badge text-bg-light indeling-workspace-hint">@overzichtWanden.Count wand(en) direct beschikbaar</span>
                 </div>
@@ -219,11 +248,8 @@ else
                             @gevuldeBreedte mm ingevuld · @vrijeBreedte mm vrije wandruimte
                         </div>
                     </div>
-                    <div class="d-flex flex-column align-items-start align-items-sm-end gap-2">
-                        <div class="small text-muted text-sm-end">
-                            <div class="fw-semibold text-uppercase">Werklaag</div>
-                            <div>Maten, objecten en visualisatie staan nu alleen voor deze wand open.</div>
-                        </div>
+                    <div class="d-flex flex-column align-items-start align-items-sm-end gap-2 indeling-workspace-state">
+                        <span class="badge text-bg-light border">Werkruimte open</span>
                         <button class="btn btn-sm btn-outline-secondary" @onclick="SluitWandWerkruimte">
                             Werkruimte sluiten
                         </button>
@@ -235,21 +261,21 @@ else
                 {
                     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 pb-3 border-bottom">
                         <div>
-                            <h6 class="mb-1">Werk nu alleen op deze wand</h6>
-                            <p class="text-muted small mb-0"><strong>+ Kast toevoegen</strong> blijft de hoofdactie. Voeg alleen een apparaat toe als het echt ruimte op deze wand inneemt.</p>
+                            <h6 class="mb-1">Volgende stap op deze wand</h6>
+                            <p class="text-muted small mb-0">Voeg eerst een kast toe. Gebruik een apparaat alleen als het echt wandruimte inneemt.</p>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
                             <button class="btn btn-primary"
                                     @onclick="() => OpenKastFormulier(actieveWand.Id)"
                                     data-testid="open-kast-form-button"
                                     data-wand-id="@actieveWand.Id">
-                                + Kast toevoegen
+                                Kast toevoegen
                             </button>
-                            <button class="btn btn-outline-secondary"
+                            <button class="btn btn-outline-secondary btn-sm"
                                     @onclick="() => OpenApparaatFormulier(actieveWand.Id)"
                                     data-testid="open-apparaat-form-button"
                                     data-wand-id="@actieveWand.Id">
-                                + Apparaat toevoegen
+                                Apparaat toevoegen
                             </button>
                         </div>
                     </div>
@@ -266,21 +292,21 @@ else
                             <input type="number" class="form-control form-control-sm"
                                    data-testid="wand-breedte-input"
                                    value="@actieveWand.Breedte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Breedte), e)" />
-                            <div class="form-text hulp-hint" data-testid="wand-breedte-hint">Bijvoorbeeld 3000. Gebruik de totale wandbreedte die u in deze opstelling wilt vullen.</div>
+                            <div class="form-text hulp-hint" data-testid="wand-breedte-hint">Bijvoorbeeld 3000. Gebruik de totale breedte van deze wand.</div>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label small mb-0">Wandhoogte (mm)</label>
                             <input type="number" class="form-control form-control-sm"
                                    data-testid="wand-hoogte-input"
                                    value="@actieveWand.Hoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Hoogte), e)" />
-                            <div class="form-text hulp-hint" data-testid="wand-hoogte-hint">Bijvoorbeeld 2600. Gebruik de vrije hoogte van vloer tot plafond of tot een vast obstakel.</div>
+                            <div class="form-text hulp-hint" data-testid="wand-hoogte-hint">Bijvoorbeeld 2600. Gebruik de vrije hoogte van vloer tot plafond.</div>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label small mb-0">Hoogte van de plint (mm)</label>
                             <input type="number" class="form-control form-control-sm" min="0" step="10"
                                    data-testid="wand-plint-input"
                                    value="@actieveWand.PlintHoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.PlintHoogte), e)" />
-                            <div class="form-text hulp-hint" data-testid="wand-plint-hint">Meestal 100. Gebruik 0 alleen als deze wand zonder plint wordt opgebouwd.</div>
+                            <div class="form-text hulp-hint" data-testid="wand-plint-hint">Meestal 100. Gebruik 0 alleen zonder plint.</div>
                         </div>
                     </div>
                 </div>

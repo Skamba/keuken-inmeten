@@ -45,6 +45,10 @@ html, body {
     gap: 1rem;
 }
 
+.home-summary-list--compact {
+    gap: 0.85rem;
+}
+
 .home-summary-item {
     display: flex;
     gap: 0.9rem;
@@ -88,16 +92,28 @@ html, body {
     flex-direction: column;
 }
 
-.home-resume-checklist {
+.home-resume-summary {
     display: grid;
     gap: 0.85rem;
+    margin: 0;
 }
 
-.home-resume-check {
+.home-resume-summary-row {
     padding: 0.85rem 1rem;
     border: 1px solid var(--bs-border-color);
     border-radius: 0.85rem;
     background: var(--bs-body-bg);
+}
+
+.home-resume-summary-row dt {
+    margin: 0 0 0.2rem;
+    font-weight: 600;
+}
+
+.home-resume-summary-row dd {
+    margin: 0;
+    color: var(--bs-secondary-color);
+    font-size: 0.92rem;
 }
 
 .home-resume-links {
@@ -1178,6 +1194,13 @@ code {
     scroll-margin-top: 5rem;
 }
 
+.indeling-nieuwe-wand-strip {
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.95rem;
+    background: var(--bs-tertiary-bg);
+}
+
 .indeling-wand-leeg {
     border-radius: 1rem;
 }
@@ -1188,6 +1211,10 @@ code {
 
 .indeling-overige-wanden {
     border-radius: 1rem;
+}
+
+.indeling-workspace-state {
+    min-width: 9rem;
 }
 
 .indeling-overige-wanden-lijst {
@@ -1925,6 +1952,18 @@ code {
 .bestellijst-export-stap.is-complete {
     border-color: color-mix(in srgb, #0d6efd 45%, var(--bs-border-color, #d0d7de));
     color: var(--bs-body-color, #212529);
+}
+
+@media (max-width: 575.98px) {
+    .bestellijst-export-stappen {
+        gap: 0.45rem;
+    }
+
+    .bestellijst-export-stap {
+        padding: 0.6rem 0.45rem;
+        font-size: 0.78rem;
+        text-align: center;
+    }
 }
 
 .bestellijst-export-keuze {
