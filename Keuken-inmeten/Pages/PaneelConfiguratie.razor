@@ -617,47 +617,27 @@ else
                         }
                         else
                         {
-                            <div class="border rounded p-3 mb-3 bg-body-tertiary">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h6 class="mb-0">Begeleide flow</h6>
-                                    <span class="badge text-bg-light">4 stappen</span>
-                                </div>
-                                <div class="d-grid gap-2 mb-3">
-                                    @foreach (var stap in PaneelFlowStappen)
-                                    {
-                                        var status = PaneelFlowStatus(stap.Id);
-                                        <div class="d-flex justify-content-between align-items-start gap-3 border rounded px-3 py-2 @PaneelFlowContainerClass(status)">
-                                            <div>
-                                                <div class="fw-semibold">@stap.Titel</div>
-                                                <div class="small text-muted">@stap.Beschrijving</div>
-                                            </div>
-                                            <span class="badge @PaneelFlowBadgeClass(status)">@PaneelFlowLabel(status)</span>
-                                        </div>
-                                    }
-                                </div>
-                                <div class="row g-3 small">
-                                    <div class="col-md-4">
-                                        <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Nog te doen</div>
-                                        <div>@VolgendePaneelStapTekst()</div>
+                            <div class="paneel-editor-focus border rounded p-3 mb-3 bg-body-tertiary">
+                                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+                                    <div>
+                                        <div class="small text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Volgende stap</div>
+                                        <div class="fw-semibold mb-1">@VolgendePaneelStapTekst()</div>
+                                        <div class="small text-muted">@PaneelEditorKernHintTekst(kanOpslaan)</div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Geselecteerd</div>
-                                        <div>@GeselecteerdePaneelStatusTekst()</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Klaar om op te slaan</div>
-                                        <div>@(kanOpslaan ? "Ja, u kunt nu opslaan." : OpslaanStatusTekst())</div>
+                                    <div class="d-flex flex-wrap gap-2 align-items-start paneel-editor-focus-meta">
+                                        <span class="badge text-bg-light border">Wand: @ActieveWandNaam</span>
+                                        <span class="badge text-bg-light border">Geselecteerd: @PaneelEditorSelectieSamenvatting()</span>
+                                        <span class="badge @(kanOpslaan ? "text-bg-success" : "text-bg-light border")">Opslaan: @PaneelEditorOpslaanSamenvatting(kanOpslaan)</span>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="alert alert-primary small py-2">
-                                Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de vrije ruimte langs rakende randen is afgetrokken.
                             </div>
 
                             <HulpDetailsBlok Titel="Zo leest u de tekening"
-                                             Beschrijving="Open alleen als u het verschil tussen de twee maatlagen wilt nalopen."
+                                             Beschrijving="Open alleen als u maatlagen of sleepgedrag wilt nalopen."
                                              CssClass="mb-3 small">
+                                <div class="text-muted mb-3">
+                                    Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de vrije ruimte langs rakende randen is afgetrokken.
+                                </div>
                                 <div class="row g-3 align-items-center">
                                     <div class="col-sm-5">
                                         <svg viewBox="0 0 180 110" class="w-100" role="img" aria-label="Verschil tussen maat in de opening en maat om te bestellen">
@@ -677,11 +657,6 @@ else
                                     </div>
                                 </div>
                             </HulpDetailsBlok>
-
-                            <div class="small text-muted mb-3">
-                                <div><strong>Wand:</strong> @ActieveWandNaam</div>
-                                <div><strong>Geselecteerd:</strong> @GeselecteerdeKastNamen</div>
-                            </div>
 
                             <div class="mb-3">
                                 <div class="d-flex align-items-center gap-2 mb-1">

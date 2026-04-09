@@ -5,13 +5,14 @@
     "Kitchen fitters and cabinet makers measuring kitchen runs and cabinet openings",
     "Installers or workshop planners preparing panel sizes, hinge bores, order lists, and cutting plans"
   ],
-  "currentIteration": 6,
-  "countedIterationsCompleted": 2,
+  "currentIteration": 7,
+  "countedIterationsCompleted": 3,
   "countedIterationLabels": [
     "iteration-5",
-    "iteration-6"
+    "iteration-6",
+    "iteration-7"
   ],
-  "countedIterationNote": "Historical iterations 1-4 remain useful context, but counted progress under the stricter journey/page/section/element screenshot rubric now consists of iteration-5 and iteration-6.",
+  "countedIterationNote": "Historical iterations 1-4 remain useful context, but counted progress under the stricter journey/page/section/element screenshot rubric now consists of iteration-5 through iteration-7.",
   "mainJourneys": [
     "Start or resume a project from Home",
     "Build the kitchen run per wall in Stap 1: Indeling",
@@ -33,6 +34,7 @@
     "indeling-normal-mobile",
     "panelen-route-gate-desktop",
     "panelen-editor-normal-desktop",
+    "panelen-editor-drawer-selected-desktop",
     "panelen-review-normal-desktop",
     "panelen-review-dense-desktop",
     "panelen-workspace-mobile",
@@ -136,14 +138,38 @@
         ".agent/screenshots/iteration-6/after/comparisons/zaagplan-normal-desktop-compare.png",
         ".agent/screenshots/iteration-6/after/comparisons/zaagplan-dense-desktop-compare.png"
       ]
+    },
+    "iteration7": {
+      "beforeDir": ".agent/screenshots/iteration-7/before/",
+      "afterDir": ".agent/screenshots/iteration-7/after/",
+      "beforeManifest": ".agent/screenshots/iteration-7/before/manifest.json",
+      "afterManifest": ".agent/screenshots/iteration-7/after/manifest.json",
+      "beforeCounts": {
+        "journey": 8,
+        "page": 27,
+        "section": 36,
+        "element": 31,
+        "total": 102
+      },
+      "afterCounts": {
+        "journey": 8,
+        "page": 27,
+        "section": 36,
+        "element": 31,
+        "total": 102
+      },
+      "comparisonEvidence": [
+        ".agent/screenshots/iteration-7/after/comparisons/panelen-editor-normal-desktop-comparison.png",
+        ".agent/screenshots/iteration-7/after/comparisons/panelen-editor-drawer-normal-desktop-comparison.png",
+        ".agent/screenshots/iteration-7/after/comparisons/panelen-editor-drawer-selected-desktop-comparison.png"
+      ],
+      "targetedEvidence": [
+        ".agent/screenshots/iteration-7/before/section/panelen-editor-drawer-selected-desktop.png",
+        ".agent/screenshots/iteration-7/after/section/panelen-editor-drawer-selected-desktop.png"
+      ]
     }
   },
   "currentTopIssues": [
-    {
-      "id": "paneel-desktop-drawer-overexplained",
-      "severity": 2,
-      "summary": "De desktop paneel-editor stackt nog te veel uitleg boven de daadwerkelijke velden en kost daardoor onnodige filtertijd."
-    },
     {
       "id": "verificatie-complete-primary-next-step-hidden",
       "severity": 2,
@@ -152,24 +178,24 @@
   ],
   "fixedThisIteration": [
     {
-      "id": "step-intro-stack-clutter",
-      "summary": "Verificatie, Bestellijst en Zaagplan gebruiken nu een compacte ondersteuningsstrook met lichte actieknoppen voor staphulp en begrippen, zodat de hoofdtaak directer begint."
+      "id": "paneel-desktop-drawer-overexplained",
+      "summary": "De desktop paneel-editor gebruikt nu een compacte volgende-stap samenvatting, lichte statuschips en optionele hulpdisclosures, zodat de bewerkbare velden en primaire actie veel hoger beginnen."
     }
   ],
   "whatRemains": [
-    "Maak de desktop paneel-editor rustiger door begeleidende uitleg boven de velden verder te comprimeren.",
     "Geef de verificatie-afronding een expliciete primaire route naar Bestellijst.",
-    "Voltooi nog minstens drie extra volledig getelde iteraties onder de huidige evidence-rubric."
+    "Voer nog minstens twee extra volledig getelde iteraties uit onder de huidige evidence-rubric, ook als daarna alleen minor polish overblijft.",
+    "Doe na iteration 8 nog een volledige herbeoordelingsronde om te bevestigen dat alleen severity-1 issues resteren."
   ],
   "knownRisksChecked": [
-    "export PATH=/root/.dotnet:$PATH && dotnet test Code.slnx --nologo passes after the iteration-6 change",
-    "export PATH=/root/.dotnet:$PATH && dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo succeeds after the iteration-6 change",
-    "npm run test:e2e passes after the iteration-6 change with 13 Playwright tests",
-    "Fresh iteration-6 before and after evidence each include 102 screenshots and cover journey, page, section, and element levels",
-    "Fresh iteration-6 comparison boards confirm Verificatie, Bestellijst, and Zaagplan start their main task higher with less stacked utility UI",
-    "No regressions were found in normal or dense reviews, warning states, or the end-to-end flow from indeling to export"
+    "export PATH=/root/.dotnet:$PATH && dotnet test Code.slnx --nologo passes after the iteration-7 change",
+    "export PATH=/root/.dotnet:$PATH && dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo succeeds after the iteration-7 change",
+    "npm run test:e2e passes after the iteration-7 change with 13 Playwright tests",
+    "Fresh iteration-7 before and after evidence each include 102 screenshots and cover journey, page, section, and element levels",
+    "Targeted iteration-7 selected-drawer before/after evidence confirms the editor fields and CTA start materially higher while heavy flow chrome is removed",
+    "No regressions were found in empty, normal, dense, mobile, warning, completion, or end-to-end flows"
   ],
-  "nextRecommendedStep": "Start iteration 7 with the remaining highest-value dense-state issue: compress the desktop paneel-editor drawer so editable controls start higher and explanation shifts behind lighter support.",
+  "nextRecommendedStep": "Start iteration 8 with the remaining severity-2 transition issue: give the Verificatie completion card an explicit primary CTA to Bestellijst and demote print/share within the card itself.",
   "stopGateStatus": {
     "severity4Cleared": true,
     "severity3Cleared": true,
@@ -179,5 +205,5 @@
     "latestRoundRegressionFree": true,
     "onlyMinorIssuesRemain": false
   },
-  "lastUpdated": "2026-04-09T06:26:48Z"
+  "lastUpdated": "2026-04-09T06:45:30Z"
 }

@@ -30,7 +30,8 @@ The script clears browser storage between scenarios and writes screenshots into 
 Each phase now contains explicit `journey/`, `page/`, `section/`, and `element/` subfolders plus a `manifest.json` with counts and paths.
 Mobile spot checks include `home-resume-mobile`, `indeling-normal-mobile`, `panelen-workspace-mobile`, and `panelen-editor-mobile`.
 Comparison boards are stored under `.agent/screenshots/<iteration>/after/comparisons/`.
-The latest counted evidence set is `.agent/screenshots/iteration-6/`.
+The latest counted evidence set is `.agent/screenshots/iteration-7/`.
+For the selected desktop paneel-drawer state, use the targeted screenshots under `.agent/screenshots/iteration-7/{before,after}/section/panelen-editor-drawer-selected-desktop.png`; the generic capture only records the waiting drawer state.
 
 ## Run validations
 

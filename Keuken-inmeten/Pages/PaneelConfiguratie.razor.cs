@@ -6,9 +6,6 @@ namespace Keuken_inmeten.Pages;
 
 public partial class PaneelConfiguratie
 {
-    private static IReadOnlyList<PaneelFlowStap> PaneelFlowStappen
-        => PaneelConfiguratieHelper.PaneelFlowStappen;
-
     private PaneelToewijzing formToewijzing = new();
     private readonly HashSet<Guid> geselecteerdeKastIds = [];
     private PaneelRechthoek? conceptPaneel;
@@ -85,9 +82,6 @@ public partial class PaneelConfiguratie
     private string ActieveWandNaam =>
         ActieveWandId is Guid wandId ? State.Wanden.Find(w => w.Id == wandId)?.Naam ?? "—" : "—";
 
-    private string GeselecteerdeKastNamen =>
-        string.Join(" + ", geselecteerdeKasten.Select(kast => kast.Naam));
-
     private PaneelFlowContext HuidigePaneelFlow => new(
         HeeftWandContext: geopendeWandId is not null,
         HeeftSelectie: geselecteerdeKastIds.Count > 0,
@@ -95,7 +89,7 @@ public partial class PaneelConfiguratie
         HeeftGeldigeMaat: formToewijzing.Breedte > 0 && formToewijzing.Hoogte > 0,
         RaaktGeselecteerdeKast: RaaktGeselecteerdeKast(),
         ActieveWandNaam: GeopendeWand?.Naam ?? ActieveWandNaam,
-        GeselecteerdeKastNamen: GeselecteerdeKastNamen);
+        GeselecteerdeKastNamen: string.Join(" + ", geselecteerdeKasten.Select(kast => kast.Naam)));
 
     private bool KanPaneelOpslaan()
         => PaneelConfiguratieHelper.KanPaneelOpslaan(HuidigePaneelFlow);
@@ -103,27 +97,36 @@ public partial class PaneelConfiguratie
     private string VolgendePaneelStapTekst()
         => PaneelConfiguratieHelper.BepaalVolgendePaneelStapTekst(HuidigePaneelFlow);
 
-    private string GeselecteerdePaneelStatusTekst()
-        => PaneelConfiguratieHelper.BepaalGeselecteerdePaneelStatusTekst(HuidigePaneelFlow);
-
     private string OpslaanStatusTekst()
         => PaneelConfiguratieHelper.BepaalOpslaanStatusTekst(HuidigePaneelFlow);
-
-    private string PaneelFlowStatus(string stapId)
-        => PaneelConfiguratieHelper.BepaalPaneelFlowStatus(stapId, HuidigePaneelFlow);
-
-    private static string PaneelFlowContainerClass(string status)
-        => PaneelConfiguratieHelper.PaneelFlowContainerClass(status);
-
-    private static string PaneelFlowBadgeClass(string status)
-        => PaneelConfiguratieHelper.PaneelFlowBadgeClass(status);
-
-    private static string PaneelFlowLabel(string status)
-        => PaneelConfiguratieHelper.PaneelFlowLabel(status);
 
     private bool RaaktGeselecteerdeKast()
         => conceptPaneel is not null
             && PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel).Count > 0;
+
+    private string PaneelEditorSelectieSamenvatting()
+        => geselecteerdeKasten.Count switch
+        {
+            0 => "Nog geen kast",
+            1 => geselecteerdeKasten[0].Naam,
+            _ => $"{geselecteerdeKasten.Count} kasten"
+        };
+
+    private static string PaneelEditorOpslaanSamenvatting(bool kanOpslaan)
+        => kanOpslaan ? "Klaar" : "Nog controleren";
+
+    private string PaneelEditorKernHintTekst(bool kanOpslaan)
+    {
+        if (kanOpslaan)
+            return "Controleer hieronder alleen nog maat en type. Daarna kunt u direct opslaan.";
+
+        if (conceptPaneel is null)
+            return "Sleep in de tekening of kies een vrij vak. De velden hieronder volgen direct mee.";
+
+        return RaaktGeselecteerdeKast()
+            ? "Controleer hieronder maat en type voordat u opslaat."
+            : "Pas positie, maat of selectie aan totdat het paneel weer een geselecteerde kast raakt.";
+    }
 
     private double BreedteInput
     {

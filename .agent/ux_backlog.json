@@ -1,6 +1,6 @@
 {
   "appName": "Keuken Inmeten",
-  "lastUpdated": "2026-04-09T06:13:03Z",
+  "lastUpdated": "2026-04-09T06:45:30Z",
   "issues": [
     {
       "id": "home-resume-hierarchy-overload",
@@ -195,11 +195,17 @@
       "severity": 2,
       "whyItMatters": "De drawer stapelt een begeleide flowkaart, een extra alert, hulpdetails en statusregels voordat de instelbare velden beginnen. Daardoor moeten frequente gebruikers te veel uitleg passeren voor ze kunnen handelen.",
       "proposedFix": "Houd bovenin slechts een korte volgende-stap samenvatting, demote de lange uitleg en laat de bewerkbare velden hoger in de drawer beginnen.",
-      "status": "open",
+      "status": "fixed",
       "evidenceReference": [
-        ".agent/screenshots/iteration-5/before/page/panelen-editor-normal-desktop.png",
-        ".agent/screenshots/iteration-5/before/section/panelen-editor-drawer-normal-desktop.png",
-        ".agent/screenshots/iteration-5/before/section/panelen-workspace-normal-desktop.png"
+        ".agent/screenshots/iteration-7/before/page/panelen-editor-normal-desktop.png",
+        ".agent/screenshots/iteration-7/before/section/panelen-editor-drawer-normal-desktop.png",
+        ".agent/screenshots/iteration-7/before/section/panelen-editor-drawer-selected-desktop.png",
+        ".agent/screenshots/iteration-7/after/page/panelen-editor-normal-desktop.png",
+        ".agent/screenshots/iteration-7/after/section/panelen-editor-drawer-normal-desktop.png",
+        ".agent/screenshots/iteration-7/after/section/panelen-editor-drawer-selected-desktop.png",
+        ".agent/screenshots/iteration-7/after/comparisons/panelen-editor-normal-desktop-comparison.png",
+        ".agent/screenshots/iteration-7/after/comparisons/panelen-editor-drawer-normal-desktop-comparison.png",
+        ".agent/screenshots/iteration-7/after/comparisons/panelen-editor-drawer-selected-desktop-comparison.png"
       ],
       "regressionRisk": "Medium - nieuwe of incidentele gebruikers mogen niet verdwalen zodra de uitleg compacter wordt."
     },
@@ -212,9 +218,9 @@
       "proposedFix": "Voeg in de afrondingskaart een expliciete primaire CTA naar de bestellijst toe en demoveer print/share naar secundaire acties.",
       "status": "open",
       "evidenceReference": [
-        ".agent/screenshots/iteration-5/before/page/verificatie-complete-desktop.png",
-        ".agent/screenshots/iteration-5/before/section/verificatie-completion-card-desktop.png",
-        ".agent/screenshots/iteration-5/after/page/verificatie-complete-desktop.png"
+        ".agent/screenshots/iteration-7/before/page/verificatie-complete-desktop.png",
+        ".agent/screenshots/iteration-7/before/section/verificatie-completion-card-desktop.png",
+        ".agent/screenshots/iteration-7/after/page/verificatie-complete-desktop.png"
       ],
       "regressionRisk": "Low - delen en afdrukken moeten nog steeds duidelijk beschikbaar blijven voor gebruikers die die route nodig hebben."
     }

@@ -30,16 +30,6 @@ public static class PaneelConfiguratieHelper
                         ? "Sla het paneel op zodra maat en type kloppen."
                         : "Controleer maat, type en plaatsing zodat het paneel weer een kast raakt.";
 
-    public static string BepaalGeselecteerdePaneelStatusTekst(PaneelFlowContext context)
-    {
-        if (!context.HeeftWandContext)
-            return "Nog geen wand geopend.";
-
-        return !context.HeeftSelectie
-            ? $"{context.ActieveWandNaam} · nog geen kasten geselecteerd."
-            : $"{context.ActieveWandNaam} · {context.GeselecteerdeKastNamen}";
-    }
-
     public static string BepaalOpslaanStatusTekst(PaneelFlowContext context)
     {
         if (!context.HeeftWandContext)
@@ -57,6 +47,16 @@ public static class PaneelConfiguratieHelper
         return context.RaaktGeselecteerdeKast
             ? "Ja, u kunt nu opslaan."
             : "Nee, het paneel moet minimaal een geselecteerde kast raken.";
+    }
+
+    public static string BepaalGeselecteerdePaneelStatusTekst(PaneelFlowContext context)
+    {
+        if (!context.HeeftWandContext)
+            return "Nog geen wand geopend.";
+
+        return !context.HeeftSelectie
+            ? $"{context.ActieveWandNaam} · nog geen kasten geselecteerd."
+            : $"{context.ActieveWandNaam} · {context.GeselecteerdeKastNamen}";
     }
 
     public static string BepaalPaneelFlowStatus(string stapId, PaneelFlowContext context)

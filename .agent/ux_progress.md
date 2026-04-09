@@ -329,3 +329,51 @@
 
 - **Not satisfied.** Two severity-2 issues still remain in important flows, and the run has completed only **2 counted iterations out of the required minimum of 5** under the current rubric.
 - **No regression found** in the 163 unit tests, 13 Playwright tests, refreshed dense-state screenshots, or the new comparison boards for Verificatie, Bestellijst, and Zaagplan.
+
+## Iteration 7 - desktop paneel drawer compaction
+
+- Started from `66205fb` on `main` and captured a fresh iteration-7 before set before changing code: **102 screenshots** (`8 journey`, `27 page`, `36 section`, `31 element`).
+- The default evidence still only showed the waiting drawer state, so I also reproduced the selected desktop drawer manually and captured a targeted before screenshot at `.agent/screenshots/iteration-7/before/section/panelen-editor-drawer-selected-desktop.png`.
+- Rechecked current guidance on progressive disclosure and side-panel forms: Primer and related drawer-form references all point to the same principle here - keep the next step visible, move longer explanation behind optional disclosure, and let editable controls start as high as possible.
+
+### Ranked issues entering iteration 7
+
+1. `paneel-desktop-drawer-overexplained` - severity 2 - the selected desktop drawer still spent too much height on a flow card, alert, help block, and separate status rows before the user could edit.
+2. `verificatie-complete-primary-next-step-hidden` - severity 2 - the Verificatie completion state still underplayed the route to Bestellijst at a critical transition.
+
+### What changed
+
+- **Paneel drawer hierarchy**
+  - Replaced the large four-step flow card, blue instructional alert, and separate wand/selectie status block with one compact `Volgende stap` focus panel.
+  - Kept only three light status chips (`Wand`, `Geselecteerd`, `Opslaan`) beside the next-step copy.
+  - Moved the longer tekening explanation fully behind one optional disclosure so recurring users are not forced through it on every edit.
+  - Left the waiting drawer state short and explicit, so the drawer still feels clear before a kast is selected.
+- **Compatibility**
+  - Preserved the older helper API used by existing tests, while the UI itself now renders the lighter drawer framing.
+
+### Screenshot coverage completed in this iteration
+
+- **Before:** 102 screenshots (`8 journey`, `27 page`, `36 section`, `31 element`) under `.agent/screenshots/iteration-7/before/`
+- **After:** 102 screenshots (`8 journey`, `27 page`, `36 section`, `31 element`) under `.agent/screenshots/iteration-7/after/`
+- **Targeted selected-drawer evidence:** before/after screenshots under `.agent/screenshots/iteration-7/{before,after}/section/panelen-editor-drawer-selected-desktop.png`
+- **Comparison boards:** 3 boards under `.agent/screenshots/iteration-7/after/comparisons/`
+
+### Before vs after observations
+
+- **Selected drawer:** major improvement. The first editable fields and the save CTA now start almost immediately, instead of after a four-step card, alert, help block, and separate status copy.
+- **Waiting drawer:** still calm. The empty state remains clear without pretending the user has to read a mini onboarding panel first.
+- **Panelen desktop page:** better overall rhythm. The drawer now behaves like a tool surface attached to the canvas, not a second explainer page competing with it.
+
+### What still feels wrong after iteration 7
+
+- The Verificatie completion card still does not make `Ga naar bestellijst` the dominant action inside the card itself; the main forward path still lives mostly in the lower step navigation.
+- Some paneel helper copy is still slightly wordy at field level, but that now reads as severity 1 polish rather than a meaningful speed or clarity problem.
+
+### Remaining severity 2+ issues after iteration 7
+
+1. `verificatie-complete-primary-next-step-hidden` - severity 2
+
+### Stop gate after iteration 7
+
+- **Not satisfied.** One severity-2 issue still remains at a key transition point, and the run has completed only **3 counted iterations out of the required minimum of 5** under the current rubric.
+- **No regression found** in the 163 unit tests, 13 Playwright tests, fresh iteration-7 before/after evidence, or the targeted selected-drawer comparison board.
