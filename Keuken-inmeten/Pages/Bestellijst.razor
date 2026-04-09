@@ -88,7 +88,7 @@ else
                             </label>
                             <HulpInfoKnop Titel="Technische details in de bestellijst"
                                           Tekst="Deze kolommen zijn vooral bedoeld voor overdracht naar productie of controle van de boorgaten en CNC-bewerkingen."
-                                          Voorbeeld="Laat de technische details uit zolang u vooral aantallen, typen en afmetingen wilt reviewen."
+                                          Voorbeeld="Laat de technische details uit zolang u vooral aantallen, typen en afmetingen wilt controleren."
                                           WatNuDoen="Schakel deze optie alleen in als u de lijst technisch wilt nalopen of exporteren voor nabewerking." />
                         </div>
                         <div class="form-text hulp-hint">Gebruik dit voor boorgaten, CNC en productiecontrole.</div>
@@ -117,18 +117,18 @@ else
                 <div class="card-header bg-primary bg-opacity-10 border-bottom">
                     <div class="d-flex justify-content-between align-items-start gap-3">
                         <div>
-                            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Aparte exportflow</div>
+                            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Export in stappen</div>
                             <h5 class="mb-1" id="bestellijst-export-drawer-title">Export voorbereiden</h5>
-                            <p class="text-muted mb-0">Kies het formaat, controleer de preview en bevestig daarna pas de export.</p>
+                            <p class="text-muted mb-0">Kies het formaat, controleer de voorvertoning en bevestig daarna pas de export.</p>
                         </div>
-                        <button type="button" class="btn-close" @onclick="SluitExportFlow" aria-label="Sluit exportflow"></button>
+                        <button type="button" class="btn-close" @onclick="SluitExportFlow" aria-label="Sluit exportvenster"></button>
                     </div>
                 </div>
 
                 <div class="card-body bestellijst-export-drawer-body">
                     <div class="bestellijst-export-stappen mb-4" aria-label="Exportstappen">
                         <div class="@ExportStapClass(BestellijstExportFlowStap.Kiezen)">1. Keuze</div>
-                        <div class="@ExportStapClass(BestellijstExportFlowStap.Preview)">2. Preview</div>
+                        <div class="@ExportStapClass(BestellijstExportFlowStap.Preview)">2. Voorvertoning</div>
                         <div class="@ExportStapClass(BestellijstExportFlowStap.Bevestigen)">3. Bevestig</div>
                     </div>
 
@@ -162,7 +162,7 @@ else
                                     </div>
                                 }
                             </div>
-                            <div class="small text-muted mt-3">Materiaal kunt u in de preview aanpassen als dit bestand van de standaard moet afwijken.</div>
+                            <div class="small text-muted mt-3">Materiaal kunt u in de voorvertoning aanpassen als dit bestand van de standaard moet afwijken.</div>
                         </section>
                     }
                     else if (_exportFlowStap is BestellijstExportFlowStap.Preview)
@@ -198,7 +198,7 @@ else
                             <div class="row g-3 mt-1">
                                 <div class="col-12">
                                     <div class="border rounded p-3 h-100">
-                                        <div class="small fw-semibold text-uppercase text-muted mb-2">Preview van het resultaat</div>
+                                        <div class="small fw-semibold text-uppercase text-muted mb-2">Voorvertoning van het resultaat</div>
                                         <ul class="small mb-0 ps-3" data-testid="bestellijst-export-preview">
                                             @foreach (var punt in exportPreviewPunten)
                                             {
@@ -249,7 +249,7 @@ else
                         <section data-testid="bestellijst-export-step-bevestig">
                             <div class="alert alert-light border">
                                 <div class="fw-semibold mb-1">Klaar om te exporteren</div>
-                                <div class="small text-muted mb-0">U hebt formaat, materiaal en preview gecontroleerd. Bevestig nu het bestand dat u wilt openen of downloaden.</div>
+                                <div class="small text-muted mb-0">U hebt formaat, materiaal en de voorvertoning gecontroleerd. Bevestig nu het bestand dat u wilt openen of downloaden.</div>
                             </div>
 
                             <div class="row g-3">
@@ -278,7 +278,7 @@ else
                                                 <li class="mb-1">Uw browser opent een printweergave die u kunt bewaren als PDF.</li>
                                                 <li class="mb-1">Controleer of pop-ups of printweergave in deze browser zijn toegestaan.</li>
                                             }
-                                            <li class="mb-1">De orderreview op de pagina blijft daarna beschikbaar.</li>
+                                            <li class="mb-1">De ordercontrole op de pagina blijft daarna beschikbaar.</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -301,7 +301,7 @@ else
                                 class="btn btn-primary"
                                 @onclick="GaNaarExportPreview"
                                 data-testid="bestellijst-export-next-button">
-                            Bekijk preview
+                            Bekijk voorvertoning
                         </button>
                     }
                     else if (_exportFlowStap is BestellijstExportFlowStap.Preview)

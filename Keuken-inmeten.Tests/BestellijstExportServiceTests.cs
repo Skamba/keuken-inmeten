@@ -119,7 +119,7 @@ public class BestellijstExportFlowHelperTests
         var pdf = BestellijstExportFlowHelper.Voor(BestellijstExportType.Pdf);
         var excel = BestellijstExportFlowHelper.Voor(BestellijstExportType.Excel);
 
-        Assert.Equal("PDF met visuals", pdf.Label);
+        Assert.Equal("PDF met visualisaties", pdf.Label);
         Assert.Contains("printen", pdf.WanneerKiezen, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("Open printweergave", pdf.BevestigLabel);
 

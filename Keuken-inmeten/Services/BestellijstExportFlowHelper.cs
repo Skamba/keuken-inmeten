@@ -23,11 +23,11 @@ public static class BestellijstExportFlowHelper
     [
         new(
             BestellijstExportType.Pdf,
-            "PDF met visuals",
-            "Een rustig document met orderregels, boorgaten en paneelvisuals.",
+            "PDF met visualisaties",
+            "Een rustig document met orderregels, boorgaten en paneelvisualisaties.",
             "Kies PDF als u het resultaat wilt bespreken, printen of bewaren als leesbaar document.",
             "De browser opent eerst een printweergave; van daaruit kiest u 'Opslaan als PDF'.",
-            "Handig voor overdracht aan de werkplaats of een klantbespreking waarin visuals belangrijk zijn.",
+            "Handig voor overdracht aan de werkplaats of een klantbespreking waarin visualisaties belangrijk zijn.",
             "Open printweergave"),
         new(
             BestellijstExportType.Excel,
@@ -54,7 +54,7 @@ public static class BestellijstExportFlowHelper
             [
                 $"{document.Orderregels} orderregels voor {document.TotaalAantal} panelen.",
                 $"Materiaal {document.PaneelType} met dikte {BestellijstExportFormatter.FormatDikteLabel(document.DikteMm)}.",
-                "PDF voegt per orderregel een visual en boorgatoverzicht toe voor rustige review of print.",
+                "PDF voegt per orderregel een visualisatie en boorgatoverzicht toe voor rustige controle of afdrukken.",
                 "Gebruik dit formaat als u een leesbaar document wilt delen of als PDF wilt bewaren."
             ],
             BestellijstExportType.Excel =>

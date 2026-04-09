@@ -273,7 +273,7 @@ public partial class KastenInvoer
             1 => "Kies de wand, geef de kast een naam en start eventueel vanuit een eerder gebruikt voorbeeld.",
             2 => "Voer alleen de hoofdmaten in. Het afgeleide kasttype ziet u meteen terug.",
             3 => "Technische velden verschijnen alleen als deze kast afwijkt van de standaard.",
-            _ => "Controleer de samenvatting en preview voordat u de kast opslaat.",
+            _ => "Controleer de samenvatting en voorvertoning voordat u de kast opslaat.",
         };
 
     private static string ApparaatFormStapLabel(int stap)
@@ -284,7 +284,7 @@ public partial class KastenInvoer
         {
             1 => "Kies type, naam en wandcontext van het apparaat.",
             2 => "Voer alleen de maatvoering in.",
-            _ => "Controleer de samenvatting en preview voordat u het apparaat opslaat.",
+            _ => "Controleer de samenvatting en voorvertoning voordat u het apparaat opslaat.",
         };
 
     private string ActieveWandNaam()

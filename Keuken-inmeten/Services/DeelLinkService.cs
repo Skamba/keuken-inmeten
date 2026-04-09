@@ -25,13 +25,13 @@ public sealed class DeelLinkService(IJSRuntime js, PersistentieService persisten
             switch (resultaat)
             {
                 case "shared":
-                    feedback.ToonSucces("De share-sheet is geopend. Kies nu de app of het contact waarmee u wilt delen.");
+                    feedback.ToonSucces("Het deelmenu is geopend. Kies nu de app of het contact waarmee u wilt delen.");
                     break;
                 case "copied":
-                    feedback.ToonSucces("De deellink is gekopieerd. Plak hem nu in mail, chat of notities.");
+                    feedback.ToonSucces("De deellink is gekopieerd. Plak die nu in een mail, chat of notitie.");
                     break;
                 case "cancelled":
-                    feedback.ToonInfo("Delen geannuleerd. U kunt opnieuw delen of de URL uit de adresbalk kopieren.");
+                    feedback.ToonInfo("Delen geannuleerd. U kunt opnieuw delen of de URL uit de adresbalk kopiëren.");
                     break;
                 default:
                     feedback.ToonFout("Delen lukt hier niet. Kopieer de URL uit de adresbalk en deel die handmatig.");
@@ -40,7 +40,7 @@ public sealed class DeelLinkService(IJSRuntime js, PersistentieService persisten
         }
         catch (JSException)
         {
-            feedback.ToonFout("Deellink maken of kopieren lukte niet. Controleer of de browser delen of klembordtoegang toestaat.");
+            feedback.ToonFout("Deellink maken of kopiëren lukte niet. Controleer of de browser delen of klembordtoegang toestaat.");
         }
     }
 

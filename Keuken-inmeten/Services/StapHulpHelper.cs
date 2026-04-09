@@ -33,7 +33,7 @@ public static class StapHulpHelper
         new(
             "drawer",
             "Verdiepende hulp",
-            "Gebruik de zijhulp voor langere stapgerichte uitleg, voorbeelden en beslisregels terwijl de hoofdflow intact blijft.",
+            "Gebruik de zijhulp voor langere stapgerichte uitleg, voorbeelden en beslisregels terwijl het stappenverloop intact blijft.",
             "Bijvoorbeeld: wanneer u CNC-details toont of wanneer een apparaat echt mee moet in de wand.")
     ];
 
@@ -64,12 +64,12 @@ public static class StapHulpHelper
         ["panelen"] = new(
             "panelen",
             "Hulp bij stap 2: Panelen",
-            "In deze stap opent u eerst precies één wand als werkcontext, kiest daarna de juiste kast(en) en past pas daarna maat, richting en technische details van het paneel aan. Review van toegewezen panelen opent u pas apart wanneer u lijst, status en acties wilt nalopen.",
+            "In deze stap opent u eerst precies één wand als werkcontext, kiest daarna de juiste kast(en) en past pas daarna maat, richting en technische details van het paneel aan. Het overzicht van toegewezen panelen opent u pas apart wanneer u lijst, status en acties wilt nalopen.",
             StandaardHulpNiveaus,
             [
                 new(
-                    "Volgorde in de paneelflow",
-                    "De editor werkt het best als u eerst de wand vastzet en daarna selecteren, plaatsen, controleren en opslaan uit elkaar houdt. Review hoort pas daarna in een aparte weergave.",
+                    "Volgorde in de paneelstap",
+                    "De editor werkt het best als u eerst de wand vastzet en daarna selecteren, plaatsen, controleren en opslaan uit elkaar houdt. Het overzicht hoort pas daarna in een aparte weergave.",
                     [
                         "Open eerst één wand zodat de visualisatie en paneel-editor dezelfde context gebruiken.",
                         "Schakel pas naar Toegewezen panelen als u lijst, status en acties wilt nalopen zonder het canvas erbij.",
@@ -82,7 +82,7 @@ public static class StapHulpHelper
                     "De zijhulp is vooral nuttig als de opening niet vanzelfsprekend is of als meerdere kasten en apparaten binnen dezelfde wand elkaar raken.",
                     [
                         "Open de verdiepende hulp bij complexe combinaties met apparaten, vrije segmenten of afwijkende scharnierkeuzes.",
-                        "Laat niet-actieve wanden verder compact en gebruik review apart, zodat plaatsen en opslaan de hoofdtaak blijven."
+                        "Laat niet-actieve wanden verder compact en gebruik het overzicht apart, zodat plaatsen en opslaan de hoofdtaak blijven."
                     ])
             ]),
         ["verificatie"] = new(
@@ -109,23 +109,23 @@ public static class StapHulpHelper
         ["bestellijst"] = new(
             "bestellijst",
             "Hulp bij stap 4: Bestellijst",
-            "De bestellijst focust standaard op orderregels. Export kiest u nu via een aparte korte flow met preview en bevestiging, zodat de reviewtabel rustig blijft.",
+            "De bestellijst richt zich standaard op orderregels. Export kiest u nu via aparte stappen met voorvertoning en bevestiging, zodat de controletabel rustig blijft.",
             StandaardHulpNiveaus,
             [
                 new(
                     "Orderregels versus techniek",
-                    "Gebruik de basisweergave om aantallen, typen en wanden te controleren. Start export pas als de orderreview klopt; technische details en formaatkeuze staan los in de exportflow.",
+                    "Gebruik de basisweergave om aantallen, typen en wanden te controleren. Start export pas als de ordercontrole klopt; technische details en formaatkeuze staan los van de exportstappen.",
                     [
-                        "De technische toggle blijft alleen bedoeld voor review of overdracht van de tabel.",
-                        "Materiaal, dikte en formaat verschijnen pas wanneer u de aparte exportflow opent.",
+                        "De schakelaar voor technische details is alleen bedoeld voor controle of overdracht van de tabel.",
+                        "Materiaal, dikte en formaat verschijnen pas wanneer u de aparte exportstappen opent.",
                         "Voorbeeldwaarden bij paneeltype en dikte blijven zichtbaar naast het veld, ook als u al begint te typen."
                     ]),
                 new(
-                    "Exportflow met preview",
+                    "Exportstappen met voorvertoning",
                     "De zijhulp helpt vooral bij de keuze tussen PDF en Excel en laat eerst zien wat u straks downloadt of opent.",
                     [
-                        "Gebruik de preview om te controleren of u een rustig PDF-document of juist een bewerkbare Excel-lijst nodig hebt.",
-                        "Bevestig pas in de laatste stap; zo blijft de bestellijstpagina zelf een rustige reviewweergave."
+                        "Gebruik de voorvertoning om te controleren of u een rustig PDF-document of juist een bewerkbare Excel-lijst nodig hebt.",
+                        "Bevestig pas in de laatste stap; zo blijft de bestellijstpagina zelf een rustige controleweergave."
                     ])
             ]),
         ["zaagplan"] = new(

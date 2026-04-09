@@ -10,8 +10,8 @@ public class TerminologieHelperTests
     {
         var term = TerminologieHelper.HaalTermOp("cnc");
 
-        Assert.Equal("Machinecoordinaten voor CNC", term.Label);
-        Assert.Equal("CNC-coordinaten", term.TechnischeTerm);
+        Assert.Equal("Machinecoördinaten voor CNC", term.Label);
+        Assert.Equal("CNC-coördinaten", term.TechnischeTerm);
         Assert.Contains("X- en Y-maten", term.Uitleg);
         Assert.Contains("productie", term.WanneerRelevant);
         Assert.Contains("X 37 mm", term.Voorbeeld);

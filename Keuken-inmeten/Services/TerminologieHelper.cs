@@ -84,7 +84,7 @@ public static class TerminologieHelper
             "Het ronde boorgat in het deurpaneel waarin het scharnier valt.",
             "Deze term maakt uit bij deurpanelen met scharnieren; fronten zonder scharnieren hebben deze boring niet nodig.",
             "Een standaard Europese keukendeur gebruikt meestal een 35 mm scharnierpot.",
-            "Controleer dit vooral wanneer u technische boorgaten reviewt of productiegegevens doorgeeft voor deurpanelen."),
+            "Controleer dit vooral wanneer u technische boorgaten controleert of productiegegevens doorgeeft voor deurpanelen."),
         ["pothart"] = new(
             "pothart",
             "Afstand hart scharnierpot tot rand",
@@ -111,12 +111,12 @@ public static class TerminologieHelper
             "Controleer bij orderregels welke randen zichtbaar blijven en zorg dat daar de juiste afwerkband voor staat."),
         ["cnc"] = new(
             "cnc",
-            "Machinecoordinaten voor CNC",
-            "CNC-coordinaten",
+            "Machinecoördinaten voor CNC",
+            "CNC-coördinaten",
             "De X- en Y-maten die een CNC-machine gebruikt om gaten of bewerkingen op het paneel te plaatsen.",
             "Deze term maakt uit zodra u technische details voor productie, nabewerking of machineoverdracht bekijkt.",
             "Een CNC-regel kan aangeven dat een boring op X 37 mm en Y 96 mm vanaf de referentiehoek moet komen.",
-            "Laat CNC-details dicht tijdens gewone review en open ze pas als u de order technisch moet overdragen of narekenen."),
+            "Laat CNC-details dicht tijdens gewone controle en open ze pas als u de order technisch moet overdragen of narekenen."),
         ["zaagbreedte"] = new(
             "zaagbreedte",
             "Materiaalverlies per zaagsnede",

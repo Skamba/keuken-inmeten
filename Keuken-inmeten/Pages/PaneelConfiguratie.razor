@@ -22,7 +22,7 @@
 {
     <div class="paneel-stap-intro paneel-stap-intro--compact mb-3" data-testid="paneel-stap-intro-review">
         <div>
-            <div class="paneel-stap-intro-kicker text-muted fw-semibold text-uppercase">Review</div>
+            <div class="paneel-stap-intro-kicker text-muted fw-semibold text-uppercase">Overzicht</div>
             <div class="fw-semibold">Loop aantallen, maten en acties per wand rustig na.</div>
         </div>
     </div>
@@ -38,7 +38,7 @@ else if (toonCompacteStapIntro)
 }
 else
 {
-    <p class="text-muted mb-3">Open één wand en plaats daarna panelen in de editor. Review gebruikt u pas zodra er panelen zijn.</p>
+    <p class="text-muted mb-3">Open één wand en plaats daarna panelen in de editor. Het overzicht wordt pas nuttig zodra er panelen zijn.</p>
 }
 
 @if (routeGate is not null)
@@ -79,10 +79,10 @@ else
             {
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
                     <div>
-                        <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Focus</div>
+                        <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Weergave</div>
                         <div class="fw-semibold">
                             @(isReviewWeergaveActief
-                                ? "Review van toegewezen panelen"
+                                ? "Overzicht van toegewezen panelen"
                                 : geopendeWand is null
                                     ? "Open eerst één wand"
                                     : $"Editor — {geopendeWand.Naam}")
@@ -130,7 +130,7 @@ else
                             @onclick="ActiveerReviewWeergave"
                             disabled="@(State.Toewijzingen.Count == 0)"
                             data-testid="paneel-review-weergave-tab">
-                        <span class="fw-semibold">Review</span>
+                        <span class="fw-semibold">Overzicht</span>
                     </button>
                 </li>
             </ul>
@@ -369,8 +369,8 @@ else
             <div class="mt-4 paneel-review-weergave" data-testid="paneel-review-weergave">
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
                     <div>
-                        <h5 class="mb-1">Review: toegewezen panelen</h5>
-                        <p class="text-muted mb-0 small">Deze weergave focust op lijstbeheer, status en acties. Gebruik de editorweergave om weer een wand te openen of panelen te plaatsen.</p>
+                        <h5 class="mb-1">Overzicht: toegewezen panelen</h5>
+                        <p class="text-muted mb-0 small">Deze weergave richt zich op lijstbeheer, status en acties. Gebruik de editorweergave om weer een wand te openen of panelen te plaatsen.</p>
                     </div>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         @if (geopendeWand is not null)
@@ -393,7 +393,7 @@ else
                                 Toegewezen panelen
                                 <span class="badge bg-secondary rounded-pill">@State.Toewijzingen.Count</span>
                             </h6>
-                            <p class="text-muted small mb-0">De review staat nu los van de editorweergave, zodat lijst, status en acties zonder canvas erboven scanbaar blijven.</p>
+                            <p class="text-muted small mb-0">Het overzicht staat nu los van de editorweergave, zodat lijst, status en acties zonder canvas erboven scanbaar blijven.</p>
                         </div>
                         @if (geopendeWand is not null)
                         {

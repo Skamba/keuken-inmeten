@@ -431,7 +431,7 @@ test('focuskaart toont geen extra toelichting onder open eerst één wand', asyn
 
   await panelen.expectLoaded();
   await expect(page.getByText('Open eerst één wand')).toBeVisible();
-  await expect(page.getByText('Begin met één wand. Review wordt pas nuttig zodra er panelen zijn.')).toHaveCount(0);
+  await expect(page.getByText('Begin met één wand. Het overzicht wordt pas nuttig zodra er panelen zijn.')).toHaveCount(0);
 });
 
 test.describe('mobiele paneel-editor', () => {
