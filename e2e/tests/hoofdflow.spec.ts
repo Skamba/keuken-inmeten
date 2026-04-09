@@ -164,6 +164,7 @@ test('invoerhulp blijft zichtbaar bij wand-, kast- en apparaatvelden', async ({ 
 
   await indeling.goto();
 
+  await indeling.openWandToevoegenModal();
   await expect(page.getByTestId('nieuwe-wand-naam-hint')).toBeVisible();
   await page.getByTestId('nieuwe-wand-naam-input').fill('Achterwand');
   await expect(page.getByTestId('nieuwe-wand-naam-hint')).toBeVisible();
@@ -195,6 +196,21 @@ test('invoerhulp blijft zichtbaar bij wand-, kast- en apparaatvelden', async ({ 
   await expect(page.getByTestId('apparaat-diepte-hint')).toBeVisible();
   await apparaatForm.getByRole('button', { name: 'Annuleren' }).click();
   await expect(apparaatForm).toBeHidden();
+});
+
+test('wand toevoegen opent een modal en annuleren laat de pagina ongewijzigd', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+
+  await indeling.goto();
+
+  await expect(page.getByTestId('nieuwe-wand-naam-input')).toBeHidden();
+  await indeling.openWandToevoegenModal();
+  await page.getByTestId('nieuwe-wand-naam-input').fill('Achterwand');
+  await page.getByTestId('wand-toevoegen-annuleren-button').click();
+
+  await expect(page.getByTestId('wand-toevoegen-modal')).toBeHidden();
+  await expect(page.getByTestId('indeling-wand-card')).toHaveCount(0);
+  await expect(page.getByText('Begin door een wand toe te voegen.')).toBeVisible();
 });
 
 test('stap 2 toont maar één actieve wandwerkruimte tegelijk', async ({ page }) => {

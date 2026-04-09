@@ -25,16 +25,24 @@ export class IndelingPage {
     await expect(this.page.getByRole('heading', { name: 'Stap 1: Indeling' })).toBeVisible();
   }
 
-  async voegWandToe(naam: string) {
-    if (!(await this.page.getByTestId('nieuwe-wand-naam-input').isVisible())) {
+  async openWandToevoegenModal() {
+    const openKnop = this.page.getByTestId('open-wand-toevoegen-modal-button').first();
+    if (!(await openKnop.isVisible())) {
       const extraWandSamenvatting = this.page.getByTestId('indeling-extra-wand-summary');
       if (await extraWandSamenvatting.isVisible()) {
         await extraWandSamenvatting.click();
       }
     }
 
+    await this.page.getByTestId('open-wand-toevoegen-modal-button').first().click();
+    await expect(this.page.getByTestId('wand-toevoegen-modal')).toBeVisible();
+  }
+
+  async voegWandToe(naam: string) {
+    await this.openWandToevoegenModal();
     await this.page.getByTestId('nieuwe-wand-naam-input').fill(naam);
     await this.page.getByTestId('wand-toevoegen-button').click();
+    await expect(this.page.getByTestId('wand-toevoegen-modal')).toBeHidden();
     const resultaat = this.wandCard(naam).or(this.actieveWerkruimte(naam));
     if (!(await resultaat.isVisible())) {
       const overigeWandenSamenvatting = this.page.getByTestId('indeling-overige-wanden-summary');

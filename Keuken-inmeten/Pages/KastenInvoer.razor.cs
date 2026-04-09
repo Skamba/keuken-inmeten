@@ -14,6 +14,7 @@ public partial class KastenInvoer
     private Guid? bevestigVerwijderKastId;
     private Guid? _clipboardKastId;
     private bool bevestigWisAlles;
+    private bool toonWandToevoegenModal;
 
     private Guid? actieveWandId;
     private Kast formKast = NieuweKast();
@@ -65,16 +66,30 @@ public partial class KastenInvoer
 
     private void WandToevoegen()
     {
-        if (string.IsNullOrWhiteSpace(nieuweWandNaam)) return;
+        var wandNaam = nieuweWandNaam.Trim();
+        if (string.IsNullOrWhiteSpace(wandNaam)) return;
+
         var wand = IndelingFormulierHelper.NieuweWand();
-        wand.Naam = nieuweWandNaam.Trim();
+        wand.Naam = wandNaam;
         State.VoegWandToe(wand);
-        nieuweWandNaam = "";
+        SluitWandToevoegenModal();
     }
 
     private void WandToevoegenBijEnter(KeyboardEventArgs e)
     {
         if (e.Key == "Enter") WandToevoegen();
+    }
+
+    private void OpenWandToevoegenModal()
+    {
+        nieuweWandNaam = "";
+        toonWandToevoegenModal = true;
+    }
+
+    private void SluitWandToevoegenModal()
+    {
+        toonWandToevoegenModal = false;
+        nieuweWandNaam = "";
     }
 
     private async Task WisAllesAsync()
