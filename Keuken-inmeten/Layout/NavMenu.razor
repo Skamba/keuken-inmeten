@@ -65,6 +65,9 @@
 
     private ThemeJsInterop ThemeInterop => themeInterop ??= new(JS);
 
+    protected override void OnInitialized()
+        => State.OnStateChanged += HandleStateChanged;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -86,6 +89,8 @@
         collapseNavMenu = !collapseNavMenu;
     }
 
+    private void HandleStateChanged() => _ = InvokeAsync(StateHasChanged);
+
     private static string StapIcoon(string stapId) => stapId switch
     {
         "kasten" => "📐",
@@ -98,6 +103,8 @@
 
     public async ValueTask DisposeAsync()
     {
+        State.OnStateChanged -= HandleStateChanged;
+
         if (themeInterop is not null)
             await themeInterop.DisposeAsync();
     }
