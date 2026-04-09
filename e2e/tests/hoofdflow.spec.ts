@@ -151,6 +151,44 @@ test('wandenoverzicht toont geen extra toelichting onder de titel', async ({ pag
   ).toHaveCount(0);
 });
 
+test('wandenoverzicht kaarten gebruiken compactere spacing', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegWandToe('Linkerwand');
+
+  const compacteStijlen = await page.getByTestId('indeling-wand-card').first().evaluate((kaart) => {
+    const body = kaart.querySelector('.indeling-wand-samenvatting-body');
+    const toelichting = kaart.querySelector('[data-testid="indeling-wand-card-description"]');
+    const button = kaart.querySelector('[data-testid="open-wand-workspace-button"]');
+
+    if (!(body instanceof HTMLElement) || !(toelichting instanceof HTMLElement) || !(button instanceof HTMLElement)) {
+      throw new Error('Expected compact wall card structure');
+    }
+
+    const bodyStyle = getComputedStyle(body);
+    const toelichtingStyle = getComputedStyle(toelichting);
+    const buttonStyle = getComputedStyle(button);
+
+    return {
+      bodyPaddingTop: parseFloat(bodyStyle.paddingTop),
+      bodyPaddingBottom: parseFloat(bodyStyle.paddingBottom),
+      bodyRowGap: parseFloat(bodyStyle.rowGap),
+      toelichtingMarginTop: parseFloat(toelichtingStyle.marginTop),
+      buttonPaddingTop: parseFloat(buttonStyle.paddingTop),
+      buttonPaddingBottom: parseFloat(buttonStyle.paddingBottom),
+    };
+  });
+
+  expect(compacteStijlen.bodyPaddingTop).toBeLessThan(14);
+  expect(compacteStijlen.bodyPaddingBottom).toBeLessThan(14);
+  expect(compacteStijlen.bodyRowGap).toBeLessThanOrEqual(6);
+  expect(compacteStijlen.toelichtingMarginTop).toBe(0);
+  expect(compacteStijlen.buttonPaddingTop).toBeLessThanOrEqual(4);
+  expect(compacteStijlen.buttonPaddingBottom).toBeLessThanOrEqual(4);
+});
+
 test('kastpopup werkt als een korte ministepper', async ({ page }) => {
   const indeling = new IndelingPage(page);
 

@@ -1273,6 +1273,30 @@ code {
     transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
+.indeling-wand-samenvatting-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 0.8rem 0.9rem;
+}
+
+.indeling-wand-samenvatting-inhoud {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.indeling-wand-samenvatting-kop {
+    margin-bottom: 0;
+}
+
+.indeling-wand-samenvatting-toelichting {
+    line-height: 1.35;
+}
+
+.indeling-wand-samenvatting-acties {
+    margin-top: auto;
+}
+
 .indeling-wand-samenvatting.actief {
     border-color: var(--bs-primary);
     box-shadow: 0 0.35rem 1rem rgba(13, 110, 253, 0.12);
