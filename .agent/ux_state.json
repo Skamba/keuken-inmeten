@@ -5,15 +5,16 @@
     "Kitchen fitters and cabinet makers measuring kitchen runs and cabinet openings",
     "Installers or workshop planners preparing panel sizes, hinge bores, order lists, and cutting plans"
   ],
-  "currentIteration": 8,
-  "countedIterationsCompleted": 4,
+  "currentIteration": 9,
+  "countedIterationsCompleted": 5,
   "countedIterationLabels": [
     "iteration-5",
     "iteration-6",
     "iteration-7",
-    "iteration-8"
+    "iteration-8",
+    "iteration-9"
   ],
-  "countedIterationNote": "Historical iterations 1-4 remain useful context, but counted progress under the stricter journey/page/section/element screenshot rubric now consists of iteration-5 through iteration-8.",
+  "countedIterationNote": "Historical iterations 1-4 remain useful context, but counted progress under the stricter journey/page/section/element screenshot rubric now consists of iteration-5 through iteration-9.",
   "mainJourneys": [
     "Start or resume a project from Home",
     "Build the kitchen run per wall in Stap 1: Indeling",
@@ -192,35 +193,52 @@
         ".agent/screenshots/iteration-8/after/comparisons/verificatie-complete-desktop-comparison.png",
         ".agent/screenshots/iteration-8/after/comparisons/verificatie-completion-card-desktop-comparison.png"
       ]
+    },
+    "iteration9": {
+      "beforeDir": ".agent/screenshots/iteration-9/before/",
+      "afterDir": ".agent/screenshots/iteration-9/after/",
+      "beforeManifest": ".agent/screenshots/iteration-9/before/manifest.json",
+      "afterManifest": ".agent/screenshots/iteration-9/after/manifest.json",
+      "beforeCounts": {
+        "journey": 8,
+        "page": 27,
+        "section": 36,
+        "element": 31,
+        "total": 102
+      },
+      "afterCounts": {
+        "journey": 8,
+        "page": 27,
+        "section": 36,
+        "element": 31,
+        "total": 102
+      },
+      "comparisonEvidence": [
+        ".agent/screenshots/iteration-9/after/comparisons/verificatie-complete-desktop-comparison.png",
+        ".agent/screenshots/iteration-9/after/comparisons/verificatie-completion-card-desktop-comparison.png"
+      ]
     }
   },
-  "currentTopIssues": [
-    {
-      "id": "verificatie-complete-top-support-redundant",
-      "severity": 1,
-      "summary": "De succeskaart is nu duidelijk, maar de generieke intro en supportstrip erboven voelen in de afrondingsfase nog licht overbodig."
-    }
-  ],
+  "currentTopIssues": [],
   "fixedThisIteration": [
     {
-      "id": "verificatie-complete-primary-next-step-hidden",
-      "summary": "De Verificatie-afrondingskaart heeft nu zelf een duidelijke primaire CTA naar Bestellijst, terwijl terug, delen en afdrukken eronder als secundaire acties staan."
+      "id": "verificatie-complete-top-support-redundant",
+      "summary": "De afrondingsfase toont nu direct de succeskaart onder de paginakop, zonder generieke intro of supportstrip die de afsluiting nog vertraagden."
     }
   ],
   "whatRemains": [
-    "Voer nog een laatste volledig getelde iteratie uit onder de huidige evidence-rubric.",
-    "Polish waarschijnlijk de afrondingsfase nog licht door de generieke intro en supportstrip boven de succeskaart te verminderen.",
-    "Doe in iteration 9 een volledige herbeoordelingsronde om te bevestigen dat alleen severity-1 issues of geen issues resteren."
+    "Geen open usability-issues meer uit deze run.",
+    "Heropen alleen als nieuwe productscope of nieuwe evidence alsnog regressies of nieuwe frictie laat zien."
   ],
   "knownRisksChecked": [
-    "export PATH=/root/.dotnet:$PATH && dotnet test Code.slnx --nologo passes after the iteration-8 change",
-    "export PATH=/root/.dotnet:$PATH && dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo succeeds after the iteration-8 change",
-    "npm run test:e2e passes after the iteration-8 change with 14 Playwright tests",
-    "Fresh iteration-8 before and after evidence each include 102 screenshots and cover journey, page, section, and element levels",
-    "Iteration-8 comparison boards confirm the Verificatie completion card now shows Bestellijst as the dominant next step within the card itself",
+    "export PATH=/root/.dotnet:$PATH && dotnet test Code.slnx --nologo passes after the iteration-9 change",
+    "export PATH=/root/.dotnet:$PATH && dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo succeeds after the iteration-9 change",
+    "npm run test:e2e passes after the iteration-9 change with 14 Playwright tests",
+    "Fresh iteration-9 before and after evidence each include 102 screenshots and cover journey, page, section, and element levels",
+    "Iteration-9 comparison boards confirm the Verificatie completion state now starts directly with the success card and no longer repeats generic intro/support chrome above it",
     "No regressions were found in empty, normal, dense, mobile, warning, completion, or end-to-end flows"
   ],
-  "nextRecommendedStep": "Start iteration 9 with a final counted polish-and-audit pass: trim the redundant intro/support UI from the Verificatie completion state if it still adds noise, then rerun fresh evidence across the app to confirm only severity-1 or no issues remain.",
+  "nextRecommendedStep": "Stop. No meaningful usability improvements remain for this session; only reopen with fresh evidence or changed product scope.",
   "stopGateStatus": {
     "severity4Cleared": true,
     "severity3Cleared": true,
@@ -230,5 +248,5 @@
     "latestRoundRegressionFree": true,
     "onlyMinorIssuesRemain": true
   },
-  "lastUpdated": "2026-04-09T06:54:03Z"
+  "lastUpdated": "2026-04-09T07:02:31Z"
 }

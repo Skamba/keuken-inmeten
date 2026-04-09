@@ -1,6 +1,6 @@
 {
   "appName": "Keuken Inmeten",
-  "lastUpdated": "2026-04-09T06:54:03Z",
+  "lastUpdated": "2026-04-09T07:02:31Z",
   "issues": [
     {
       "id": "home-resume-hierarchy-overload",
@@ -234,10 +234,14 @@
       "severity": 1,
       "whyItMatters": "Nu de primaire CTA in de succeskaart zit, voelt de generieke introregel en supportstrip erboven nog licht overbodig. Dat kost weinig tijd, maar vertraagt het gevoel van afronden net genoeg om nog op te vallen.",
       "proposedFix": "Verberg of verkort de generieke intro en steuncontrols in de afrondingsfase zodat de succeskaart direct na de stapindicator begint.",
-      "status": "open",
+      "status": "fixed",
       "evidenceReference": [
-        ".agent/screenshots/iteration-8/after/page/verificatie-complete-desktop.png",
-        ".agent/screenshots/iteration-8/after/section/verificatie-completion-card-desktop.png"
+        ".agent/screenshots/iteration-9/before/page/verificatie-complete-desktop.png",
+        ".agent/screenshots/iteration-9/before/section/verificatie-completion-card-desktop.png",
+        ".agent/screenshots/iteration-9/after/page/verificatie-complete-desktop.png",
+        ".agent/screenshots/iteration-9/after/section/verificatie-completion-card-desktop.png",
+        ".agent/screenshots/iteration-9/after/comparisons/verificatie-complete-desktop-comparison.png",
+        ".agent/screenshots/iteration-9/after/comparisons/verificatie-completion-card-desktop-comparison.png"
       ],
       "regressionRisk": "Low - staphulp en begrippen moeten in taak- en detailfasen zichtbaar blijven."
     }

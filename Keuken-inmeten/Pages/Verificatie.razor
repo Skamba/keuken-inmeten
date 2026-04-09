@@ -11,14 +11,17 @@
 <StapIndicator HuidigeStap="verificatie" />
 
 <h2 class="page-header">Stap 3: Verificatie</h2>
-<p class="text-muted mb-3">Controleer per paneel eerst de maat in de opening en daarna de systeemgaten. De bestelmaat moet logisch volgen uit opening en speling.</p>
-<div class="stap-ondersteuning mb-3" data-testid="verificatie-stap-ondersteuning">
-    <StapHulpDrawer StapId="verificatie" KnopLabel="Staphulp" />
-    <TerminologieUitleg Compact="true"
-                        CompactLabel="Begrippen"
-                        Sleutels="openingsmaat,werkmaat,gaatjesrij,montageplaat,pothart"
-                        Beschrijving="Deze woordenlijst helpt bij de controletermen die u in de verificatiestap ziet." />
-</div>
+@if (_fase != VerificatieFase.Afronding)
+{
+    <p class="text-muted mb-3">Controleer per paneel eerst de maat in de opening en daarna de systeemgaten. De bestelmaat moet logisch volgen uit opening en speling.</p>
+    <div class="stap-ondersteuning mb-3" data-testid="verificatie-stap-ondersteuning">
+        <StapHulpDrawer StapId="verificatie" KnopLabel="Staphulp" />
+        <TerminologieUitleg Compact="true"
+                            CompactLabel="Begrippen"
+                            Sleutels="openingsmaat,werkmaat,gaatjesrij,montageplaat,pothart"
+                            Beschrijving="Deze woordenlijst helpt bij de controletermen die u in de verificatiestap ziet." />
+    </div>
+}
 
 @{
     var flowStatus = StappenFlowHelper.BepaalStatus(State);

@@ -421,3 +421,53 @@
 
 - **Not satisfied yet, but only because the run has completed 4 counted iterations and the brief requires at least 5.** Severity 4, 3, and 2 issues are now cleared in primary flows and dense states; only a small severity-1 polish opportunity remains.
 - **No regression found** in the 163 unit tests, 14 Playwright tests, fresh iteration-8 before/after evidence, or the new completion-card comparison boards.
+
+## Iteration 9 - final completion-state polish
+
+- Started from `01f1e8b` on `main` and captured a fresh iteration-9 before set before changing code: **102 screenshots** (`8 journey`, `27 page`, `36 section`, `31 element`).
+- Re-reviewed the full app from fresh evidence. No new severity-2 or severity-3 issues appeared anywhere in the primary flows, dense states, decision points, or major components.
+- Focused the final counted round on the last remaining severity-1 polish item: the Verificatie completion state still repeated generic intro and support UI above a success card that was already self-explanatory.
+- Rechecked current completion-state guidance: after success, redundant explanatory chrome should disappear so the interface trusts the success pattern and focuses on closure plus the next step.
+
+### Ranked issues entering iteration 9
+
+1. `verificatie-complete-top-support-redundant` - severity 1 - the completion page still spent a little vertical space on generic intro/support UI above a now-clear success card.
+
+### What changed
+
+- **Verificatie afronding**
+  - Hid the generic intro paragraph and the `Staphulp` / `Begrippen` support strip during the afrondingsfase.
+  - Kept the page header, success card, and step navigation, so the state still feels oriented but starts directly with the meaningful content.
+
+### Screenshot coverage completed in this iteration
+
+- **Before:** 102 screenshots (`8 journey`, `27 page`, `36 section`, `31 element`) under `.agent/screenshots/iteration-9/before/`
+- **After:** 102 screenshots (`8 journey`, `27 page`, `36 section`, `31 element`) under `.agent/screenshots/iteration-9/after/`
+- **Comparison boards:** 2 boards under `.agent/screenshots/iteration-9/after/comparisons/`
+
+### Before vs after observations
+
+- **Completion page:** worthwhile final cleanup. The page now lands directly on the success card after the heading, which makes the close-out state calmer and more obviously finished.
+- **Completion card:** unchanged in the right ways. The Bestellijst CTA remains dominant and the secondary actions still stay available underneath.
+- **Whole product:** no new friction surfaced in the fresh full-app review. The remaining differences after this round are too minor or too preference-driven to justify more code in this session.
+
+### What still feels wrong after iteration 9
+
+- No remaining issue rises above cosmetic preference. Any further changes would be speculative rather than evidence-backed.
+
+### Remaining severity 2+ issues after iteration 9
+
+- None.
+
+### Stop gate after iteration 9
+
+- **Satisfied.** Five fully counted iterations are complete under the current evidence rubric. No severity 4 issues remain. No severity 3 issues remain. No severity 2 issues remain in primary flows, dense states, critical decision points, or meaningful UI components.
+- **No regression found** in the 163 unit tests, 14 Playwright tests, fresh iteration-9 before/after evidence, or the final completion-state comparison boards.
+
+## Final stop-gate review after iteration 9
+
+- Every counted iteration (5 through 9) included the full workflow: fresh before capture, review, web research, ranked issues, code changes, validation, fresh after capture, comparison, critique, state updates, and commit/push.
+- Every counted iteration included at least **102** fresh before screenshots and **102** fresh after screenshots, with explicit journey, page, section, and element coverage.
+- Visual clutter is under control: primary screens no longer stack competing help, status, or progress chrome ahead of the main task.
+- Text clarity is under control: page purpose, next-step labels, and completion messaging are now direct and specific without forcing long reading before action.
+- State files and evidence pointers are current through iteration 9.
