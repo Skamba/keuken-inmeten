@@ -356,6 +356,38 @@ test('stap 2 gebruikt de reviewtab zonder extra review-banner', async ({ page })
   await panelen.openReviewWeergave();
 });
 
+test('stap 2 toont geen staphulp- of begrippenknoppen meer', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast hulploos',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  const staphulpKnop = page.getByRole('button', { name: 'Staphulp' });
+  const begrippenKnop = page.getByRole('button', { name: 'Begrippen' });
+
+  await panelen.expectLoaded();
+  await expect(staphulpKnop).toHaveCount(0);
+  await expect(begrippenKnop).toHaveCount(0);
+
+  await panelen.openWandWerkruimte('Achterwand');
+  await expect(staphulpKnop).toHaveCount(0);
+  await expect(begrippenKnop).toHaveCount(0);
+
+  await panelen.selecteerEersteKastOpWand('Achterwand');
+  await panelen.voegPaneelToe();
+  await panelen.openReviewWeergave();
+  await expect(staphulpKnop).toHaveCount(0);
+  await expect(begrippenKnop).toHaveCount(0);
+});
+
 test('focuskaart toont geen extra toelichting onder open eerst één wand', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);

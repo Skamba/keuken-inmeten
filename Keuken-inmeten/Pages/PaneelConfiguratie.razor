@@ -25,7 +25,6 @@
             <div class="paneel-stap-intro-kicker text-muted fw-semibold text-uppercase">Review</div>
             <div class="fw-semibold">Loop aantallen, maten en acties per wand rustig na.</div>
         </div>
-        <StapHulpDrawer StapId="panelen" KnopLabel="Staphulp" />
     </div>
 }
 else if (toonCompacteStapIntro)
@@ -35,22 +34,11 @@ else if (toonCompacteStapIntro)
             <div class="paneel-stap-intro-kicker text-muted fw-semibold text-uppercase">Actieve wand</div>
             <div class="fw-semibold">@(geopendeWand?.Naam ?? "Paneel-editor")</div>
         </div>
-        <StapHulpDrawer StapId="panelen" KnopLabel="Staphulp" />
     </div>
 }
 else
 {
     <p class="text-muted mb-3">Open één wand en plaats daarna panelen in de editor. Review gebruikt u pas zodra er panelen zijn.</p>
-    <div class="stap-ondersteuning mb-3" data-testid="paneel-stap-ondersteuning">
-        <StapHulpDrawer StapId="panelen" KnopLabel="Staphulp" />
-        @if (!isReviewWeergaveActief)
-        {
-            <TerminologieUitleg Compact="true"
-                                CompactLabel="Begrippen"
-                                Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde,scharnierpot,pothart"
-                                Beschrijving="Open alleen bij twijfel over paneel- of scharniertermen." />
-        }
-    </div>
 }
 
 @if (routeGate is not null)
