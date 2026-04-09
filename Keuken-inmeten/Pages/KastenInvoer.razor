@@ -8,6 +8,10 @@
 
 <StapIndicator HuidigeStap="kasten" />
 
+@{
+    var actieveWand = State.Wanden.Find(wand => wand.Id == actieveWandId);
+}
+
 <div class="d-flex justify-content-between align-items-center mb-2">
     <h2 class="page-header mb-0">Stap 1: Indeling</h2>
     @if (State.HeeftProjectInhoud())
@@ -28,7 +32,10 @@
         }
     }
 </div>
-<p class="text-muted mb-3">Maak wandindelingen aan en open daarna steeds één wand om maten, kasten en objecten rustig per werkruimte uit te werken.</p>
+@if (actieveWand is null)
+{
+    <p class="text-muted mb-3">Maak wandindelingen aan en open daarna steeds één wand om maten, kasten en objecten rustig per werkruimte uit te werken.</p>
+}
 <div class="stap-ondersteuning mb-3" data-testid="kasten-stap-ondersteuning">
     <StapHulpDrawer StapId="kasten" KnopLabel="Staphulp" />
     <TerminologieUitleg Compact="true"
@@ -63,7 +70,6 @@
 }
 else
 {
-    var actieveWand = State.Wanden.Find(wand => wand.Id == actieveWandId);
     var overzichtWanden = actieveWand is null
         ? State.Wanden
         : State.Wanden.Where(wand => wand.Id != actieveWand.Id).ToList();
@@ -71,19 +77,11 @@ else
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
         <div>
             <h5 class="mb-1">Wandenoverzicht</h5>
-            <p class="text-muted mb-0">
-                @(actieveWand is null
-                    ? "Kies daarna precies één wand om maten, kasten, objecten en de visualisatie per werkruimte te bewerken."
-                    : "U werkt nu in één actieve wand. Andere wanden blijven als compacte schakelaars beschikbaar, zodat de werkruimte rustig in beeld blijft.")
-            </p>
+            @if (actieveWand is null)
+            {
+                <p class="text-muted mb-0">Kies daarna precies één wand om maten, kasten, objecten en de visualisatie per werkruimte te bewerken.</p>
+            }
         </div>
-        @if (actieveWand is not null)
-        {
-            <div class="small text-muted">
-                <div class="fw-semibold text-uppercase">Werkmodus</div>
-                <div>@($"{actieveWand.Naam} is nu actief")</div>
-            </div>
-        }
     </div>
 
     @if (actieveWand is null)
@@ -150,8 +148,7 @@ else
             <div class="card-body">
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
                     <div>
-                        <h5 class="mb-1">Andere wanden</h5>
-                        <p class="text-muted mb-0">Wissel hier snel van wand zonder dat de actieve werkruimte uit beeld verdwijnt.</p>
+                        <h5 class="mb-0">Andere wanden</h5>
                     </div>
                     <span class="badge text-bg-light indeling-workspace-hint">@overzichtWanden.Count wand(en) direct beschikbaar</span>
                 </div>

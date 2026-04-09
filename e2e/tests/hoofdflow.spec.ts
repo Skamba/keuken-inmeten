@@ -89,6 +89,38 @@ test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en
   await expect(page.getByTestId('actieve-wand-werkruimte')).toContainText('Onderkast export');
 });
 
+test('actieve werkruimtes tonen minder overbodige uitleg in stap 1 en stap 2', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Keuken vanaf vaatwasser');
+  await indeling.voegWandToe('Lades');
+  await indeling.voegKastToeAanWand('Keuken vanaf vaatwasser', {
+    naam: 'Onderkast links',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.voegKastToeAanWand('Lades', {
+    naam: 'Ladekast',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+
+  await indeling.openWandWerkruimte('Keuken vanaf vaatwasser');
+  await expect(page.getByText('Maak wandindelingen aan en open daarna steeds één wand om maten, kasten en objecten rustig per werkruimte uit te werken.')).toHaveCount(0);
+  await expect(page.getByText('U werkt nu in één actieve wand. Andere wanden blijven als compacte schakelaars beschikbaar, zodat de werkruimte rustig in beeld blijft.')).toHaveCount(0);
+  await expect(page.getByText('Wissel hier snel van wand zonder dat de actieve werkruimte uit beeld verdwijnt.')).toHaveCount(0);
+  await expect(page.getByText('WERKMODUS', { exact: true })).toHaveCount(0);
+
+  await indeling.gaNaarPanelen();
+  await panelen.expectLoaded();
+  await panelen.openWandWerkruimte('Keuken vanaf vaatwasser');
+  await expect(page.getByText('Wissel hier van wand zonder de actieve editorflow kwijt te raken.')).toHaveCount(0);
+});
+
 test('stap 1 toont maar één actieve wandwerkruimte tegelijk', async ({ page }) => {
   const indeling = new IndelingPage(page);
 
