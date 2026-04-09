@@ -6,7 +6,7 @@
 <StapIndicator HuidigeStap="zaagplan" />
 
 <h2 class="page-header">Stap 5: Zaagplan</h2>
-<p class="text-muted mb-3">Controleer hier plaatmaat, indeling en eventuele panelen die nog niet passen.</p>
+<p class="text-muted mb-3">Controleer hier plaatmaat en indeling.</p>
 <div class="stap-ondersteuning mb-3" data-testid="zaagplan-stap-ondersteuning">
     <StapHulpDrawer StapId="zaagplan" KnopLabel="Staphulp" />
     <TerminologieUitleg Compact="true"
@@ -58,18 +58,12 @@ else
             <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3">
                 <div>
                     <div class="small fw-semibold text-uppercase text-primary-emphasis">Plaatinstellingen</div>
-                    <div class="fw-semibold">Plaatmaat en weergave</div>
-                    <div class="small text-muted">Pas zaagverlies of draaien pas aan als het resultaat daarom vraagt.</div>
+                    <div class="fw-semibold">Kies plaatmaat en controleer daarna de indeling</div>
+                    <div class="small text-muted">Pas zaagverlies of draaien alleen aan als het resultaat daarom vraagt.</div>
                 </div>
-                <div class="zaagplan-kerncijfers">
-                    <div class="zaagplan-kerncijfer">
-                        <span class="zaagplan-kerncijfer-label">Plaatindeling</span>
-                        <strong>@resultaat.Platen.Count plaat/platen</strong>
-                    </div>
-                    <div class="zaagplan-kerncijfer">
-                        <span class="zaagplan-kerncijfer-label">Geplaatst</span>
-                        <strong>@totaalGeplaatst / @totaalPanelen panelen</strong>
-                    </div>
+                <div class="zaagplan-status-strip">
+                    <span><strong>@resultaat.Platen.Count</strong> plaat/platen in gebruik</span>
+                    <span><strong>@totaalGeplaatst / @totaalPanelen</strong> panelen geplaatst</span>
                 </div>
             </div>
 
@@ -87,7 +81,7 @@ else
                            @bind="_plaatHoogte" @bind:event="oninput" inputmode="decimal" />
                 </div>
                 <div class="col-xl-6">
-                    <div class="small fw-semibold text-uppercase text-muted mb-2">Weergave</div>
+                    <div class="fw-semibold mb-2">Weergave</div>
                     <div class="zaagplan-weergave-toggle" data-testid="zaagplan-weergave-toggle">
                         <button type="button"
                                 class="btn @(_weergave is ZaagplanWeergave.AllePlaten ? "btn-primary" : "btn-outline-secondary")"

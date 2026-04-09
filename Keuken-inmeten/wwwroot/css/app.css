@@ -191,6 +191,30 @@ html, body {
     font-weight: 600;
 }
 
+.home-help-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.home-help-list li {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--bs-border-color);
+    color: var(--bs-secondary-color);
+    font-size: 0.94rem;
+}
+
+.home-help-list li:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.home-help-list strong {
+    color: var(--bs-body-color);
+}
+
 .home-section-details {
     border-top: 1px solid var(--bs-border-color);
     padding-top: 1rem;
@@ -2234,6 +2258,15 @@ code {
     background: var(--bs-body-bg, #fff);
 }
 
+.zaagplan-status-strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    color: var(--bs-secondary-color, #516173);
+}
+
 .zaagplan-kerncijfers {
     display: flex;
     flex-wrap: wrap;
@@ -2348,6 +2381,10 @@ code {
 }
 
 @media (max-width: 767.98px) {
+    .zaagplan-status-strip {
+        justify-content: flex-start;
+    }
+
     .zaagplan-kerncijfers {
         justify-content: stretch;
     }

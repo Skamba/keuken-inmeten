@@ -10,7 +10,6 @@
 <StapIndicator HuidigeStap="bestellijst" />
 
 <h2 class="page-header">Stap 4: Bestellijst</h2>
-<p class="text-muted mb-3">Controleer hier de orderregels per wand. Export opent pas daarna.</p>
 <div class="stap-ondersteuning mb-3" data-testid="bestellijst-stap-ondersteuning">
     <StapHulpDrawer StapId="bestellijst" KnopLabel="Staphulp" />
     <TerminologieUitleg Compact="true"
@@ -49,9 +48,7 @@ else
         <div class="card-body d-flex flex-column gap-3">
             <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3">
                 <div>
-                    <div class="small fw-semibold text-uppercase text-primary-emphasis">Ordercontrole</div>
-                    <h5 class="mb-1">Controleer orderregels en open daarna export</h5>
-                    <p class="text-muted mb-0">Werk eerst de lijst hieronder na. Export en technische details blijven beschikbaar zodra u ze nodig hebt.</p>
+                    <h5 class="mb-0">Controleer orderregels en open daarna export</h5>
                 </div>
                 <div class="bestellijst-export-entry">
                     <button type="button"
@@ -62,13 +59,12 @@ else
                 </div>
             </div>
 
-            <div class="bestellijst-toolbar-meta">
-                <span>Bestandsformaat kiest u pas in stap 1 van de exportflow.</span>
-                @if (_toonTechnischeDetails)
-                {
+            @if (_toonTechnischeDetails)
+            {
+                <div class="bestellijst-toolbar-meta">
                     <span><strong>@totaalBoorgaten</strong> boorgaten zichtbaar voor controle of export</span>
-                }
-            </div>
+                </div>
+            }
 
             <details class="bestellijst-overzicht-details bestellijst-techniek-details"
                      data-testid="bestellijst-techniek-details">
