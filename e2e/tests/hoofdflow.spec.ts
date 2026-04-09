@@ -136,6 +136,21 @@ test('stap 1 toont maar één actieve wandwerkruimte tegelijk', async ({ page })
   await indeling.expectActieveWerkruimte('Linkerwand');
 });
 
+test('wandenoverzicht toont geen extra toelichting onder de titel', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegWandToe('Linkerwand');
+
+  await expect(page.getByRole('heading', { name: 'Wandenoverzicht' })).toBeVisible();
+  await expect(
+    page.getByText(
+      'Kies daarna precies één wand om maten, kasten, objecten en de visualisatie per werkruimte te bewerken.',
+    ),
+  ).toHaveCount(0);
+});
+
 test('kastpopup werkt als een korte ministepper', async ({ page }) => {
   const indeling = new IndelingPage(page);
 
