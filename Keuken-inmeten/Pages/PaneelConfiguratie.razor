@@ -99,15 +99,20 @@ else
                                     ? "Open eerst één wand"
                                     : $"Editor — {geopendeWand.Naam}")
                         </div>
-                        <div class="small text-muted">
-                            @(isReviewWeergaveActief
-                                ? "Controleer hier aantallen, maten en acties zonder het canvas erboven."
-                                : geopendeWand is null
-                                    ? "Begin met één wand. Review wordt pas nuttig zodra er panelen zijn."
-                                    : toonEditorDrawer
-                                        ? "De editor staat open. Rond selectie, maat en opslaan in één werklaag af."
-                                        : "Werk op één wand tegelijk en open de editor zodra uw selectie klaarstaat.")
-                        </div>
+                        @if (isReviewWeergaveActief)
+                        {
+                            <div class="small text-muted">
+                                Controleer hier aantallen, maten en acties zonder het canvas erboven.
+                            </div>
+                        }
+                        else if (geopendeWand is not null)
+                        {
+                            <div class="small text-muted">
+                                @(toonEditorDrawer
+                                    ? "De editor staat open. Rond selectie, maat en opslaan in één werklaag af."
+                                    : "Werk op één wand tegelijk en open de editor zodra uw selectie klaarstaat.")
+                            </div>
+                        }
                     </div>
                     <div class="d-flex flex-wrap align-items-center gap-2 paneel-weergave-meta">
                         @if (geopendeWand is not null && !isReviewWeergaveActief)

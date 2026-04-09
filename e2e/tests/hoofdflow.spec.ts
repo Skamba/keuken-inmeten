@@ -327,6 +327,25 @@ test('stap 2 scheidt editor en review expliciet', async ({ page }) => {
   await panelen.expectActieveWerkruimte('Achterwand');
 });
 
+test('focuskaart toont geen extra toelichting onder open eerst één wand', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast focus',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await expect(page.getByText('Open eerst één wand')).toBeVisible();
+  await expect(page.getByText('Begin met één wand. Review wordt pas nuttig zodra er panelen zijn.')).toHaveCount(0);
+});
+
 test.describe('mobiele paneel-editor', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
