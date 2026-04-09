@@ -21,6 +21,12 @@ __pycache__/
 node_modules/
 playwright-screenshots/publish/
 playwright-screenshots/screenshots/
+playwright-report/
+test-results/
+dist/
+
+# Local UX run artifacts
+.agent/screenshots/
 
 # OS files
 .DS_Store

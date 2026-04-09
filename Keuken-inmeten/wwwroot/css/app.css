@@ -83,6 +83,29 @@ html, body {
     padding-left: 1.1rem;
 }
 
+.home-resume-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.home-resume-checklist {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.home-resume-check {
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.85rem;
+    background: var(--bs-body-bg);
+}
+
+.home-resume-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
 .home-quick-link {
     text-align: left;
 }
@@ -94,6 +117,15 @@ html, body {
     background: var(--bs-tertiary-bg);
     color: var(--bs-secondary-color);
     font-size: 0.92rem;
+}
+
+.home-inline-disabled {
+    padding: 0.7rem 0.85rem;
+    border: 1px dashed var(--bs-border-color);
+    border-radius: 0.75rem;
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-secondary-color);
+    font-size: 0.88rem;
 }
 
 .home-metric-card {
@@ -121,6 +153,25 @@ html, body {
     border: 1px solid var(--bs-border-color);
     border-radius: 0.9rem;
     background: var(--bs-body-bg);
+}
+
+.home-route-card {
+    height: 100%;
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.9rem;
+    background: var(--bs-body-bg);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.home-route-card:hover {
+    border-color: color-mix(in srgb, #0d6efd 35%, var(--bs-border-color));
+    box-shadow: 0 0.65rem 1.5rem rgba(13, 110, 253, 0.08);
+    transform: translateY(-1px);
+}
+
+.home-route-card--vergrendeld {
+    border-style: dashed;
 }
 
 .home-flow-step--vergrendeld {
@@ -163,8 +214,13 @@ html, body {
 @media (max-width: 991.98px) {
     .home-summary-card,
     .home-example-step,
-    .home-metric-card {
+    .home-metric-card,
+    .home-route-card {
         padding: 1rem;
+    }
+
+    .home-resume-links .btn {
+        flex: 1 1 12rem;
     }
 }
 
@@ -732,6 +788,47 @@ code {
     scroll-margin-top: 5rem;
 }
 
+.paneel-review-samenvatting {
+    background: var(--bs-tertiary-bg);
+}
+
+.paneel-review-samenvatting-details summary,
+.paneel-review-item-details summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.paneel-review-samenvatting-details summary::-webkit-details-marker,
+.paneel-review-item-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.paneel-review-samenvatting-details summary::after,
+.paneel-review-item-details summary::after {
+    content: "+";
+    color: var(--bs-secondary-color);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.paneel-review-samenvatting-details[open] summary::after,
+.paneel-review-item-details[open] summary::after {
+    content: "−";
+}
+
+.paneel-review-item {
+    padding-block: 0.9rem;
+}
+
+.paneel-review-item-main {
+    min-width: min(24rem, 100%);
+}
+
 @media (max-width: 1199.98px) {
     .paneel-editor-drawer-layer {
         background: color-mix(in srgb, var(--bs-body-color) 12%, transparent);
@@ -861,6 +958,40 @@ code {
     font-size: 0.95rem;
 }
 
+.indeling-object-lijst {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.indeling-object-rij {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.85rem;
+    background: var(--bs-body-bg);
+}
+
+.indeling-object-rij.is-active {
+    border-color: var(--bs-primary);
+    background: color-mix(in srgb, var(--bs-primary) 8%, var(--bs-body-bg));
+}
+
+.indeling-object-meta {
+    min-width: 0;
+}
+
+.indeling-object-acties,
+.indeling-object-confirmatie {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 @media (min-width: 768px) {
     .indeling-overige-wand-schakelaar {
         flex-direction: row;
@@ -876,6 +1007,13 @@ code {
 
     .indeling-overige-wanden-lijst {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .indeling-object-acties,
+    .indeling-object-confirmatie {
+        width: 100%;
     }
 }
 
@@ -1405,6 +1543,38 @@ code {
     text-align: left;
 }
 
+.bestellijst-overzicht-details {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--bs-border-color, #d0d7de);
+    border-radius: 0.95rem;
+    background: var(--bs-body-bg, #fff);
+}
+
+.bestellijst-overzicht-details summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.bestellijst-overzicht-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.bestellijst-overzicht-details summary::after {
+    content: "+";
+    color: var(--bs-secondary-color, #516173);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.bestellijst-overzicht-details[open] summary::after {
+    content: "−";
+}
+
 .bestellijst-export-acties {
     display: flex;
     flex-wrap: wrap;
@@ -1556,6 +1726,10 @@ code {
 
 .bestellijst-name {
     min-width: 260px;
+}
+
+.bestellijst-groep-meta {
+    max-width: 46rem;
 }
 
 /* ── Zaagplan ── */

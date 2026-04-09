@@ -328,29 +328,43 @@ else
                     </div>
                     @if (wandKasten.Count > 0)
                     {
-                        <div class="d-flex flex-wrap gap-2">
+                        <div class="indeling-object-lijst">
                             @foreach (var kast in wandKasten)
                             {
-                                <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 small @(bewerkKastId == kast.Id && actieveWandId == actieveWand.Id ? "border-primary bg-primary bg-opacity-10" : "")">
-                                    <span class="badge @TypeBadge(kast.Type)">@kast.Type</span>
-                                    <span class="fw-semibold">@kast.Naam</span>
-                                    <span class="text-muted">@kast.Breedte×@kast.Hoogte</span>
-                                    <button class="btn btn-outline-primary btn-sm px-1 ms-1" style="font-size: 0.75rem; line-height: 1.2;"
-                                            @onclick="() => BewerkKast(kast, actieveWand.Id)" title="Kast bewerken">✎</button>
-                                    <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
-                                            @onclick="() => KopieerKast(kast, actieveWand.Id)" title="Kast kopiëren">⧉</button>
+                                <div class="indeling-object-rij @(bewerkKastId == kast.Id && actieveWandId == actieveWand.Id ? "is-active" : null)">
+                                    <div class="indeling-object-meta">
+                                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                            <span class="badge @TypeBadge(kast.Type)">@kast.Type</span>
+                                            <span class="fw-semibold">@kast.Naam</span>
+                                        </div>
+                                        <div class="small text-muted">@kast.Breedte × @kast.Hoogte mm</div>
+                                    </div>
                                     @if (bevestigVerwijderKastId == kast.Id)
                                     {
-                                        <span class="text-danger small ms-1 fw-semibold">Verwijderen?</span>
-                                        <button class="btn btn-danger btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
-                                                @onclick="() => { VerwijderKast(kast.Id); bevestigVerwijderKastId = null; }" title="Bevestig verwijderen">Ja</button>
-                                        <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
-                                                @onclick="() => bevestigVerwijderKastId = null" title="Annuleren">Nee</button>
+                                        <div class="indeling-object-confirmatie">
+                                            <span class="text-danger small fw-semibold">Verwijderen?</span>
+                                            <button class="btn btn-danger btn-sm"
+                                                    @onclick="() => { VerwijderKast(kast.Id); bevestigVerwijderKastId = null; }">Ja</button>
+                                            <button class="btn btn-outline-secondary btn-sm"
+                                                    @onclick="() => bevestigVerwijderKastId = null">Annuleer</button>
+                                        </div>
                                     }
                                     else
                                     {
-                                        <button class="btn btn-outline-danger btn-sm px-1" style="font-size: 0.75rem; line-height: 1.2;"
-                                                @onclick="() => bevestigVerwijderKastId = kast.Id" title="Kast verwijderen">×</button>
+                                        <div class="indeling-object-acties">
+                                            <button class="btn btn-outline-primary btn-sm"
+                                                    @onclick="() => BewerkKast(kast, actieveWand.Id)">
+                                                Bewerk
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-sm"
+                                                    @onclick="() => KopieerKast(kast, actieveWand.Id)">
+                                                Kopieer
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm"
+                                                    @onclick="() => bevestigVerwijderKastId = kast.Id">
+                                                Verwijder
+                                            </button>
+                                        </div>
                                     }
                                 </div>
                             }
@@ -371,27 +385,39 @@ else
                             <h6 class="mb-0">Apparaten op deze wand</h6>
                             <span class="text-muted small">@wandApparaten.Count toegevoegd</span>
                         </div>
-                        <div class="d-flex flex-wrap gap-2">
+                        <div class="indeling-object-lijst">
                             @foreach (var apparaat in wandApparaten)
                             {
-                                <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 small @(bewerkApparaatId == apparaat.Id && actieveWandId == actieveWand.Id ? "border-danger bg-danger bg-opacity-10" : "")">
-                                    <span class="badge bg-secondary">@ApparaatTypeLabel(apparaat.Type)</span>
-                                    <span class="fw-semibold">@apparaat.Naam</span>
-                                    <span class="text-muted">@apparaat.Breedte×@apparaat.Hoogte</span>
-                                    <button class="btn btn-outline-primary btn-sm px-1 ms-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                            @onclick="() => BewerkApparaat(apparaat, actieveWand.Id)" title="Bewerken">✎</button>
+                                <div class="indeling-object-rij @(bewerkApparaatId == apparaat.Id && actieveWandId == actieveWand.Id ? "is-active" : null)">
+                                    <div class="indeling-object-meta">
+                                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                            <span class="badge bg-secondary">@ApparaatTypeLabel(apparaat.Type)</span>
+                                            <span class="fw-semibold">@apparaat.Naam</span>
+                                        </div>
+                                        <div class="small text-muted">@apparaat.Breedte × @apparaat.Hoogte mm</div>
+                                    </div>
                                     @if (bevestigVerwijderApparaatId == apparaat.Id)
                                     {
-                                        <span class="text-danger small ms-1">Weg?</span>
-                                        <button class="btn btn-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                                @onclick="() => { VerwijderApparaat(apparaat.Id); bevestigVerwijderApparaatId = null; }">✓</button>
-                                        <button class="btn btn-outline-secondary btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                                @onclick="() => bevestigVerwijderApparaatId = null">✗</button>
+                                        <div class="indeling-object-confirmatie">
+                                            <span class="text-danger small fw-semibold">Verwijderen?</span>
+                                            <button class="btn btn-danger btn-sm"
+                                                    @onclick="() => { VerwijderApparaat(apparaat.Id); bevestigVerwijderApparaatId = null; }">Ja</button>
+                                            <button class="btn btn-outline-secondary btn-sm"
+                                                    @onclick="() => bevestigVerwijderApparaatId = null">Annuleer</button>
+                                        </div>
                                     }
                                     else
                                     {
-                                        <button class="btn btn-outline-danger btn-sm px-1" style="font-size: 0.8rem; line-height: 1.2;"
-                                                @onclick="() => bevestigVerwijderApparaatId = apparaat.Id" title="Verwijderen">×</button>
+                                        <div class="indeling-object-acties">
+                                            <button class="btn btn-outline-primary btn-sm"
+                                                    @onclick="() => BewerkApparaat(apparaat, actieveWand.Id)">
+                                                Bewerk
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm"
+                                                    @onclick="() => bevestigVerwijderApparaatId = apparaat.Id">
+                                                Verwijder
+                                            </button>
+                                        </div>
                                     }
                                 </div>
                             }

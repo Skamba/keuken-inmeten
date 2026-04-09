@@ -48,6 +48,9 @@ public static class OverzichtGroeperingHelper
             .ThenBy(telling => telling.Label, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
+    public static string FormatteerTellingen(IEnumerable<Telling> tellingen)
+        => string.Join(" · ", tellingen.Select(telling => $"{telling.Label} {telling.Aantal}"));
+
     public static List<PaneelReviewGroep> GroepeerPaneelToewijzingen(KeukenStateService state)
         => state.Toewijzingen
             .Select((toewijzing, index) =>

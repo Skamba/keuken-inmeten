@@ -63,50 +63,45 @@
                 <div class="col-lg-5">
                     @if (heeftProjectData)
                     {
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <div class="home-summary-card home-dashboard-card h-100" data-testid="home-project-dashboard">
-                                    <h2 class="h5 mb-3">Wat nu aandacht vraagt</h2>
-                                    <ul class="home-dashboard-list">
-                                        <li>
-                                            <strong>Volgende stap: @vervolgStap.Label</strong>
-                                            <div class="text-muted small">@vervolgStap.Beschrijving</div>
-                                        </li>
-                                        <li>
-                                            <strong>@aandachtBlok.Titel</strong>
-                                            <div class="text-muted small">@aandachtBlok.Tekst</div>
-                                        </li>
-                                        <li>
-                                            <strong>@boorgatBlok.Titel</strong>
-                                            <div class="text-muted small">@boorgatBlok.Tekst</div>
-                                        </li>
-                                    </ul>
+                        <div class="home-summary-card home-dashboard-card home-resume-card h-100" data-testid="home-project-dashboard">
+                            <div class="small fw-semibold text-uppercase text-primary-emphasis mb-1">Nu hervatten</div>
+                            <h2 class="h5 mb-1">@vervolgStap.Label</h2>
+                            <p class="text-muted small mb-3">@vervolgStap.Beschrijving</p>
+
+                            <div class="home-resume-checklist">
+                                <div class="home-resume-check">
+                                    <strong>@aandachtBlok.Titel</strong>
+                                    <div class="text-muted small">@aandachtBlok.Tekst</div>
+                                </div>
+                                <div class="home-resume-check">
+                                    <strong>@boorgatBlok.Titel</strong>
+                                    <div class="text-muted small">@boorgatBlok.Tekst</div>
                                 </div>
                             </div>
 
-                            <div class="col-12">
-                                <div class="home-summary-card h-100">
-                                    <h2 class="h5 mb-3">Snelle ingangen</h2>
-                                    <div class="d-grid gap-2">
-                                        <a href="kasten" class="btn btn-outline-secondary home-quick-link">Open indeling</a>
-                                        @if (aantalKasten > 0)
-                                        {
-                                            <a href="panelen" class="btn btn-outline-secondary home-quick-link">Open panelen</a>
-                                        }
-                                        else
-                                        {
-                                            <div class="home-quick-link-disabled">Panelen opent zodra er minstens een kast is toegevoegd.</div>
-                                        }
-                                        @if (aantalBestellijstItems > 0)
-                                        {
-                                            <a href="zaagplan" class="btn btn-outline-secondary home-quick-link">Open zaagplan</a>
-                                        }
-                                        else if (aantalPanelen > 0)
-                                        {
-                                            <a href="verificatie" class="btn btn-outline-secondary home-quick-link">Open verificatie</a>
-                                        }
-                                    </div>
+                            <div class="mt-3">
+                                <div class="small fw-semibold text-uppercase text-muted mb-2">Direct naar</div>
+                                <div class="home-resume-links">
+                                    <a href="kasten" class="btn btn-outline-secondary home-quick-link">Indeling</a>
+                                    @if (aantalKasten > 0)
+                                    {
+                                        <a href="panelen" class="btn btn-outline-secondary home-quick-link">Panelen</a>
+                                    }
+                                    @if (aantalPanelen > 0)
+                                    {
+                                        <a href="verificatie" class="btn btn-outline-secondary home-quick-link">Verificatie</a>
+                                    }
+                                    @if (aantalBestellijstItems > 0)
+                                    {
+                                        <a href="bestellijst" class="btn btn-outline-secondary home-quick-link">Bestellijst</a>
+                                        <a href="zaagplan" class="btn btn-outline-secondary home-quick-link">Zaagplan</a>
+                                    }
                                 </div>
+
+                                @if (aantalKasten == 0)
+                                {
+                                    <div class="home-inline-disabled mt-2">Panelen opent zodra er minstens een kast is toegevoegd.</div>
+                                }
                             </div>
                         </div>
                     }
@@ -230,145 +225,174 @@
     <section class="mb-5" id="startflow-stappen">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2 mb-3">
             <div>
-                <h2 class="h3 mb-1">@(heeftProjectData ? "Projectstappen" : "Zo loopt de startflow")</h2>
+                <h2 class="h3 mb-1">@(heeftProjectData ? "Andere projectroutes" : "Zo loopt de startflow")</h2>
                 <p class="text-muted mb-0">
                     @(heeftProjectData
-                        ? "Open direct de stap waar u verder wilt werken. De labels hieronder blijven gelijk aan de rest van de applicatie."
+                        ? "De hoofdactie hierboven is de snelste route. Gebruik deze compacte kaarten alleen als u bewust een andere stap wilt openen."
                         : "De volgorde en labels hieronder zijn gelijk aan de rest van de applicatie.")
                 </p>
             </div>
-            <div class="text-muted small">Vaste volgorde: @string.Join(" → ", StappenFlowHelper.AlleStappen.Select(stap => stap.Label))</div>
+            <div class="text-muted small">
+                @(heeftProjectData
+                    ? $"Aanbevolen: {vervolgStap.Label}"
+                    : $"Vaste volgorde: {string.Join(" → ", StappenFlowHelper.AlleStappen.Select(stap => stap.Label))}")
+            </div>
         </div>
 
-        <div class="row g-3">
-            @foreach (var stap in stappen)
-            {
-                <div class="col-md-6 col-xl">
-                    <a href="@stap.Href" class="text-decoration-none text-reset d-block h-100">
-                        <article class="card h-100 border-0 shadow-sm home-stap-card home-flow-step @(stap.IsBeschikbaar ? null : "home-flow-step--vergrendeld")">
-                            <div class="card-body d-flex flex-column gap-3">
-                                <div class="d-flex justify-content-between align-items-start gap-2">
+        @if (heeftProjectData)
+        {
+            <div class="row g-2">
+                @foreach (var stap in stappen)
+                {
+                    <div class="col-sm-6 col-xl" @key="stap.Href">
+                        <a href="@stap.Href" class="text-decoration-none text-reset d-block h-100">
+                            <article class="home-route-card h-100 @(stap.IsBeschikbaar ? null : "home-route-card--vergrendeld")">
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
                                     <span class="home-step-number">@stap.Nummer</span>
                                     <span class="badge rounded-pill @stap.BadgeClass">@stap.BadgeLabel</span>
                                 </div>
                                 <div>
-                                    <h3 class="h5 mb-1">@stap.Titel</h3>
-                                    <p class="text-muted mb-0">@stap.Beschrijving</p>
+                                    <h3 class="h6 mb-1">@stap.Titel</h3>
+                                    <div class="small text-muted">@stap.Samenvatting</div>
                                 </div>
-                                <div class="small text-muted mt-auto">@stap.Samenvatting</div>
-                            </div>
-                        </article>
-                    </a>
-                </div>
-            }
-        </div>
+                            </article>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var stap in stappen)
+                {
+                    <div class="col-md-6 col-xl">
+                        <a href="@stap.Href" class="text-decoration-none text-reset d-block h-100">
+                            <article class="card h-100 border-0 shadow-sm home-stap-card home-flow-step @(stap.IsBeschikbaar ? null : "home-flow-step--vergrendeld")">
+                                <div class="card-body d-flex flex-column gap-3">
+                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                        <span class="home-step-number">@stap.Nummer</span>
+                                        <span class="badge rounded-pill @stap.BadgeClass">@stap.BadgeLabel</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="h5 mb-1">@stap.Titel</h3>
+                                        <p class="text-muted mb-0">@stap.Beschrijving</p>
+                                    </div>
+                                    <div class="small text-muted mt-auto">@stap.Samenvatting</div>
+                                </div>
+                            </article>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
     </section>
 
     @if (!heeftProjectData)
     {
-        <section class="mb-5">
-            <div class="d-flex justify-content-between align-items-end mb-3">
-                <div>
-                    <h2 class="h3 mb-1">Wat beïnvloedt de berekening?</h2>
-                    <p class="text-muted mb-0">Deze drie onderdelen veroorzaken vaak vragen bij een eerste project.</p>
-                </div>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body">
-                            <h3 class="h5">Apparaten</h3>
-                            <p class="text-muted mb-0">Voeg een apparaat toe in stap 1 als het ruimte inneemt in de wandopstelling, tussen kasten staat of de vrije plaats voor een paneel beïnvloedt.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body">
-                            <h3 class="h5">Planken</h3>
-                            <p class="text-muted mb-0">Planken zijn vooral relevant als referentie voor de gatenrij. De afstand naar het eerste gat wordt gemeten vanaf de onderkant van de bovenste plank.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body">
-                            <h3 class="h5">Zaagplan</h3>
-                            <p class="text-muted mb-0">Het zaagplan gebruikt de panelen uit de bestellijst om te laten zien hoeveel standaard platen u nodig hebt en hoe de panelen daarop passen.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="card border-0 shadow-sm">
+        <section class="card border-0 shadow-sm" data-testid="home-extra-help">
             <div class="card-body p-4">
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2 mb-4">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2">
                     <div>
-                        <h2 class="h3 mb-1">Mini-voorbeeld: van invoer naar output</h2>
-                        <p class="text-muted mb-0">Een compact voorbeeld van wat u invult en wat u daarna terugziet.</p>
+                        <h2 class="h4 mb-1">Extra uitleg en mini-voorbeeld</h2>
+                        <p class="text-muted mb-0">Open dit alleen als u meer context wilt bij apparaten, planken of de uiteindelijke output.</p>
                     </div>
-                    <div class="text-muted small">Voorbeeld, niet uw echte projectdata</div>
                 </div>
 
-                <div class="row g-3 align-items-stretch">
-                    <div class="col-lg-6 col-xl">
-                        <div class="home-example-step h-100">
-                            <div class="home-example-label">Invoer</div>
-                            <h3 class="h5">1. @StappenFlowHelper.Stap("kasten").Label</h3>
-                            <ul class="mb-0 text-muted small">
-                                <li>Achterwand toevoegen en 3 kasten plaatsen</li>
-                                <li>Een oven toevoegen waar hij echt ruimte inneemt</li>
-                                <li>Controleer of de wandopstelling logisch staat</li>
-                            </ul>
+                <details class="home-help-details mt-3">
+                    <summary>Toon extra uitleg</summary>
+                    <div class="row g-3 mt-2">
+                        <div class="col-lg-4">
+                            <div class="home-example-step h-100">
+                                <div class="home-example-label">Let extra op</div>
+                                <h3 class="h5">Apparaten</h3>
+                                <p class="text-muted mb-0">Voeg een apparaat alleen toe als het echt wandruimte inneemt of de vrije ruimte voor een paneel verandert.</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="home-example-step h-100">
+                                <div class="home-example-label">Technische context</div>
+                                <h3 class="h5">Planken</h3>
+                                <p class="text-muted mb-0">Planken tellen vooral mee als referentie voor de gatenrij. De afstand naar het eerste gat wordt gemeten vanaf de onderkant van de bovenste plank.</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="home-example-step h-100">
+                                <div class="home-example-label">Uitvoer</div>
+                                <h3 class="h5">Zaagplan</h3>
+                                <p class="text-muted mb-0">Het zaagplan gebruikt de panelen uit de bestellijst om te laten zien hoeveel standaard platen u nodig hebt en hoe de panelen daarop passen.</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg-6 col-xl">
-                        <div class="home-example-step h-100">
-                            <div class="home-example-label">Toewijzen</div>
-                            <h3 class="h5">2. @StappenFlowHelper.Stap("panelen").Label</h3>
-                            <ul class="mb-0 text-muted small">
-                                <li>2 deuren en 1 ladefront selecteren</li>
-                                <li>Paneelmaten en scharnierzijde instellen</li>
-                                <li>Plank gebruiken als referentie voor de gatenrij</li>
-                            </ul>
+
+                    <div class="mt-4">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2 mb-3">
+                            <div>
+                                <h3 class="h5 mb-1">Mini-voorbeeld: van invoer naar output</h3>
+                                <p class="text-muted mb-0">Een compact voorbeeld van wat u invult en wat u daarna terugziet.</p>
+                            </div>
+                            <div class="text-muted small">Voorbeeld, niet uw echte projectdata</div>
+                        </div>
+
+                        <div class="row g-3 align-items-stretch">
+                            <div class="col-lg-6 col-xl">
+                                <div class="home-example-step h-100">
+                                    <div class="home-example-label">Invoer</div>
+                                    <h3 class="h5">1. @StappenFlowHelper.Stap("kasten").Label</h3>
+                                    <ul class="mb-0 text-muted small">
+                                        <li>Achterwand toevoegen en 3 kasten plaatsen</li>
+                                        <li>Een oven toevoegen waar hij echt ruimte inneemt</li>
+                                        <li>Controleer of de wandopstelling logisch staat</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-xl">
+                                <div class="home-example-step h-100">
+                                    <div class="home-example-label">Toewijzen</div>
+                                    <h3 class="h5">2. @StappenFlowHelper.Stap("panelen").Label</h3>
+                                    <ul class="mb-0 text-muted small">
+                                        <li>2 deuren en 1 ladefront selecteren</li>
+                                        <li>Paneelmaten en scharnierzijde instellen</li>
+                                        <li>Plank gebruiken als referentie voor de gatenrij</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-xl">
+                                <div class="home-example-step h-100">
+                                    <div class="home-example-label">Controle</div>
+                                    <h3 class="h5">3. @StappenFlowHelper.Stap("verificatie").Label</h3>
+                                    <ul class="mb-0 text-muted small">
+                                        <li>Vrije opening en netto paneelmaat naast elkaar controleren</li>
+                                        <li>Scharnierzijde en boorgatposities nalopen</li>
+                                        <li>U ziet meteen welke panelen nog controle nodig hebben</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-xl">
+                                <div class="home-example-step h-100">
+                                    <div class="home-example-label">Bestellen</div>
+                                    <h3 class="h5">4. @StappenFlowHelper.Stap("bestellijst").Label</h3>
+                                    <ul class="mb-0 text-muted small">
+                                        <li>Bestellijst met aantallen, maten en boorgaten</li>
+                                        <li>Export naar Excel of printklare PDF</li>
+                                        <li>Per wand en paneeltype compact gegroepeerd</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-xl">
+                                <div class="home-example-step h-100">
+                                    <div class="home-example-label">Zagen</div>
+                                    <h3 class="h5">5. @StappenFlowHelper.Stap("zaagplan").Label</h3>
+                                    <ul class="mb-0 text-muted small">
+                                        <li>Panelen verdelen over standaard plaatformaat</li>
+                                        <li>Zaagverlies meenemen in de berekening</li>
+                                        <li>Snel zien hoeveel platen u nodig hebt</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg-6 col-xl">
-                        <div class="home-example-step h-100">
-                            <div class="home-example-label">Controle</div>
-                            <h3 class="h5">3. @StappenFlowHelper.Stap("verificatie").Label</h3>
-                            <ul class="mb-0 text-muted small">
-                                <li>Vrije opening en netto paneelmaat naast elkaar controleren</li>
-                                <li>Scharnierzijde en boorgatposities nalopen</li>
-                                <li>U ziet meteen welke panelen nog controle nodig hebben</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-xl">
-                        <div class="home-example-step h-100">
-                            <div class="home-example-label">Bestellen</div>
-                            <h3 class="h5">4. @StappenFlowHelper.Stap("bestellijst").Label</h3>
-                            <ul class="mb-0 text-muted small">
-                                <li>Bestellijst met aantallen, maten en boorgaten</li>
-                                <li>Export naar Excel of printklare PDF</li>
-                                <li>Per wand en paneeltype compact gegroepeerd</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-xl">
-                        <div class="home-example-step h-100">
-                            <div class="home-example-label">Zagen</div>
-                            <h3 class="h5">5. @StappenFlowHelper.Stap("zaagplan").Label</h3>
-                            <ul class="mb-0 text-muted small">
-                                <li>Panelen verdelen over standaard plaatformaat</li>
-                                <li>Zaagverlies meenemen in de berekening</li>
-                                <li>Snel zien hoeveel platen u nodig hebt</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+                </details>
             </div>
         </section>
     }
@@ -378,13 +402,13 @@
             <div class="card-body p-4">
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2">
                     <div>
-                        <h2 class="h4 mb-1">Eerste keer of project overdragen?</h2>
+                        <h2 class="h4 mb-1">Project overdragen of termen opfrissen?</h2>
                         <p class="text-muted mb-0">Open deze compacte hulp alleen als u nog even de basis, uitzonderingen of de taal van de app wilt nalopen.</p>
                     </div>
                 </div>
 
                 <details class="home-help-details mt-3">
-                    <summary>Toon compacte basisuitleg</summary>
+                    <summary>Toon compacte hulp</summary>
                     <div class="row g-3 mt-2">
                         <div class="col-lg-4">
                             <div class="home-example-step h-100">
@@ -499,10 +523,10 @@
 
     private static string MaakDashboardLead(int aantalWanden, int aantalKasten, int aantalPanelen, int aantalBestellijstItems)
         => aantalBestellijstItems > 0
-            ? $"Uw project bevat al {aantalWanden} wand(en), {aantalKasten} kast(en), {aantalPanelen} paneel/panelen en {aantalBestellijstItems} orderregel(s). Gebruik deze startpagina vooral om snel te hervatten en de juiste uitvoerstap te openen."
+            ? $"{aantalWanden} wand(en), {aantalKasten} kast(en), {aantalPanelen} paneel/panelen en {aantalBestellijstItems} orderregel(s) staan al klaar. Gebruik deze pagina vooral om snel te hervatten of bewust naar een andere stap te springen."
             : aantalPanelen > 0
-                ? $"Uw indeling en paneeltoewijzing staan al klaar. Rond nu verificatie, bestellijst en zaagplan af zonder opnieuw door de hele basisuitleg te hoeven bladeren."
-                : $"U hebt al {aantalWanden} wand(en) en {aantalKasten} kast(en) ingevoerd. Ga nu direct verder met panelen toewijzen zodat de rest van de workflow beschikbaar wordt.";
+                ? "Uw indeling en paneeltoewijzing staan al klaar. Rond nu verificatie, bestellijst en zaagplan af."
+                : $"{aantalWanden} wand(en) en {aantalKasten} kast(en) zijn al ingevoerd. Ga nu direct verder met panelen toewijzen.";
 
     private static InfoBlok MaakAandachtBlok(int aantalPanelen, int aantalBestellijstItems)
         => aantalPanelen == 0

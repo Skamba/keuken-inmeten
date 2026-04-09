@@ -339,30 +339,33 @@ else
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-xl-6">
-            <div class="border rounded p-3 h-100">
-                <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per wand</div>
-                <div class="d-flex flex-wrap gap-2">
-                    @foreach (var groep in wandGroepen)
-                    {
-                        <span class="badge text-bg-light border">@groep.WandNaam · @groep.PanelenTotaal panelen</span>
-                    }
+    <details class="bestellijst-overzicht-details mb-4">
+        <summary class="fw-semibold">Bekijk verdeling per wand en paneeltype</summary>
+        <div class="row g-3 mt-2">
+            <div class="col-xl-6">
+                <div class="border rounded p-3 h-100">
+                    <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per wand</div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var groep in wandGroepen)
+                        {
+                            <span class="badge text-bg-light border">@groep.WandNaam · @groep.PanelenTotaal panelen</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="border rounded p-3 h-100">
+                    <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per paneeltype</div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var telling in paneelTypeTellingen)
+                        {
+                            <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-6">
-            <div class="border rounded p-3 h-100">
-                <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per paneeltype</div>
-                <div class="d-flex flex-wrap gap-2">
-                    @foreach (var telling in paneelTypeTellingen)
-                    {
-                        <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
+    </details>
 
     @foreach (var groep in wandGroepen)
     {
@@ -371,13 +374,13 @@ else
                 <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                     <div>
                         <h5 class="mb-1">@groep.WandNaam</h5>
-                        <div class="small text-muted">@groep.Orderregels orderregels · @groep.PanelenTotaal panelen</div>
-                    </div>
-                    <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                        @foreach (var telling in groep.PaneelTypeTellingen)
-                        {
-                            <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
-                        }
+                        <div class="small text-muted bestellijst-groep-meta">
+                            @groep.Orderregels orderregels · @groep.PanelenTotaal panelen
+                            @if (groep.PaneelTypeTellingen.Count > 0)
+                            {
+                                <span> · @OverzichtGroeperingHelper.FormatteerTellingen(groep.PaneelTypeTellingen)</span>
+                            }
+                        </div>
                     </div>
                 </div>
 

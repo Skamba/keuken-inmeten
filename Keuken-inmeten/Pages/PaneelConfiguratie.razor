@@ -447,24 +447,25 @@ else
                     }
                     else
                     {
-                        <div class="row g-3 mb-3">
-                            <div class="col-sm-5">
-                                <div class="border rounded p-3 h-100">
-                                    <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Samenvatting</div>
-                                    <div class="fw-semibold">@paneelReviewGroepen.Count wand(en) met panelen</div>
-                                    <div class="small text-muted">@State.Toewijzingen.Count paneeltoewijzingen klaar voor review of bewerking.</div>
-                                </div>
-                            </div>
-                            <div class="col-sm-7">
-                                <div class="border rounded p-3 h-100">
-                                    <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per paneeltype</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        @foreach (var telling in paneelTypeTellingen)
-                                        {
-                                            <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
-                                        }
+                        <div class="border rounded p-3 mb-3 paneel-review-samenvatting">
+                            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                                <div>
+                                    <div class="fw-semibold">@State.Toewijzingen.Count paneeltoewijzingen in @paneelReviewGroepen.Count wand(en)</div>
+                                    <div class="small text-muted">
+                                        @(paneelTypeTellingen.Count == 0
+                                            ? "Nog geen verdeling per paneeltype."
+                                            : OverzichtGroeperingHelper.FormatteerTellingen(paneelTypeTellingen))
                                     </div>
                                 </div>
+                                <details class="paneel-review-samenvatting-details">
+                                    <summary class="small fw-semibold text-secondary">Bekijk verdeling per wand</summary>
+                                    <div class="small text-muted mt-2 d-grid gap-1">
+                                        @foreach (var groep in gerangschiktePaneelReviewGroepen)
+                                        {
+                                            <div>@groep.WandNaam · @groep.AantalPanelen paneel/panelen</div>
+                                        }
+                                    </div>
+                                </details>
                             </div>
                         </div>
 
@@ -483,13 +484,13 @@ else
                                                     <span class="badge text-bg-primary">Nu actief</span>
                                                 }
                                             </div>
-                                            <div class="small text-muted">@groep.AantalPanelen paneel/panelen op deze wand</div>
-                                        </div>
-                                        <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                                            @foreach (var telling in groep.TypeTellingen)
-                                            {
-                                                <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
-                                            }
+                                            <div class="small text-muted">
+                                                @groep.AantalPanelen paneel/panelen op deze wand
+                                                @if (groep.TypeTellingen.Count > 0)
+                                                {
+                                                    <span> · @OverzichtGroeperingHelper.FormatteerTellingen(groep.TypeTellingen)</span>
+                                                }
+                                            </div>
                                         </div>
                                     </div>
 
@@ -498,9 +499,9 @@ else
                                         {
                                             var isOpen = bewerkToewijzingId == item.Id;
 
-                                            <div class="list-group-item px-0" @key="item.Id">
+                                            <div class="list-group-item px-0 paneel-review-item" @key="item.Id">
                                                 <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                                                    <div>
+                                                    <div class="paneel-review-item-main">
                                                         <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                             <span class="badge @TypeBadgeClass(item.Type)">@item.TypeLabel</span>
                                                             <span class="fw-semibold">Paneel @item.Volgnummer</span>
@@ -511,6 +512,7 @@ else
                                                             }
                                                         </div>
                                                         <div class="small text-muted">Kast(en): @item.KastenLabel</div>
+                                                        <div class="small text-muted">@item.PlaatsingLabel</div>
                                                     </div>
                                                     <div class="d-flex gap-2">
                                                         <button type="button"
@@ -518,22 +520,26 @@ else
                                                                 @onclick="() => BewerkPaneel(item.Id)">
                                                             @(isOpen ? "Open" : "Bewerk")
                                                         </button>
-                                                        <button type="button"
-                                                                class="btn btn-outline-danger btn-sm"
-                                                                @onclick="() => VerwijderPaneel(item.Id)">
-                                                            Verwijder
-                                                        </button>
                                                     </div>
                                                 </div>
 
-                                                <details class="mt-2 small">
-                                                    <summary class="text-secondary">Plaatsing en technische details</summary>
-                                                    <div class="mt-2 d-flex flex-wrap gap-3">
+                                                <details class="mt-2 small paneel-review-item-details">
+                                                    <summary class="text-secondary">Technische details en verwijderen</summary>
+                                                    <div class="mt-2 d-flex flex-column gap-3">
+                                                        <div class="d-flex flex-wrap gap-3">
                                                         <span><strong>Plaatsing:</strong> @item.PlaatsingLabel</span>
                                                         @if (item.Type == PaneelType.Deur)
                                                         {
                                                             <span><strong>Scharnier:</strong> @item.ScharnierLabel</span>
                                                         }
+                                                        </div>
+                                                        <div>
+                                                            <button type="button"
+                                                                    class="btn btn-outline-danger btn-sm"
+                                                                    @onclick="() => VerwijderPaneel(item.Id)">
+                                                                Verwijder paneel
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </details>
                                             </div>

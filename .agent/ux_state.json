@@ -1,0 +1,171 @@
+{
+  "appName": "Keuken Inmeten",
+  "repoName": "keuken-inmeten",
+  "intendedUsers": [
+    "Kitchen fitters and cabinet makers measuring kitchen runs and cabinet openings",
+    "Installers or workshop planners preparing panel sizes, hinge bores, order lists, and cutting plans"
+  ],
+  "currentIteration": 1,
+  "mainJourneys": [
+    "Start or resume a project from Home",
+    "Build the kitchen run per wall in Stap 1: Indeling",
+    "Assign and review panels in Stap 2: Panelen",
+    "Verify openings and hinge drilling in Stap 3: Verificatie",
+    "Review and export order lines in Stap 4: Bestellijst",
+    "Review cutting layout and warnings in Stap 5: Zaagplan"
+  ],
+  "screensCovered": [
+    "home-empty-desktop",
+    "home-invalid-share-desktop",
+    "home-resume-desktop",
+    "indeling-empty-desktop",
+    "indeling-kast-form-validation-desktop",
+    "indeling-normal-desktop",
+    "indeling-dense-desktop",
+    "panelen-route-gate-desktop",
+    "panelen-editor-normal-desktop",
+    "panelen-review-normal-desktop",
+    "panelen-review-dense-desktop",
+    "verificatie-tasklist-normal-desktop",
+    "verificatie-detail-normal-desktop",
+    "verificatie-complete-desktop",
+    "verificatie-tasklist-dense-desktop",
+    "bestellijst-normal-desktop",
+    "bestellijst-export-confirm-desktop",
+    "bestellijst-dense-desktop",
+    "zaagplan-normal-desktop",
+    "zaagplan-dense-desktop",
+    "zaagplan-focus-dense-desktop",
+    "zaagplan-warning-desktop",
+    "home-resume-mobile",
+    "indeling-normal-mobile"
+  ],
+  "screenshotsCaptured": [
+    ".agent/screenshots/iteration-1/before/home-empty-desktop.png",
+    ".agent/screenshots/iteration-1/before/home-invalid-share-desktop.png",
+    ".agent/screenshots/iteration-1/before/home-resume-desktop.png",
+    ".agent/screenshots/iteration-1/before/indeling-empty-desktop.png",
+    ".agent/screenshots/iteration-1/before/indeling-kast-form-validation-desktop.png",
+    ".agent/screenshots/iteration-1/before/indeling-normal-desktop.png",
+    ".agent/screenshots/iteration-1/before/indeling-dense-desktop.png",
+    ".agent/screenshots/iteration-1/before/panelen-route-gate-desktop.png",
+    ".agent/screenshots/iteration-1/before/panelen-editor-normal-desktop.png",
+    ".agent/screenshots/iteration-1/before/panelen-review-normal-desktop.png",
+    ".agent/screenshots/iteration-1/before/panelen-review-dense-desktop.png",
+    ".agent/screenshots/iteration-1/before/verificatie-tasklist-normal-desktop.png",
+    ".agent/screenshots/iteration-1/before/verificatie-detail-normal-desktop.png",
+    ".agent/screenshots/iteration-1/before/verificatie-complete-desktop.png",
+    ".agent/screenshots/iteration-1/before/verificatie-tasklist-dense-desktop.png",
+    ".agent/screenshots/iteration-1/before/bestellijst-normal-desktop.png",
+    ".agent/screenshots/iteration-1/before/bestellijst-export-confirm-desktop.png",
+    ".agent/screenshots/iteration-1/before/bestellijst-dense-desktop.png",
+    ".agent/screenshots/iteration-1/before/zaagplan-normal-desktop.png",
+    ".agent/screenshots/iteration-1/before/zaagplan-dense-desktop.png",
+    ".agent/screenshots/iteration-1/before/zaagplan-focus-dense-desktop.png",
+    ".agent/screenshots/iteration-1/before/zaagplan-warning-desktop.png",
+    ".agent/screenshots/iteration-1/before/home-resume-mobile.png",
+    ".agent/screenshots/iteration-1/before/indeling-normal-mobile.png",
+    ".agent/screenshots/iteration-1/before/contact-sheet-1.png",
+    ".agent/screenshots/iteration-1/before/contact-sheet-2.png",
+    ".agent/screenshots/iteration-1/before/contact-sheet-3.png",
+    ".agent/screenshots/iteration-1/after/home-empty-desktop.png",
+    ".agent/screenshots/iteration-1/after/home-invalid-share-desktop.png",
+    ".agent/screenshots/iteration-1/after/home-resume-desktop.png",
+    ".agent/screenshots/iteration-1/after/indeling-empty-desktop.png",
+    ".agent/screenshots/iteration-1/after/indeling-kast-form-validation-desktop.png",
+    ".agent/screenshots/iteration-1/after/indeling-normal-desktop.png",
+    ".agent/screenshots/iteration-1/after/indeling-dense-desktop.png",
+    ".agent/screenshots/iteration-1/after/panelen-route-gate-desktop.png",
+    ".agent/screenshots/iteration-1/after/panelen-editor-normal-desktop.png",
+    ".agent/screenshots/iteration-1/after/panelen-review-normal-desktop.png",
+    ".agent/screenshots/iteration-1/after/panelen-review-dense-desktop.png",
+    ".agent/screenshots/iteration-1/after/verificatie-tasklist-normal-desktop.png",
+    ".agent/screenshots/iteration-1/after/verificatie-detail-normal-desktop.png",
+    ".agent/screenshots/iteration-1/after/verificatie-complete-desktop.png",
+    ".agent/screenshots/iteration-1/after/verificatie-tasklist-dense-desktop.png",
+    ".agent/screenshots/iteration-1/after/bestellijst-normal-desktop.png",
+    ".agent/screenshots/iteration-1/after/bestellijst-export-confirm-desktop.png",
+    ".agent/screenshots/iteration-1/after/bestellijst-dense-desktop.png",
+    ".agent/screenshots/iteration-1/after/zaagplan-normal-desktop.png",
+    ".agent/screenshots/iteration-1/after/zaagplan-dense-desktop.png",
+    ".agent/screenshots/iteration-1/after/zaagplan-focus-dense-desktop.png",
+    ".agent/screenshots/iteration-1/after/zaagplan-warning-desktop.png",
+    ".agent/screenshots/iteration-1/after/home-resume-mobile.png",
+    ".agent/screenshots/iteration-1/after/indeling-normal-mobile.png",
+    ".agent/screenshots/iteration-1/after/contact-sheet-1.png",
+    ".agent/screenshots/iteration-1/after/contact-sheet-2.png",
+    ".agent/screenshots/iteration-1/after/contact-sheet-3.png",
+    ".agent/screenshots/iteration-1/after/comparisons/compare-sheet-1.png",
+    ".agent/screenshots/iteration-1/after/comparisons/compare-sheet-2.png",
+    ".agent/screenshots/iteration-1/after/comparisons/compare-sheet-3.png"
+  ],
+  "currentTopIssues": [
+    {
+      "id": "home-resume-hierarchy-overload",
+      "severity": 2,
+      "screen": "Home - hervatten",
+      "summary": "Desktop is sterk verbeterd, maar mobiel toont nog te veel secundaire secties onder elkaar."
+    },
+    {
+      "id": "bestellijst-table-buried-by-overview",
+      "severity": 2,
+      "screen": "Stap 4 - Bestellijst",
+      "summary": "De ordertabel begint iets eerder, maar de bovenbouw is nog steeds te hoog voor de hoofdtaak."
+    },
+    {
+      "id": "panelen-mobile-drawer-friction",
+      "severity": 2,
+      "screen": "Stap 2 - Panelen mobiel",
+      "summary": "De drawer-workflow op narrow viewport moet nog expliciet worden bewezen of verbeterd."
+    }
+  ],
+  "fixedThisIteration": [
+    {
+      "id": "home-empty-onboarding-overexplained",
+      "summary": "Lege homepagina toont nu alleen de kern; extra uitleg en mini-voorbeeld zitten achter een inklapbaar blok."
+    },
+    {
+      "id": "home-resume-hierarchy-overload",
+      "summary": "Resume-dashboard en snelle routes zijn samengevoegd tot een compact hervatblok; desktop hiërarchie is duidelijker."
+    },
+    {
+      "id": "panelen-review-dense-scanability",
+      "summary": "Paneelreview gebruikt nu compactere groepssamenvattingen en verplaatst verwijderen uit de hoofdregel."
+    },
+    {
+      "id": "indeling-dense-item-actions-ambiguous",
+      "summary": "Kast- en apparaatregels hebben nu gelabelde acties en rustigere verwijderbevestiging."
+    },
+    {
+      "id": "bestellijst-table-buried-by-overview",
+      "summary": "Secundaire verdelingen staan nu in een inklapbaar blok, waardoor de tabel eerder begint."
+    }
+  ],
+  "whatRemains": [
+    "Commit en push iteratie 1, start daarna iteratie 2 vanaf de open severity-2 issues",
+    "Klap op mobiel extra resume-informatie verder in zodat hervatten de dominante actie blijft",
+    "Compact de bestellijst-header verder zodat de dichte tabel nog eerder begint",
+    "Valideer of corrigeer mobiel drawer-gedrag in de paneel-editor"
+  ],
+  "knownRisksChecked": [
+    "Baseline dotnet test passes",
+    "Baseline dotnet publish succeeds",
+    "Published app responds on http://127.0.0.1:4173",
+    "Baseline Playwright smoke test passes",
+    "Iteration 1 baseline screenshot set captured for desktop and mobile spot checks",
+    "Current-web research completed for dashboard hierarchy, dense review lists, and mobile drawers",
+    "Iteration 1 after screenshots and comparison sheets captured",
+    "dotnet test, dotnet publish, and npm run test:e2e all pass after the UX changes"
+  ],
+  "nextRecommendedStep": "Commit and push iteration 1, then start iteration 2 with the remaining severity-2 issues: mobile resume length, bestellijst compaction, and paneel-editor mobile drawer behavior.",
+  "stopGateStatus": {
+    "severity4Cleared": true,
+    "severity3Cleared": true,
+    "primaryFlowSeverity2ClearedOrDeferred": false,
+    "visualClutterControlled": false,
+    "journeysClearAndLowFriction": false,
+    "latestRoundRegressionFree": true,
+    "onlyMinorIssuesRemain": false
+  },
+  "lastUpdated": "2026-04-09T04:19:56Z"
+}
