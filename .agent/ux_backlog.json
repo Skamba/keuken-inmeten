@@ -1,6 +1,6 @@
 {
   "appName": "Keuken Inmeten",
-  "lastUpdated": "2026-04-09T04:38:14Z",
+  "lastUpdated": "2026-04-09T04:47:52Z",
   "issues": [
     {
       "id": "home-resume-hierarchy-overload",
@@ -96,16 +96,37 @@
       "title": "Mobiele paneelwerkruimte toont nog te veel status boven het canvas",
       "affectedScreenFlow": "Stap 2 - Panelen editor (narrow viewport)",
       "severity": 2,
-      "whyItMatters": "De blokkade is opgelost, maar de gebruiker moet op mobiel nog steeds door veel statuscopy en meerdere samenvattingskaarten scrollen voordat het daadwerkelijke selectievlak de visuele hoofdrol krijgt.",
-      "proposedFix": "Compact de actieve-wand status op mobiel verder tot een kortere samenvatting of disclosure, zodat het canvas eerder in beeld komt en de volgende tik duidelijker is.",
-      "status": "open",
+      "whyItMatters": "De blokkade is opgelost, maar de gebruiker moest op mobiel nog steeds door veel statuscopy en meerdere samenvattingskaarten scrollen voordat het daadwerkelijke selectievlak de visuele hoofdrol kreeg.",
+      "proposedFix": "Compact de actieve-wand status verder tot een korte samenvatting, zodat het canvas eerder in beeld komt en de volgende tik duidelijker is.",
+      "status": "fixed",
       "evidenceReference": [
         ".agent/screenshots/iteration-2/after/panelen-workspace-mobile.png",
         ".agent/screenshots/iteration-2/after/panelen-editor-mobile.png",
         ".agent/screenshots/iteration-2/after/comparisons/panelen-workspace-mobile-compare.png",
-        ".agent/screenshots/iteration-2/after/comparisons/panelen-editor-mobile-compare.png"
+        ".agent/screenshots/iteration-2/after/comparisons/panelen-editor-mobile-compare.png",
+        ".agent/screenshots/iteration-3/before/panelen-workspace-mobile.png",
+        ".agent/screenshots/iteration-3/before/panelen-editor-mobile.png",
+        ".agent/screenshots/iteration-3/after/panelen-workspace-mobile.png",
+        ".agent/screenshots/iteration-3/after/panelen-editor-mobile.png",
+        ".agent/screenshots/iteration-3/after/comparisons/panelen-workspace-mobile-compare.png",
+        ".agent/screenshots/iteration-3/after/comparisons/panelen-editor-mobile-compare.png"
       ],
       "regressionRisk": "Medium - te veel comprimeren mag selectie- en editorstatus niet onduidelijk maken."
+    },
+    {
+      "id": "panelen-mobile-intro-still-verbose",
+      "title": "Stapintro boven de mobiele paneelwerkruimte is nog iets langer dan nodig",
+      "affectedScreenFlow": "Stap 2 - Panelen mobiel (boven de werkruimte)",
+      "severity": 1,
+      "whyItMatters": "Op zeer kleine schermen blijft de algemene intro met woordenlijst wat verticale ruimte innemen. De impact is nu laag omdat de werkruimte en volgende actie duidelijk zijn en niets meer geblokkeerd wordt.",
+      "proposedFix": "Alleen nog overwegen als later onderzoek het bevestigt: maak de intro korter of compacter zodra een wand actief is.",
+      "status": "deferred",
+      "evidenceReference": [
+        ".agent/screenshots/iteration-3/after/panelen-workspace-mobile.png",
+        ".agent/screenshots/iteration-3/after/panelen-editor-mobile.png",
+        ".agent/screenshots/iteration-3/after/comparisons/panelen-workspace-mobile-compare.png"
+      ],
+      "regressionRisk": "Medium - te agressief inkorten kan eerste gebruikers te weinig context geven."
     }
   ]
 }

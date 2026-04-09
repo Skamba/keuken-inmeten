@@ -297,6 +297,11 @@ public partial class PaneelConfiguratie
     private string OpenEditorKnopLabel()
         => geselecteerdeKastIds.Count > 0 || IsBewerkModus ? "Open paneel-editor" : "Open editorlaag";
 
+    private string PaneelWerkruimteStatusDetailTekst()
+        => geselecteerdeKastIds.Count > 0
+            ? $"{geselecteerdeKastIds.Count} kast(en) geselecteerd. {EditorStatusHintTekst()}"
+            : EditorStatusHintTekst();
+
     private void ResetConceptPaneel()
     {
         if (BewerkteToewijzing is { } bewerkteToewijzing)

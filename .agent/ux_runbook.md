@@ -62,3 +62,4 @@ node .agent/ux_capture.mjs iteration-<n> after
 ## Resume rule
 
 Resume from the highest-value unresolved issue in `.agent/ux_backlog.json`, not from memory.
+If `.agent/ux_state.json` shows the stop gate fully satisfied, only resume for deferred severity-1 polish after new evidence.

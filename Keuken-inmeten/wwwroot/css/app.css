@@ -839,6 +839,14 @@ code {
     text-align: left;
 }
 
+.paneel-weergave-tabs--compact .nav-link {
+    min-height: 0;
+}
+
+.paneel-werkruimte-status {
+    background: var(--bs-tertiary-bg);
+}
+
 .paneel-review-teaser,
 .paneel-review-weergave {
     scroll-margin-top: 5rem;
@@ -894,6 +902,10 @@ code {
 }
 
 @media (max-width: 1199.98px) {
+    .paneel-weergave-tabs--compact {
+        padding-block: 0.85rem;
+    }
+
     .paneel-editor-drawer-layer {
         align-items: flex-end;
         justify-content: flex-end;

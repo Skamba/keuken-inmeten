@@ -140,3 +140,46 @@
 
 - Commit and push iteration 2 because the changes are validated and produced real UX gains.
 - Start iteration 3 from the remaining severity-2 issue: make the mobile paneel canvas more dominant by compressing the status area above it.
+
+## Iteration 3 - mobile panel hierarchy pass
+
+- Started from `3646d73` on `main` and refreshed the iteration-3 before capture set before changing code.
+- Rechecked current mobile workspace guidance around canvas-first layouts, lighter default status, and progressive disclosure for secondary explanation.
+- Focused only on `panelen-mobile-canvas-priority`, because it was the last open severity-2 issue in a primary flow.
+
+### What changed
+
+- **Panelen**
+  - Once a wall is open, the mode tabs switch to a compact variant without the extra subtitle copy.
+  - Replaced the three separate mobile status cards with one compact summary block.
+  - Shortened the active-workspace explanation and removed the duplicated `Open editorlaag` button when nothing is selected.
+  - Kept the next-step guidance and editor state visible, but moved more visual weight onto the actual canvas and bottom editor sheet.
+- **Validation and evidence**
+  - Re-ran `dotnet test Code.slnx --nologo`, `dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo`, and `npm run test:e2e`.
+  - Captured the full iteration-3 after set and created direct before/after comparison boards for `panelen-workspace-mobile` and `panelen-editor-mobile`.
+
+### Before vs after observations
+
+- **Panelen workspace mobile:** clear improvement. The canvas now enters materially sooner and the next step reads as one focused prompt instead of a stack of helper cards.
+- **Panelen editor mobile:** clear improvement. The editor sheet still guides the user, but no longer competes with a heavy block of status chrome above it.
+- **Overall:** the remaining top-of-step intro copy is now only a cosmetic inefficiency on very small screens, not a primary-flow blocker or confusion source.
+
+### What still feels wrong after iteration 3
+
+- The generic mobile step intro in Stap 2 could still be shortened slightly if later user evidence says the extra context is unnecessary after a wall is active.
+- That issue is now severity 1 and not worth another code pass in this session because the main work surface, action hierarchy, and next-step clarity are already strong.
+
+### Remaining severity 2+ issues after iteration 3
+
+- None.
+
+### Stop gate after iteration 3
+
+- **Satisfied.** No severity 4 issues remain. No severity 3 issues remain. No severity 2 issues remain in primary flows or dense states, and the only deferred item is a low-value severity-1 cosmetic refinement.
+- **No regression found** in the validated flows, refreshed screenshot set, or the earlier fixed mobile drawer path.
+
+## Final stop-gate review
+
+- Primary journeys now have a clear dominant task on each step, with secondary context moved behind lighter summaries or disclosures.
+- Visual clutter is under control: dense screens no longer stack multiple equally loud metric blocks, repeated helper cards, or always-visible secondary actions ahead of the main work surface.
+- State files and screenshot evidence are current through iteration 3, and the repo is ready for the final commit/push for this UX run.
