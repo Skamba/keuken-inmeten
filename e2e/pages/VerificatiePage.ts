@@ -39,4 +39,27 @@ export class VerificatiePage {
     await knop.click();
     await expect(this.page).toHaveURL(/\/bestellijst$/);
   }
+
+  async rondHuidigeVerificatieAf() {
+    const toggles = this.page.locator('.verificatie-check-cirkel');
+    const count = await toggles.count();
+
+    for (let index = 0; index < count; index++) {
+      const toggle = toggles.nth(index);
+      await toggle.scrollIntoViewIfNeeded();
+      await toggle.click();
+    }
+
+    const knop = this.page.getByRole('button', { name: /Afronden/ });
+    await knop.scrollIntoViewIfNeeded();
+    await knop.click();
+    await expect(this.page.getByTestId('verificatie-completion-card')).toBeVisible();
+  }
+
+  async gaNaarBestellijstViaAfronding() {
+    const knop = this.page.getByTestId('verificatie-completion-primary-button');
+    await knop.scrollIntoViewIfNeeded();
+    await knop.click();
+    await expect(this.page).toHaveURL(/\/bestellijst$/);
+  }
 }

@@ -240,6 +240,36 @@ test('stap 3 toont verificatie als taaklijst per wand', async ({ page }) => {
   await verificatie.openControleVoorWand('Linkerwand');
 });
 
+test('verificatie-afronding toont bestellijst als primaire vervolgstap', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+  const verificatie = new VerificatiePage(page);
+  const bestellijst = new BestellijstPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast verificatie',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await panelen.selecteerEersteKastOpWand('Achterwand');
+  await panelen.voegPaneelToe();
+  await panelen.gaNaarVerificatie();
+
+  await verificatie.expectLoaded();
+  await verificatie.startVerificatie();
+  await verificatie.rondHuidigeVerificatieAf();
+  await expect(page.getByTestId('verificatie-completion-primary-button')).toHaveText(/Ga naar bestellijst/);
+  await verificatie.gaNaarBestellijstViaAfronding();
+
+  await bestellijst.expectLoaded();
+});
+
 test('bestellijst export loopt via een aparte previewflow', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);

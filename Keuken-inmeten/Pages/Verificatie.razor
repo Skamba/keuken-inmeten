@@ -412,25 +412,34 @@ else if (_fase == VerificatieFase.Afronding)
     var aantalGeverifieerd = Enumerable.Range(0, resultaten.Count).Count(i => AlleChecksVoorPaneel(i, resultaten[i]));
     var alleGeverifieerd = aantalGeverifieerd == resultaten.Count;
 
-    <div class="card mb-4">
+    <div class="card mb-4" data-testid="verificatie-completion-card">
         <div class="card-body text-center py-5">
             @if (alleGeverifieerd)
             {
                 <div class="verificatie-resultaat-icoon succes">&#10003;</div>
                 <h4 class="text-success">Alle @resultaten.Count kastmetingen gecontroleerd</h4>
-                <p class="text-muted">Alle controles op openingen en rijen systeemgaten zijn afgevinkt. U kunt doorgaan naar de bestellijst.</p>
+                <p class="text-muted">Alle controles op openingen en rijen systeemgaten zijn afgevinkt. Ga nu verder naar de bestellijst; delen en afdrukken blijven hieronder beschikbaar.</p>
             }
             else
             {
                 <div class="verificatie-resultaat-icoon waarschuwing">&#9888;</div>
                 <h4>@aantalGeverifieerd van @resultaten.Count panelen afgevinkt</h4>
-                <p class="text-muted">Niet alle controles zijn afgevinkt. U kunt teruggaan om de ontbrekende controles te voltooien, of toch doorgaan.</p>
+                <p class="text-muted">Niet alle controles zijn afgevinkt. Werk de ontbrekende controles af, of ga toch door naar de bestellijst als dat nu nodig is.</p>
             }
 
-            <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
-                <button class="btn btn-outline-secondary" @onclick="TerugNaarOverzicht">&#8592; Terug naar taaklijst</button>
-                <button class="btn btn-outline-secondary" @onclick="DeelResultaat">&#128279; Deel link</button>
-                <button class="btn btn-outline-primary" @onclick="PrintResultaat">&#128424; Afdrukken</button>
+            <div class="d-flex flex-column align-items-center gap-3 mt-4">
+                <a class="btn btn-success btn-lg px-4"
+                   href="/bestellijst"
+                   data-testid="verificatie-completion-primary-button">
+                    @(alleGeverifieerd ? "Ga naar bestellijst →" : "Toch naar bestellijst →")
+                </a>
+
+                <div class="d-flex justify-content-center gap-3 flex-wrap"
+                     data-testid="verificatie-completion-secondary-actions">
+                    <button class="btn btn-outline-secondary" @onclick="TerugNaarOverzicht">&#8592; Terug naar taaklijst</button>
+                    <button class="btn btn-outline-secondary" @onclick="DeelResultaat">&#128279; Deel link</button>
+                    <button class="btn btn-outline-secondary" @onclick="PrintResultaat">&#128424; Afdrukken</button>
+                </div>
             </div>
 
         </div>

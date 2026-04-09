@@ -1,6 +1,6 @@
 {
   "appName": "Keuken Inmeten",
-  "lastUpdated": "2026-04-09T06:45:30Z",
+  "lastUpdated": "2026-04-09T06:54:03Z",
   "issues": [
     {
       "id": "home-resume-hierarchy-overload",
@@ -216,13 +216,30 @@
       "severity": 2,
       "whyItMatters": "Na een afgeronde controle toont de kaart vooral secundaire acties zoals delen en afdrukken, terwijl doorgaan naar de bestellijst alleen in de lagere stapnavigatie staat. Dat verzwakt de flow op een belangrijk beslismoment.",
       "proposedFix": "Voeg in de afrondingskaart een expliciete primaire CTA naar de bestellijst toe en demoveer print/share naar secundaire acties.",
-      "status": "open",
+      "status": "fixed",
       "evidenceReference": [
-        ".agent/screenshots/iteration-7/before/page/verificatie-complete-desktop.png",
-        ".agent/screenshots/iteration-7/before/section/verificatie-completion-card-desktop.png",
-        ".agent/screenshots/iteration-7/after/page/verificatie-complete-desktop.png"
+        ".agent/screenshots/iteration-8/before/page/verificatie-complete-desktop.png",
+        ".agent/screenshots/iteration-8/before/section/verificatie-completion-card-desktop.png",
+        ".agent/screenshots/iteration-8/after/page/verificatie-complete-desktop.png",
+        ".agent/screenshots/iteration-8/after/section/verificatie-completion-card-desktop.png",
+        ".agent/screenshots/iteration-8/after/comparisons/verificatie-complete-desktop-comparison.png",
+        ".agent/screenshots/iteration-8/after/comparisons/verificatie-completion-card-desktop-comparison.png"
       ],
       "regressionRisk": "Low - delen en afdrukken moeten nog steeds duidelijk beschikbaar blijven voor gebruikers die die route nodig hebben."
+    },
+    {
+      "id": "verificatie-complete-top-support-redundant",
+      "title": "Verificatie-afronding herhaalt nog algemene intro en hulp boven de succeskaart",
+      "affectedScreenFlow": "Stap 3 - Verificatie afronding",
+      "severity": 1,
+      "whyItMatters": "Nu de primaire CTA in de succeskaart zit, voelt de generieke introregel en supportstrip erboven nog licht overbodig. Dat kost weinig tijd, maar vertraagt het gevoel van afronden net genoeg om nog op te vallen.",
+      "proposedFix": "Verberg of verkort de generieke intro en steuncontrols in de afrondingsfase zodat de succeskaart direct na de stapindicator begint.",
+      "status": "open",
+      "evidenceReference": [
+        ".agent/screenshots/iteration-8/after/page/verificatie-complete-desktop.png",
+        ".agent/screenshots/iteration-8/after/section/verificatie-completion-card-desktop.png"
+      ],
+      "regressionRisk": "Low - staphulp en begrippen moeten in taak- en detailfasen zichtbaar blijven."
     }
   ]
 }

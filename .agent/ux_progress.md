@@ -377,3 +377,47 @@
 
 - **Not satisfied.** One severity-2 issue still remains at a key transition point, and the run has completed only **3 counted iterations out of the required minimum of 5** under the current rubric.
 - **No regression found** in the 163 unit tests, 13 Playwright tests, fresh iteration-7 before/after evidence, or the targeted selected-drawer comparison board.
+
+## Iteration 8 - completion CTA made explicit
+
+- Started from `9b5ff9c` on `main` and captured a fresh iteration-8 before set before changing code: **102 screenshots** (`8 journey`, `27 page`, `36 section`, `31 element`).
+- Reviewed the fresh completion-page and completion-card evidence and confirmed the remaining problem: after a successful verification, the card itself still offered only `Terug`, `Deel`, and `Afdrukken`, while `Ga naar bestellijst` lived only in the lower step navigation.
+- Rechecked current guidance for success and completion states from Wise Design, UX Bit, and related success-state references: the main next step should be explicit and visually dominant, while secondary actions should sit below or beside it with less emphasis.
+
+### Ranked issues entering iteration 8
+
+1. `verificatie-complete-primary-next-step-hidden` - severity 2 - the Verificatie completion card still underplayed the route to Bestellijst at the final decision point.
+
+### What changed
+
+- **Verificatie afronding**
+  - Added a clear in-card primary CTA to Bestellijst so the user no longer has to rely on the lower step navigation to understand the next step.
+  - Moved `Terug naar taaklijst`, `Deel link`, and `Afdrukken` into a secondary action row underneath the primary CTA.
+  - Tightened the success copy so it now names the forward route first and treats share/print as extra options.
+- **Regression coverage**
+  - Added a Playwright test that completes verification, asserts the in-card Bestellijst CTA, and uses that route to enter Bestellijst.
+
+### Screenshot coverage completed in this iteration
+
+- **Before:** 102 screenshots (`8 journey`, `27 page`, `36 section`, `31 element`) under `.agent/screenshots/iteration-8/before/`
+- **After:** 102 screenshots (`8 journey`, `27 page`, `36 section`, `31 element`) under `.agent/screenshots/iteration-8/after/`
+- **Comparison boards:** 2 boards under `.agent/screenshots/iteration-8/after/comparisons/`
+
+### Before vs after observations
+
+- **Completion card:** major improvement. The next step is now the dominant element directly below the success message, exactly where users look after checking that everything succeeded.
+- **Whole completion page:** clear improvement. The bottom step navigation still exists for consistency, but it is no longer the only place that explains how to move forward.
+- **Interaction pattern:** stronger and calmer. The decision point now reads as one primary route plus optional extras, instead of three similarly weighted buttons and a hidden next step elsewhere.
+
+### What still feels wrong after iteration 8
+
+- The generic intro line and support strip above the success card now feel slightly redundant in the afrondingsfase. They do not block the next step anymore, but they still add a little chrome above a state that is already complete.
+
+### Remaining severity 2+ issues after iteration 8
+
+- None.
+
+### Stop gate after iteration 8
+
+- **Not satisfied yet, but only because the run has completed 4 counted iterations and the brief requires at least 5.** Severity 4, 3, and 2 issues are now cleared in primary flows and dense states; only a small severity-1 polish opportunity remains.
+- **No regression found** in the 163 unit tests, 14 Playwright tests, fresh iteration-8 before/after evidence, or the new completion-card comparison boards.
