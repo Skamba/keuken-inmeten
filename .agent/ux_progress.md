@@ -183,3 +183,46 @@
 - Primary journeys now have a clear dominant task on each step, with secondary context moved behind lighter summaries or disclosures.
 - Visual clutter is under control: dense screens no longer stack multiple equally loud metric blocks, repeated helper cards, or always-visible secondary actions ahead of the main work surface.
 - State files and screenshot evidence are current through iteration 3, and the repo is ready for the final commit/push for this UX run.
+
+## Resume verification - stop gate reopened
+
+- Re-read the durable state, re-ran a fresh Playwright smoke pass on `main`, and captured a new full baseline set under `.agent/screenshots/iteration-4/before/`.
+- The earlier stop call turned out slightly too optimistic: the mobile Panelen editor still stacked too much orientation copy and secondary help above the active canvas.
+
+### Ranked issue entering iteration 4
+
+1. `panelen-mobile-intro-still-verbose` - severity 2 - while a wand was already active on mobile, the screen still showed too many orientation blocks before the actual work surface.
+
+### What changed
+
+- **Panelen mobile hierarchy**
+  - Replaced the long top intro with a compact active-wand cue plus a shorter `Staphulp` action.
+  - Moved the paneel glossary below the active workspace once a wand is open, so the canvas no longer competes with secondary help.
+  - Removed the redundant `Wandenoverzicht` intro while a wand is already active.
+  - Shortened the waiting editor state and reduced the waiting bottom-sheet height.
+- **Copy clarity**
+  - Renamed the generic terminology disclosure heading to clearer glossary language (`Begrippen in gewone taal` / `Paneeltermen in gewone taal`).
+  - Changed the per-term tag to `Wanneer relevant?`, which better matches the content behind the disclosure.
+- **Regression coverage**
+  - Added a new mobile Playwright regression test that verifies secondary explanation sits below the active panel workspace.
+
+### Before vs after observations
+
+- **Panelen workspace mobile:** major improvement. The canvas now appears materially sooner and the path to the next tap is clear without reading through a stack of repeated helper blocks.
+- **Panelen editor mobile:** major improvement. The waiting editor now behaves like a concise tool layer instead of a mini onboarding panel.
+- **Dense desktop screens:** small but worthwhile copy improvement. The glossary cards are easier to recognize at a glance because their labels now describe what they contain.
+
+### Remaining severity 2+ issues after iteration 4
+
+- None.
+
+### Stop gate after iteration 4
+
+- **Satisfied.** No severity 4 issues remain. No severity 3 issues remain. No severity 2 issues remain in primary flows, dense states, or critical decision points.
+- **No regression found** in the 163 unit tests, 13 Playwright tests, fresh iteration-4 screenshots, or the new mobile hierarchy regression.
+
+## Final stop-gate review after iteration 4
+
+- Visual clutter is now under control, including the previously weakest mobile Panelen state: the main work surface becomes the focal point faster, and secondary help no longer crowds the top of the screen.
+- Text clarity is now under control: primary headings, button labels, and glossary disclosures are specific enough to scan quickly without reading long explanatory sentences first.
+- State files and screenshot evidence are current through iteration 4, and the repo is ready for the final commit/push for this UX run.

@@ -1,6 +1,6 @@
 {
   "appName": "Keuken Inmeten",
-  "lastUpdated": "2026-04-09T04:47:52Z",
+  "lastUpdated": "2026-04-09T05:07:47Z",
   "issues": [
     {
       "id": "home-resume-hierarchy-overload",
@@ -115,18 +115,36 @@
     },
     {
       "id": "panelen-mobile-intro-still-verbose",
-      "title": "Stapintro boven de mobiele paneelwerkruimte is nog iets langer dan nodig",
-      "affectedScreenFlow": "Stap 2 - Panelen mobiel (boven de werkruimte)",
-      "severity": 1,
-      "whyItMatters": "Op zeer kleine schermen blijft de algemene intro met woordenlijst wat verticale ruimte innemen. De impact is nu laag omdat de werkruimte en volgende actie duidelijk zijn en niets meer geblokkeerd wordt.",
-      "proposedFix": "Alleen nog overwegen als later onderzoek het bevestigt: maak de intro korter of compacter zodra een wand actief is.",
-      "status": "deferred",
+      "title": "Mobiele paneelstap stapelt nog te veel uitleg boven de werkruimte",
+      "affectedScreenFlow": "Stap 2 - Panelen mobiel (actieve wand)",
+      "severity": 2,
+      "whyItMatters": "Tijdens actieve mobiele bewerking stonden nog steeds een lange intro, hulpblok, woordenlijst, werkweergavekaart en extra wandintro boven het canvas. Daardoor bleef het primaire werkvlak te ver naar beneden schuiven.",
+      "proposedFix": "Toon bij een actieve wand alleen een compacte intro, verplaats terminologie onder de werkruimte, schrap de redundante Wandenoverzicht-intro en verkort de wachtende editorstate.",
+      "status": "fixed",
       "evidenceReference": [
-        ".agent/screenshots/iteration-3/after/panelen-workspace-mobile.png",
-        ".agent/screenshots/iteration-3/after/panelen-editor-mobile.png",
-        ".agent/screenshots/iteration-3/after/comparisons/panelen-workspace-mobile-compare.png"
+        ".agent/screenshots/iteration-4/before/panelen-workspace-mobile.png",
+        ".agent/screenshots/iteration-4/before/panelen-editor-mobile.png",
+        ".agent/screenshots/iteration-4/after/panelen-workspace-mobile.png",
+        ".agent/screenshots/iteration-4/after/panelen-editor-mobile.png",
+        ".agent/screenshots/iteration-4/after/comparisons/panelen-workspace-mobile-compare.png",
+        ".agent/screenshots/iteration-4/after/comparisons/panelen-editor-mobile-compare.png"
       ],
-      "regressionRisk": "Medium - te agressief inkorten kan eerste gebruikers te weinig context geven."
+      "regressionRisk": "Medium - hulp en terminologie moeten bereikbaar blijven zonder opnieuw het canvas te verdringen."
+    },
+    {
+      "id": "terminologie-generic-heading",
+      "title": "Terminologiekaart gebruikt een te generieke kop",
+      "affectedScreenFlow": "Meerdere stappen met woordenlijsten",
+      "severity": 1,
+      "whyItMatters": "De kop 'Waarom is dit nodig?' gaf te weinig informatie over wat er achter de disclosure zat. Daardoor moesten gebruikers de beschrijving lezen voordat duidelijk werd dat het om een woordenlijst ging.",
+      "proposedFix": "Gebruik specifiekere koppen zoals 'Begrippen in gewone taal' en een kortere, direct scanbare beschrijving.",
+      "status": "fixed",
+      "evidenceReference": [
+        ".agent/screenshots/iteration-4/before/bestellijst-dense-desktop.png",
+        ".agent/screenshots/iteration-4/after/bestellijst-dense-desktop.png",
+        ".agent/screenshots/iteration-4/after/panelen-review-dense-desktop.png"
+      ],
+      "regressionRisk": "Low - terminologie moet nog steeds als secundaire hulp herkenbaar blijven."
     }
   ]
 }

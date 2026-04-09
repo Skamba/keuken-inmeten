@@ -385,6 +385,19 @@ html, body {
     white-space: nowrap;
 }
 
+.paneel-stap-intro--compact {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem 1rem;
+}
+
+.paneel-stap-intro-kicker {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+}
+
 .hulp-info-knop {
     position: relative;
     display: inline-block;
@@ -924,7 +937,11 @@ code {
     }
 
     .paneel-editor-drawer--waiting {
-        max-height: min(18rem, 42vh);
+        max-height: min(16rem, 36vh);
+    }
+
+    .paneel-editor-drawer--waiting .paneel-editor-drawer-body {
+        padding-block: 0.85rem;
     }
 }
 

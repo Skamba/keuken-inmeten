@@ -23,7 +23,7 @@
                                 <div class="fw-semibold">@term.Label</div>
                                 <div class="small text-muted">Technische term: @term.TechnischeTerm</div>
                             </div>
-                            <span class="terminologie-item-tag">Waarom is dit nodig?</span>
+                            <span class="terminologie-item-tag">Wanneer relevant?</span>
                         </summary>
 
                         <div class="terminologie-item-body">
@@ -50,7 +50,7 @@
 }
 
 @code {
-    [Parameter] public string Titel { get; set; } = "Waarom is dit nodig?";
-    [Parameter] public string Beschrijving { get; set; } = "Open per term wat het betekent, wanneer het relevant is en wat u daarna moet doen.";
+    [Parameter] public string Titel { get; set; } = "Begrippen in gewone taal";
+    [Parameter] public string Beschrijving { get; set; } = "Open alleen als u een technische term wilt opfrissen.";
     [Parameter, EditorRequired] public string Sleutels { get; set; } = "";
 }

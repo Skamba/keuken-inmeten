@@ -29,6 +29,7 @@ node .agent/ux_capture.mjs iteration-1 after
 The script clears browser storage between scenarios and writes screenshots into `.agent/screenshots/<iteration>/<phase>/`.
 Mobile spot checks now include `home-resume-mobile`, `indeling-normal-mobile`, `panelen-workspace-mobile`, and `panelen-editor-mobile`.
 Comparison boards are stored under `.agent/screenshots/<iteration>/after/comparisons/`.
+The latest settled evidence set is `.agent/screenshots/iteration-4/`.
 
 ## Run validations
 

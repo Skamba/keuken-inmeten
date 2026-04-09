@@ -7,18 +7,38 @@
 
 <StapIndicator HuidigeStap="panelen" />
 
-<h2 class="page-header">Stap 2: Panelen</h2>
-<p class="text-muted">Werk in stap 2 nu per wand: open eerst precies één wand, selecteer daarna de juiste kast(en) en gebruik de paneel-editor als aparte werklaag. Review van toegewezen panelen staat nu los in een eigen weergave.</p>
-<div class="hulp-toolbar mb-3">
-    <StapHulpDrawer StapId="panelen" />
-</div>
-
-<TerminologieUitleg Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde,scharnierpot,pothart"
-                    Beschrijving="Deze woordenlijst legt de belangrijkste paneel- en scharniertermen in gewone taal uit." />
-
 @{
     var flowStatus = StappenFlowHelper.BepaalStatus(State);
     var routeGate = StappenFlowHelper.BepaalRouteGate("panelen", flowStatus);
+    var geopendeWand = GeopendeWand;
+    var isReviewWeergaveActief = IsReviewWeergaveActief;
+    var toonCompacteStapIntro = routeGate is null && geopendeWand is not null && !isReviewWeergaveActief;
+}
+
+<h2 class="page-header">Stap 2: Panelen</h2>
+
+@if (toonCompacteStapIntro)
+{
+    <div class="paneel-stap-intro paneel-stap-intro--compact mb-3" data-testid="paneel-stap-intro-compact">
+        <div>
+            <div class="paneel-stap-intro-kicker text-muted fw-semibold text-uppercase">Actieve wand</div>
+            <div class="fw-semibold">@(geopendeWand?.Naam ?? "Paneel-editor")</div>
+            <div class="small text-muted">Selecteer nu kast(en) in de tekening. Extra uitleg staat lager op de pagina.</div>
+        </div>
+        <StapHulpDrawer StapId="panelen" KnopLabel="Staphulp" />
+    </div>
+}
+else
+{
+    <p class="text-muted">Open eerst één wand, selecteer daarna de juiste kast(en) en gebruik de paneel-editor voor plaatsing, maat en opslaan. Review van toegewezen panelen staat apart.</p>
+    <div class="hulp-toolbar mb-3">
+        <StapHulpDrawer StapId="panelen" />
+    </div>
+    <div data-testid="paneel-terminologie-blok">
+        <TerminologieUitleg Titel="Paneeltermen in gewone taal"
+                            Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde,scharnierpot,pothart"
+                            Beschrijving="Open alleen als u een paneel- of scharnierterm wilt opfrissen." />
+    </div>
 }
 
 @if (routeGate is not null)
@@ -29,14 +49,12 @@ else
 {
     var paneelReviewGroepen = OverzichtGroeperingHelper.GroepeerPaneelToewijzingen(State);
     var paneelTypeTellingen = OverzichtGroeperingHelper.MaakTellingen(State.Toewijzingen, toewijzing => TypeNaam(toewijzing.Type));
-    var geopendeWand = GeopendeWand;
     var gerangschiktePaneelReviewGroepen = geopendeWand is null
         ? paneelReviewGroepen
         : paneelReviewGroepen
             .OrderBy(groep => groep.WandNaam == geopendeWand.Naam ? 0 : 1)
             .ThenBy(groep => groep.WandNaam)
             .ToList();
-    var isReviewWeergaveActief = IsReviewWeergaveActief;
     var overzichtWanden = geopendeWand is null
         ? State.Wanden
         : State.Wanden.Where(wand => wand.Id != geopendeWand.Id).ToList();
@@ -99,23 +117,19 @@ else
         @if (!isReviewWeergaveActief)
         {
             <div data-testid="paneel-editor-weergave">
-                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3 mb-3">
-                    <div>
-                        <h5 class="mb-1">Wandenoverzicht</h5>
-                        <p class="text-muted mb-0">
-                            @(geopendeWand is null
-                                ? "Bekijk eerst rustige samenvattingskaarten per wand. Open daarna precies één wand om te selecteren, te plaatsen en op te slaan via de paneel-editor. Gebruik review pas apart als u lijst, status en acties wilt nalopen."
-                                : "De actieve wand staat nu centraal. Selecteer kast(en) in de tekening; andere wanden blijven compacte schakelaars.")
-                        </p>
-                    </div>
-                    <div class="small text-muted">
-                        <div class="fw-semibold text-uppercase">Werkmodus</div>
-                        <div>@(geopendeWand is null ? "Nog geen wand geopend" : $"{geopendeWand.Naam} is nu actief")</div>
-                    </div>
-                </div>
-
                 @if (geopendeWand is null)
                 {
+                    <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3 mb-3">
+                        <div>
+                            <h5 class="mb-1">Wandenoverzicht</h5>
+                            <p class="text-muted mb-0">Bekijk eerst rustige samenvattingskaarten per wand. Open daarna precies één wand om te selecteren, te plaatsen en op te slaan via de paneel-editor. Gebruik review pas apart als u lijst, status en acties wilt nalopen.</p>
+                        </div>
+                        <div class="small text-muted">
+                            <div class="fw-semibold text-uppercase">Werkmodus</div>
+                            <div>Nog geen wand geopend</div>
+                        </div>
+                    </div>
+
                     <div class="row g-3 mb-4">
                         @foreach (var wand in overzichtWanden)
                         {
@@ -216,7 +230,7 @@ else
                             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
                                 <div>
                                     <h5 class="mb-1">Andere wanden</h5>
-                                    <p class="text-muted mb-0">Wissel hier snel van wand zonder dat de editorweergave onnodig naar beneden schuift.</p>
+                                    <p class="text-muted mb-0">Wissel hier van wand zonder de actieve editorflow kwijt te raken.</p>
                                 </div>
                                 <span class="badge text-bg-light indeling-workspace-hint">@overzichtWanden.Count wand(en) direct beschikbaar</span>
                             </div>
@@ -298,7 +312,6 @@ else
                                             <span class="badge text-bg-light">@geopendeWandApparaten.Count apparaat(en)</span>
                                         }
                                     </div>
-                                    <div class="small text-muted">Deze wand blijft nu centraal in beeld en gekoppeld aan de paneel-editor.</div>
                                 </div>
                                 <div class="d-flex flex-column align-items-start align-items-sm-end gap-2">
                                     <div class="small text-muted text-sm-end">
@@ -348,22 +361,15 @@ else
                                                     OnConceptPaneelGewijzigd="VerwerkConceptPaneel" />
                             </div>
 
-                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
-                                <div class="small text-muted">
-                                    @(geselecteerdeKastIds.Count == 0
-                                        ? "Klik eerst de juiste kast(en) in deze tekening. Open de editor pas als u plaatsing, maat en opslaan wilt invullen."
-                                        : "Uw selectie staat klaar. Open of houd de editor open om plaatsing, maat en opslaan af te ronden.")
-                                </div>
-                                <div class="d-flex flex-wrap gap-2">
-                                    @if (geselecteerdeKastIds.Count > 0)
-                                    {
+                            @if (geselecteerdeKastIds.Count > 0)
+                            {
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
+                                    <div class="small text-muted">Uw selectie staat klaar. Open of houd de editor open om plaatsing, maat en opslaan af te ronden.</div>
+                                    <div class="d-flex flex-wrap gap-2">
                                         <button type="button" class="btn btn-sm btn-link text-secondary p-0" @onclick="DeselecteerAlles">
                                             Alles deselecteren ×
                                         </button>
-                                    }
-                                    @if (!toonEditorDrawer)
-                                    {
-                                        @if (geselecteerdeKastIds.Count > 0)
+                                        @if (!toonEditorDrawer)
                                         {
                                             <button type="button"
                                                     class="btn btn-outline-primary btn-sm"
@@ -372,9 +378,9 @@ else
                                                 @OpenEditorKnopLabel()
                                             </button>
                                         }
-                                    }
+                                    </div>
                                 </div>
-                            </div>
+                            }
                         </div>
                     </div>
                 }
@@ -397,6 +403,15 @@ else
                                 </button>
                             </div>
                         </div>
+                    </div>
+                }
+
+                @if (toonCompacteStapIntro)
+                {
+                    <div class="mt-3" data-testid="paneel-terminologie-blok">
+                        <TerminologieUitleg Titel="Paneeltermen in gewone taal"
+                                            Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde,scharnierpot,pothart"
+                                            Beschrijving="Open alleen als u tijdens het plaatsen nog een term wilt opfrissen." />
                     </div>
                 }
             </div>
@@ -595,26 +610,10 @@ else
                     <div class="card-body paneel-editor-drawer-body">
                         @if (ToonCompacteEditorLeegstaat)
                         {
-                            <div class="paneel-editor-empty-state border rounded p-3 bg-body-tertiary">
-                                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
-                                    <div>
-                                        <h6 class="mb-1">Selecteer eerst kast(en) in de tekening</h6>
-                                        <p class="small text-muted mb-0">Tik daarna de juiste kast(en) binnen <strong>@geopendeWand.Naam</strong>. Plaatsing, maat en opslaan worden hier vanzelf actief.</p>
-                                    </div>
-                                    <span class="badge text-bg-light">Stap 2 van 4</span>
-                                </div>
-
-                                <details class="paneel-editor-empty-details small">
-                                    <summary class="text-secondary">Bekijk de vervolgstappen</summary>
-                                    <div class="mt-2 d-grid gap-2 text-muted">
-                                        <div><strong>2.</strong> Selecteer een of meer kasten binnen de actieve wand.</div>
-                                        <div><strong>3.</strong> Plaats het paneel of pas het formaat aan.</div>
-                                        <div><strong>4.</strong> Controleer maat, type en sla daarna op.</div>
-                                    </div>
-                                </details>
+                            <div class="paneel-editor-empty-state border rounded p-2 p-sm-3 bg-body-tertiary">
+                                <h6 class="mb-1">Selecteer nu kast(en) in de tekening</h6>
+                                <p class="small text-muted mb-0">Tik de juiste kast(en) binnen <strong>@geopendeWand.Naam</strong>. Zodra u selecteert, verschijnen plaatsing, maat en opslaan hier.</p>
                             </div>
-
-                            <div class="form-text hulp-hint mt-2">Tip: sluit de editor tijdelijk als u eerst meer van het canvas wilt zien tijdens het selecteren.</div>
                         }
                         else
                         {

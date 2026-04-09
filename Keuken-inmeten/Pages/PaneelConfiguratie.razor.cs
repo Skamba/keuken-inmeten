@@ -272,7 +272,7 @@ public partial class PaneelConfiguratie
         => IsBewerkModus
             ? $"Paneel bewerken — {GeopendeWand?.Naam}"
             : ToonCompacteEditorLeegstaat
-                ? $"Kast(en) selecteren — {GeopendeWand?.Naam}"
+                ? $"Kastselectie — {GeopendeWand?.Naam}"
                 : $"Paneel plaatsen — {GeopendeWand?.Naam}";
 
     private string EditorWerklaagStatusTekst()
@@ -288,11 +288,11 @@ public partial class PaneelConfiguratie
     private string EditorStatusHintTekst()
         => toonEditorDrawer
             ? ToonCompacteEditorLeegstaat
-                ? "De werklaag begeleidt, maar de selectie zelf doet u in de tekening."
-                : "De mini-flow voor maat, type en opslaan staat in de editorlaag."
+                ? "Zodra u kast(en) kiest, verschijnen plaatsing, maat en opslaan hier."
+                : "Plaatsing, maat en opslaan staan nu in de editorlaag."
             : geselecteerdeKastIds.Count > 0
-                ? "Open de editor om plaatsing, maat en opslaan af te ronden."
-                : "Selecteer eerst een of meer kasten; daarna wordt de editor zinvol.";
+                ? "Open de editor voor plaatsing, maat en opslaan."
+                : "Selecteer eerst kast(en) in de tekening.";
 
     private string OpenEditorKnopLabel()
         => geselecteerdeKastIds.Count > 0 || IsBewerkModus ? "Open paneel-editor" : "Open editorlaag";

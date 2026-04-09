@@ -173,6 +173,35 @@ test.describe('mobiele paneel-editor', () => {
     await expect(page.getByTestId('paneel-editor-drawer')).toHaveCount(0);
     await panelen.selecteerEersteKastOpWand('Achterwand');
   });
+
+  test('stap 2 schuift secundaire uitleg op mobiel onder de actieve werkruimte', async ({ page }) => {
+    const indeling = new IndelingPage(page);
+    const panelen = new PanelenPage(page);
+
+    await indeling.goto();
+    await indeling.voegWandToe('Achterwand');
+    await indeling.voegKastToeAanWand('Achterwand', {
+      naam: 'Onderkast mobiel',
+      breedte: 600,
+      hoogte: 720,
+      diepte: 560,
+    });
+    await indeling.gaNaarPanelen();
+
+    await panelen.expectLoaded();
+    await panelen.openWandWerkruimte('Achterwand');
+    await expect(page.getByTestId('paneel-stap-intro-compact')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Wandenoverzicht' })).toHaveCount(0);
+
+    const actieveWerkruimte = page.getByTestId('paneel-actieve-wand-werkruimte');
+    const terminologieBlok = page.getByTestId('paneel-terminologie-blok');
+    const werkruimteBox = await actieveWerkruimte.boundingBox();
+    const terminologieBox = await terminologieBlok.boundingBox();
+
+    expect(werkruimteBox).not.toBeNull();
+    expect(terminologieBox).not.toBeNull();
+    expect(terminologieBox!.y).toBeGreaterThan(werkruimteBox!.y + werkruimteBox!.height - 1);
+  });
 });
 
 test('stap 3 toont verificatie als taaklijst per wand', async ({ page }) => {

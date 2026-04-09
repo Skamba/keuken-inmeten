@@ -5,7 +5,7 @@
     "Kitchen fitters and cabinet makers measuring kitchen runs and cabinet openings",
     "Installers or workshop planners preparing panel sizes, hinge bores, order lists, and cutting plans"
   ],
-  "currentIteration": 3,
+  "currentIteration": 4,
   "mainJourneys": [
     "Start or resume a project from Home",
     "Build the kitchen run per wall in Stap 1: Indeling",
@@ -68,27 +68,39 @@
         ".agent/screenshots/iteration-3/after/comparisons/panelen-workspace-mobile-compare.png",
         ".agent/screenshots/iteration-3/after/comparisons/panelen-editor-mobile-compare.png"
       ]
+    },
+    "iteration4": {
+      "beforeDir": ".agent/screenshots/iteration-4/before/",
+      "afterDir": ".agent/screenshots/iteration-4/after/",
+      "comparisonEvidence": [
+        ".agent/screenshots/iteration-4/after/comparisons/panelen-workspace-mobile-compare.png",
+        ".agent/screenshots/iteration-4/after/comparisons/panelen-editor-mobile-compare.png"
+      ]
     }
   },
   "currentTopIssues": [],
   "fixedThisIteration": [
     {
-      "id": "panelen-mobile-canvas-priority",
-      "summary": "De mobiele paneelwerkruimte gebruikt nu compactere tabs en een enkele statuskaart, waardoor het canvas en de editor merkbaar eerder de hoofdrol krijgen."
+      "id": "panelen-mobile-intro-still-verbose",
+      "summary": "De mobiele paneelstap gebruikt nu een compacte actieve-wandintro, verplaatst terminologie onder de werkruimte, verwijdert de redundante Wandenoverzicht-intro en verkort de wachtende editorstate."
+    },
+    {
+      "id": "terminologie-generic-heading",
+      "summary": "Terminologiekaarten gebruiken nu specifiekere koppen, waardoor woordenlijsten sneller scanbaar en duidelijker herkenbaar zijn."
     }
   ],
   "whatRemains": [
-    "Geen severity 2+ issues meer in primaire flows, dichte schermen, of kritieke beslismomenten.",
-    "Alleen een low-value severity-1 aandachtspunt blijft bewust gedeferreerd: de algemene stapintro op mobiel kan nog iets korter, maar levert nu geen noemenswaardige frictie of verwarring meer op."
+    "Geen severity 2+ issues meer in primaire flows, dichte schermen of kritieke beslismomenten.",
+    "Geen actieve UX-backlogitems meer uit deze sessie; vervolg alleen bij nieuw gebruiksonderzoek of nieuwe scope."
   ],
   "knownRisksChecked": [
-    "dotnet test Code.slnx --nologo passes after the iteration-3 changes",
-    "dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo succeeds after the iteration-3 changes",
-    "npm run test:e2e passes after the iteration-3 changes",
-    "Fresh iteration-3 comparison boards confirm that the mobile paneel canvas appears materially sooner in both workspace and editor states",
-    "No regressions were found in the earlier fixed Home, Bestellijst, and mobile paneel flows"
+    "dotnet test Code.slnx --nologo passes after the iteration-4 changes",
+    "dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo succeeds after the iteration-4 changes",
+    "npm run test:e2e passes after the iteration-4 changes with 13 Playwright tests",
+    "Fresh iteration-4 comparison boards confirm that the mobile panel canvas appears materially sooner in both workspace and waiting-editor states",
+    "No regressions were found in Home, dense desktop reviews, or the earlier fixed mobile paneel selection flow"
   ],
-  "nextRecommendedStep": "Stop gate is satisfied. If this work resumes later, only revisit deferred severity-1 cosmetic polish after new user evidence.",
+  "nextRecommendedStep": "Stop gate is satisfied. Resume only if new evidence reveals a new severity 2+ issue or if you want optional cosmetic polish.",
   "stopGateStatus": {
     "severity4Cleared": true,
     "severity3Cleared": true,
@@ -98,5 +110,5 @@
     "latestRoundRegressionFree": true,
     "onlyMinorIssuesRemain": true
   },
-  "lastUpdated": "2026-04-09T04:47:52Z"
+  "lastUpdated": "2026-04-09T05:07:47Z"
 }
