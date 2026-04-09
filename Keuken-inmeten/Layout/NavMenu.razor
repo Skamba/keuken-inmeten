@@ -6,13 +6,18 @@
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Keuken Inmeten</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+        <button title="Navigatiemenu openen of sluiten"
+                aria-label="Navigatiemenu openen of sluiten"
+                aria-expanded="@(!collapseNavMenu)"
+                aria-controls="app-navmenu"
+                class="navbar-toggler"
+                @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+<div id="app-navmenu" class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     @{
         var flowStatus = StappenFlowHelper.BepaalStatus(State);
     }
@@ -34,7 +39,10 @@
                 }
                 else
                 {
-                    <span class="nav-link disabled" title="@gate.Reden">
+                    <span class="nav-link disabled"
+                          title="@gate.Reden"
+                          aria-disabled="true"
+                          aria-label="@($"{stap.Nummer}. {stap.Label}. {gate.Reden}")">
                         🔒 @stap.Nummer. @stap.Label
                     </span>
                 }

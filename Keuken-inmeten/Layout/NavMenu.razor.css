@@ -47,6 +47,17 @@
     color: white;
 }
 
+.nav-item ::deep a:focus,
+.nav-item ::deep a:focus-visible,
+.theme-toggle:focus,
+.theme-toggle:focus-visible,
+.navbar-toggler:focus,
+.navbar-toggler:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.95);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 0.2rem rgba(5, 39, 103, 0.55), 0 0 0 0.45rem rgba(37, 140, 251, 0.5);
+}
+
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;

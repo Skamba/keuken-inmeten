@@ -28,6 +28,8 @@ screenshots_plank/
 
 # Local UX run artifacts
 .agent/screenshots/
+.agent/
+.tmp/ux-review/
 
 # OS files
 .DS_Store

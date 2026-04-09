@@ -578,14 +578,121 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
+:root {
+    --app-focus-ring-color: #258cfb;
+    --app-focus-ring-soft: rgba(37, 140, 251, 0.38);
+    --app-focus-ring-inner: var(--bs-body-bg, #fff);
+}
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem var(--bs-body-bg, white), 0 0 0 0.25rem #258cfb;
 }
 
 /* Accessible focus visible ring */
 .btn:focus-visible, .form-control:focus-visible {
-    outline: 2px solid #258cfb;
+    outline: 2px solid var(--app-focus-ring-color);
     outline-offset: 2px;
+}
+
+.home-card-link {
+    border-radius: 0.9rem;
+}
+
+.home-card-link:focus,
+.home-card-link:focus-visible {
+    outline: none;
+}
+
+.home-card-link:focus .home-route-card,
+.home-card-link:focus .home-flow-step,
+.home-card-link:focus-visible .home-route-card,
+.home-card-link:focus-visible .home-flow-step,
+.bestellijst-export-keuze:focus,
+.bestellijst-export-keuze:focus-visible,
+.scharnier-overzicht-trigger:focus,
+.scharnier-overzicht-trigger:focus-visible,
+.verificatie-check-cirkel:focus,
+.verificatie-check-cirkel:focus-visible,
+.paneel-weergave-tabs .nav-link:focus,
+.paneel-weergave-tabs .nav-link:focus-visible,
+.verificatie-tabs .nav-link:focus,
+.verificatie-tabs .nav-link:focus-visible {
+    border-color: color-mix(in srgb, var(--app-focus-ring-color) 45%, var(--bs-border-color, #d0d7de));
+    box-shadow: 0 0 0 0.12rem var(--app-focus-ring-inner), 0 0 0 0.32rem var(--app-focus-ring-soft);
+    outline: 2px solid transparent;
+}
+
+.home-section-summary:focus,
+.home-section-summary:focus-visible,
+.home-help-details summary:focus,
+.home-help-details summary:focus-visible,
+.terminologie-summary:focus,
+.terminologie-summary:focus-visible,
+.terminologie-item-summary:focus,
+.terminologie-item-summary:focus-visible,
+.hulp-info-trigger:focus,
+.hulp-info-trigger:focus-visible,
+.hulp-details-summary:focus,
+.hulp-details-summary:focus-visible,
+.paneel-review-samenvatting-details summary:focus,
+.paneel-review-samenvatting-details summary:focus-visible,
+.paneel-review-item-details summary:focus,
+.paneel-review-item-details summary:focus-visible,
+.paneel-editor-empty-details summary:focus,
+.paneel-editor-empty-details summary:focus-visible,
+.bestellijst-overzicht-details summary:focus,
+.bestellijst-overzicht-details summary:focus-visible,
+.zaagplan-geavanceerd summary:focus,
+.zaagplan-geavanceerd summary:focus-visible,
+.verificatie-techniek summary:focus,
+.verificatie-techniek summary:focus-visible,
+.stap-navigatie-stappen a:focus,
+.stap-navigatie-stappen a:focus-visible,
+.stap-label-link:focus,
+.stap-label-link:focus-visible,
+.onderbouwing-toggle:focus,
+.onderbouwing-toggle:focus-visible {
+    outline: 2px solid var(--app-focus-ring-color);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 0.12rem var(--app-focus-ring-inner), 0 0 0 0.32rem var(--app-focus-ring-soft);
+}
+
+.home-section-summary:focus,
+.home-section-summary:focus-visible,
+.home-help-details summary:focus,
+.home-help-details summary:focus-visible,
+.terminologie-summary:focus,
+.terminologie-summary:focus-visible,
+.terminologie-item-summary:focus,
+.terminologie-item-summary:focus-visible,
+.hulp-details-summary:focus,
+.hulp-details-summary:focus-visible,
+.bestellijst-overzicht-details summary:focus,
+.bestellijst-overzicht-details summary:focus-visible,
+.zaagplan-geavanceerd summary:focus,
+.zaagplan-geavanceerd summary:focus-visible,
+.verificatie-techniek summary:focus,
+.verificatie-techniek summary:focus-visible {
+    border-radius: 0.9rem;
+}
+
+.hulp-info-trigger:focus,
+.hulp-info-trigger:focus-visible {
+    border-radius: 999px;
+}
+
+.stap-link:focus,
+.stap-link:focus-visible {
+    outline: 2px solid var(--app-focus-ring-color);
+    outline-offset: 3px;
+    border-radius: 999px;
+}
+
+.stap-label-link:focus,
+.stap-label-link:focus-visible,
+.stap-navigatie-stappen a:focus,
+.stap-navigatie-stappen a:focus-visible {
+    border-radius: 0.35rem;
 }
 
 .content {
@@ -1811,6 +1918,12 @@ code {
     border-color: #0d6efd;
     box-shadow: 0 0 0 1px rgba(13,110,253,0.18);
     background: color-mix(in srgb, #0d6efd 6%, var(--bs-body-bg, #fff));
+}
+
+.bestellijst-export-keuze.is-selected:focus,
+.bestellijst-export-keuze.is-selected:focus-visible {
+    border-color: color-mix(in srgb, var(--app-focus-ring-color) 45%, #0d6efd);
+    box-shadow: 0 0 0 1px rgba(13,110,253,0.18), 0 0 0 0.12rem var(--app-focus-ring-inner), 0 0 0 0.32rem var(--app-focus-ring-soft);
 }
 
 .bestellijst-table-wrap {

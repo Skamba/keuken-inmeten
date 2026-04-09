@@ -23,6 +23,7 @@
             var stap = StappenFlowHelper.AlleStappen[i];
             var isActief = HuidigeStap == stap.Id;
             var isNavigeerbaar = StappenFlowHelper.MagNavigeren(stap.Id, HuidigeStap, flowStatus);
+            var stapGate = StappenFlowHelper.BepaalRouteGate(stap.Id, flowStatus);
 
             @if (isNavigeerbaar)
             {
@@ -31,7 +32,9 @@
             else
             {
                 <span class="stap-navigatie-link vergrendeld"
-                      title="@StappenFlowHelper.BepaalRouteGate(stap.Id, flowStatus)?.Reden">
+                      title="@stapGate?.Reden"
+                      aria-disabled="true"
+                      aria-label="@($"{stap.Nummer}. {stap.Label}. {stapGate?.Reden}")">
                     @stap.Nummer. @stap.Label
                 </span>
             }
@@ -54,6 +57,7 @@
         {
             <span class="btn btn-success disabled text-nowrap"
                   aria-disabled="true"
+                  aria-label="@VolgendeAriaTekst(flowStatus)"
                   title="@VolgendeGateTekst(flowStatus)"
                   data-testid="stap-navigatie-volgende"
                   data-doel-stap="@NormaliseerHref(VolgendeHref)">
@@ -108,4 +112,13 @@
         => string.IsNullOrWhiteSpace(VolgendeHref)
             ? null
             : StappenFlowHelper.BepaalRouteGate(NormaliseerHref(VolgendeHref), flowStatus)?.Reden;
+
+    private string VolgendeAriaTekst(StappenFlowStatus flowStatus)
+    {
+        var gateTekst = VolgendeGateTekst(flowStatus);
+        var label = BepaalVolgendeLabel();
+        return string.IsNullOrWhiteSpace(gateTekst)
+            ? label
+            : $"{label}. {gateTekst}";
+    }
 }
