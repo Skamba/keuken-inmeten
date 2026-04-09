@@ -10,13 +10,14 @@
 <StapIndicator HuidigeStap="bestellijst" />
 
 <h2 class="page-header">Stap 4: Bestellijst</h2>
-<p class="text-muted">Bekijk eerst compacte samenvattingen per wand en paneeltype. De bestellijst focust standaard op orderregels; export kiest u daarna in een aparte korte flow met preview en bevestiging.</p>
-<div class="hulp-toolbar mb-3">
-    <StapHulpDrawer StapId="bestellijst" />
+<p class="text-muted mb-3">Controleer hier vooral aantallen, maten en wandcontext. Export opent pas daarna in een korte previewflow.</p>
+<div class="stap-ondersteuning mb-3" data-testid="bestellijst-stap-ondersteuning">
+    <StapHulpDrawer StapId="bestellijst" KnopLabel="Staphulp" />
+    <TerminologieUitleg Compact="true"
+                        CompactLabel="Begrippen"
+                        Sleutels="absband,cnc"
+                        Beschrijving="Deze woordenlijst helpt bij de technische termen in de bestellijst en export." />
 </div>
-
-<TerminologieUitleg Sleutels="absband,cnc"
-                    Beschrijving="Deze woordenlijst helpt bij de technische termen in de bestellijst en export." />
 
 @{
     var flowStatus = StappenFlowHelper.BepaalStatus(State);

@@ -171,14 +171,20 @@
       "severity": 2,
       "whyItMatters": "Deze pagina's tonen nog steeds een paginakop, losse introtekst, een aparte hulpknoop en een volledige begrippenkaart voordat de eigenlijke taak begint. In dichte en herhaalde workflows kost dat onnodig scroll- en filterwerk.",
       "proposedFix": "Combineer doel, hulp en begrippen in een compactere utilitykop en verplaats of verlicht secundaire tekst zodat de hoofdtaken eerder beginnen.",
-      "status": "open",
+      "status": "fixed",
       "evidenceReference": [
-        ".agent/screenshots/iteration-5/before/page/verificatie-tasklist-dense-desktop.png",
-        ".agent/screenshots/iteration-5/before/page/bestellijst-dense-desktop.png",
-        ".agent/screenshots/iteration-5/before/page/zaagplan-dense-desktop.png",
-        ".agent/screenshots/iteration-5/before/section/verificatie-tasklist-normal-desktop.png",
-        ".agent/screenshots/iteration-5/before/section/bestellijst-toolbar-normal-desktop.png",
-        ".agent/screenshots/iteration-5/before/section/zaagplan-toolbar-normal-desktop.png"
+        ".agent/screenshots/iteration-6/before/page/verificatie-tasklist-normal-desktop.png",
+        ".agent/screenshots/iteration-6/before/page/bestellijst-normal-desktop.png",
+        ".agent/screenshots/iteration-6/before/page/zaagplan-normal-desktop.png",
+        ".agent/screenshots/iteration-6/after/page/verificatie-tasklist-normal-desktop.png",
+        ".agent/screenshots/iteration-6/after/page/bestellijst-normal-desktop.png",
+        ".agent/screenshots/iteration-6/after/page/zaagplan-normal-desktop.png",
+        ".agent/screenshots/iteration-6/after/comparisons/verificatie-tasklist-normal-desktop-compare.png",
+        ".agent/screenshots/iteration-6/after/comparisons/bestellijst-normal-desktop-compare.png",
+        ".agent/screenshots/iteration-6/after/comparisons/zaagplan-normal-desktop-compare.png",
+        ".agent/screenshots/iteration-6/after/comparisons/verificatie-tasklist-dense-desktop-compare.png",
+        ".agent/screenshots/iteration-6/after/comparisons/bestellijst-dense-desktop-compare.png",
+        ".agent/screenshots/iteration-6/after/comparisons/zaagplan-dense-desktop-compare.png"
       ],
       "regressionRisk": "Medium - hulp en terminologie moeten laagdrempelig en geruststellend blijven."
     },

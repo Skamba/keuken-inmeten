@@ -5,52 +5,116 @@
 
 @if (termen.Count > 0)
 {
-    <details class="terminologie-card card border-0 shadow-sm mb-4">
-        <summary class="terminologie-summary card-body">
-            <div>
-                <div class="fw-semibold">@Titel</div>
-                <div class="small text-muted">@Beschrijving</div>
-            </div>
-        </summary>
+    @if (Compact)
+    {
+        <div class="terminologie-inline @(isCompactOpen ? "terminologie-inline--open" : null)">
+            <button type="button"
+                    class="@CompactButtonClass"
+                    @onclick="ToggleCompact"
+                    aria-expanded="@isCompactOpen"
+                    aria-controls="@compactPanelId">
+                @CompactLabel
+            </button>
 
-        <div class="card-body pt-0">
-            <div class="terminologie-list mb-0">
-                @foreach (var term in termen)
-                {
-                    <details class="terminologie-item">
-                        <summary class="terminologie-item-summary">
-                            <div>
-                                <div class="fw-semibold">@term.Label</div>
-                                <div class="small text-muted">Technische term: @term.TechnischeTerm</div>
-                            </div>
-                            <span class="terminologie-item-tag">Wanneer relevant?</span>
-                        </summary>
+            @if (isCompactOpen)
+            {
+                <div id="@compactPanelId" class="terminologie-inline-panel card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="fw-semibold">@Titel</div>
+                        <div class="small text-muted mb-3">@Beschrijving</div>
+                        <div class="terminologie-list mb-0">
+                            @foreach (var term in termen)
+                            {
+                                <details class="terminologie-item">
+                                    <summary class="terminologie-item-summary">
+                                        <div>
+                                            <div class="fw-semibold">@term.Label</div>
+                                            <div class="small text-muted">Technische term: @term.TechnischeTerm</div>
+                                        </div>
+                                        <span class="terminologie-item-tag">Wanneer relevant?</span>
+                                    </summary>
 
-                        <div class="terminologie-item-body">
-                            <div>
-                                <div class="terminologie-item-kop">Wat is het?</div>
-                                <div class="small text-muted">@term.Uitleg</div>
-                            </div>
-                            <div>
-                                <div class="terminologie-item-kop">Wanneer maakt het uit?</div>
-                                <div class="small text-muted">@term.WanneerRelevant</div>
-                            </div>
-                            <div class="small">
-                                <strong>Bijvoorbeeld:</strong> @term.Voorbeeld
-                            </div>
-                            <div class="small">
-                                <strong>Wat doet u nu?</strong> @term.WatNuDoen
-                            </div>
+                                    <div class="terminologie-item-body">
+                                        <div>
+                                            <div class="terminologie-item-kop">Wat is het?</div>
+                                            <div class="small text-muted">@term.Uitleg</div>
+                                        </div>
+                                        <div>
+                                            <div class="terminologie-item-kop">Wanneer maakt het uit?</div>
+                                            <div class="small text-muted">@term.WanneerRelevant</div>
+                                        </div>
+                                        <div class="small">
+                                            <strong>Bijvoorbeeld:</strong> @term.Voorbeeld
+                                        </div>
+                                        <div class="small">
+                                            <strong>Wat doet u nu?</strong> @term.WatNuDoen
+                                        </div>
+                                    </div>
+                                </details>
+                            }
                         </div>
-                    </details>
-                }
-            </div>
+                    </div>
+                </div>
+            }
         </div>
-    </details>
+    }
+    else
+    {
+        <details class="terminologie-card card border-0 shadow-sm mb-4">
+            <summary class="terminologie-summary card-body">
+                <div>
+                    <div class="fw-semibold">@Titel</div>
+                    <div class="small text-muted">@Beschrijving</div>
+                </div>
+            </summary>
+
+            <div class="card-body pt-0">
+                <div class="terminologie-list mb-0">
+                    @foreach (var term in termen)
+                    {
+                        <details class="terminologie-item">
+                            <summary class="terminologie-item-summary">
+                                <div>
+                                    <div class="fw-semibold">@term.Label</div>
+                                    <div class="small text-muted">Technische term: @term.TechnischeTerm</div>
+                                </div>
+                                <span class="terminologie-item-tag">Wanneer relevant?</span>
+                            </summary>
+
+                            <div class="terminologie-item-body">
+                                <div>
+                                    <div class="terminologie-item-kop">Wat is het?</div>
+                                    <div class="small text-muted">@term.Uitleg</div>
+                                </div>
+                                <div>
+                                    <div class="terminologie-item-kop">Wanneer maakt het uit?</div>
+                                    <div class="small text-muted">@term.WanneerRelevant</div>
+                                </div>
+                                <div class="small">
+                                    <strong>Bijvoorbeeld:</strong> @term.Voorbeeld
+                                </div>
+                                <div class="small">
+                                    <strong>Wat doet u nu?</strong> @term.WatNuDoen
+                                </div>
+                            </div>
+                        </details>
+                    }
+                </div>
+            </div>
+        </details>
+    }
 }
 
 @code {
+    private readonly string compactPanelId = $"terminologie-{Guid.NewGuid():N}";
+    private bool isCompactOpen;
+
     [Parameter] public string Titel { get; set; } = "Begrippen in gewone taal";
     [Parameter] public string Beschrijving { get; set; } = "Open alleen als u een technische term wilt opfrissen.";
+    [Parameter] public bool Compact { get; set; }
+    [Parameter] public string CompactLabel { get; set; } = "Begrippen";
+    [Parameter] public string CompactButtonClass { get; set; } = "btn btn-outline-secondary btn-sm";
     [Parameter, EditorRequired] public string Sleutels { get; set; } = "";
+
+    private void ToggleCompact() => isCompactOpen = !isCompactOpen;
 }

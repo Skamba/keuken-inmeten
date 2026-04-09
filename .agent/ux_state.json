@@ -5,12 +5,13 @@
     "Kitchen fitters and cabinet makers measuring kitchen runs and cabinet openings",
     "Installers or workshop planners preparing panel sizes, hinge bores, order lists, and cutting plans"
   ],
-  "currentIteration": 5,
-  "countedIterationsCompleted": 1,
+  "currentIteration": 6,
+  "countedIterationsCompleted": 2,
   "countedIterationLabels": [
-    "iteration-5"
+    "iteration-5",
+    "iteration-6"
   ],
-  "countedIterationNote": "Historical iterations 1-4 remain useful context, but iteration-5 is the first fully counted round under the stricter journey/page/section/element screenshot rubric.",
+  "countedIterationNote": "Historical iterations 1-4 remain useful context, but counted progress under the stricter journey/page/section/element screenshot rubric now consists of iteration-5 and iteration-6.",
   "mainJourneys": [
     "Start or resume a project from Home",
     "Build the kitchen run per wall in Stap 1: Indeling",
@@ -107,14 +108,37 @@
         ".agent/screenshots/iteration-5/after/comparisons/indeling-apparaat-form-dialog-desktop-compare.png",
         ".agent/screenshots/iteration-5/after/comparisons/indeling-apparaat-form-progress-desktop-compare.png"
       ]
+    },
+    "iteration6": {
+      "beforeDir": ".agent/screenshots/iteration-6/before/",
+      "afterDir": ".agent/screenshots/iteration-6/after/",
+      "beforeManifest": ".agent/screenshots/iteration-6/before/manifest.json",
+      "afterManifest": ".agent/screenshots/iteration-6/after/manifest.json",
+      "beforeCounts": {
+        "journey": 8,
+        "page": 27,
+        "section": 36,
+        "element": 31,
+        "total": 102
+      },
+      "afterCounts": {
+        "journey": 8,
+        "page": 27,
+        "section": 36,
+        "element": 31,
+        "total": 102
+      },
+      "comparisonEvidence": [
+        ".agent/screenshots/iteration-6/after/comparisons/verificatie-tasklist-normal-desktop-compare.png",
+        ".agent/screenshots/iteration-6/after/comparisons/verificatie-tasklist-dense-desktop-compare.png",
+        ".agent/screenshots/iteration-6/after/comparisons/bestellijst-normal-desktop-compare.png",
+        ".agent/screenshots/iteration-6/after/comparisons/bestellijst-dense-desktop-compare.png",
+        ".agent/screenshots/iteration-6/after/comparisons/zaagplan-normal-desktop-compare.png",
+        ".agent/screenshots/iteration-6/after/comparisons/zaagplan-dense-desktop-compare.png"
+      ]
     }
   },
   "currentTopIssues": [
-    {
-      "id": "step-intro-stack-clutter",
-      "severity": 2,
-      "summary": "Verificatie, bestellijst en zaagplan tonen nog te veel intro-, hulp- en begrippenblokken voordat de hoofdtaak begint."
-    },
     {
       "id": "paneel-desktop-drawer-overexplained",
       "severity": 2,
@@ -128,25 +152,24 @@
   ],
   "fixedThisIteration": [
     {
-      "id": "indeling-form-progress-redundancy",
-      "summary": "De kast- en apparaatwizards tonen nu nog maar één compacte voortgangsaanduiding per stap; dubbele progressbars en badge-rails zijn verwijderd en tussentekst is lichter gemaakt."
+      "id": "step-intro-stack-clutter",
+      "summary": "Verificatie, Bestellijst en Zaagplan gebruiken nu een compacte ondersteuningsstrook met lichte actieknoppen voor staphulp en begrippen, zodat de hoofdtaak directer begint."
     }
   ],
   "whatRemains": [
-    "Compact de gedeelde intro/hulp/begrippen-stack boven Verificatie, Bestellijst en Zaagplan zodat de hoofdtaak eerder begint.",
     "Maak de desktop paneel-editor rustiger door begeleidende uitleg boven de velden verder te comprimeren.",
     "Geef de verificatie-afronding een expliciete primaire route naar Bestellijst.",
-    "Voltooi nog minstens vier extra volledig getelde iteraties onder de huidige evidence-rubric."
+    "Voltooi nog minstens drie extra volledig getelde iteraties onder de huidige evidence-rubric."
   ],
   "knownRisksChecked": [
-    "dotnet test Code.slnx --nologo passes after the iteration-5 change",
-    "dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo succeeds after the iteration-5 change",
-    "npm run test:e2e passes after the iteration-5 change with 13 Playwright tests",
-    "Fresh iteration-5 before and after evidence each include 102 screenshots and cover journey, page, section, and element levels",
-    "Fresh iteration-5 comparison boards confirm the kast and apparaat wizard headers are materially calmer without hiding help or step context",
-    "No regressions were found in home, panel selection, dense desktop reviews, or the end-to-end flow from indeling to export"
+    "export PATH=/root/.dotnet:$PATH && dotnet test Code.slnx --nologo passes after the iteration-6 change",
+    "export PATH=/root/.dotnet:$PATH && dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo succeeds after the iteration-6 change",
+    "npm run test:e2e passes after the iteration-6 change with 13 Playwright tests",
+    "Fresh iteration-6 before and after evidence each include 102 screenshots and cover journey, page, section, and element levels",
+    "Fresh iteration-6 comparison boards confirm Verificatie, Bestellijst, and Zaagplan start their main task higher with less stacked utility UI",
+    "No regressions were found in normal or dense reviews, warning states, or the end-to-end flow from indeling to export"
   ],
-  "nextRecommendedStep": "Start iteration 6 with the remaining cross-page clutter issue: compact the repeated intro/help/glossary stack above the main task on Verificatie, Bestellijst, and Zaagplan.",
+  "nextRecommendedStep": "Start iteration 7 with the remaining highest-value dense-state issue: compress the desktop paneel-editor drawer so editable controls start higher and explanation shifts behind lighter support.",
   "stopGateStatus": {
     "severity4Cleared": true,
     "severity3Cleared": true,
@@ -156,5 +179,5 @@
     "latestRoundRegressionFree": true,
     "onlyMinorIssuesRemain": false
   },
-  "lastUpdated": "2026-04-09T06:13:03Z"
+  "lastUpdated": "2026-04-09T06:26:48Z"
 }

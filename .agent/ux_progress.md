@@ -280,3 +280,52 @@
 
 - **Not satisfied.** There are still three severity-2 issues in primary or critical flows, and the run has completed only **1 counted iteration out of the required minimum of 5** under the current rubric.
 - **No regression found** in the 163 unit tests, 13 Playwright tests, fresh before/after evidence, or the wizard-specific comparison boards.
+
+## Iteration 6 - compact support strip for steps 3-5
+
+- Started from `5a6bb25` on `main` and captured a fresh iteration-6 before set before changing code: **102 screenshots** (`8 journey`, `27 page`, `36 section`, `31 element`).
+- Reviewed fresh full-page evidence for Verificatie, Bestellijst, and Zaagplan and confirmed the same repeated pattern in both normal and dense states: title, intro paragraph, separate help button, and a full-width glossary card all appeared before the real task surface.
+- Rechecked external guidance on progressive disclosure and clutter reduction from USWDS, Primer, and related UX references: optional help should stay reachable, but secondary support should sit behind lightweight controls rather than consume the same visual weight as the main task.
+
+### Ranked issues entering iteration 6
+
+1. `step-intro-stack-clutter` - severity 2 - Verificatie, Bestellijst, and Zaagplan still spent too much height on repeated intro, help, and glossary chrome before the main work began.
+2. `paneel-desktop-drawer-overexplained` - severity 2 - the desktop paneel drawer still started too low because explanation and guided framing consumed too much of the drawer header.
+3. `verificatie-complete-primary-next-step-hidden` - severity 2 - the completion state still underplayed the route to Bestellijst at an important transition moment.
+
+### What changed
+
+- **Shared secondary support**
+  - Added a compact mode to `TerminologieUitleg` so glossary help can appear as a lightweight button and only expand inline on demand.
+- **Stap 3, 4, and 5**
+  - Replaced the separate right-aligned help row and the full-width glossary card with one compact support strip: `Staphulp` + `Begrippen`.
+  - Shortened the top intro copy on Verificatie, Bestellijst, and Zaagplan so the screen purpose is clearer in one pass.
+  - Kept both support routes available without letting them compete visually with the page’s main card or toolbar.
+
+### Screenshot coverage completed in this iteration
+
+- **Before:** 102 screenshots (`8 journey`, `27 page`, `36 section`, `31 element`) under `.agent/screenshots/iteration-6/before/`
+- **After:** 102 screenshots (`8 journey`, `27 page`, `36 section`, `31 element`) under `.agent/screenshots/iteration-6/after/`
+- **Comparison boards:** 6 boards under `.agent/screenshots/iteration-6/after/comparisons/`
+
+### Before vs after observations
+
+- **Verificatie:** strong improvement. The task list now starts noticeably higher and the page no longer spends a full extra block on secondary support before the first task card.
+- **Bestellijst:** clear improvement. Review and export still feel supported, but the list reaches the main toolbar faster and the page reads as one coherent path instead of header + utility card + review card.
+- **Zaagplan:** clear improvement. The page feels calmer because the optional support controls no longer create a second full-width panel above the already-large plan toolbar.
+- **Dense states:** the gain holds. On dense Verificatie, Bestellijst, and Zaagplan screens, the shortened top area leaves more room for rows, lists, and plate visualizations without sacrificing orientation.
+
+### What still feels wrong after iteration 6
+
+- The desktop paneel-editor still makes frequent users scroll through too much explanatory framing before the editable fields begin.
+- The Verificatie completion card still does not make the next primary step to Bestellijst dominant enough.
+
+### Remaining severity 2+ issues after iteration 6
+
+1. `paneel-desktop-drawer-overexplained` - severity 2
+2. `verificatie-complete-primary-next-step-hidden` - severity 2
+
+### Stop gate after iteration 6
+
+- **Not satisfied.** Two severity-2 issues still remain in important flows, and the run has completed only **2 counted iterations out of the required minimum of 5** under the current rubric.
+- **No regression found** in the 163 unit tests, 13 Playwright tests, refreshed dense-state screenshots, or the new comparison boards for Verificatie, Bestellijst, and Zaagplan.

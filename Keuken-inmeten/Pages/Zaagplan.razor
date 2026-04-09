@@ -6,13 +6,14 @@
 <StapIndicator HuidigeStap="zaagplan" />
 
 <h2 class="page-header">Stap 5: Zaagplan</h2>
-<p class="text-muted">Beoordeel eerst de plaatindeling. Alleen plaatformaat blijft standaard open; geavanceerde instellingen en één-plaat-focus zet u erbij wanneer u het resultaat wilt verfijnen.</p>
-<div class="hulp-toolbar mb-3">
-    <StapHulpDrawer StapId="zaagplan" />
+<p class="text-muted mb-3">Controleer eerst de plaatindeling. Open geavanceerde instellingen of één-plaat-focus alleen als u het resultaat wilt bijsturen.</p>
+<div class="stap-ondersteuning mb-3" data-testid="zaagplan-stap-ondersteuning">
+    <StapHulpDrawer StapId="zaagplan" KnopLabel="Staphulp" />
+    <TerminologieUitleg Compact="true"
+                        CompactLabel="Begrippen"
+                        Sleutels="zaagbreedte"
+                        Beschrijving="Deze woordenlijst licht de zaagterm op deze pagina in gewone taal toe." />
 </div>
-
-<TerminologieUitleg Sleutels="zaagbreedte"
-                    Beschrijving="Deze woordenlijst licht de zaagterm op deze pagina in gewone taal toe." />
 
 @{
     var flowStatus = StappenFlowHelper.BepaalStatus(State);
