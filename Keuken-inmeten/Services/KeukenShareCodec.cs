@@ -8,6 +8,7 @@ public static class KeukenShareCodec
 {
     private const string VersiePrefixV1 = "v1.";
     private const string VersiePrefixV2 = "v2.";
+    private const string VersiePrefixV3 = "v3.";
     private static readonly KeukenWand DefaultWand = KeukenDomeinDefaults.NieuweWand();
     private static readonly Kast DefaultKast = KeukenDomeinDefaults.NieuweKast();
 
@@ -27,7 +28,7 @@ public static class KeukenShareCodec
     {
         var compact = MaakCompacteData(KeukenDataMigratieService.MaakHuidigeDeelData(data));
         var json = JsonSerializer.SerializeToUtf8Bytes(compact, CompactJsonOpties);
-        return VersiePrefixV2 + NaarBase64Url(json);
+        return VersiePrefixV3 + NaarBase64Url(json);
     }
 
     public static bool TryDecode(string? token, out KeukenData data)
@@ -37,6 +38,9 @@ public static class KeukenShareCodec
         if (string.IsNullOrWhiteSpace(token))
             return false;
 
+        if (token.StartsWith(VersiePrefixV3, StringComparison.Ordinal))
+            return TryDecodeV3(token, out data);
+
         if (token.StartsWith(VersiePrefixV2, StringComparison.Ordinal))
             return TryDecodeV2(token, out data);
 
@@ -44,6 +48,30 @@ public static class KeukenShareCodec
             return TryDecodeV1(token, out data);
 
         return false;
+    }
+
+    private static bool TryDecodeV3(string token, out KeukenData data)
+    {
+        data = new KeukenData();
+
+        try
+        {
+            var json = VanBase64Url(token[VersiePrefixV3.Length..]);
+            var decoded = JsonSerializer.Deserialize<CompactShareData>(json, CompactJsonOpties);
+            if (decoded is null)
+                return false;
+
+            var decodedData = BouwKeukenData(decoded);
+            return KeukenDataMigratieService.TryMigreerDeelData(KeukenDataMigratieService.HuidigeSchemaVersie, decodedData, out data);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 
     private static bool TryDecodeV2(string token, out KeukenData data)
@@ -100,6 +128,94 @@ public static class KeukenShareCodec
             .ToDictionary(item => item.apparaat.Id, item => item.index);
         var standaardKastPosities = BerekenStandaardKastPosities(data);
         var standaardApparaatPlaatsingen = BerekenStandaardApparaatPlaatsingen(data);
+        var walls = data.Wanden.Select(wand => new CompactWall
+        {
+            Name = string.IsNullOrWhiteSpace(wand.Naam) ? null : wand.Naam,
+            Width = IsBijnaGelijk(wand.Breedte, DefaultWand.Breedte) ? null : Round1(wand.Breedte),
+            Height = IsBijnaGelijk(wand.Hoogte, DefaultWand.Hoogte) ? null : Round1(wand.Hoogte),
+            PlinthHeight = IsBijnaGelijk(wand.PlintHoogte, DefaultWand.PlintHoogte) ? null : Round1(wand.PlintHoogte),
+            CabinetIndexes = BouwIndexLijst(wand.KastIds, kastenOpIndex),
+            ApplianceIndexes = BouwIndexLijst(wand.ApparaatIds, apparatenOpIndex)
+        }).ToList();
+        var cabinets = data.Kasten.Select(kast => new CompactCabinet
+        {
+            Name = string.IsNullOrWhiteSpace(kast.Naam) ? null : kast.Naam,
+            Width = IsBijnaGelijk(kast.Breedte, DefaultKast.Breedte) ? null : Round1(kast.Breedte),
+            Height = IsBijnaGelijk(kast.Hoogte, DefaultKast.Hoogte) ? null : Round1(kast.Hoogte),
+            Depth = IsBijnaGelijk(kast.Diepte, DefaultKast.Diepte) ? null : Round1(kast.Diepte),
+            WallThickness = IsBijnaGelijk(kast.Wanddikte, DefaultKast.Wanddikte) ? null : Round1(kast.Wanddikte),
+            HoleSpacing = IsBijnaGelijk(kast.GaatjesAfstand, DefaultKast.GaatjesAfstand) ? null : Round1(kast.GaatjesAfstand),
+            FirstHoleBelowTopShelf = IsBijnaGelijk(kast.EersteGaatVanBoven, DefaultKast.EersteGaatVanBoven) ? null : Round1(kast.EersteGaatVanBoven),
+            X = standaardKastPosities.TryGetValue(kast.Id, out var standaardKastX) && IsBijnaGelijk(kast.XPositie, standaardKastX)
+                ? null
+                : Round1(kast.XPositie),
+            FloorHeight = IsBijnaGelijk(kast.HoogteVanVloer, 0)
+                ? null
+                : Round1(kast.HoogteVanVloer),
+            ShelfHeights = kast.Planken.Count == 0
+                ? null
+                : [.. kast.Planken.Select(plank => Round1(plank.HoogteVanBodem))]
+        }).ToList();
+        var appliances = data.Apparaten.Select(apparaat =>
+        {
+            var standaardAfmetingen = Apparaat.StandaardAfmetingen(apparaat.Type);
+            var standaardPlaatsing = standaardApparaatPlaatsingen.GetValueOrDefault(apparaat.Id, (0, 0));
+            return new CompactAppliance
+            {
+                Name = string.IsNullOrWhiteSpace(apparaat.Naam) ? null : apparaat.Naam,
+                Type = apparaat.Type == ApparaatType.Oven ? null : (int)apparaat.Type,
+                Width = IsBijnaGelijk(apparaat.Breedte, standaardAfmetingen.breedte) ? null : Round1(apparaat.Breedte),
+                Height = IsBijnaGelijk(apparaat.Hoogte, standaardAfmetingen.hoogte) ? null : Round1(apparaat.Hoogte),
+                Depth = IsBijnaGelijk(apparaat.Diepte, standaardAfmetingen.diepte) ? null : Round1(apparaat.Diepte),
+                X = standaardApparaatPlaatsingen.ContainsKey(apparaat.Id) && IsBijnaGelijk(apparaat.XPositie, standaardPlaatsing.xPositie)
+                    ? null
+                    : Round1(apparaat.XPositie),
+                FloorHeight = standaardApparaatPlaatsingen.ContainsKey(apparaat.Id) && IsBijnaGelijk(apparaat.HoogteVanVloer, standaardPlaatsing.hoogteVanVloer)
+                    ? null
+                    : Round1(apparaat.HoogteVanVloer)
+            };
+        }).ToList();
+        var panels = data.Toewijzingen.Select(toewijzing =>
+        {
+            var panelKastIds = BouwIndexLijst(toewijzing.KastIds, kastenOpIndex) ?? [];
+            var panelKasten = toewijzing.KastIds
+                .Select(id => data.Kasten.Find(kast => kast.Id == id))
+                .Where(kast => kast is not null)
+                .Cast<Kast>()
+                .ToList();
+            var omhullende = PaneelLayoutService.BerekenOmhullende(panelKasten);
+            var standaardBreedte = omhullende?.Breedte;
+            var standaardHoogte = omhullende?.Hoogte;
+            var standaardX = omhullende?.XPositie;
+            var standaardVloer = omhullende?.HoogteVanVloer;
+
+            return new CompactPanel
+            {
+                CabinetIndexes = panelKastIds,
+                Type = toewijzing.Type == PaneelType.Deur ? null : (int)toewijzing.Type,
+                HingeSide = toewijzing.ScharnierZijde == ScharnierZijde.Links ? null : (int)toewijzing.ScharnierZijde,
+                CupOffset = toewijzing.Type == PaneelType.Deur &&
+                            !IsBijnaGelijk(toewijzing.PotHartVanRand, ScharnierBerekeningService.CupCenterVanRand)
+                    ? Round1(toewijzing.PotHartVanRand)
+                    : null,
+                Width = standaardBreedte is double breedte && IsBijnaGelijk(toewijzing.Breedte, breedte)
+                    ? null
+                    : Round1(toewijzing.Breedte),
+                Height = standaardHoogte is double hoogte && IsBijnaGelijk(toewijzing.Hoogte, hoogte)
+                    ? null
+                    : Round1(toewijzing.Hoogte),
+                X = toewijzing.XPositie is double xPositie
+                    ? standaardX is double xStandaard && IsBijnaGelijk(xPositie, xStandaard)
+                        ? null
+                        : Round1(xPositie)
+                    : null,
+                FloorHeight = toewijzing.HoogteVanVloer is double hoogteVanVloer
+                    ? standaardVloer is double vloerStandaard && IsBijnaGelijk(hoogteVanVloer, vloerStandaard)
+                        ? null
+                        : Round1(hoogteVanVloer)
+                    : null
+            };
+        }).ToList();
 
         return new CompactShareData
         {
@@ -109,96 +225,10 @@ public static class KeukenShareCodec
             PanelEdgeClearance = IsBijnaGelijk(data.PaneelRandSpeling, PaneelSpelingService.DefaultRandSpeling)
                 ? null
                 : Round1(data.PaneelRandSpeling),
-            Walls =
-            [
-                .. data.Wanden.Select(wand => new CompactWall
-                {
-                    Name = string.IsNullOrWhiteSpace(wand.Naam) ? null : wand.Naam,
-                    Width = IsBijnaGelijk(wand.Breedte, DefaultWand.Breedte) ? null : Round1(wand.Breedte),
-                    Height = IsBijnaGelijk(wand.Hoogte, DefaultWand.Hoogte) ? null : Round1(wand.Hoogte),
-                    PlinthHeight = IsBijnaGelijk(wand.PlintHoogte, DefaultWand.PlintHoogte) ? null : Round1(wand.PlintHoogte),
-                    CabinetIndexes = BouwIndexLijst(wand.KastIds, kastenOpIndex),
-                    ApplianceIndexes = BouwIndexLijst(wand.ApparaatIds, apparatenOpIndex)
-                })
-            ],
-            Cabinets =
-            [
-                .. data.Kasten.Select(kast => new CompactCabinet
-                {
-                    Name = string.IsNullOrWhiteSpace(kast.Naam) ? null : kast.Naam,
-                    Width = IsBijnaGelijk(kast.Breedte, DefaultKast.Breedte) ? null : Round1(kast.Breedte),
-                    Height = IsBijnaGelijk(kast.Hoogte, DefaultKast.Hoogte) ? null : Round1(kast.Hoogte),
-                    Depth = IsBijnaGelijk(kast.Diepte, DefaultKast.Diepte) ? null : Round1(kast.Diepte),
-                    WallThickness = IsBijnaGelijk(kast.Wanddikte, DefaultKast.Wanddikte) ? null : Round1(kast.Wanddikte),
-                    HoleSpacing = IsBijnaGelijk(kast.GaatjesAfstand, DefaultKast.GaatjesAfstand) ? null : Round1(kast.GaatjesAfstand),
-                    FirstHoleBelowTopShelf = IsBijnaGelijk(kast.EersteGaatVanBoven, DefaultKast.EersteGaatVanBoven) ? null : Round1(kast.EersteGaatVanBoven),
-                    X = standaardKastPosities.TryGetValue(kast.Id, out var standaardKastX) && IsBijnaGelijk(kast.XPositie, standaardKastX)
-                        ? null
-                        : Round1(kast.XPositie),
-                    FloorHeight = IsBijnaGelijk(kast.HoogteVanVloer, 0)
-                        ? null
-                        : Round1(kast.HoogteVanVloer),
-                    ShelfHeights = kast.Planken.Count == 0
-                        ? null
-                        : [.. kast.Planken.Select(plank => Round1(plank.HoogteVanBodem))]
-                })
-            ],
-            Appliances =
-            [
-                .. data.Apparaten.Select(apparaat =>
-                {
-                    var standaardAfmetingen = Apparaat.StandaardAfmetingen(apparaat.Type);
-                    var standaardPlaatsing = standaardApparaatPlaatsingen.GetValueOrDefault(apparaat.Id, (0, 0));
-                    return new CompactAppliance
-                    {
-                        Name = string.IsNullOrWhiteSpace(apparaat.Naam) ? null : apparaat.Naam,
-                        Type = apparaat.Type == ApparaatType.Oven ? null : (int)apparaat.Type,
-                        Width = IsBijnaGelijk(apparaat.Breedte, standaardAfmetingen.breedte) ? null : Round1(apparaat.Breedte),
-                        Height = IsBijnaGelijk(apparaat.Hoogte, standaardAfmetingen.hoogte) ? null : Round1(apparaat.Hoogte),
-                        Depth = IsBijnaGelijk(apparaat.Diepte, standaardAfmetingen.diepte) ? null : Round1(apparaat.Diepte),
-                        X = standaardApparaatPlaatsingen.ContainsKey(apparaat.Id) && IsBijnaGelijk(apparaat.XPositie, standaardPlaatsing.xPositie)
-                            ? null
-                            : Round1(apparaat.XPositie),
-                        FloorHeight = standaardApparaatPlaatsingen.ContainsKey(apparaat.Id) && IsBijnaGelijk(apparaat.HoogteVanVloer, standaardPlaatsing.hoogteVanVloer)
-                            ? null
-                            : Round1(apparaat.HoogteVanVloer)
-                    };
-                })
-            ],
-            Panels =
-            [
-                .. data.Toewijzingen.Select(toewijzing =>
-                {
-                    var panelKastIds = BouwIndexLijst(toewijzing.KastIds, kastenOpIndex) ?? [];
-                    var panelKasten = toewijzing.KastIds
-                        .Select(id => data.Kasten.Find(kast => kast.Id == id))
-                        .Where(kast => kast is not null)
-                        .Cast<Kast>()
-                        .ToList();
-                    var omhullende = PaneelLayoutService.BerekenOmhullende(panelKasten);
-                    var isVolledigeSpan = toewijzing.XPositie is null || toewijzing.HoogteVanVloer is null ||
-                        (omhullende is not null &&
-                         IsBijnaGelijk(toewijzing.XPositie.Value, omhullende.XPositie) &&
-                         IsBijnaGelijk(toewijzing.HoogteVanVloer.Value, omhullende.HoogteVanVloer) &&
-                         IsBijnaGelijk(toewijzing.Breedte, omhullende.Breedte) &&
-                         IsBijnaGelijk(toewijzing.Hoogte, omhullende.Hoogte));
-
-                    return new CompactPanel
-                    {
-                        CabinetIndexes = panelKastIds,
-                        Type = toewijzing.Type == PaneelType.Deur ? null : (int)toewijzing.Type,
-                        HingeSide = toewijzing.ScharnierZijde == ScharnierZijde.Links ? null : (int)toewijzing.ScharnierZijde,
-                        CupOffset = toewijzing.Type == PaneelType.Deur &&
-                                    !IsBijnaGelijk(toewijzing.PotHartVanRand, ScharnierBerekeningService.CupCenterVanRand)
-                            ? Round1(toewijzing.PotHartVanRand)
-                            : null,
-                        Width = isVolledigeSpan ? null : Round1(toewijzing.Breedte),
-                        Height = isVolledigeSpan ? null : Round1(toewijzing.Hoogte),
-                        X = isVolledigeSpan ? null : Round1(toewijzing.XPositie ?? 0),
-                        FloorHeight = isVolledigeSpan ? null : Round1(toewijzing.HoogteVanVloer ?? 0)
-                    };
-                })
-            ]
+            Walls = walls.Count == 0 ? null : walls,
+            Cabinets = cabinets.Count == 0 ? null : cabinets,
+            Appliances = appliances.Count == 0 ? null : appliances,
+            Panels = panels.Count == 0 ? null : panels
         };
     }
 
@@ -278,13 +308,17 @@ public static class KeukenShareCodec
 
     private static KeukenData BouwKeukenData(CompactShareData data)
     {
-        var wallIds = data.Walls.Select(_ => Guid.NewGuid()).ToList();
-        var cabinetIds = data.Cabinets.Select(_ => Guid.NewGuid()).ToList();
-        var applianceIds = data.Appliances.Select(_ => Guid.NewGuid()).ToList();
+        var walls = data.Walls ?? [];
+        var cabinets = data.Cabinets ?? [];
+        var appliances = data.Appliances ?? [];
+        var panels = data.Panels ?? [];
+        var wallIds = walls.Select(_ => Guid.NewGuid()).ToList();
+        var cabinetIds = cabinets.Select(_ => Guid.NewGuid()).ToList();
+        var applianceIds = appliances.Select(_ => Guid.NewGuid()).ToList();
         var defaultCabinetX = BerekenDecodeStandaardKastPosities(data);
         var defaultAppliancePlaatsingen = BerekenDecodeStandaardApparaatPlaatsingen(data, defaultCabinetX);
 
-        var wanden = data.Walls.Select((wand, index) => new KeukenWand
+        var wanden = walls.Select((wand, index) => new KeukenWand
         {
             Id = wallIds[index],
             Naam = wand.Name ?? "",
@@ -295,15 +329,15 @@ public static class KeukenShareCodec
             ApparaatIds = MapIds(wand.ApplianceIndexes, applianceIds)
         }).ToList();
 
-        var kasten = data.Cabinets.Select((kast, index) => BouwKast(kast, cabinetIds[index], defaultCabinetX.GetValueOrDefault(index, 0))).ToList();
-        var apparaten = data.Appliances.Select((apparaat, index) =>
+        var kasten = cabinets.Select((kast, index) => BouwKast(kast, cabinetIds[index], defaultCabinetX.GetValueOrDefault(index, 0))).ToList();
+        var apparaten = appliances.Select((apparaat, index) =>
         {
             var standaardPlaatsing = defaultAppliancePlaatsingen.GetValueOrDefault(index, (0, 0));
             return BouwApparaat(apparaat, applianceIds[index], standaardPlaatsing);
         }).ToList();
         var kastenOpId = kasten.ToDictionary(kast => kast.Id);
 
-        var toewijzingen = data.Panels.Select(panel =>
+        var toewijzingen = panels.Select(panel =>
         {
             var kastIds = MapIds(panel.CabinetIndexes, cabinetIds);
             var panelKasten = kastIds
@@ -391,18 +425,20 @@ public static class KeukenShareCodec
 
     private static Dictionary<int, double> BerekenDecodeStandaardKastPosities(CompactShareData data)
     {
+        var walls = data.Walls ?? [];
+        var cabinets = data.Cabinets ?? [];
         var standaard = new Dictionary<int, double>();
 
-        foreach (var wand in data.Walls)
+        foreach (var wand in walls)
         {
             double lopendeX = 0;
             foreach (var index in wand.CabinetIndexes ?? [])
             {
-                if (index < 0 || index >= data.Cabinets.Count)
+                if (index < 0 || index >= cabinets.Count)
                     continue;
 
                 standaard[index] = Round1(lopendeX);
-                lopendeX += data.Cabinets[index].Width ?? DefaultKast.Breedte;
+                lopendeX += cabinets[index].Width ?? DefaultKast.Breedte;
             }
         }
 
@@ -413,9 +449,12 @@ public static class KeukenShareCodec
         CompactShareData data,
         IReadOnlyDictionary<int, double> defaultCabinetX)
     {
+        var walls = data.Walls ?? [];
+        var cabinets = data.Cabinets ?? [];
+        var appliances = data.Appliances ?? [];
         var standaard = new Dictionary<int, (double xPositie, double hoogteVanVloer)>();
 
-        foreach (var wand in data.Walls)
+        foreach (var wand in walls)
         {
             var wandModel = new KeukenWand
             {
@@ -426,26 +465,26 @@ public static class KeukenShareCodec
                 PlintHoogte = wand.PlinthHeight ?? DefaultWand.PlintHoogte
             };
             var wandKasten = (wand.CabinetIndexes ?? [])
-                .Where(index => index >= 0 && index < data.Cabinets.Count)
-                .Select(index => BouwKast(data.Cabinets[index], Guid.NewGuid(), defaultCabinetX.GetValueOrDefault(index, 0)))
+                .Where(index => index >= 0 && index < cabinets.Count)
+                .Select(index => BouwKast(cabinets[index], Guid.NewGuid(), defaultCabinetX.GetValueOrDefault(index, 0)))
                 .ToList();
             var geplaatsteApparaten = new List<Apparaat>();
 
             foreach (var index in wand.ApplianceIndexes ?? [])
             {
-                if (index < 0 || index >= data.Appliances.Count)
+                if (index < 0 || index >= appliances.Count)
                     continue;
 
-                var type = data.Appliances[index].Type is int typeNummer ? (ApparaatType)typeNummer : ApparaatType.Oven;
+                var type = appliances[index].Type is int typeNummer ? (ApparaatType)typeNummer : ApparaatType.Oven;
                 var standaardAfmetingen = Apparaat.StandaardAfmetingen(type);
                 var apparaat = new Apparaat
                 {
                     Id = Guid.NewGuid(),
-                    Naam = data.Appliances[index].Name ?? "",
+                    Naam = appliances[index].Name ?? "",
                     Type = type,
-                    Breedte = data.Appliances[index].Width ?? standaardAfmetingen.breedte,
-                    Hoogte = data.Appliances[index].Height ?? standaardAfmetingen.hoogte,
-                    Diepte = data.Appliances[index].Depth ?? standaardAfmetingen.diepte
+                    Breedte = appliances[index].Width ?? standaardAfmetingen.breedte,
+                    Hoogte = appliances[index].Height ?? standaardAfmetingen.hoogte,
+                    Diepte = appliances[index].Depth ?? standaardAfmetingen.diepte
                 };
                 var plaatsing = ApparaatLayoutService.BepaalStandaardPlaatsing(
                     wandModel,
@@ -521,16 +560,16 @@ public static class KeukenShareCodec
     private sealed class CompactShareData
     {
         [JsonPropertyName("w")]
-        public List<CompactWall> Walls { get; set; } = [];
+        public List<CompactWall>? Walls { get; set; }
 
         [JsonPropertyName("k")]
-        public List<CompactCabinet> Cabinets { get; set; } = [];
+        public List<CompactCabinet>? Cabinets { get; set; }
 
         [JsonPropertyName("a")]
-        public List<CompactAppliance> Appliances { get; set; } = [];
+        public List<CompactAppliance>? Appliances { get; set; }
 
         [JsonPropertyName("t")]
-        public List<CompactPanel> Panels { get; set; } = [];
+        public List<CompactPanel>? Panels { get; set; }
 
         [JsonPropertyName("p")]
         public double? LastCupOffset { get; set; }

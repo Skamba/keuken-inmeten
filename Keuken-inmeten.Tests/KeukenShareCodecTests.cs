@@ -1,5 +1,6 @@
 using Keuken_inmeten.Models;
 using Keuken_inmeten.Services;
+using System.Reflection;
 using System.Text.Json;
 using Xunit;
 
@@ -35,6 +36,8 @@ public class KeukenShareCodecTests
         Assert.Equal("Oven", apparaat.Naam);
         Assert.Equal(2400, toewijzing.XPositie);
         Assert.Equal(700, toewijzing.HoogteVanVloer);
+        Assert.Equal(600, toewijzing.Breedte);
+        Assert.Equal(900, toewijzing.Hoogte);
         Assert.Equal(24.5, toewijzing.PotHartVanRand);
         Assert.Equal([hogeKast.Id], toewijzing.KastIds);
         Assert.Equal(24.5, decoded.LaatstGebruiktePotHartVanRand);
@@ -78,15 +81,28 @@ public class KeukenShareCodecTests
     }
 
     [Fact]
-    public void V2_token_is_korter_dan_legacy_v1_token()
+    public void V3_token_is_korter_dan_legacy_v1_token()
     {
         var data = MaakVoorbeeldData();
 
         var v1 = MaakLegacyToken(data);
-        var v2 = KeukenShareCodec.Encode(data);
+        var v3 = KeukenShareCodec.Encode(data);
 
-        Assert.StartsWith("v2.", v2);
-        Assert.True(v2.Length < v1.Length, $"v2 token should be shorter than v1. v2={v2.Length}, v1={v1.Length}");
+        Assert.StartsWith("v3.", v3);
+        Assert.True(v3.Length < v1.Length, $"v3 token should be shorter than v1. v3={v3.Length}, v1={v1.Length}");
+    }
+
+    [Fact]
+    public void V3_deelurl_is_korter_dan_equivalente_v2_deelurl()
+    {
+        var data = MaakVoorbeeldData();
+
+        var v2 = MaakOngecomprimeerdeCompacteToken(data);
+        var v3 = KeukenShareCodec.Encode(data);
+        var v2Url = $"https://example.test/kasten?share={v2}";
+        var v3Url = $"https://example.test/kasten?s={v3}";
+
+        Assert.True(v3Url.Length < v2Url.Length, $"v3 share URL should be shorter than equivalent v2 share URL. v3={v3Url.Length}, v2={v2Url.Length}");
     }
 
     [Fact]
@@ -248,5 +264,28 @@ public class KeukenShareCodecTests
             .Replace('/', '_');
 
         return "v1." + token;
+    }
+
+    private static string MaakOngecomprimeerdeCompacteToken(KeukenData data)
+    {
+        var compactDataMethod = typeof(KeukenShareCodec).GetMethod("MaakCompacteData", BindingFlags.NonPublic | BindingFlags.Static);
+        var compactJsonOptionsField = typeof(KeukenShareCodec).GetField("CompactJsonOpties", BindingFlags.NonPublic | BindingFlags.Static);
+
+        Assert.NotNull(compactDataMethod);
+        Assert.NotNull(compactJsonOptionsField);
+
+        var gemigreerdeData = KeukenDataMigratieService.MaakHuidigeDeelData(data);
+        var compact = compactDataMethod.Invoke(null, [gemigreerdeData]);
+        var opties = Assert.IsType<JsonSerializerOptions>(compactJsonOptionsField.GetValue(null));
+
+        Assert.NotNull(compact);
+
+        var json = JsonSerializer.SerializeToUtf8Bytes(compact, compact.GetType(), opties);
+        var token = Convert.ToBase64String(json)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+
+        return "v2." + token;
     }
 }

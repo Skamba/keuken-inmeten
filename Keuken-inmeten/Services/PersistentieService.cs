@@ -96,7 +96,7 @@ public class PersistentieService : IDisposable
         var routePad = string.IsNullOrWhiteSpace(route) ? "." : route.TrimStart('/');
         var routeUrl = new Uri(basis, routePad);
         var scheiding = string.IsNullOrEmpty(routeUrl.Query) ? "?" : "&";
-        return $"{routeUrl}{scheiding}share={token}";
+        return $"{routeUrl}{scheiding}s={token}";
     }
 
     public string MaakDeelUrlVoorHuidigeRoute()
@@ -155,7 +155,10 @@ public class PersistentieService : IDisposable
         data = null;
 
         var uri = new Uri(_navigation.Uri);
-        var token = LeesParameter(uri.Query, "share") ?? LeesParameter(uri.Fragment, "share");
+        var token = LeesParameter(uri.Query, "s")
+            ?? LeesParameter(uri.Query, "share")
+            ?? LeesParameter(uri.Fragment, "s")
+            ?? LeesParameter(uri.Fragment, "share");
         if (string.IsNullOrWhiteSpace(token))
             return false;
 

@@ -40,7 +40,7 @@ test('navbar deelt een link naar de huidige stap', async ({ page, context }) => 
 
   await expect
     .poll(async () => page.evaluate(() => navigator.clipboard.readText()))
-    .toContain('/kasten?share=');
+    .toContain('/kasten?s=');
 });
 
 test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en via een importmodal terug laden', async ({ page }) => {
