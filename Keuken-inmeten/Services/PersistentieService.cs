@@ -1,23 +1,27 @@
 namespace Keuken_inmeten.Services;
 
 using Keuken_inmeten.Models;
+using Keuken_inmeten.Services.Interop;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-public class PersistentieService : IDisposable
+public class PersistentieService : IDisposable, IAsyncDisposable
 {
     private const string StorageKey = "keuken-inmeten-data";
 
     private readonly IJSRuntime _js;
     private readonly KeukenStateService _state;
     private readonly NavigationManager _navigation;
+    private ShareCompressionJsInterop? _shareCompressionInterop;
     private bool _bewaarGepland;
+    private bool _disposed;
     public bool HeeftGedeeldeLinkGeladen { get; private set; }
     public bool HeeftOngeldigeDeelLink { get; private set; }
     public event Action? OnOpslagStatusChanged;
     public bool HeeftOpslagStatus => !string.IsNullOrWhiteSpace(OpslagStatusTekst);
     public string? OpslagStatusTekst { get; private set; }
     public OpslagStatusType OpslagStatus { get; private set; } = OpslagStatusType.Opgeslagen;
+    private ShareCompressionJsInterop ShareCompressionInterop => _shareCompressionInterop ??= new(_js);
 
     public PersistentieService(IJSRuntime js, KeukenStateService state, NavigationManager navigation)
     {
@@ -48,7 +52,9 @@ public class PersistentieService : IDisposable
         HeeftGedeeldeLinkGeladen = false;
         HeeftOngeldigeDeelLink = false;
 
-        if (TryLeesGedeeldeDataUitUrl(out var gedeeldeData))
+        var (heeftGedeeldeLink, gedeeldeData) = await LeesGedeeldeDataUitUrlAsync();
+
+        if (heeftGedeeldeLink)
         {
             if (gedeeldeData is not null)
             {
@@ -89,9 +95,11 @@ public class PersistentieService : IDisposable
         _state.Laden(data);
     }
 
-    public string MaakDeelUrl(string route = "verificatie")
+    public async Task<string> MaakDeelUrlAsync(string route = "verificatie")
     {
-        var token = KeukenShareCodec.Encode(_state.Exporteren());
+        var compactJson = KeukenShareCodec.EncodeCompactJson(_state.Exporteren());
+        var compressedPayload = await ShareCompressionInterop.CompressSharePayloadAsync(compactJson);
+        var token = KeukenShareCodec.MaakV4Token(compressedPayload);
         var basis = new Uri(_navigation.BaseUri);
         var routePad = string.IsNullOrWhiteSpace(route) ? "." : route.TrimStart('/');
         var routeUrl = new Uri(basis, routePad);
@@ -99,7 +107,7 @@ public class PersistentieService : IDisposable
         return $"{routeUrl}{scheiding}s={token}";
     }
 
-    public string MaakDeelUrlVoorHuidigeRoute()
+    public async Task<string> MaakDeelUrlVoorHuidigeRouteAsync()
     {
         var relatieveUrl = _navigation.ToBaseRelativePath(_navigation.Uri);
         var queryOfFragmentIndex = relatieveUrl.IndexOfAny(['?', '#']);
@@ -107,7 +115,7 @@ public class PersistentieService : IDisposable
             ? relatieveUrl[..queryOfFragmentIndex]
             : relatieveUrl;
 
-        return MaakDeelUrl(route);
+        return await MaakDeelUrlAsync(route);
     }
 
     public string ExporteerProjectJson()
@@ -150,23 +158,30 @@ public class PersistentieService : IDisposable
         await _js.InvokeVoidAsync("localStorage.removeItem", StorageKey);
     }
 
-    private bool TryLeesGedeeldeDataUitUrl(out KeukenData? data)
+    private async Task<(bool heeftLink, KeukenData? data)> LeesGedeeldeDataUitUrlAsync()
     {
-        data = null;
-
         var uri = new Uri(_navigation.Uri);
         var token = LeesParameter(uri.Query, "s")
             ?? LeesParameter(uri.Query, "share")
             ?? LeesParameter(uri.Fragment, "s")
             ?? LeesParameter(uri.Fragment, "share");
         if (string.IsNullOrWhiteSpace(token))
-            return false;
+            return (false, null);
 
-        if (!KeukenShareCodec.TryDecode(token, out var gedeeldeData))
-            return true;
+        if (KeukenShareCodec.IsV4Token(token))
+        {
+            try
+            {
+                var compactJson = await ShareCompressionInterop.DecompressSharePayloadAsync(KeukenShareCodec.LeesV4Payload(token));
+                return (true, KeukenShareCodec.TryDecodeCompactJson(compactJson, out var v4Data) ? v4Data : null);
+            }
+            catch (JSException)
+            {
+                return (true, null);
+            }
+        }
 
-        data = gedeeldeData;
-        return true;
+        return (true, KeukenShareCodec.TryDecode(token, out var gedeeldeData) ? gedeeldeData : null);
     }
 
     private static string? LeesParameter(string? bron, string naam)
@@ -193,7 +208,22 @@ public class PersistentieService : IDisposable
 
     public void Dispose()
     {
+        if (_disposed)
+            return;
+
+        _disposed = true;
         _state.OnStateChanged -= OpStateGewijzigd;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Dispose();
+
+        if (_shareCompressionInterop is null)
+            return;
+
+        await _shareCompressionInterop.DisposeAsync();
+        _shareCompressionInterop = null;
     }
 
     private void ZetOpslagStatus(OpslagStatusType status, string tekst)

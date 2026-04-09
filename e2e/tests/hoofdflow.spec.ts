@@ -26,21 +26,48 @@ test('home toont een hervatdashboard zodra er projectdata bestaat', async ({ pag
   await expect(page.getByTestId('home-onboarding-help')).toBeVisible();
 });
 
-test('navbar deelt een link naar de huidige stap', async ({ page, context }) => {
+test('navbar deelt een v4-link naar de huidige stap die in een schone sessie opnieuw laadt', async ({ page, context, browser }) => {
+  const indeling = new IndelingPage(page);
+
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
     Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true });
   });
 
-  await page.goto('/kasten');
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast delen',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+
   await page.getByTestId('nav-share-button').click();
 
   await expect(page.getByTestId('actie-feedback-toast')).toContainText('De deellink is gekopieerd.');
 
-  await expect
-    .poll(async () => page.evaluate(() => navigator.clipboard.readText()))
-    .toContain('/kasten?s=');
+  let deelUrl = '';
+  await expect.poll(async () => {
+    deelUrl = await page.evaluate(() => navigator.clipboard.readText());
+    return deelUrl;
+  }).toContain('/kasten?s=v4.');
+
+  const schoneContext = await browser.newContext();
+  try {
+    const gedeeldePagina = await schoneContext.newPage();
+    const gedeeldeIndeling = new IndelingPage(gedeeldePagina);
+
+    await gedeeldePagina.goto(deelUrl);
+
+    await expect(gedeeldePagina).toHaveURL(/\/kasten\?s=v4\./);
+    await expect(gedeeldePagina.getByText('Achterwand')).toBeVisible();
+    await gedeeldeIndeling.openWandWerkruimte('Achterwand');
+    await expect(gedeeldePagina.locator('span.fw-semibold').filter({ hasText: 'Onderkast delen' })).toBeVisible();
+  } finally {
+    await schoneContext.close();
+  }
 });
 
 test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en via een importmodal terug laden', async ({ page }) => {

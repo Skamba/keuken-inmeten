@@ -1,6 +1,6 @@
 using Keuken_inmeten.Models;
 using Keuken_inmeten.Services;
-using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using Xunit;
 
@@ -9,13 +9,13 @@ namespace Keuken_inmeten.Tests;
 public class KeukenShareCodecTests
 {
     [Fact]
-    public void Encode_en_decode_behouden_de_keukenconfiguratie()
+    public void Compacte_json_encode_en_decode_behouden_de_keukenconfiguratie()
     {
         var data = MaakVoorbeeldData();
 
-        var token = KeukenShareCodec.Encode(data);
+        var json = KeukenShareCodec.EncodeCompactJson(data);
 
-        var decodedOk = KeukenShareCodec.TryDecode(token, out var decoded);
+        var decodedOk = KeukenShareCodec.TryDecodeCompactJson(json, out var decoded);
 
         Assert.True(decodedOk);
         var wand = Assert.Single(decoded.Wanden);
@@ -81,6 +81,15 @@ public class KeukenShareCodecTests
     }
 
     [Fact]
+    public void V4_token_prefix_wordt_herkend_en_gestript()
+    {
+        var token = KeukenShareCodec.MaakV4Token("abc123");
+
+        Assert.True(KeukenShareCodec.IsV4Token(token));
+        Assert.Equal("abc123", KeukenShareCodec.LeesV4Payload(token));
+    }
+
+    [Fact]
     public void V3_token_is_korter_dan_legacy_v1_token()
     {
         var data = MaakVoorbeeldData();
@@ -128,7 +137,7 @@ public class KeukenShareCodecTests
     }
 
     [Fact]
-    public void Niet_standaard_paneelrandspeling_roundtript_via_v2()
+    public void V3_roundtript_niet_standaard_paneelrandspeling()
     {
         var data = MaakVoorbeeldData();
         data.PaneelRandSpeling = 1.5;
@@ -268,19 +277,7 @@ public class KeukenShareCodecTests
 
     private static string MaakOngecomprimeerdeCompacteToken(KeukenData data)
     {
-        var compactDataMethod = typeof(KeukenShareCodec).GetMethod("MaakCompacteData", BindingFlags.NonPublic | BindingFlags.Static);
-        var compactJsonOptionsField = typeof(KeukenShareCodec).GetField("CompactJsonOpties", BindingFlags.NonPublic | BindingFlags.Static);
-
-        Assert.NotNull(compactDataMethod);
-        Assert.NotNull(compactJsonOptionsField);
-
-        var gemigreerdeData = KeukenDataMigratieService.MaakHuidigeDeelData(data);
-        var compact = compactDataMethod.Invoke(null, [gemigreerdeData]);
-        var opties = Assert.IsType<JsonSerializerOptions>(compactJsonOptionsField.GetValue(null));
-
-        Assert.NotNull(compact);
-
-        var json = JsonSerializer.SerializeToUtf8Bytes(compact, compact.GetType(), opties);
+        var json = Encoding.UTF8.GetBytes(KeukenShareCodec.EncodeCompactJson(data));
         var token = Convert.ToBase64String(json)
             .TrimEnd('=')
             .Replace('+', '-')

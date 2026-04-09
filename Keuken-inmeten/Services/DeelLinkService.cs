@@ -10,15 +10,16 @@ public sealed class DeelLinkService(IJSRuntime js, PersistentieService persisten
     private BrowserWindowJsInterop BrowserWindowInterop => _browserWindowInterop ??= new(js);
 
     public Task DeelHuidigePaginaAsync()
-        => DeelUrlAsync(persistentie.MaakDeelUrlVoorHuidigeRoute());
+        => DeelUrlAsync(() => persistentie.MaakDeelUrlVoorHuidigeRouteAsync());
 
     public Task DeelKeukenAsync(string route)
-        => DeelUrlAsync(persistentie.MaakDeelUrl(route));
+        => DeelUrlAsync(() => persistentie.MaakDeelUrlAsync(route));
 
-    private async Task DeelUrlAsync(string deelUrl)
+    private async Task DeelUrlAsync(Func<Task<string>> maakDeelUrlAsync)
     {
         try
         {
+            var deelUrl = await maakDeelUrlAsync();
             var resultaat = await BrowserWindowInterop.ShareUrlAsync(deelUrl, "Keuken-inmeten", "Bekijk deze keukenconfiguratie");
 
             switch (resultaat)

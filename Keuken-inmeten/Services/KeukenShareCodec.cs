@@ -9,6 +9,7 @@ public static class KeukenShareCodec
     private const string VersiePrefixV1 = "v1.";
     private const string VersiePrefixV2 = "v2.";
     private const string VersiePrefixV3 = "v3.";
+    private const string VersiePrefixV4 = "v4.";
     private static readonly KeukenWand DefaultWand = KeukenDomeinDefaults.NieuweWand();
     private static readonly Kast DefaultKast = KeukenDomeinDefaults.NieuweKast();
 
@@ -26,10 +27,40 @@ public static class KeukenShareCodec
 
     public static string Encode(KeukenData data)
     {
-        var compact = MaakCompacteData(KeukenDataMigratieService.MaakHuidigeDeelData(data));
+        var compact = MaakCompacteDataVoorShare(data);
         var json = JsonSerializer.SerializeToUtf8Bytes(compact, CompactJsonOpties);
         return VersiePrefixV3 + NaarBase64Url(json);
     }
+
+    public static string EncodeCompactJson(KeukenData data)
+        => JsonSerializer.Serialize(MaakCompacteDataVoorShare(data), CompactJsonOpties);
+
+    public static bool TryDecodeCompactJson(string? json, out KeukenData data)
+    {
+        data = new KeukenData();
+
+        if (string.IsNullOrWhiteSpace(json))
+            return false;
+
+        try
+        {
+            var decoded = JsonSerializer.Deserialize<CompactShareData>(json, CompactJsonOpties);
+            return TryDecodeCompactData(decoded, out data);
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    public static bool IsV4Token(string? token)
+        => token?.StartsWith(VersiePrefixV4, StringComparison.Ordinal) == true;
+
+    public static string MaakV4Token(string compressedPayload)
+        => VersiePrefixV4 + compressedPayload;
+
+    public static string LeesV4Payload(string token)
+        => token[VersiePrefixV4.Length..];
 
     public static bool TryDecode(string? token, out KeukenData data)
     {
@@ -58,11 +89,7 @@ public static class KeukenShareCodec
         {
             var json = VanBase64Url(token[VersiePrefixV3.Length..]);
             var decoded = JsonSerializer.Deserialize<CompactShareData>(json, CompactJsonOpties);
-            if (decoded is null)
-                return false;
-
-            var decodedData = BouwKeukenData(decoded);
-            return KeukenDataMigratieService.TryMigreerDeelData(KeukenDataMigratieService.HuidigeSchemaVersie, decodedData, out data);
+            return TryDecodeCompactData(decoded, out data);
         }
         catch (FormatException)
         {
@@ -82,11 +109,7 @@ public static class KeukenShareCodec
         {
             var json = VanBase64Url(token[VersiePrefixV2.Length..]);
             var decoded = JsonSerializer.Deserialize<CompactShareData>(json, CompactJsonOpties);
-            if (decoded is null)
-                return false;
-
-            var decodedData = BouwKeukenData(decoded);
-            return KeukenDataMigratieService.TryMigreerDeelData(KeukenDataMigratieService.HuidigeSchemaVersie, decodedData, out data);
+            return TryDecodeCompactData(decoded, out data);
         }
         catch (FormatException)
         {
@@ -116,6 +139,20 @@ public static class KeukenShareCodec
         {
             return false;
         }
+    }
+
+    private static CompactShareData MaakCompacteDataVoorShare(KeukenData data)
+        => MaakCompacteData(KeukenDataMigratieService.MaakHuidigeDeelData(data));
+
+    private static bool TryDecodeCompactData(CompactShareData? decoded, out KeukenData data)
+    {
+        data = new KeukenData();
+
+        if (decoded is null)
+            return false;
+
+        var decodedData = BouwKeukenData(decoded);
+        return KeukenDataMigratieService.TryMigreerDeelData(KeukenDataMigratieService.HuidigeSchemaVersie, decodedData, out data);
     }
 
     private static CompactShareData MaakCompacteData(KeukenData data)
