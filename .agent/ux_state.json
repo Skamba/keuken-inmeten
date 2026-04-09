@@ -5,7 +5,12 @@
     "Kitchen fitters and cabinet makers measuring kitchen runs and cabinet openings",
     "Installers or workshop planners preparing panel sizes, hinge bores, order lists, and cutting plans"
   ],
-  "currentIteration": 4,
+  "currentIteration": 5,
+  "countedIterationsCompleted": 1,
+  "countedIterationLabels": [
+    "iteration-5"
+  ],
+  "countedIterationNote": "Historical iterations 1-4 remain useful context, but iteration-5 is the first fully counted round under the stricter journey/page/section/element screenshot rubric.",
   "mainJourneys": [
     "Start or resume a project from Home",
     "Build the kitchen run per wall in Stap 1: Indeling",
@@ -21,6 +26,7 @@
     "home-resume-mobile",
     "indeling-empty-desktop",
     "indeling-kast-form-validation-desktop",
+    "indeling-apparaat-form-desktop",
     "indeling-normal-desktop",
     "indeling-dense-desktop",
     "indeling-normal-mobile",
@@ -56,9 +62,6 @@
         ".agent/screenshots/iteration-2/after/comparisons/bestellijst-dense-desktop-compare.png",
         ".agent/screenshots/iteration-2/after/comparisons/panelen-workspace-mobile-compare.png",
         ".agent/screenshots/iteration-2/after/comparisons/panelen-editor-mobile-compare.png"
-      ],
-      "diagnosticEvidence": [
-        ".agent/screenshots/iteration-2/mobile-paneel-editor-check.png"
       ]
     },
     "iteration3": {
@@ -76,39 +79,82 @@
         ".agent/screenshots/iteration-4/after/comparisons/panelen-workspace-mobile-compare.png",
         ".agent/screenshots/iteration-4/after/comparisons/panelen-editor-mobile-compare.png"
       ]
+    },
+    "iteration5": {
+      "beforeDir": ".agent/screenshots/iteration-5/before/",
+      "afterDir": ".agent/screenshots/iteration-5/after/",
+      "beforeManifest": ".agent/screenshots/iteration-5/before/manifest.json",
+      "afterManifest": ".agent/screenshots/iteration-5/after/manifest.json",
+      "beforeCounts": {
+        "journey": 8,
+        "page": 27,
+        "section": 36,
+        "element": 31,
+        "total": 102
+      },
+      "afterCounts": {
+        "journey": 8,
+        "page": 27,
+        "section": 36,
+        "element": 31,
+        "total": 102
+      },
+      "comparisonEvidence": [
+        ".agent/screenshots/iteration-5/after/comparisons/indeling-kast-form-validation-desktop-compare.png",
+        ".agent/screenshots/iteration-5/after/comparisons/indeling-kast-form-dialog-validation-desktop-compare.png",
+        ".agent/screenshots/iteration-5/after/comparisons/indeling-kast-form-progress-validation-desktop-compare.png",
+        ".agent/screenshots/iteration-5/after/comparisons/indeling-apparaat-form-desktop-compare.png",
+        ".agent/screenshots/iteration-5/after/comparisons/indeling-apparaat-form-dialog-desktop-compare.png",
+        ".agent/screenshots/iteration-5/after/comparisons/indeling-apparaat-form-progress-desktop-compare.png"
+      ]
     }
   },
-  "currentTopIssues": [],
-  "fixedThisIteration": [
+  "currentTopIssues": [
     {
-      "id": "panelen-mobile-intro-still-verbose",
-      "summary": "De mobiele paneelstap gebruikt nu een compacte actieve-wandintro, verplaatst terminologie onder de werkruimte, verwijdert de redundante Wandenoverzicht-intro en verkort de wachtende editorstate."
+      "id": "step-intro-stack-clutter",
+      "severity": 2,
+      "summary": "Verificatie, bestellijst en zaagplan tonen nog te veel intro-, hulp- en begrippenblokken voordat de hoofdtaak begint."
     },
     {
-      "id": "terminologie-generic-heading",
-      "summary": "Terminologiekaarten gebruiken nu specifiekere koppen, waardoor woordenlijsten sneller scanbaar en duidelijker herkenbaar zijn."
+      "id": "paneel-desktop-drawer-overexplained",
+      "severity": 2,
+      "summary": "De desktop paneel-editor stackt nog te veel uitleg boven de daadwerkelijke velden en kost daardoor onnodige filtertijd."
+    },
+    {
+      "id": "verificatie-complete-primary-next-step-hidden",
+      "severity": 2,
+      "summary": "De afrondingskaart in verificatie maakt doorgaan naar de bestellijst nog niet dominant genoeg."
+    }
+  ],
+  "fixedThisIteration": [
+    {
+      "id": "indeling-form-progress-redundancy",
+      "summary": "De kast- en apparaatwizards tonen nu nog maar één compacte voortgangsaanduiding per stap; dubbele progressbars en badge-rails zijn verwijderd en tussentekst is lichter gemaakt."
     }
   ],
   "whatRemains": [
-    "Geen severity 2+ issues meer in primaire flows, dichte schermen of kritieke beslismomenten.",
-    "Geen actieve UX-backlogitems meer uit deze sessie; vervolg alleen bij nieuw gebruiksonderzoek of nieuwe scope."
+    "Compact de gedeelde intro/hulp/begrippen-stack boven Verificatie, Bestellijst en Zaagplan zodat de hoofdtaak eerder begint.",
+    "Maak de desktop paneel-editor rustiger door begeleidende uitleg boven de velden verder te comprimeren.",
+    "Geef de verificatie-afronding een expliciete primaire route naar Bestellijst.",
+    "Voltooi nog minstens vier extra volledig getelde iteraties onder de huidige evidence-rubric."
   ],
   "knownRisksChecked": [
-    "dotnet test Code.slnx --nologo passes after the iteration-4 changes",
-    "dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo succeeds after the iteration-4 changes",
-    "npm run test:e2e passes after the iteration-4 changes with 13 Playwright tests",
-    "Fresh iteration-4 comparison boards confirm that the mobile panel canvas appears materially sooner in both workspace and waiting-editor states",
-    "No regressions were found in Home, dense desktop reviews, or the earlier fixed mobile paneel selection flow"
+    "dotnet test Code.slnx --nologo passes after the iteration-5 change",
+    "dotnet publish Keuken-inmeten/Keuken-inmeten.csproj -c Release -o dist --nologo succeeds after the iteration-5 change",
+    "npm run test:e2e passes after the iteration-5 change with 13 Playwright tests",
+    "Fresh iteration-5 before and after evidence each include 102 screenshots and cover journey, page, section, and element levels",
+    "Fresh iteration-5 comparison boards confirm the kast and apparaat wizard headers are materially calmer without hiding help or step context",
+    "No regressions were found in home, panel selection, dense desktop reviews, or the end-to-end flow from indeling to export"
   ],
-  "nextRecommendedStep": "Stop gate is satisfied. Resume only if new evidence reveals a new severity 2+ issue or if you want optional cosmetic polish.",
+  "nextRecommendedStep": "Start iteration 6 with the remaining cross-page clutter issue: compact the repeated intro/help/glossary stack above the main task on Verificatie, Bestellijst, and Zaagplan.",
   "stopGateStatus": {
     "severity4Cleared": true,
     "severity3Cleared": true,
-    "primaryFlowSeverity2ClearedOrDeferred": true,
-    "visualClutterControlled": true,
-    "journeysClearAndLowFriction": true,
+    "primaryFlowSeverity2ClearedOrDeferred": false,
+    "visualClutterControlled": false,
+    "journeysClearAndLowFriction": false,
     "latestRoundRegressionFree": true,
-    "onlyMinorIssuesRemain": true
+    "onlyMinorIssuesRemain": false
   },
-  "lastUpdated": "2026-04-09T05:07:47Z"
+  "lastUpdated": "2026-04-09T06:13:03Z"
 }

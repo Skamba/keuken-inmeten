@@ -226,3 +226,57 @@
 - Visual clutter is now under control, including the previously weakest mobile Panelen state: the main work surface becomes the focal point faster, and secondary help no longer crowds the top of the screen.
 - Text clarity is now under control: primary headings, button labels, and glossary disclosures are specific enough to scan quickly without reading long explanatory sentences first.
 - State files and screenshot evidence are current through iteration 4, and the repo is ready for the final commit/push for this UX run.
+
+## Iteration 5 - counted wizard compaction
+
+- Reopened the UX run under the stricter evidence rubric and treated iteration 5 as the first fully counted round with explicit journey, page, section, and element coverage.
+- Upgraded `.agent/ux_capture.mjs` so each counted iteration now writes categorized screenshots plus `manifest.json` files for both before and after phases.
+- Captured the full iteration-5 baseline set before app changes: **102 screenshots** (`8 journey`, `27 page`, `36 section`, `31 element`) across empty, validation, normal, dense, warning, completion, mobile, and repeated-form states.
+- Rechecked the strongest remaining friction points against current guidance from USWDS and GOV.UK form-structure advice about progressive disclosure, one clear progress indicator, and reduced cognitive load in multi-step forms.
+
+### Ranked issues entering iteration 5
+
+1. `indeling-form-progress-redundancy` - severity 2 - the kast and apparaat wizards repeated step progress in too many visual forms before the user could focus on the first actual field.
+2. `step-intro-stack-clutter` - severity 2 - Verificatie, Bestellijst, and Zaagplan still stack intro copy, help, and glossary UI above the primary task.
+3. `paneel-desktop-drawer-overexplained` - severity 2 - the desktop panel drawer still spends too much height on explanation before the editable controls begin.
+4. `verificatie-complete-primary-next-step-hidden` - severity 2 - the completion card still underplays the route to Bestellijst at a critical transition point.
+
+### What changed
+
+- **Step 1 forms**
+  - Replaced the jargon-heavy `Mini-stepper` framing with a calmer `Huidige stap` label.
+  - Removed the redundant progress bar and the extra badge rail from both the kast and apparaat wizards.
+  - Kept one compact progress cue (`Stap x/y`) plus the existing help entry point.
+  - Reduced the visual weight of the `hoofdmaten` / `maatvoering` helper blocks so the actual inputs begin sooner.
+- **Evidence workflow**
+  - Added explicit capture coverage for the apparaat wizard too, so repeated form variants are now included in the counted evidence set.
+  - Generated six direct before/after comparison boards for the two wizard variants and their progress affordances.
+
+### Screenshot coverage completed in this iteration
+
+- **Before:** 102 screenshots (`8 journey`, `27 page`, `36 section`, `31 element`) under `.agent/screenshots/iteration-5/before/`
+- **After:** 102 screenshots (`8 journey`, `27 page`, `36 section`, `31 element`) under `.agent/screenshots/iteration-5/after/`
+- **Comparison boards:** 6 boards under `.agent/screenshots/iteration-5/after/comparisons/`
+
+### Before vs after observations
+
+- **Kast wizard:** the top of the dialog is materially calmer. Users now see one clear step cue and the first task faster, instead of reading the same progress three times.
+- **Apparaat wizard:** same win. The form feels shorter and more direct because the opening chrome no longer competes with the actual fields.
+- **Overall primary flow:** the improvement is real but local. The rest of the app still contains a few high-frequency clutter pockets, especially in shared top-of-page utility stacks and the desktop panel drawer.
+
+### What still feels wrong after iteration 5
+
+- Verificatie, Bestellijst, and Zaagplan still spend too much vertical space on page-intro utility UI before the main task starts.
+- The desktop panel drawer still makes frequent users scroll through too much explanation before they can edit.
+- The Verificatie completion card still does not make the next primary step dominant enough.
+
+### Remaining severity 2+ issues after iteration 5
+
+1. `step-intro-stack-clutter` - severity 2
+2. `paneel-desktop-drawer-overexplained` - severity 2
+3. `verificatie-complete-primary-next-step-hidden` - severity 2
+
+### Stop gate after iteration 5
+
+- **Not satisfied.** There are still three severity-2 issues in primary or critical flows, and the run has completed only **1 counted iteration out of the required minimum of 5** under the current rubric.
+- **No regression found** in the 163 unit tests, 13 Playwright tests, fresh before/after evidence, or the wizard-specific comparison boards.

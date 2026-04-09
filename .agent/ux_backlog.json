@@ -1,6 +1,6 @@
 {
   "appName": "Keuken Inmeten",
-  "lastUpdated": "2026-04-09T05:07:47Z",
+  "lastUpdated": "2026-04-09T06:13:03Z",
   "issues": [
     {
       "id": "home-resume-hierarchy-overload",
@@ -145,6 +145,72 @@
         ".agent/screenshots/iteration-4/after/panelen-review-dense-desktop.png"
       ],
       "regressionRisk": "Low - terminologie moet nog steeds als secundaire hulp herkenbaar blijven."
+    },
+    {
+      "id": "indeling-form-progress-redundancy",
+      "title": "Kast- en apparaatwizards tonen dezelfde voortgang in te veel vormen tegelijk",
+      "affectedScreenFlow": "Stap 1 - Kast- en apparaatwizard",
+      "severity": 2,
+      "whyItMatters": "Elke toevoeg- of bewerkactie op kasten en apparaten begon met meerdere voortgangssignalen en extra nadrukblokken. Daardoor moesten gebruikers eerst UI filteren voordat de eerste keuze of invoerveld echt centraal stond.",
+      "proposedFix": "Houd een compacte voortgangsaanduiding over, schrap de dubbele progressbar en badge-rij, en maak tussentekst lichter zodat de velden sneller dominant worden.",
+      "status": "fixed",
+      "evidenceReference": [
+        ".agent/screenshots/iteration-5/before/page/indeling-kast-form-validation-desktop.png",
+        ".agent/screenshots/iteration-5/before/page/indeling-apparaat-form-desktop.png",
+        ".agent/screenshots/iteration-5/after/page/indeling-kast-form-validation-desktop.png",
+        ".agent/screenshots/iteration-5/after/page/indeling-apparaat-form-desktop.png",
+        ".agent/screenshots/iteration-5/after/comparisons/indeling-kast-form-validation-desktop-compare.png",
+        ".agent/screenshots/iteration-5/after/comparisons/indeling-apparaat-form-desktop-compare.png"
+      ],
+      "regressionRisk": "Medium - gebruikers moeten nog steeds voelen hoeveel stappen overblijven en hulp moet bereikbaar blijven."
+    },
+    {
+      "id": "step-intro-stack-clutter",
+      "title": "Verificatie, bestellijst en zaagplan stapelen nog te veel intro, hulp en begrippen boven de hoofdtaak",
+      "affectedScreenFlow": "Stap 3-5 boven de hoofdtaak",
+      "severity": 2,
+      "whyItMatters": "Deze pagina's tonen nog steeds een paginakop, losse introtekst, een aparte hulpknoop en een volledige begrippenkaart voordat de eigenlijke taak begint. In dichte en herhaalde workflows kost dat onnodig scroll- en filterwerk.",
+      "proposedFix": "Combineer doel, hulp en begrippen in een compactere utilitykop en verplaats of verlicht secundaire tekst zodat de hoofdtaken eerder beginnen.",
+      "status": "open",
+      "evidenceReference": [
+        ".agent/screenshots/iteration-5/before/page/verificatie-tasklist-dense-desktop.png",
+        ".agent/screenshots/iteration-5/before/page/bestellijst-dense-desktop.png",
+        ".agent/screenshots/iteration-5/before/page/zaagplan-dense-desktop.png",
+        ".agent/screenshots/iteration-5/before/section/verificatie-tasklist-normal-desktop.png",
+        ".agent/screenshots/iteration-5/before/section/bestellijst-toolbar-normal-desktop.png",
+        ".agent/screenshots/iteration-5/before/section/zaagplan-toolbar-normal-desktop.png"
+      ],
+      "regressionRisk": "Medium - hulp en terminologie moeten laagdrempelig en geruststellend blijven."
+    },
+    {
+      "id": "paneel-desktop-drawer-overexplained",
+      "title": "Desktop paneel-editor start nog te laag door te veel uitleg boven de velden",
+      "affectedScreenFlow": "Stap 2 - Panelen editor (desktop)",
+      "severity": 2,
+      "whyItMatters": "De drawer stapelt een begeleide flowkaart, een extra alert, hulpdetails en statusregels voordat de instelbare velden beginnen. Daardoor moeten frequente gebruikers te veel uitleg passeren voor ze kunnen handelen.",
+      "proposedFix": "Houd bovenin slechts een korte volgende-stap samenvatting, demote de lange uitleg en laat de bewerkbare velden hoger in de drawer beginnen.",
+      "status": "open",
+      "evidenceReference": [
+        ".agent/screenshots/iteration-5/before/page/panelen-editor-normal-desktop.png",
+        ".agent/screenshots/iteration-5/before/section/panelen-editor-drawer-normal-desktop.png",
+        ".agent/screenshots/iteration-5/before/section/panelen-workspace-normal-desktop.png"
+      ],
+      "regressionRisk": "Medium - nieuwe of incidentele gebruikers mogen niet verdwalen zodra de uitleg compacter wordt."
+    },
+    {
+      "id": "verificatie-complete-primary-next-step-hidden",
+      "title": "Verificatie-afronding laat de volgende stap te weinig als hoofdactie zien",
+      "affectedScreenFlow": "Stap 3 - Verificatie afronding",
+      "severity": 2,
+      "whyItMatters": "Na een afgeronde controle toont de kaart vooral secundaire acties zoals delen en afdrukken, terwijl doorgaan naar de bestellijst alleen in de lagere stapnavigatie staat. Dat verzwakt de flow op een belangrijk beslismoment.",
+      "proposedFix": "Voeg in de afrondingskaart een expliciete primaire CTA naar de bestellijst toe en demoveer print/share naar secundaire acties.",
+      "status": "open",
+      "evidenceReference": [
+        ".agent/screenshots/iteration-5/before/page/verificatie-complete-desktop.png",
+        ".agent/screenshots/iteration-5/before/section/verificatie-completion-card-desktop.png",
+        ".agent/screenshots/iteration-5/after/page/verificatie-complete-desktop.png"
+      ],
+      "regressionRisk": "Low - delen en afdrukken moeten nog steeds duidelijk beschikbaar blijven voor gebruikers die die route nodig hebben."
     }
   ]
 }

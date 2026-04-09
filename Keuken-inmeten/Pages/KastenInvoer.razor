@@ -504,40 +504,14 @@ else
             <div class="card-body">
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
                     <div>
-                        <div class="small fw-semibold text-uppercase text-success-emphasis">Mini-stepper</div>
+                        <div class="small fw-semibold text-uppercase text-success-emphasis">Huidige stap</div>
                         <div class="h6 mb-1" data-testid="kast-form-stap-label">Stap @kastFormStap van @LaatsteKastFormStap: @KastFormStapLabel(kastFormStap)</div>
-                        <p class="text-muted small mb-0">
-                            @(kastFormStap switch
-                            {
-                                1 => "Begin met de basis: kies de wand, geef de kast een naam en start eventueel vanuit een eerder gebruikt voorbeeld.",
-                                2 => "Voer daarna alleen de hoofdmaten in. Het afgeleide kasttype ziet u meteen terug.",
-                                3 => "Technische velden verschijnen pas hier en alleen als deze kast afwijkt van de standaard.",
-                                _ => "Controleer de samenvatting en preview voordat u de kast opslaat."
-                            })
-                        </p>
+                        <p class="text-muted small mb-0">@KastFormStapIntro(kastFormStap)</p>
                     </div>
                     <div class="d-flex align-items-center gap-2">
+                        <span class="badge text-bg-light" data-testid="kast-form-progress">Stap @kastFormStap/@LaatsteKastFormStap</span>
                         <StapHulpDrawer StapId="kasten" KnopLabel="Meer hulp" />
-                        <span class="badge text-bg-light">Stap @kastFormStap/@LaatsteKastFormStap</span>
                     </div>
-                </div>
-
-                <div class="progress mb-3" style="height: 0.5rem;" data-testid="kast-form-progress">
-                    <div class="progress-bar bg-success" style="width: @(StapVoortgang(kastFormStap, LaatsteKastFormStap))%"></div>
-                </div>
-
-                <div class="d-flex flex-wrap gap-2 mb-4">
-                    @for (var index = 0; index < KastFormStappen.Length; index++)
-                    {
-                        var stapNummer = index + 1;
-                        var stapClass = kastFormStap > stapNummer
-                            ? "text-bg-success"
-                            : kastFormStap == stapNummer
-                                ? "text-bg-primary"
-                                : "text-bg-light";
-
-                        <span class="badge @stapClass">@($"{stapNummer}. {KastFormStappen[index]}")</span>
-                    }
                 </div>
 
                 @if (kastFormStap == 1)
@@ -607,9 +581,8 @@ else
                         </div>
                     </div>
 
-                    <div class="alert alert-light border mb-0">
-                        <div class="fw-semibold mb-1">Alleen de hoofdmaten nodig</div>
-                        <div class="small text-muted">De technische gaatjesrij en afwijkende kastdetails bewaart u voor de volgende stap, zodat deze stap alleen over maatvoering gaat.</div>
+                    <div class="small text-muted mb-0">
+                        U vult hier alleen de hoofdmaten in. Technische gaatjesrij en afwijkende kastdetails komen pas in de volgende stap in beeld.
                     </div>
                 }
                 else if (kastFormStap == 3)
@@ -773,39 +746,14 @@ else
             <div class="card-body">
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
                     <div>
-                        <div class="small fw-semibold text-uppercase text-secondary-emphasis">Mini-stepper</div>
+                        <div class="small fw-semibold text-uppercase text-secondary-emphasis">Huidige stap</div>
                         <div class="h6 mb-1" data-testid="apparaat-form-stap-label">Stap @apparaatFormStap van @LaatsteApparaatFormStap: @ApparaatFormStapLabel(apparaatFormStap)</div>
-                        <p class="text-muted small mb-0">
-                            @(apparaatFormStap switch
-                            {
-                                1 => "Begin met het type, de naam en de wandcontext van het apparaat.",
-                                2 => "Vul daarna alleen de maatvoering in.",
-                                _ => "Controleer de samenvatting en preview voordat u het apparaat opslaat."
-                            })
-                        </p>
+                        <p class="text-muted small mb-0">@ApparaatFormStapIntro(apparaatFormStap)</p>
                     </div>
                     <div class="d-flex align-items-center gap-2">
+                        <span class="badge text-bg-light" data-testid="apparaat-form-progress">Stap @apparaatFormStap/@LaatsteApparaatFormStap</span>
                         <StapHulpDrawer StapId="kasten" KnopLabel="Meer hulp" />
-                        <span class="badge text-bg-light">Stap @apparaatFormStap/@LaatsteApparaatFormStap</span>
                     </div>
-                </div>
-
-                <div class="progress mb-3" style="height: 0.5rem;" data-testid="apparaat-form-progress">
-                    <div class="progress-bar bg-secondary" style="width: @(StapVoortgang(apparaatFormStap, LaatsteApparaatFormStap))%"></div>
-                </div>
-
-                <div class="d-flex flex-wrap gap-2 mb-4">
-                    @for (var index = 0; index < ApparaatFormStappen.Length; index++)
-                    {
-                        var stapNummer = index + 1;
-                        var stapClass = apparaatFormStap > stapNummer
-                            ? "text-bg-success"
-                            : apparaatFormStap == stapNummer
-                                ? "text-bg-primary"
-                                : "text-bg-light";
-
-                        <span class="badge @stapClass">@($"{stapNummer}. {ApparaatFormStappen[index]}")</span>
-                    }
                 </div>
 
                 @if (apparaatFormStap == 1)
@@ -855,9 +803,8 @@ else
                         </div>
                     </div>
 
-                    <div class="alert alert-light border mb-0">
-                        <div class="fw-semibold mb-1">Alleen de maatvoering</div>
-                        <div class="small text-muted">De controle met preview komt in de laatste stap, zodat u nu alleen nog over de hoofdafmetingen beslist.</div>
+                    <div class="small text-muted mb-0">
+                        U beslist hier alleen over de hoofdafmetingen. De controle met preview volgt in de laatste stap.
                     </div>
                 }
                 else
