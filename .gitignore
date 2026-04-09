@@ -19,11 +19,12 @@ __pycache__/
 
 # Node / Playwright artifacts
 node_modules/
-playwright-screenshots/publish/
-playwright-screenshots/screenshots/
+playwright-screenshots/
 playwright-report/
 test-results/
 dist/
+screenshots/
+screenshots_plank/
 
 # Local UX run artifacts
 .agent/screenshots/
