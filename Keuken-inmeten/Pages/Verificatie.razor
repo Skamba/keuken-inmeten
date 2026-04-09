@@ -13,14 +13,6 @@
 @if (_fase == VerificatieFase.Overzicht)
 {
     <p class="text-muted mb-3">Controleer per paneel eerst de maat in de opening en daarna de systeemgaten. De bestelmaat moet logisch volgen uit opening en speling.</p>
-}
-else if (_fase == VerificatieFase.PaneelVerificatie)
-{
-    <p class="text-muted mb-3">Werk hieronder eerst dit paneel af. Andere panelen en technische uitleg blijven dicht bij de controle beschikbaar.</p>
-}
-
-@if (_fase != VerificatieFase.Afronding)
-{
     <div class="stap-ondersteuning mb-3" data-testid="verificatie-stap-ondersteuning">
         <StapHulpDrawer StapId="verificatie" KnopLabel="Staphulp" />
         <TerminologieUitleg Compact="true"
@@ -189,37 +181,6 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
         </div>
     </div>
 
-    @if (resultaten.Count > 1)
-    {
-        <details class="verificatie-paneelselectie mb-3"
-                 data-testid="verificatie-paneelselectie-details">
-            <summary class="verificatie-paneelselectie-summary"
-                     data-testid="verificatie-paneelselectie-summary">
-                <div>
-                    <div class="fw-semibold">Andere panelen</div>
-                    <div class="small text-muted">Open dit alleen als u bewust naar een ander paneel wilt wisselen.</div>
-                </div>
-                <span class="badge text-bg-light">@resultaten.Count panelen</span>
-            </summary>
-            <div class="verificatie-paneelselectie-lijst">
-                @for (int i = 0; i < resultaten.Count; i++)
-                {
-                    var ri = resultaten[i];
-                    var idx = i;
-                    var isActief = idx == _paneelIndex;
-                    var isOk = AlleChecksVoorPaneel(idx, ri);
-
-                    <button class="btn @(isActief ? "btn-primary" : isOk ? "btn-outline-success" : "btn-outline-secondary") btn-sm verificatie-paneelselectie-knop"
-                            @onclick="() => GaNaarPaneel(idx)"
-                            disabled="@isActief">
-                        <span class="fw-semibold">Paneel @(i + 1) · @ri.KastNaam</span>
-                        <span class="small @(isActief ? "opacity-75" : "text-muted")">@PaneelTabStatusTekst(idx, ri)</span>
-                    </button>
-                }
-            </div>
-        </details>
-    }
-
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
@@ -377,6 +338,37 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                     </div>
                 </div>
             </div>
+
+            @if (resultaten.Count > 1)
+            {
+                <details class="verificatie-paneelselectie mt-4"
+                         data-testid="verificatie-paneelselectie-details">
+                    <summary class="verificatie-paneelselectie-summary"
+                             data-testid="verificatie-paneelselectie-summary">
+                        <div>
+                            <div class="fw-semibold">Andere panelen</div>
+                            <div class="small text-muted">Open dit alleen als u bewust naar een ander paneel wilt wisselen.</div>
+                        </div>
+                        <span class="badge text-bg-light">@resultaten.Count panelen</span>
+                    </summary>
+                    <div class="verificatie-paneelselectie-lijst">
+                        @for (int i = 0; i < resultaten.Count; i++)
+                        {
+                            var ri = resultaten[i];
+                            var idx = i;
+                            var isActief = idx == _paneelIndex;
+                            var isOk = AlleChecksVoorPaneel(idx, ri);
+
+                            <button class="btn @(isActief ? "btn-primary" : isOk ? "btn-outline-success" : "btn-outline-secondary") btn-sm verificatie-paneelselectie-knop"
+                                    @onclick="() => GaNaarPaneel(idx)"
+                                    disabled="@isActief">
+                                <span class="fw-semibold">Paneel @(i + 1) · @ri.KastNaam</span>
+                                <span class="small @(isActief ? "opacity-75" : "text-muted")">@PaneelTabStatusTekst(idx, ri)</span>
+                            </button>
+                        }
+                    </div>
+                </details>
+            }
 
             @* Navigatie onderaan *@
             <hr />

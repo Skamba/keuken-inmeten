@@ -25,6 +25,7 @@
         var flowStatus = StappenFlowHelper.BepaalStatus(State);
     }
     <nav class="nav flex-column">
+        <div class="nav-section-label px-3">Stappen</div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 🏠 Home
@@ -51,9 +52,11 @@
                 }
             </div>
         }
+        <div class="nav-section-divider px-3" aria-hidden="true"></div>
+        <div class="nav-section-label px-3">Project en weergave</div>
         <div class="nav-item px-3">
             <button type="button"
-                    class="nav-link border-0 w-100 text-start nav-action-button"
+                    class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
                     @onclick="DeelHuidigePagina"
                     title="Deel een link naar deze keukenconfiguratie"
                     data-testid="nav-share-button">
@@ -62,7 +65,7 @@
         </div>
         <div class="nav-item px-3">
             <button type="button"
-                    class="nav-link border-0 w-100 text-start nav-action-button"
+                    class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
                     @onclick="ExporteerProject"
                     title="Download het volledige keukenproject als JSON-bestand"
                     data-testid="nav-export-button">
@@ -71,7 +74,7 @@
         </div>
         <div class="nav-item px-3">
             <div class="nav-file-action">
-                <span class="nav-link nav-action-button"
+                <span class="nav-link nav-action-button nav-action-button--utility"
                       data-testid="nav-import-button">
                     📥 Importeer JSON
                 </span>
@@ -84,9 +87,9 @@
                            data-testid="nav-import-input" />
             </div>
         </div>
-        <div class="nav-item px-3 mt-auto">
+        <div class="nav-item px-3">
             <button type="button"
-                    class="nav-link border-0 w-100 text-start nav-action-button"
+                    class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
                     @onclick="ToggleTheme"
                     title="Wissel tussen licht en donker thema">
                 @themeIcon Thema

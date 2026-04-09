@@ -27,7 +27,9 @@ export class BestellijstPage {
       return;
     }
 
-    await this.page.getByTestId('bestellijst-export-instellingen-summary').click();
+    const samenvatting = this.page.getByTestId('bestellijst-export-instellingen-summary');
+    await samenvatting.scrollIntoViewIfNeeded();
+    await samenvatting.click();
     await expect(paneeltypeInput).toBeVisible();
   }
 

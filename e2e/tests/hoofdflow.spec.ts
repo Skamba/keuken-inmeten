@@ -395,6 +395,8 @@ test('bestellijst export loopt via een aparte previewflow', async ({ page }) => 
 
   await bestellijst.expectLoaded();
   await bestellijst.openExportFlow();
+  await bestellijst.selecteerExportType('excel');
+  await bestellijst.gaNaarExportPreview();
   await bestellijst.openExportMateriaalInstellingen();
   await expect(page.getByTestId('bestellijst-paneeltype-hint')).toBeVisible();
   await expect(page.getByTestId('bestellijst-dikte-hint')).toBeVisible();
@@ -402,8 +404,6 @@ test('bestellijst export loopt via een aparte previewflow', async ({ page }) => 
   await page.getByTestId('bestellijst-dikte-input').fill('19');
   await expect(page.getByTestId('bestellijst-paneeltype-hint')).toBeVisible();
   await expect(page.getByTestId('bestellijst-dikte-hint')).toBeVisible();
-  await bestellijst.selecteerExportType('excel');
-  await bestellijst.gaNaarExportPreview();
   await bestellijst.expectExportPreview('Excel alleen lijst');
   await bestellijst.gaNaarExportBevestiging();
   await bestellijst.expectExportBevestiging('Excel alleen lijst');
