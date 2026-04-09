@@ -294,7 +294,7 @@ else
                                 <div class="d-flex flex-column align-items-start align-items-sm-end gap-2">
                                     <div class="small text-muted text-sm-end">
                                         <div class="fw-semibold text-uppercase">Werklaag</div>
-                                        <div>@(toonEditorDrawer ? "Paneel-editor staat open" : "Paneel-editor is gesloten")</div>
+                                        <div>@EditorWerklaagStatusTekst()</div>
                                     </div>
                                     <div class="d-flex flex-wrap gap-2">
                                         @if (!toonEditorDrawer)
@@ -303,7 +303,7 @@ else
                                                     class="btn btn-sm btn-primary"
                                                     @onclick="OpenEditorDrawer"
                                                     data-testid="open-paneel-editor-button">
-                                                Open paneel-editor
+                                                @OpenEditorKnopLabel()
                                             </button>
                                         }
                                         <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="SluitWandWerkruimte">
@@ -331,8 +331,8 @@ else
                                 <div class="col-md-4">
                                     <div class="indeling-wand-metric h-100">
                                         <div class="small text-muted">Editorstatus</div>
-                                        <div class="fw-semibold">@(toonEditorDrawer ? "Open" : "Gesloten")</div>
-                                        <div class="small text-muted">De mini-flow voor maat, type en opslaan staat in de editorlaag.</div>
+                                        <div class="fw-semibold">@(toonEditorDrawer ? "Open" : geselecteerdeKastIds.Count > 0 ? "Selectie klaar" : "Wacht op selectie")</div>
+                                        <div class="small text-muted">@EditorStatusHintTekst()</div>
                                     </div>
                                 </div>
                             </div>
@@ -358,7 +358,9 @@ else
 
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
                                 <div class="small text-muted">
-                                    Klik kast(en) in deze tekening om de editor te activeren. Gebruik de aparte reviewweergave pas als u lijst, status en acties wilt nalopen zonder deze werkruimte erbij.
+                                    @(geselecteerdeKastIds.Count == 0
+                                        ? "Klik eerst de juiste kast(en) in deze tekening. Open de editor pas als u plaatsing, maat en opslaan wilt invullen."
+                                        : "Uw selectie staat klaar. Open of houd de editor open om plaatsing, maat en opslaan af te ronden.")
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
                                     @if (geselecteerdeKastIds.Count > 0)
@@ -373,7 +375,7 @@ else
                                                 class="btn btn-outline-primary btn-sm"
                                                 @onclick="OpenEditorDrawer"
                                                 data-testid="open-paneel-editor-button-secondary">
-                                            Open paneel-editor
+                                            @OpenEditorKnopLabel()
                                         </button>
                                     }
                                 </div>
@@ -561,7 +563,7 @@ else
         var vrijeSegmenten = VrijeSegmentenVoorSelectie();
 
         <section class="paneel-editor-drawer-layer">
-            <div class="paneel-editor-drawer"
+            <div class="paneel-editor-drawer @(ToonCompacteEditorLeegstaat ? "paneel-editor-drawer--waiting" : null)"
                  data-testid="paneel-editor-drawer"
                  aria-labelledby="paneel-editor-drawer-title">
                 <div class="card border-0 h-100">
@@ -570,7 +572,7 @@ else
                             <div>
                                 <div class="small fw-semibold text-uppercase text-primary-emphasis">Paneel-editor</div>
                                 <h5 id="paneel-editor-drawer-title" class="mb-0" style="font-size: 1rem;">
-                                    @(IsBewerkModus ? $"Paneel bewerken — {geopendeWand.Naam}" : $"Paneel plaatsen — {geopendeWand.Naam}")
+                                    @EditorDrawerTitel()
                                 </h5>
                             </div>
                             <div class="d-flex align-items-center gap-2">
@@ -596,55 +598,65 @@ else
                         </div>
                     </div>
                     <div class="card-body paneel-editor-drawer-body">
-                        <div class="border rounded p-3 mb-3 bg-body-tertiary">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Begeleide flow</h6>
-                                <span class="badge text-bg-light">4 stappen</span>
-                            </div>
-                            <div class="d-grid gap-2 mb-3">
-                                @foreach (var stap in PaneelFlowStappen)
-                                {
-                                    var status = PaneelFlowStatus(stap.Id);
-                                    <div class="d-flex justify-content-between align-items-start gap-3 border rounded px-3 py-2 @PaneelFlowContainerClass(status)">
-                                        <div>
-                                            <div class="fw-semibold">@stap.Titel</div>
-                                            <div class="small text-muted">@stap.Beschrijving</div>
-                                        </div>
-                                        <span class="badge @PaneelFlowBadgeClass(status)">@PaneelFlowLabel(status)</span>
-                                    </div>
-                                }
-                            </div>
-                            <div class="row g-3 small">
-                                <div class="col-md-4">
-                                    <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Nog te doen</div>
-                                    <div>@VolgendePaneelStapTekst()</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Geselecteerd</div>
-                                    <div>@GeselecteerdePaneelStatusTekst()</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Klaar om op te slaan</div>
-                                    <div>@(kanOpslaan ? "Ja, u kunt nu opslaan." : OpslaanStatusTekst())</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        @if (geselecteerdeKastIds.Count == 0)
+                        @if (ToonCompacteEditorLeegstaat)
                         {
-                            <div class="text-center text-muted py-4">
-                                <div class="mb-3" style="font-size: 3rem; opacity: 0.15;">🪟</div>
-                                <p class="mb-3">Klik op een of meer kasten binnen <strong>@geopendeWand.Naam</strong> om te beginnen. Daarna worden plaatsing, maat, type en opslaan hier actief.</p>
-                                <div class="d-grid gap-2 col-lg-8 mx-auto">
-                                    <button type="button" class="btn btn-outline-secondary" disabled>2. Selecteer kast(en)</button>
-                                    <button type="button" class="btn btn-outline-secondary" disabled>3. Plaats of pas paneel aan</button>
-                                    <button type="button" class="btn btn-primary" disabled>4. Controleer en sla op</button>
+                            <div class="paneel-editor-empty-state border rounded p-3 bg-body-tertiary">
+                                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
+                                    <div>
+                                        <h6 class="mb-1">Selecteer eerst kast(en) in de tekening</h6>
+                                        <p class="small text-muted mb-0">Tik daarna de juiste kast(en) binnen <strong>@geopendeWand.Naam</strong>. Plaatsing, maat en opslaan worden hier vanzelf actief.</p>
+                                    </div>
+                                    <span class="badge text-bg-light">Stap 2 van 4</span>
                                 </div>
-                                <div class="form-text hulp-hint mt-2">Deze onderdelen worden actief zodra een kastselectie op de actieve wand klaarstaat.</div>
+
+                                <details class="paneel-editor-empty-details small">
+                                    <summary class="text-secondary">Bekijk de vervolgstappen</summary>
+                                    <div class="mt-2 d-grid gap-2 text-muted">
+                                        <div><strong>2.</strong> Selecteer een of meer kasten binnen de actieve wand.</div>
+                                        <div><strong>3.</strong> Plaats het paneel of pas het formaat aan.</div>
+                                        <div><strong>4.</strong> Controleer maat, type en sla daarna op.</div>
+                                    </div>
+                                </details>
                             </div>
+
+                            <div class="form-text hulp-hint mt-2">Tip: sluit de editor tijdelijk als u eerst meer van het canvas wilt zien tijdens het selecteren.</div>
                         }
                         else
                         {
+                            <div class="border rounded p-3 mb-3 bg-body-tertiary">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">Begeleide flow</h6>
+                                    <span class="badge text-bg-light">4 stappen</span>
+                                </div>
+                                <div class="d-grid gap-2 mb-3">
+                                    @foreach (var stap in PaneelFlowStappen)
+                                    {
+                                        var status = PaneelFlowStatus(stap.Id);
+                                        <div class="d-flex justify-content-between align-items-start gap-3 border rounded px-3 py-2 @PaneelFlowContainerClass(status)">
+                                            <div>
+                                                <div class="fw-semibold">@stap.Titel</div>
+                                                <div class="small text-muted">@stap.Beschrijving</div>
+                                            </div>
+                                            <span class="badge @PaneelFlowBadgeClass(status)">@PaneelFlowLabel(status)</span>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="row g-3 small">
+                                    <div class="col-md-4">
+                                        <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Nog te doen</div>
+                                        <div>@VolgendePaneelStapTekst()</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Geselecteerd</div>
+                                        <div>@GeselecteerdePaneelStatusTekst()</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.72rem; letter-spacing: .04em;">Klaar om op te slaan</div>
+                                        <div>@(kanOpslaan ? "Ja, u kunt nu opslaan." : OpslaanStatusTekst())</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="alert alert-primary small py-2">
                                 Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de vrije ruimte langs rakende randen is afgetrokken.
                             </div>

@@ -180,89 +180,97 @@
 
     @if (heeftProjectData)
     {
-        <section class="mb-5" id="project-overzicht">
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2 mb-3">
-                <div>
-                    <h2 class="h3 mb-1">Projectoverzicht</h2>
-                    <p class="text-muted mb-0">Gebruik dit overzicht om snel te zien waar u staat en welke uitvoer al klaarstaat.</p>
-                </div>
-                <div class="text-muted small">@outputSamenvatting</div>
-            </div>
+        <section class="mb-4" id="project-overzicht">
+            <details class="home-section-details">
+                <summary class="home-section-summary">
+                    <div class="home-section-summary-body">
+                        <h2 class="h3 mb-1">Projectoverzicht</h2>
+                        <p class="text-muted mb-0">Open dit alleen als u de totale voortgang of uitvoer even wilt dubbelchecken.</p>
+                    </div>
+                    <div class="home-section-summary-meta">@outputSamenvatting</div>
+                </summary>
 
-            <div class="row g-3">
-                <div class="col-sm-6 col-xl-3">
-                    <div class="home-metric-card h-100">
-                        <div class="home-example-label">Wanden</div>
-                        <div class="home-metric-value">@aantalWanden</div>
-                        <div class="text-muted small">Opstelling(en) die nu in het project staan.</div>
+                <div class="home-section-details-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="home-metric-card h-100">
+                                <div class="home-example-label">Wanden</div>
+                                <div class="home-metric-value">@aantalWanden</div>
+                                <div class="text-muted small">Opstelling(en) die nu in het project staan.</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="home-metric-card h-100">
+                                <div class="home-example-label">Kasten</div>
+                                <div class="home-metric-value">@aantalKasten</div>
+                                <div class="text-muted small">De basis voor panelen, openingen en scharnieren.</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="home-metric-card h-100">
+                                <div class="home-example-label">Panelen</div>
+                                <div class="home-metric-value">@aantalPanelen</div>
+                                <div class="text-muted small">Toegewezen deuren, ladefronten of blindpanelen.</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="home-metric-card h-100">
+                                <div class="home-example-label">Uitvoer klaar</div>
+                                <div class="home-metric-value">@(aantalBestellijstItems > 0 ? aantalBestellijstItems : totaalBoorgaten)</div>
+                                <div class="text-muted small">@(aantalBestellijstItems > 0 ? "Orderregel(s) klaar voor export of zaagplan." : totaalBoorgaten > 0 ? "Boorgat(en) al berekend voor controle en bestelling." : "Nog geen exportdata; rond eerst panelen af.")</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-sm-6 col-xl-3">
-                    <div class="home-metric-card h-100">
-                        <div class="home-example-label">Kasten</div>
-                        <div class="home-metric-value">@aantalKasten</div>
-                        <div class="text-muted small">De basis voor panelen, openingen en scharnieren.</div>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-xl-3">
-                    <div class="home-metric-card h-100">
-                        <div class="home-example-label">Panelen</div>
-                        <div class="home-metric-value">@aantalPanelen</div>
-                        <div class="text-muted small">Toegewezen deuren, ladefronten of blindpanelen.</div>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-xl-3">
-                    <div class="home-metric-card h-100">
-                        <div class="home-example-label">Uitvoer klaar</div>
-                        <div class="home-metric-value">@(aantalBestellijstItems > 0 ? aantalBestellijstItems : totaalBoorgaten)</div>
-                        <div class="text-muted small">@(aantalBestellijstItems > 0 ? "Orderregel(s) klaar voor export of zaagplan." : totaalBoorgaten > 0 ? "Boorgat(en) al berekend voor controle en bestelling." : "Nog geen exportdata; rond eerst panelen af.")</div>
-                    </div>
-                </div>
-            </div>
+            </details>
         </section>
     }
 
     <section class="mb-5" id="startflow-stappen">
-        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2 mb-3">
-            <div>
-                <h2 class="h3 mb-1">@(heeftProjectData ? "Andere projectroutes" : "Zo loopt de startflow")</h2>
-                <p class="text-muted mb-0">
-                    @(heeftProjectData
-                        ? "De hoofdactie hierboven is de snelste route. Gebruik deze compacte kaarten alleen als u bewust een andere stap wilt openen."
-                        : "De volgorde en labels hieronder zijn gelijk aan de rest van de applicatie.")
-                </p>
-            </div>
-            <div class="text-muted small">
-                @(heeftProjectData
-                    ? $"Aanbevolen: {vervolgStap.Label}"
-                    : $"Vaste volgorde: {string.Join(" → ", StappenFlowHelper.AlleStappen.Select(stap => stap.Label))}")
-            </div>
-        </div>
-
         @if (heeftProjectData)
         {
-            <div class="row g-2">
-                @foreach (var stap in stappen)
-                {
-                    <div class="col-sm-6 col-xl" @key="stap.Href">
-                        <a href="@stap.Href" class="text-decoration-none text-reset d-block h-100">
-                            <article class="home-route-card h-100 @(stap.IsBeschikbaar ? null : "home-route-card--vergrendeld")">
-                                <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
-                                    <span class="home-step-number">@stap.Nummer</span>
-                                    <span class="badge rounded-pill @stap.BadgeClass">@stap.BadgeLabel</span>
-                                </div>
-                                <div>
-                                    <h3 class="h6 mb-1">@stap.Titel</h3>
-                                    <div class="small text-muted">@stap.Samenvatting</div>
-                                </div>
-                            </article>
-                        </a>
+            <details class="home-section-details">
+                <summary class="home-section-summary">
+                    <div class="home-section-summary-body">
+                        <h2 class="h3 mb-1">Andere projectroutes</h2>
+                        <p class="text-muted mb-0">De hoofdactie hierboven is de snelste route. Open deze kaarten alleen als u bewust een andere stap wilt openen.</p>
                     </div>
-                }
-            </div>
+                    <div class="home-section-summary-meta">Aanbevolen: @vervolgStap.Label</div>
+                </summary>
+
+                <div class="home-section-details-body">
+                    <div class="row g-2">
+                        @foreach (var stap in stappen)
+                        {
+                            <div class="col-sm-6 col-xl" @key="stap.Href">
+                                <a href="@stap.Href" class="text-decoration-none text-reset d-block h-100">
+                                    <article class="home-route-card h-100 @(stap.IsBeschikbaar ? null : "home-route-card--vergrendeld")">
+                                        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                                            <span class="home-step-number">@stap.Nummer</span>
+                                            <span class="badge rounded-pill @stap.BadgeClass">@stap.BadgeLabel</span>
+                                        </div>
+                                        <div>
+                                            <h3 class="h6 mb-1">@stap.Titel</h3>
+                                            <div class="small text-muted">@stap.Samenvatting</div>
+                                        </div>
+                                    </article>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </details>
         }
         else
         {
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2 mb-3">
+                <div>
+                    <h2 class="h3 mb-1">Zo loopt de startflow</h2>
+                    <p class="text-muted mb-0">De volgorde en labels hieronder zijn gelijk aan de rest van de applicatie.</p>
+                </div>
+                <div class="text-muted small">Vaste volgorde: @string.Join(" → ", StappenFlowHelper.AlleStappen.Select(stap => stap.Label))</div>
+            </div>
+
             <div class="row g-3">
                 @foreach (var stap in stappen)
                 {

@@ -151,6 +151,30 @@ test('stap 2 scheidt editor en review expliciet', async ({ page }) => {
   await panelen.expectActieveWerkruimte('Achterwand');
 });
 
+test.describe('mobiele paneel-editor', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('stap 2 laat op mobiel eerst kastselectie toe voordat de editor opent', async ({ page }) => {
+    const indeling = new IndelingPage(page);
+    const panelen = new PanelenPage(page);
+
+    await indeling.goto();
+    await indeling.voegWandToe('Achterwand');
+    await indeling.voegKastToeAanWand('Achterwand', {
+      naam: 'Onderkast mobiel',
+      breedte: 600,
+      hoogte: 720,
+      diepte: 560,
+    });
+    await indeling.gaNaarPanelen();
+
+    await panelen.expectLoaded();
+    await panelen.openWandWerkruimte('Achterwand');
+    await expect(page.getByTestId('paneel-editor-drawer')).toHaveCount(0);
+    await panelen.selecteerEersteKastOpWand('Achterwand');
+  });
+});
+
 test('stap 3 toont verificatie als taaklijst per wand', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);

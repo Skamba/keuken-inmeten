@@ -84,3 +84,59 @@
 
 - Commit and push iteration 1 because it produced real UX gains without regressions.
 - Start iteration 2 from the remaining severity 2 items, beginning with mobile resume compaction and bestellijst density.
+
+## Iteration 2 - focused follow-up
+
+- Started from `cf84b56` on `main` and refreshed the iteration-2 baseline screenshot set before changing code.
+- Reused the earlier round-2 research direction on:
+  - mobile resume-first hierarchy,
+  - dense order-review screens that prioritize the table,
+  - mobile drawers that preserve workspace context and do not block the next primary interaction.
+- Reproduced the mobile paneel problem directly with Playwright: the full-height drawer blocked the first kast-click on a narrow viewport, confirmed by timeout evidence and `.agent/screenshots/iteration-2/mobile-paneel-editor-check.png`.
+
+### Ranked issues entering iteration 2
+
+1. `home-resume-hierarchy-overload` - severity 2 - mobile still showed too much secondary information under the main resume path.
+2. `bestellijst-table-buried-by-overview` - severity 2 - the table still started too low in the dense review state.
+3. `panelen-mobile-drawer-friction` - severity 2 - the mobile editor layer still blocked the first meaningful action.
+
+### What changed
+
+- **Home**
+  - Projectoverzicht and Andere projectroutes are now collapsed by default for returning users.
+  - The resume card stays fully visible, while secondary overview content is still one tap away.
+- **Bestellijst**
+  - Removed the separate metric row.
+  - Condensed the toolbar into one compact review block with summary chips and a short export note.
+  - Kept the per-wand and per-type breakdown behind the existing disclosure, now with summary counts in the header.
+- **Panelen**
+  - Opening a wand no longer auto-opens the editor drawer.
+  - The empty mobile drawer became a compact bottom sheet instead of a full blocker.
+  - Clicks outside the drawer now pass back to the workspace, and the empty drawer state explains only the next step by default.
+  - Added a Playwright regression test that verifies the first mobiele kastselectie works before the editor opens.
+- **Capture tooling**
+  - Mobile spot checks now also capture `panelen-workspace-mobile` and `panelen-editor-mobile`.
+
+### Before vs after observations
+
+- **Home resume mobile:** clear improvement. The resume path remains dominant and the long secondary stack is gone unless the user explicitly opens it.
+- **Bestellijst dense:** clear improvement. The ordertabel now starts much earlier and the top area reads as one compact control block instead of stacked summary zones.
+- **Panelen mobile:** major improvement. The catastrophic blocked-selection state is gone; the user can open a wand, reach the canvas first, and treat the drawer as a temporary tool layer.
+
+### What still feels wrong after iteration 2
+
+- **Panelen mobile workspace:** even without the old blocker, the mobile editor view still spends too much vertical space on status copy and metric chrome before the canvas becomes the clear focal point.
+
+### Remaining severity 2+ issues after iteration 2
+
+1. `panelen-mobile-canvas-priority` - severity 2 - the mobile paneel workspace still makes users scroll through too much status before the main selection surface takes over.
+
+### Stop gate after iteration 2
+
+- **Not satisfied.** The old severity-2 issues from Home, Bestellijst, and the mobile drawer blocker are fixed, but there is still one severity-2 issue left in a primary mobile flow.
+- **No regression found** in the validated flows, the refreshed screenshot set, or the new mobile regression test.
+
+## Next
+
+- Commit and push iteration 2 because the changes are validated and produced real UX gains.
+- Start iteration 3 from the remaining severity-2 issue: make the mobile paneel canvas more dominant by compressing the status area above it.

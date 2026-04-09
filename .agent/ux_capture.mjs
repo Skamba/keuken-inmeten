@@ -130,6 +130,16 @@ async function captureMobileSpotChecks() {
     await gotoAndWait(page, '/kasten', 'Stap 1: Indeling');
     await openIndelingWorkspace(page, 'Achterwand');
     await screenshot(page, 'indeling-normal-mobile');
+
+    await goToPanelen(page);
+    const workspace = page.locator('[data-testid="paneel-actieve-wand-werkruimte"][data-wand-naam="Achterwand"]');
+    await click(page.locator('[data-testid="paneel-wand-card"][data-wand-naam="Achterwand"]').first().getByTestId('open-paneel-wand-button'));
+    await workspace.waitFor();
+    await screenshot(page, 'panelen-workspace-mobile');
+
+    await click(workspace.getByTestId('open-paneel-editor-button'));
+    await page.getByTestId('paneel-editor-drawer').waitFor();
+    await screenshot(page, 'panelen-editor-mobile');
   });
 }
 

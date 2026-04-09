@@ -26,12 +26,6 @@ export class PanelenPage {
 
     await this.expectEditorWeergave();
     await this.expectActieveWerkruimte(wandNaam);
-
-    if (!(await this.page.getByTestId('paneel-editor-drawer').isVisible())) {
-      await this.actieveWerkruimte(wandNaam).getByTestId('open-paneel-editor-button').click();
-    }
-
-    await expect(this.page.getByTestId('paneel-editor-drawer')).toBeVisible();
   }
 
   async expectEditorWeergave() {

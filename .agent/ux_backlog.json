@@ -1,22 +1,21 @@
 {
   "appName": "Keuken Inmeten",
-  "lastUpdated": "2026-04-09T04:19:56Z",
+  "lastUpdated": "2026-04-09T04:38:14Z",
   "issues": [
     {
       "id": "home-resume-hierarchy-overload",
       "title": "Hervatdashboard is te lang en heeft te veel concurrerende blokken",
       "affectedScreenFlow": "Home - hervatten (desktop en mobiel)",
       "severity": 2,
-      "whyItMatters": "De desktopversie is nu veel rustiger, maar op mobiel blijft de hervatpagina lang doordat projectoverzicht, routes en hulp nog allemaal standaard open staan. Dat maakt de hoofdtaak - snel hervatten - nog niet zo dominant als gewenst.",
-      "proposedFix": "Houd op smalle schermen alleen de hervatkaart direct zichtbaar en klap projectoverzicht of alternatieve routes verder in.",
-      "status": "open",
+      "whyItMatters": "De hoofdtaak op Home is snel en zeker hervatten. Op mobiel stonden projectoverzicht en alternatieve routes nog altijd open, waardoor de primaire route te veel concurrentie kreeg.",
+      "proposedFix": "Klap secundaire overzichtsblokken standaard in zodat de hervatkaart dominant blijft en extra routes alleen op verzoek verschijnen.",
+      "status": "fixed",
       "evidenceReference": [
-        ".agent/screenshots/iteration-1/before/home-resume-desktop.png",
-        ".agent/screenshots/iteration-1/before/home-resume-mobile.png",
-        ".agent/screenshots/iteration-1/after/home-resume-desktop.png",
-        ".agent/screenshots/iteration-1/after/home-resume-mobile.png"
+        ".agent/screenshots/iteration-2/before/home-resume-mobile.png",
+        ".agent/screenshots/iteration-2/after/home-resume-mobile.png",
+        ".agent/screenshots/iteration-2/after/comparisons/home-resume-mobile-compare.png"
       ],
-      "regressionRisk": "Medium - compacter maken mag de directe route naar een andere stap niet verbergen."
+      "regressionRisk": "Medium - alternatieve routes en overzicht mogen niet onvindbaar worden."
     },
     {
       "id": "panelen-review-dense-scanability",
@@ -28,9 +27,7 @@
       "status": "fixed",
       "evidenceReference": [
         ".agent/screenshots/iteration-1/before/panelen-review-dense-desktop.png",
-        ".agent/screenshots/iteration-1/before/panelen-review-normal-desktop.png",
-        ".agent/screenshots/iteration-1/after/panelen-review-dense-desktop.png",
-        ".agent/screenshots/iteration-1/after/panelen-review-normal-desktop.png"
+        ".agent/screenshots/iteration-1/after/panelen-review-dense-desktop.png"
       ],
       "regressionRisk": "Medium - details en verwijderacties moeten bereikbaar en duidelijk blijven."
     },
@@ -39,62 +36,76 @@
       "title": "Kast- en apparaatregels gebruiken kleine cryptische acties",
       "affectedScreenFlow": "Stap 1 - Indeling actieve wand (dichte state)",
       "severity": 2,
-      "whyItMatters": "In de primaire invoerflow zijn bewerken, kopieren en verwijderen nu tiny icon-knoppen in drukke chips. Dat verlaagt scanbaarheid, vergroot foutkans en is zwakker voor touch-targets.",
-      "proposedFix": "Zet objecten om naar duidelijkere regels met labels, expliciete primaire actie en beter leesbare destructieve bevestiging.",
+      "whyItMatters": "In de primaire invoerflow waren bewerken, kopieren en verwijderen eerder lastig te scannen en zwak voor touch-targets.",
+      "proposedFix": "Gebruik gelabelde acties en leesbare destructieve bevestiging in plaats van tiny icon-controls.",
       "status": "fixed",
       "evidenceReference": [
         ".agent/screenshots/iteration-1/before/indeling-dense-desktop.png",
-        ".agent/screenshots/iteration-1/before/indeling-normal-mobile.png",
-        ".agent/screenshots/iteration-1/after/indeling-dense-desktop.png",
-        ".agent/screenshots/iteration-1/after/indeling-normal-mobile.png"
+        ".agent/screenshots/iteration-1/after/indeling-dense-desktop.png"
       ],
-      "regressionRisk": "Low - rijhoogte kan toenemen, maar de werkruimte moet beter leesbaar blijven."
+      "regressionRisk": "Low - rijhoogte mag niet onnodig exploderen."
     },
     {
       "id": "bestellijst-table-buried-by-overview",
       "title": "Bestellijst laat te veel overzicht zien voordat de ordertabel begint",
       "affectedScreenFlow": "Stap 4 - Bestellijst (dichte state)",
       "severity": 2,
-      "whyItMatters": "De hoofdtaak is orderregels controleren, maar de tabel zakt onder toolbar, vier metrics en twee extra samenvattingsblokken. Dat verzwakt de focus op de reviewtaak.",
-      "proposedFix": "Behoud alleen de essentiele samenvatting boven de tabel en verplaats verdelingen per wand en paneeltype naar een compact of inklapbaar secundair blok.",
-      "status": "open",
+      "whyItMatters": "De hoofdtaak is orderregels controleren. Een hoge bovenbouw duwt de tabel te ver naar beneden en verlaagt focus op de reviewtaak.",
+      "proposedFix": "Behoud alleen compacte reviewcontext boven de tabel en bundel exportuitleg en tellers in een kort, secundair blok.",
+      "status": "fixed",
       "evidenceReference": [
-        ".agent/screenshots/iteration-1/before/bestellijst-dense-desktop.png",
-        ".agent/screenshots/iteration-1/before/bestellijst-normal-desktop.png",
-        ".agent/screenshots/iteration-1/after/bestellijst-dense-desktop.png",
-        ".agent/screenshots/iteration-1/after/bestellijst-normal-desktop.png"
+        ".agent/screenshots/iteration-2/before/bestellijst-dense-desktop.png",
+        ".agent/screenshots/iteration-2/after/bestellijst-dense-desktop.png",
+        ".agent/screenshots/iteration-2/after/comparisons/bestellijst-dense-desktop-compare.png"
       ],
-      "regressionRisk": "Low - samenvattingsinformatie mag niet verloren gaan voor export- of controletaken."
+      "regressionRisk": "Low - exportcontext en technische toggle moeten duidelijk blijven."
     },
     {
       "id": "home-empty-onboarding-overexplained",
       "title": "Lege startpagina vraagt te veel filtering van eerste gebruikers",
       "affectedScreenFlow": "Home - lege state",
       "severity": 2,
-      "whyItMatters": "De eerste pagina combineert hero, inputkaart, outputkaart, woordenlijst, stapoverzicht, drie extra uitlegkaarten, mini-voorbeeld en een extra hulpblok. Dat maakt de eerste keuze minder direct dan nodig.",
-      "proposedFix": "Laat alleen de kern zichtbaar, combineer of verwijder dubbele uitleg en maak extra context optioneel.",
+      "whyItMatters": "De eerste pagina combineerde te veel uitlegblokken tegelijk, waardoor de eerste keuze minder direct werd.",
+      "proposedFix": "Laat alleen de kern zichtbaar en zet extra context achter optionele hulp.",
       "status": "fixed",
       "evidenceReference": [
         ".agent/screenshots/iteration-1/before/home-empty-desktop.png",
-        ".agent/screenshots/iteration-1/before/home-invalid-share-desktop.png",
-        ".agent/screenshots/iteration-1/after/home-empty-desktop.png",
-        ".agent/screenshots/iteration-1/after/home-invalid-share-desktop.png"
+        ".agent/screenshots/iteration-1/after/home-empty-desktop.png"
       ],
-      "regressionRisk": "Low - eerste gebruikers moeten nog steeds begrijpen wat de app oplevert en welke stap eerst komt."
+      "regressionRisk": "Low - eerste gebruikers moeten nog steeds begrijpen wat de app oplevert."
     },
     {
       "id": "panelen-mobile-drawer-friction",
-      "title": "Mobiele paneel-editor verdient nog een expliciete responsive check",
+      "title": "Mobiele paneel-editor blokkeert eerste selectie door full-height overlay",
       "affectedScreenFlow": "Stap 2 - Panelen editor (narrow viewport)",
       "severity": 2,
-      "whyItMatters": "Tijdens de capture-run bleek de mobiele editorflow kwetsbaar doordat overlay en canvas om aandacht concurreren. Dat wijst op extra kans op geblokkeerde interactie of verlies van context op smalle schermen.",
-      "proposedFix": "Valideer mobiel gedrag expliciet en zorg dat de drawer alleen als tijdelijke werklaag verschijnt zonder het hoofdcanvas onnodig te blokkeren.",
+      "whyItMatters": "Op mobiel kon de gebruiker de eerste kast niet selecteren doordat de editorlaag het werkvlak direct afdekte en klikken onderschepte.",
+      "proposedFix": "Open de wand zonder drawer, maak de lege drawer compacter en laat interactie buiten de drawer weer door naar het canvas.",
+      "status": "fixed",
+      "evidenceReference": [
+        ".agent/screenshots/iteration-2/mobile-paneel-editor-check.png",
+        ".agent/screenshots/iteration-2/after/panelen-workspace-mobile.png",
+        ".agent/screenshots/iteration-2/after/panelen-editor-mobile.png",
+        ".agent/screenshots/iteration-2/after/comparisons/panelen-workspace-mobile-compare.png",
+        ".agent/screenshots/iteration-2/after/comparisons/panelen-editor-mobile-compare.png"
+      ],
+      "regressionRisk": "Medium - mobiele aanpassingen mogen de desktop-editor niet aantasten."
+    },
+    {
+      "id": "panelen-mobile-canvas-priority",
+      "title": "Mobiele paneelwerkruimte toont nog te veel status boven het canvas",
+      "affectedScreenFlow": "Stap 2 - Panelen editor (narrow viewport)",
+      "severity": 2,
+      "whyItMatters": "De blokkade is opgelost, maar de gebruiker moet op mobiel nog steeds door veel statuscopy en meerdere samenvattingskaarten scrollen voordat het daadwerkelijke selectievlak de visuele hoofdrol krijgt.",
+      "proposedFix": "Compact de actieve-wand status op mobiel verder tot een kortere samenvatting of disclosure, zodat het canvas eerder in beeld komt en de volgende tik duidelijker is.",
       "status": "open",
       "evidenceReference": [
-        ".agent/screenshots/iteration-1/before/indeling-normal-mobile.png",
-        ".agent/screenshots/iteration-1/after/indeling-normal-mobile.png"
+        ".agent/screenshots/iteration-2/after/panelen-workspace-mobile.png",
+        ".agent/screenshots/iteration-2/after/panelen-editor-mobile.png",
+        ".agent/screenshots/iteration-2/after/comparisons/panelen-workspace-mobile-compare.png",
+        ".agent/screenshots/iteration-2/after/comparisons/panelen-editor-mobile-compare.png"
       ],
-      "regressionRisk": "Medium - responsive aanpassingen rond de drawer kunnen de desktop-editor beïnvloeden."
+      "regressionRisk": "Medium - te veel comprimeren mag selectie- en editorstatus niet onduidelijk maken."
     }
   ]
 }

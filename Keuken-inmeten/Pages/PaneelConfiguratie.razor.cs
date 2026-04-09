@@ -45,6 +45,7 @@ public partial class PaneelConfiguratie
 
     private bool IsBewerkModus => bewerkToewijzingId is not null;
     private bool IsReviewWeergaveActief => reviewWeergaveActief && State.Toewijzingen.Count > 0;
+    private bool ToonCompacteEditorLeegstaat => !IsBewerkModus && geselecteerdeKastIds.Count == 0;
 
     private KeukenWand? GeopendeWand
         => geopendeWandId is Guid id ? State.Wanden.FirstOrDefault(wand => wand.Id == id) : null;
@@ -232,7 +233,7 @@ public partial class PaneelConfiguratie
 
         reviewWeergaveActief = false;
         geopendeWandId = wandId;
-        toonEditorDrawer = true;
+        toonEditorDrawer = false;
         ResetConceptPaneel();
     }
 
@@ -266,6 +267,35 @@ public partial class PaneelConfiguratie
     }
 
     private void SluitEditorDrawer() => toonEditorDrawer = false;
+
+    private string EditorDrawerTitel()
+        => IsBewerkModus
+            ? $"Paneel bewerken — {GeopendeWand?.Naam}"
+            : ToonCompacteEditorLeegstaat
+                ? $"Kast(en) selecteren — {GeopendeWand?.Naam}"
+                : $"Paneel plaatsen — {GeopendeWand?.Naam}";
+
+    private string EditorWerklaagStatusTekst()
+    {
+        if (toonEditorDrawer)
+            return ToonCompacteEditorLeegstaat ? "Editor open; selecteer nu kast(en)" : "Paneel-editor staat open";
+
+        return geselecteerdeKastIds.Count > 0
+            ? "Selectie klaar; open nu de editor"
+            : "Selecteer eerst kast(en) in de tekening";
+    }
+
+    private string EditorStatusHintTekst()
+        => toonEditorDrawer
+            ? ToonCompacteEditorLeegstaat
+                ? "De werklaag begeleidt, maar de selectie zelf doet u in de tekening."
+                : "De mini-flow voor maat, type en opslaan staat in de editorlaag."
+            : geselecteerdeKastIds.Count > 0
+                ? "Open de editor om plaatsing, maat en opslaan af te ronden."
+                : "Selecteer eerst een of meer kasten; daarna wordt de editor zinvol.";
+
+    private string OpenEditorKnopLabel()
+        => geselecteerdeKastIds.Count > 0 || IsBewerkModus ? "Open paneel-editor" : "Open editorlaag";
 
     private void ResetConceptPaneel()
     {
