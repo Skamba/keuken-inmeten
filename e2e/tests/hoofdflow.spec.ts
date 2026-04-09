@@ -43,7 +43,7 @@ test('navbar deelt een link naar de huidige stap', async ({ page, context }) => 
     .toContain('/kasten?share=');
 });
 
-test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en terug importeren', async ({ page }) => {
+test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en via een importmodal terug laden', async ({ page }) => {
   const indeling = new IndelingPage(page);
 
   await indeling.goto();
@@ -78,13 +78,23 @@ test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en
   await expect(page.getByTestId('actie-feedback-toast')).toContainText('Het keukenproject is gewist.');
   await expect(page.getByText('Begin door een wand toe te voegen.')).toBeVisible();
 
+  await expect(page.getByTestId('nav-import-modal')).toHaveCount(0);
+  await page.getByTestId('nav-import-button').click();
+  await expect(page.getByTestId('nav-import-modal')).toBeVisible();
+  await expect(page.getByTestId('nav-import-confirm-button')).toBeDisabled();
+
   await page.getByTestId('nav-import-input').setInputFiles({
     name: 'keuken-project.json',
     mimeType: 'application/json',
     buffer: Buffer.from(jsonMetBom, 'utf8'),
   });
 
+  await expect(page.getByTestId('nav-import-selected-file')).toContainText('keuken-project.json');
+  await expect(page.getByTestId('nav-import-confirm-button')).toBeEnabled();
+  await page.getByTestId('nav-import-confirm-button').click();
+
   await expect(page.getByTestId('actie-feedback-toast')).toContainText("Project 'keuken-project.json' is geladen.");
+  await expect(page.getByTestId('nav-import-modal')).toHaveCount(0);
 
   await indeling.openWandWerkruimte('Achterwand');
   await expect(page.getByTestId('actieve-wand-werkruimte')).toContainText('Onderkast export');

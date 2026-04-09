@@ -29,7 +29,7 @@ public sealed class ProjectBeheerService(IJSRuntime js, PersistentieService pers
         }
     }
 
-    public async Task ImporteerAsync(IBrowserFile bestand)
+    public async Task<bool> ImporteerAsync(IBrowserFile bestand)
     {
         string json;
 
@@ -42,17 +42,18 @@ public sealed class ProjectBeheerService(IJSRuntime js, PersistentieService pers
         catch (IOException)
         {
             feedback.ToonFout("Importeren lukte niet. Kies een leesbaar JSON-bestand tot 5 MB.");
-            return;
+            return false;
         }
 
         if (!persistentie.TryDecodeProjectJson(json, out var data))
         {
             feedback.ToonFout("Het gekozen bestand is geen geldig keukenproject. Exporteer opnieuw of kies een ongewijzigd JSON-bestand.");
-            return;
+            return false;
         }
 
         await persistentie.ImporteerProjectAsync(data);
         feedback.ToonSucces($"Project '{bestand.Name}' is geladen. U kunt direct verder met meten en controleren.");
+        return true;
     }
 
     public async Task WisAllesAsync()

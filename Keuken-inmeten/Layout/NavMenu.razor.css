@@ -18,6 +18,21 @@
     padding-bottom: 0.5rem;
 }
 
+.nav-menu-layout {
+    gap: 0.75rem;
+    min-height: 100%;
+}
+
+.nav-primary-section,
+.nav-utility-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-utility-section {
+    margin-top: auto;
+}
+
 .nav-section-label {
     color: rgba(255, 255, 255, 0.68);
     font-size: 0.72rem;
@@ -108,11 +123,42 @@
     background: rgba(255, 255, 255, 0.04);
 }
 
-.nav-file-action {
+.nav-action-button:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: white;
+}
+
+.nav-import-modal-overlay {
+    align-items: center;
+    background: rgba(15, 23, 42, 0.55);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    padding: 1rem;
+    position: fixed;
+    z-index: 1200;
+}
+
+.nav-import-modal {
+    max-width: 30rem;
+    width: min(100%, 30rem);
+}
+
+.nav-import-modal-body {
+    display: grid;
+    gap: 1rem;
+}
+
+.nav-import-picker {
     position: relative;
 }
 
-.nav-file-input {
+.nav-import-picker-button {
+    display: inline-flex;
+    width: 100%;
+}
+
+.nav-import-modal-input {
     cursor: pointer;
     height: 100%;
     inset: 0;
@@ -121,7 +167,16 @@
     width: 100%;
 }
 
-.nav-action-button:hover {
-    background: rgba(255, 255, 255, 0.18);
-    color: white;
+@media (max-width: 640px) {
+    .nav-import-modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .nav-import-modal {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        max-width: none;
+        width: 100%;
+    }
 }

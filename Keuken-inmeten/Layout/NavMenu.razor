@@ -24,83 +24,158 @@
     @{
         var flowStatus = StappenFlowHelper.BepaalStatus(State);
     }
-    <nav class="nav flex-column">
-        <div class="nav-section-label px-3">Stappen</div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                🏠 Home
-            </NavLink>
-        </div>
-        @foreach (var stap in StappenFlowHelper.AlleStappen)
-        {
-            var gate = StappenFlowHelper.BepaalRouteGate(stap.Id, flowStatus);
+    <nav class="nav flex-column nav-menu-layout">
+        <div class="nav-primary-section">
+            <div class="nav-section-label px-3">Stappen</div>
             <div class="nav-item px-3">
-                @if (gate is null)
-                {
-                    <NavLink class="nav-link" href="@stap.Route">
-                        @StapIcoon(stap.Id) @stap.Nummer. @stap.Label
-                    </NavLink>
-                }
-                else
-                {
-                    <span class="nav-link disabled"
-                          title="@gate.Reden"
-                          aria-disabled="true"
-                          aria-label="@($"{stap.Nummer}. {stap.Label}. {gate.Reden}")">
-                        🔒 @stap.Nummer. @stap.Label
-                    </span>
-                }
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    🏠 Home
+                </NavLink>
             </div>
-        }
-        <div class="nav-section-divider px-3" aria-hidden="true"></div>
-        <div class="nav-section-label px-3">Project en weergave</div>
-        <div class="nav-item px-3">
-            <button type="button"
-                    class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
-                    @onclick="DeelHuidigePagina"
-                    title="Deel een link naar deze keukenconfiguratie"
-                    data-testid="nav-share-button">
-                🔗 Deel link
-            </button>
+            @foreach (var stap in StappenFlowHelper.AlleStappen)
+            {
+                var gate = StappenFlowHelper.BepaalRouteGate(stap.Id, flowStatus);
+                <div class="nav-item px-3">
+                    @if (gate is null)
+                    {
+                        <NavLink class="nav-link" href="@stap.Route">
+                            @StapIcoon(stap.Id) @stap.Nummer. @stap.Label
+                        </NavLink>
+                    }
+                    else
+                    {
+                        <span class="nav-link disabled"
+                              title="@gate.Reden"
+                              aria-disabled="true"
+                              aria-label="@($"{stap.Nummer}. {stap.Label}. {gate.Reden}")">
+                            🔒 @stap.Nummer. @stap.Label
+                        </span>
+                    }
+                </div>
+            }
         </div>
-        <div class="nav-item px-3">
-            <button type="button"
-                    class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
-                    @onclick="ExporteerProject"
-                    title="Download het volledige keukenproject als JSON-bestand"
-                    data-testid="nav-export-button">
-                📤 Exporteer JSON
-            </button>
-        </div>
-        <div class="nav-item px-3">
-            <div class="nav-file-action">
-                <span class="nav-link nav-action-button nav-action-button--utility"
-                      data-testid="nav-import-button">
+
+        <div class="nav-utility-section" data-testid="nav-utility-section">
+            <div class="nav-section-divider px-3" aria-hidden="true"></div>
+            <div class="nav-section-label px-3">Project en weergave</div>
+            <div class="nav-item px-3">
+                <button type="button"
+                        class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
+                        @onclick="DeelHuidigePagina"
+                        title="Deel een link naar deze keukenconfiguratie"
+                        data-testid="nav-share-button">
+                    🔗 Deel link
+                </button>
+            </div>
+            <div class="nav-item px-3">
+                <button type="button"
+                        class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
+                        @onclick="ExporteerProject"
+                        title="Download het volledige keukenproject als JSON-bestand"
+                        data-testid="nav-export-button">
+                    📤 Exporteer JSON
+                </button>
+            </div>
+            <div class="nav-item px-3">
+                <button type="button"
+                        class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
+                        @onclick="OpenImportModal"
+                        @onclick:stopPropagation="true"
+                        title="Importeer een opgeslagen keukenproject vanuit JSON"
+                        data-testid="nav-import-button">
                     📥 Importeer JSON
-                </span>
-                <InputFile @key="importInputVersion"
-                           class="nav-file-input"
-                           accept=".json,application/json"
-                           aria-label="Importeer een keukenproject vanuit JSON"
-                           title="Importeer een opgeslagen keukenproject vanuit JSON"
-                           OnChange="ImporteerProject"
-                           data-testid="nav-import-input" />
+                </button>
             </div>
-        </div>
-        <div class="nav-item px-3">
-            <button type="button"
-                    class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
-                    @onclick="ToggleTheme"
-                    title="Wissel tussen licht en donker thema">
-                @themeIcon Thema
-            </button>
+            <div class="nav-item px-3">
+                <button type="button"
+                        class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
+                        @onclick="ToggleTheme"
+                        title="Wissel tussen licht en donker thema">
+                    @themeIcon Thema
+                </button>
+            </div>
         </div>
     </nav>
 </div>
 
+@if (toonImportModal)
+{
+    <div class="nav-import-modal-overlay"
+         @onclick="SluitImportModal"
+         data-testid="nav-import-modal-overlay">
+        <aside class="nav-import-modal card border-0 shadow-lg"
+               role="dialog"
+               aria-modal="true"
+               aria-labelledby="nav-import-modal-title"
+               @onclick:stopPropagation="true"
+               data-testid="nav-import-modal">
+            <div class="card-header bg-primary bg-opacity-10 border-bottom">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                        <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Projectimport</div>
+                        <h5 class="mb-1" id="nav-import-modal-title">Importeer JSON</h5>
+                        <p class="text-muted mb-0">Kies eerst een geëxporteerd projectbestand en bevestig daarna pas de import.</p>
+                    </div>
+                    <button type="button" class="btn-close" @onclick="SluitImportModal" aria-label="Sluit importvenster"></button>
+                </div>
+            </div>
+
+            <div class="card-body nav-import-modal-body">
+                <div class="small text-muted">
+                    Gebruik een eerder geëxporteerd keukenproject in JSON-formaat. Na import wordt de huidige keuken direct vervangen.
+                </div>
+
+                <div class="nav-import-picker">
+                    <span class="btn btn-outline-primary nav-import-picker-button" data-testid="nav-import-picker-button">
+                        Kies JSON-bestand
+                    </span>
+                    <InputFile @key="importInputVersion"
+                               class="nav-import-modal-input"
+                               accept=".json,application/json"
+                               aria-label="Kies een JSON-bestand om te importeren"
+                               title="Kies een opgeslagen keukenproject in JSON-formaat"
+                               OnChange="SelecteerImportBestand"
+                               data-testid="nav-import-input" />
+                </div>
+
+                @if (gekozenImportBestandNaam is { Length: > 0 } bestandsnaam)
+                {
+                    <div class="alert alert-light border py-2 px-3 mb-0" data-testid="nav-import-selected-file">
+                        <div class="small text-muted mb-1">Geselecteerd bestand</div>
+                        <div class="fw-semibold text-break">@bestandsnaam</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="small text-muted mb-0">Nog geen bestand geselecteerd.</div>
+                }
+
+                <div class="d-flex flex-wrap justify-content-end gap-2">
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            @onclick="SluitImportModal"
+                            data-testid="nav-import-cancel-button">
+                        Annuleren
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary"
+                            @onclick="BevestigImportProject"
+                            disabled="@(gekozenImportBestand is null)"
+                            data-testid="nav-import-confirm-button">
+                        Importeer project
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+}
+
 @code {
     private bool collapseNavMenu = true;
+    private bool toonImportModal;
     private string themeIcon = "🌙";
+    private IBrowserFile? gekozenImportBestand;
+    private string? gekozenImportBestandNaam;
     private ThemeJsInterop? themeInterop;
     private int importInputVersion;
 
@@ -133,16 +208,40 @@
     private Task ExporteerProject()
         => Projectbeheer.ExporteerAsync();
 
-    private async Task ImporteerProject(InputFileChangeEventArgs args)
+    private void OpenImportModal()
     {
-        try
+        collapseNavMenu = true;
+        toonImportModal = true;
+        ResetImportSelectie(vernieuwInput: true);
+    }
+
+    private void SluitImportModal()
+    {
+        toonImportModal = false;
+        ResetImportSelectie(vernieuwInput: true);
+    }
+
+    private void SelecteerImportBestand(InputFileChangeEventArgs args)
+    {
+        gekozenImportBestand = args.File;
+        gekozenImportBestandNaam = args.File.Name;
+    }
+
+    private async Task BevestigImportProject()
+    {
+        if (gekozenImportBestand is not { } bestand)
         {
-            await Projectbeheer.ImporteerAsync(args.File);
+            return;
         }
-        finally
+
+        var importGelukt = await Projectbeheer.ImporteerAsync(bestand);
+
+        if (importGelukt)
         {
-            importInputVersion++;
+            toonImportModal = false;
         }
+
+        ResetImportSelectie(vernieuwInput: true);
     }
 
     private void ToggleNavMenu()
@@ -151,6 +250,17 @@
     }
 
     private void HandleStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private void ResetImportSelectie(bool vernieuwInput)
+    {
+        gekozenImportBestand = null;
+        gekozenImportBestandNaam = null;
+
+        if (vernieuwInput)
+        {
+            importInputVersion++;
+        }
+    }
 
     private static string StapIcoon(string stapId) => stapId switch
     {
