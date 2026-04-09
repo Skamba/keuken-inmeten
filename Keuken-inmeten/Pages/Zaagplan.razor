@@ -6,7 +6,7 @@
 <StapIndicator HuidigeStap="zaagplan" />
 
 <h2 class="page-header">Stap 5: Zaagplan</h2>
-<p class="text-muted mb-3">Controleer eerst de plaatindeling. Open geavanceerde instellingen of één-plaat-focus alleen als u het resultaat wilt bijsturen.</p>
+<p class="text-muted mb-3">Controleer hier plaatmaat, indeling en eventuele panelen die nog niet passen.</p>
 <div class="stap-ondersteuning mb-3" data-testid="zaagplan-stap-ondersteuning">
     <StapHulpDrawer StapId="zaagplan" KnopLabel="Staphulp" />
     <TerminologieUitleg Compact="true"
@@ -58,7 +58,8 @@ else
             <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3">
                 <div>
                     <div class="small fw-semibold text-uppercase text-primary-emphasis">Plaatinstellingen</div>
-                    <div class="fw-semibold">Houd alleen plaatmaat en weergave direct in beeld. Open extra instellingen pas als het resultaat daarom vraagt.</div>
+                    <div class="fw-semibold">Plaatmaat en weergave</div>
+                    <div class="small text-muted">Pas zaagverlies of draaien pas aan als het resultaat daarom vraagt.</div>
                 </div>
                 <div class="zaagplan-kerncijfers">
                     <div class="zaagplan-kerncijfer">
@@ -102,12 +103,12 @@ else
                             Eén plaat tegelijk
                         </button>
                     </div>
-                    <div class="form-text hulp-hint">Kies <strong>Eén plaat tegelijk</strong> als u plaat voor plaat rustig wilt nalopen.</div>
+                    <div class="form-text hulp-hint">Gebruik <strong>Eén plaat tegelijk</strong> om de indeling plaat voor plaat te controleren.</div>
                 </div>
             </div>
 
             <details class="zaagplan-geavanceerd" data-testid="zaagplan-geavanceerde-instellingen">
-                <summary>Geavanceerde instellingen · zaagverlies @FormatMm(_zaagbreedte) mm · draaien @(_draaiToe ? "aan" : "uit")</summary>
+                <summary>Geavanceerd · zaagverlies @FormatMm(_zaagbreedte) mm · draaien @(_draaiToe ? "aan" : "uit")</summary>
                 <div class="row g-3 mt-2">
                     <div class="col-lg-6">
                         <div class="border rounded p-3 h-100 bg-body-tertiary">

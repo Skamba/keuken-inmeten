@@ -12,26 +12,7 @@
     var actieveWand = State.Wanden.Find(wand => wand.Id == actieveWandId);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-2">
-    <h2 class="page-header mb-0">Stap 1: Indeling</h2>
-    @if (State.HeeftProjectInhoud())
-    {
-        @if (bevestigWisAlles)
-        {
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-danger small fw-semibold">Hele keuken wissen? Alle wanden, kasten, panelen en apparaten worden teruggezet.</span>
-                <button class="btn btn-sm btn-danger" @onclick="WisAllesAsync">Ja, wis alles</button>
-                <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigWisAlles = false">Annuleren</button>
-            </div>
-        }
-        else
-        {
-            <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigWisAlles = true">
-                Wis hele keuken
-            </button>
-        }
-    }
-</div>
+<h2 class="page-header mb-0">Stap 1: Indeling</h2>
 @if (actieveWand is null)
 {
     <p class="text-muted mb-3">Maak wandindelingen aan en open daarna steeds één wand om maten, kasten en objecten rustig per werkruimte uit te werken.</p>
@@ -43,6 +24,37 @@
                         Sleutels="plinthoogte,wanddikte,gaatjesrij,eerstegat"
                         Beschrijving="Open alleen bij twijfel over de technische maten die u in stap 1 invult." />
 </div>
+
+@if (State.HeeftProjectInhoud())
+{
+    <details class="indeling-overige-wanden mb-4" data-testid="indeling-project-acties-details">
+        <summary class="indeling-overige-wanden-summary" data-testid="indeling-project-acties-summary">
+            <div>
+                <h5 class="mb-0">Projectacties</h5>
+                <div class="small text-muted">Verborgen zodat wissen niet concurreert met het uitwerken van een wand.</div>
+            </div>
+        </summary>
+        <div class="indeling-overige-wanden-body">
+            @if (bevestigWisAlles)
+            {
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="text-danger small fw-semibold">Hele keuken wissen? Alle wanden, kasten, panelen en apparaten worden teruggezet.</span>
+                    <button class="btn btn-sm btn-danger" @onclick="WisAllesAsync">Ja, wis alles</button>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigWisAlles = false">Annuleren</button>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <p class="small text-muted mb-0">Gebruik dit alleen als u de hele keuken opnieuw wilt beginnen.</p>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigWisAlles = true">
+                        Wis hele keuken
+                    </button>
+                </div>
+            }
+        </div>
+    </details>
+}
 
 @* ──── Wand toevoegen ──── *@
 @if (State.Wanden.Count == 0)
@@ -66,28 +78,60 @@
 }
 else
 {
-    <div class="indeling-nieuwe-wand-strip mb-4">
-        <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-end gap-3">
-            <div>
-                <div class="small fw-semibold text-uppercase text-muted mb-1">Extra wand</div>
-                <div class="small text-muted mb-0">Alleen nodig als deze keuken nog een extra zijde krijgt.</div>
-            </div>
-            <div class="flex-grow-1">
-                <label class="form-label fw-semibold">Wandnaam</label>
-                <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
-                       @onkeydown="WandToevoegenBijEnter"
-                       data-testid="nieuwe-wand-naam-input" />
-                <div class="form-text hulp-hint mb-0" data-testid="nieuwe-wand-naam-hint">Bijvoorbeeld Kopwand of Eilandzijde.</div>
-            </div>
-            <div class="d-flex justify-content-xl-end">
-                <button class="btn btn-primary" @onclick="WandToevoegen"
-                        disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)"
-                        data-testid="wand-toevoegen-button">
-                    Wand toevoegen
-                </button>
+    @if (actieveWand is null)
+    {
+        <div class="indeling-nieuwe-wand-strip mb-4">
+            <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-end gap-3">
+                <div>
+                    <div class="small fw-semibold text-uppercase text-muted mb-1">Extra wand</div>
+                    <div class="small text-muted mb-0">Alleen nodig als deze keuken nog een extra zijde krijgt.</div>
+                </div>
+                <div class="flex-grow-1">
+                    <label class="form-label fw-semibold">Wandnaam</label>
+                    <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
+                           @onkeydown="WandToevoegenBijEnter"
+                           data-testid="nieuwe-wand-naam-input" />
+                    <div class="form-text hulp-hint mb-0" data-testid="nieuwe-wand-naam-hint">Bijvoorbeeld Kopwand of Eilandzijde.</div>
+                </div>
+                <div class="d-flex justify-content-xl-end">
+                    <button class="btn btn-primary" @onclick="WandToevoegen"
+                            disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)"
+                            data-testid="wand-toevoegen-button">
+                        Wand toevoegen
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <details class="indeling-overige-wanden mb-4" data-testid="indeling-extra-wand-details">
+            <summary class="indeling-overige-wanden-summary" data-testid="indeling-extra-wand-summary">
+                <div>
+                    <h5 class="mb-0">Nog een wand toevoegen</h5>
+                    <div class="small text-muted">Verborgen zolang u in deze werkruimte bezig bent.</div>
+                </div>
+            </summary>
+            <div class="indeling-overige-wanden-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-xl-8">
+                        <label class="form-label fw-semibold">Wandnaam</label>
+                        <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
+                               @onkeydown="WandToevoegenBijEnter"
+                               data-testid="nieuwe-wand-naam-input" />
+                        <div class="form-text hulp-hint mb-0" data-testid="nieuwe-wand-naam-hint">Bijvoorbeeld Kopwand of Eilandzijde.</div>
+                    </div>
+                    <div class="col-xl-4 d-flex justify-content-xl-end">
+                        <button class="btn btn-primary" @onclick="WandToevoegen"
+                                disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)"
+                                data-testid="wand-toevoegen-button">
+                            Wand toevoegen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </details>
+    }
 }
 
 @if (State.Wanden.Count == 0)

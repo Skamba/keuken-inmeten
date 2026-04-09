@@ -21,6 +21,13 @@ export class PanelenPage {
     if (!(await this.actieveWerkruimte(wandNaam).isVisible())) {
       const wand = this.wandCard(wandNaam);
       const openKnop = wand.getByTestId('open-paneel-wand-button');
+      if (!(await openKnop.isVisible())) {
+        const overigeWandenSamenvatting = this.page.getByTestId('paneel-overige-wanden-summary');
+        if (await overigeWandenSamenvatting.isVisible()) {
+          await overigeWandenSamenvatting.click();
+          await expect(openKnop).toBeVisible();
+        }
+      }
       await openKnop.click();
     }
 

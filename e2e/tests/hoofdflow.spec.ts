@@ -71,6 +71,7 @@ test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en
   expect(exportData.schemaVersion).toBeGreaterThan(0);
   expect(exportData.data.wanden).toHaveLength(1);
 
+  await page.getByTestId('indeling-project-acties-summary').click();
   await page.getByRole('button', { name: 'Wis hele keuken' }).click();
   await page.getByRole('button', { name: 'Ja, wis alles' }).click();
 

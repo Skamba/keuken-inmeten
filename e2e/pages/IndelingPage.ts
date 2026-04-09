@@ -26,6 +26,13 @@ export class IndelingPage {
   }
 
   async voegWandToe(naam: string) {
+    if (!(await this.page.getByTestId('nieuwe-wand-naam-input').isVisible())) {
+      const extraWandSamenvatting = this.page.getByTestId('indeling-extra-wand-summary');
+      if (await extraWandSamenvatting.isVisible()) {
+        await extraWandSamenvatting.click();
+      }
+    }
+
     await this.page.getByTestId('nieuwe-wand-naam-input').fill(naam);
     await this.page.getByTestId('wand-toevoegen-button').click();
     const resultaat = this.wandCard(naam).or(this.actieveWerkruimte(naam));
