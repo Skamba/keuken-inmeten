@@ -10,9 +10,17 @@
 <StapIndicator HuidigeStap="verificatie" />
 
 <h2 class="page-header">Stap 3: Verificatie</h2>
-@if (_fase != VerificatieFase.Afronding)
+@if (_fase == VerificatieFase.Overzicht)
 {
     <p class="text-muted mb-3">Controleer per paneel eerst de maat in de opening en daarna de systeemgaten. De bestelmaat moet logisch volgen uit opening en speling.</p>
+}
+else if (_fase == VerificatieFase.PaneelVerificatie)
+{
+    <p class="text-muted mb-3">Werk hieronder eerst dit paneel af. Andere panelen en technische uitleg blijven dicht bij de controle beschikbaar.</p>
+}
+
+@if (_fase != VerificatieFase.Afronding)
+{
     <div class="stap-ondersteuning mb-3" data-testid="verificatie-stap-ondersteuning">
         <StapHulpDrawer StapId="verificatie" KnopLabel="Staphulp" />
         <TerminologieUitleg Compact="true"
@@ -166,43 +174,51 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
     var openingH = r.MaatInfo?.OpeningsRechthoek.Hoogte ?? r.Hoogte;
     var aantalAfgevinkt = AantalAfgevinktVoorPaneel(_paneelIndex, r);
     var totaalChecks = isDeur ? 2 : 1;
+    var afgerondePanelen = Enumerable.Range(0, resultaten.Count).Count(i => AlleChecksVoorPaneel(i, resultaten[i]));
+    var openPaneelControles = Enumerable.Range(0, resultaten.Count).Sum(i => OpenChecksVoorPaneel(i, resultaten[i]));
 
-    @* Paneel-tabs navigatie *@
-    <div class="border rounded p-3 mb-3 bg-body-tertiary">
-        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-            <div>
-                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Voortgang over alle panelen</div>
-                <div class="fw-semibold">@Enumerable.Range(0, resultaten.Count).Count(i => AlleChecksVoorPaneel(i, resultaten[i])) van @resultaten.Count panelen klaar</div>
-                <div class="small text-muted">Paneel @(_paneelIndex + 1) van @resultaten.Count staat nu open.</div>
-            </div>
-            <div class="small text-muted">@Enumerable.Range(0, resultaten.Count).Sum(i => OpenChecksVoorPaneel(i, resultaten[i])) open controles in deze stap</div>
+    <div class="verificatie-focus-strip mb-3">
+        <div>
+            <div class="verificatie-samenvatting-label mb-1">Actief paneel</div>
+            <div class="fw-semibold">Paneel @(_paneelIndex + 1) van @resultaten.Count</div>
+            <div class="small text-muted">@r.KastNaam · @State.WandNaamVoorKasten(r.KastIds)</div>
+        </div>
+        <div class="text-sm-end">
+            <div class="fw-semibold">@afgerondePanelen van @resultaten.Count panelen klaar</div>
+            <div class="small text-muted">@openPaneelControles open controles in deze stap</div>
         </div>
     </div>
 
-    <div class="mb-3 verificatie-tabs">
-        <ul class="nav nav-pills nav-fill flex-wrap">
-            @for (int i = 0; i < resultaten.Count; i++)
-            {
-                var ri = resultaten[i];
-                var idx = i;
-                var isActief = idx == _paneelIndex;
-                var isOk = AlleChecksVoorPaneel(idx, ri);
-                <li class="nav-item">
-                    <button class="nav-link @(isActief ? "active" : "") @(isOk && !isActief ? "verificatie-tab-ok" : "")"
-                            @onclick="() => GaNaarPaneel(idx)">
-                        <span class="fw-semibold">
-                            @if (isOk)
-                            {
-                                <span class="verificatie-tab-check">&#10003;</span>
-                            }
-                            @(i + 1). @ri.KastNaam
-                        </span>
-                        <span class="small opacity-75">@PaneelTabStatusTekst(idx, ri)</span>
+    @if (resultaten.Count > 1)
+    {
+        <details class="verificatie-paneelselectie mb-3"
+                 data-testid="verificatie-paneelselectie-details">
+            <summary class="verificatie-paneelselectie-summary"
+                     data-testid="verificatie-paneelselectie-summary">
+                <div>
+                    <div class="fw-semibold">Andere panelen</div>
+                    <div class="small text-muted">Open dit alleen als u bewust naar een ander paneel wilt wisselen.</div>
+                </div>
+                <span class="badge text-bg-light">@resultaten.Count panelen</span>
+            </summary>
+            <div class="verificatie-paneelselectie-lijst">
+                @for (int i = 0; i < resultaten.Count; i++)
+                {
+                    var ri = resultaten[i];
+                    var idx = i;
+                    var isActief = idx == _paneelIndex;
+                    var isOk = AlleChecksVoorPaneel(idx, ri);
+
+                    <button class="btn @(isActief ? "btn-primary" : isOk ? "btn-outline-success" : "btn-outline-secondary") btn-sm verificatie-paneelselectie-knop"
+                            @onclick="() => GaNaarPaneel(idx)"
+                            disabled="@isActief">
+                        <span class="fw-semibold">Paneel @(i + 1) · @ri.KastNaam</span>
+                        <span class="small @(isActief ? "opacity-75" : "text-muted")">@PaneelTabStatusTekst(idx, ri)</span>
                     </button>
-                </li>
-            }
-        </ul>
-    </div>
+                }
+            </div>
+        </details>
+    }
 
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -220,14 +236,14 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                     <div class="small text-muted">@HuidigeControleHint(_paneelIndex, r)</div>
                 </div>
                 <div class="verificatie-samenvatting-item">
-                    <div class="verificatie-samenvatting-label">Maat in opening</div>
-                    <div class="fw-semibold">@FormatMm(openingB) &#215; @FormatMm(openingH)</div>
-                    <div class="small text-muted">@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel: @FormatMm(r.Breedte) &#215; @FormatMm(r.Hoogte)</div>
+                    <div class="verificatie-samenvatting-label">@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel</div>
+                    <div class="fw-semibold">@FormatMm(r.Breedte) &#215; @FormatMm(r.Hoogte)</div>
+                    <div class="small text-muted">Vergelijk deze maat hieronder met de vrije opening op de kast.</div>
                 </div>
                 <div class="verificatie-samenvatting-item">
-                    <div class="verificatie-samenvatting-label">Open controles</div>
-                    <div class="fw-semibold">@OpenChecksLabel(_paneelIndex, r)</div>
-                    <div class="small text-muted">@aantalAfgevinkt van @totaalChecks controles afgevinkt</div>
+                    <div class="verificatie-samenvatting-label">Status</div>
+                    <div class="fw-semibold">@aantalAfgevinkt van @totaalChecks controles afgevinkt</div>
+                    <div class="small text-muted">@OpenChecksLabel(_paneelIndex, r)</div>
                 </div>
             </div>
 
@@ -244,7 +260,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                             </button>
                             <div>
                                 <h6 class="mb-1 fw-bold">Meet de maat in de opening na</h6>
-                                <p class="text-muted small mb-0">Meet de vrije opening en vergelijk die met de maat hieronder. De maat om te bestellen staat er direct onder.</p>
+                                <p class="text-muted small mb-0">Meet de vrije opening na en vergelijk die direct met de bestelmaat hieronder.</p>
                             </div>
                         </div>
 
@@ -294,7 +310,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                                 </button>
                                 <div>
                                     <h6 class="mb-1 fw-bold">Controleer de rij systeemgaten (gaatjesrij) op de kastromp</h6>
-                                    <p class="text-muted small mb-0">Open de kast, kijk naar de @(r.ScharnierZijde == ScharnierZijde.Links ? "linker" : "rechter") zijwand en tel per scharnier de gaatjesrij vanaf boven.</p>
+                                    <p class="text-muted small mb-0">Open de kast en controleer per scharnier de @(r.ScharnierZijde == ScharnierZijde.Links ? "linker" : "rechter") gaatjesrij vanaf boven.</p>
                                 </div>
                             </div>
 

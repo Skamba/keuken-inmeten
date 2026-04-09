@@ -10,7 +10,7 @@
 <StapIndicator HuidigeStap="bestellijst" />
 
 <h2 class="page-header">Stap 4: Bestellijst</h2>
-<p class="text-muted mb-3">Controleer hier vooral aantallen, maten en wandcontext. Export opent pas daarna in een korte previewflow.</p>
+<p class="text-muted mb-3">Controleer hier aantallen, maten en wandcontext. Daarna opent export in drie korte stappen.</p>
 <div class="stap-ondersteuning mb-3" data-testid="bestellijst-stap-ondersteuning">
     <StapHulpDrawer StapId="bestellijst" KnopLabel="Staphulp" />
     <TerminologieUitleg Compact="true"
@@ -51,14 +51,14 @@ else
                 <div>
                     <div class="small fw-semibold text-uppercase text-primary-emphasis">Ordercontrole</div>
                     <h5 class="mb-1">Controleer eerst de orderregels</h5>
-                    <p class="text-muted mb-0">Scan hier aantallen, maten en wandcontext. Open export pas als dit klopt.</p>
+                    <p class="text-muted mb-0">Kloppen aantallen, maten en wandcontext? Open daarna pas export.</p>
                 </div>
                 <div class="bestellijst-export-entry">
                     <button type="button"
                             class="btn btn-primary"
                             @onclick="OpenExportFlow"
                             data-testid="bestellijst-open-exportflow-button">Export voorbereiden</button>
-                    <div class="small text-muted mt-2">PDF of Excel kiest u in de volgende stap.</div>
+                    <div class="small text-muted mt-2">Bestandsformaat kiest u pas in stap 1.</div>
                 </div>
             </div>
 
@@ -130,7 +130,7 @@ else
                     @if (_exportFlowStap is BestellijstExportFlowStap.Kiezen)
                     {
                         <section data-testid="bestellijst-export-step-kies">
-                            <div class="small text-muted mb-3">Kies eerst het bestandsformaat. Materiaal in de export past u alleen aan als het bestand van uw standaardplaat moet afwijken.</div>
+                            <div class="small text-muted mb-3">Kies eerst alleen het bestandsformaat. Materiaal past u alleen aan als dit bestand van de standaard moet afwijken.</div>
 
                             <div class="fw-semibold mb-2">Bestandsformaat</div>
                             <div class="row g-3">
@@ -158,19 +158,12 @@ else
                                 }
                             </div>
 
-                            <div class="bestellijst-export-keuze-samenvatting mt-3">
-                                <div class="small fw-semibold text-uppercase text-muted mb-1">Gekozen formaat</div>
-                                <div class="fw-semibold">@gekozenExport.Label</div>
-                                <div class="small text-muted">@gekozenExport.WanneerKiezen</div>
-                                <div class="small text-muted mt-1">@gekozenExport.ResultaatUitleg</div>
-                            </div>
-
                             <details class="bestellijst-overzicht-details bestellijst-export-instellingen mt-4"
                                      data-testid="bestellijst-export-instellingen">
                                 <summary data-testid="bestellijst-export-instellingen-summary">
                                     <div>
-                                        <div class="fw-semibold">Materiaal in export</div>
-                                        <div class="small text-muted">@DisplayPaneelType() · @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</div>
+                                        <div class="fw-semibold">Materiaal aanpassen (optioneel)</div>
+                                        <div class="small text-muted">Standaard: @DisplayPaneelType() · @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</div>
                                     </div>
                                 </summary>
                                 <div class="row g-3 mt-2">
@@ -225,6 +218,7 @@ else
                                         <div class="small fw-semibold text-uppercase text-muted mb-1">Gebruik dit als</div>
                                         <div class="small text-muted mb-3">@gekozenExport.WanneerKiezen</div>
                                         <div class="small"><strong>Resultaat:</strong> @gekozenExport.ResultaatUitleg</div>
+                                        <div class="small text-muted mt-3">Materiaal: @DisplayPaneelType() · @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</div>
                                     </div>
                                 </div>
                             </div>

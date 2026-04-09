@@ -35,7 +35,7 @@
                     <p class="lead text-muted mb-4">
                         @(heeftProjectData
                             ? dashboardLead
-                            : "Begin met wanden en kasten. Panelen, controle, bestellijst en zaagplan volgen daarna in vaste stappen.")
+                            : "Begin met wanden en kasten. Panelen, controle en uitvoer volgen daarna stap voor stap.")
                     </p>
 
                     <div class="d-flex flex-wrap gap-2">
@@ -89,7 +89,7 @@
                                 <li class="home-summary-item">
                                     <span class="home-summary-icon">🧾</span>
                                     <div>
-                                        <strong>Daarna volgen controle, bestellijst en zaagplan</strong>
+                                        <strong>Daarna volgen controle en uitvoer</strong>
                                         <div class="text-muted small">Na paneeltoewijzing ziet u maten, boorgaten, orderregels en plaatindeling terug.</div>
                                     </div>
                                 </li>
@@ -226,7 +226,7 @@
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2">
                     <div>
                         <h2 class="h4 mb-1">Meer uitleg (optioneel)</h2>
-                        <p class="text-muted mb-0">Open dit alleen als u voorbeelden of extra context wilt voordat u begint.</p>
+                        <p class="text-muted mb-0">Open dit alleen als u drie korte aandachtspunten wilt checken voordat u begint.</p>
                     </div>
                 </div>
 
@@ -237,89 +237,21 @@
                             <div class="home-example-step h-100">
                                 <div class="home-example-label">Let extra op</div>
                                 <h3 class="h5">Apparaten</h3>
-                                <p class="text-muted mb-0">Voeg een apparaat alleen toe als het echt wandruimte inneemt of de vrije ruimte voor een paneel verandert.</p>
+                                <p class="text-muted mb-0">Voeg een apparaat alleen toe als het echt wandruimte inneemt of de vrije opening voor een paneel verandert.</p>
                             </div>
                         </div>
                         <div class="col-lg-4">
                             <div class="home-example-step h-100">
                                 <div class="home-example-label">Technische context</div>
                                 <h3 class="h5">Planken</h3>
-                                <p class="text-muted mb-0">Planken tellen vooral mee als referentie voor de gatenrij. De afstand naar het eerste gat wordt gemeten vanaf de onderkant van de bovenste plank.</p>
+                                <p class="text-muted mb-0">Planken tellen vooral mee als referentie voor de gatenrij en de eerste gatpositie.</p>
                             </div>
                         </div>
                         <div class="col-lg-4">
                             <div class="home-example-step h-100">
                                 <div class="home-example-label">Uitvoer</div>
                                 <h3 class="h5">Zaagplan</h3>
-                                <p class="text-muted mb-0">Het zaagplan gebruikt de panelen uit de bestellijst om te laten zien hoeveel standaard platen u nodig hebt en hoe de panelen daarop passen.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2 mb-3">
-                            <div>
-                                <h3 class="h5 mb-1">Mini-voorbeeld: van invoer naar output</h3>
-                                <p class="text-muted mb-0">Een compact voorbeeld van wat u invult en wat u daarna terugziet.</p>
-                            </div>
-                            <div class="text-muted small">Voorbeeld, niet uw echte projectdata</div>
-                        </div>
-
-                        <div class="row g-3 align-items-stretch">
-                            <div class="col-lg-6 col-xl">
-                                <div class="home-example-step h-100">
-                                    <div class="home-example-label">Invoer</div>
-                                    <h3 class="h5">1. @StappenFlowHelper.Stap("kasten").Label</h3>
-                                    <ul class="mb-0 text-muted small">
-                                        <li>Achterwand toevoegen en 3 kasten plaatsen</li>
-                                        <li>Een oven toevoegen waar hij echt ruimte inneemt</li>
-                                        <li>Controleer of de wandopstelling logisch staat</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="col-lg-6 col-xl">
-                                <div class="home-example-step h-100">
-                                    <div class="home-example-label">Toewijzen</div>
-                                    <h3 class="h5">2. @StappenFlowHelper.Stap("panelen").Label</h3>
-                                    <ul class="mb-0 text-muted small">
-                                        <li>2 deuren en 1 ladefront selecteren</li>
-                                        <li>Paneelmaten en scharnierzijde instellen</li>
-                                        <li>Plank gebruiken als referentie voor de gatenrij</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="col-lg-6 col-xl">
-                                <div class="home-example-step h-100">
-                                    <div class="home-example-label">Controle</div>
-                                    <h3 class="h5">3. @StappenFlowHelper.Stap("verificatie").Label</h3>
-                                    <ul class="mb-0 text-muted small">
-                                        <li>Vrije opening en netto paneelmaat naast elkaar controleren</li>
-                                        <li>Scharnierzijde en boorgatposities nalopen</li>
-                                        <li>U ziet meteen welke panelen nog controle nodig hebben</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="col-lg-6 col-xl">
-                                <div class="home-example-step h-100">
-                                    <div class="home-example-label">Bestellen</div>
-                                    <h3 class="h5">4. @StappenFlowHelper.Stap("bestellijst").Label</h3>
-                                    <ul class="mb-0 text-muted small">
-                                        <li>Bestellijst met aantallen, maten en boorgaten</li>
-                                        <li>Export naar Excel of printklare PDF</li>
-                                        <li>Per wand en paneeltype compact gegroepeerd</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="col-lg-6 col-xl">
-                                <div class="home-example-step h-100">
-                                    <div class="home-example-label">Zagen</div>
-                                    <h3 class="h5">5. @StappenFlowHelper.Stap("zaagplan").Label</h3>
-                                    <ul class="mb-0 text-muted small">
-                                        <li>Panelen verdelen over standaard plaatformaat</li>
-                                        <li>Zaagverlies meenemen in de berekening</li>
-                                        <li>Snel zien hoeveel platen u nodig hebt</li>
-                                    </ul>
-                                </div>
+                                <p class="text-muted mb-0">De bestellijst maakt orderregels; het zaagplan verdeelt die panelen daarna over standaard platen.</p>
                             </div>
                         </div>
                     </div>

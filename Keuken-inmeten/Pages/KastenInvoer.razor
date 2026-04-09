@@ -25,37 +25,6 @@
                         Beschrijving="Open alleen bij twijfel over de technische maten die u in stap 1 invult." />
 </div>
 
-@if (State.HeeftProjectInhoud())
-{
-    <details class="indeling-overige-wanden mb-4" data-testid="indeling-project-acties-details">
-        <summary class="indeling-overige-wanden-summary" data-testid="indeling-project-acties-summary">
-            <div>
-                <h5 class="mb-0">Projectacties</h5>
-                <div class="small text-muted">Verborgen zodat wissen niet concurreert met het uitwerken van een wand.</div>
-            </div>
-        </summary>
-        <div class="indeling-overige-wanden-body">
-            @if (bevestigWisAlles)
-            {
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    <span class="text-danger small fw-semibold">Hele keuken wissen? Alle wanden, kasten, panelen en apparaten worden teruggezet.</span>
-                    <button class="btn btn-sm btn-danger" @onclick="WisAllesAsync">Ja, wis alles</button>
-                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigWisAlles = false">Annuleren</button>
-                </div>
-            }
-            else
-            {
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                    <p class="small text-muted mb-0">Gebruik dit alleen als u de hele keuken opnieuw wilt beginnen.</p>
-                    <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigWisAlles = true">
-                        Wis hele keuken
-                    </button>
-                </div>
-            }
-        </div>
-    </details>
-}
-
 @* ──── Wand toevoegen ──── *@
 @if (State.Wanden.Count == 0)
 {
@@ -103,35 +72,6 @@ else
             </div>
         </div>
     }
-    else
-    {
-        <details class="indeling-overige-wanden mb-4" data-testid="indeling-extra-wand-details">
-            <summary class="indeling-overige-wanden-summary" data-testid="indeling-extra-wand-summary">
-                <div>
-                    <h5 class="mb-0">Nog een wand toevoegen</h5>
-                    <div class="small text-muted">Verborgen zolang u in deze werkruimte bezig bent.</div>
-                </div>
-            </summary>
-            <div class="indeling-overige-wanden-body">
-                <div class="row g-3 align-items-end">
-                    <div class="col-xl-8">
-                        <label class="form-label fw-semibold">Wandnaam</label>
-                        <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
-                               @onkeydown="WandToevoegenBijEnter"
-                               data-testid="nieuwe-wand-naam-input" />
-                        <div class="form-text hulp-hint mb-0" data-testid="nieuwe-wand-naam-hint">Bijvoorbeeld Kopwand of Eilandzijde.</div>
-                    </div>
-                    <div class="col-xl-4 d-flex justify-content-xl-end">
-                        <button class="btn btn-primary" @onclick="WandToevoegen"
-                                disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)"
-                                data-testid="wand-toevoegen-button">
-                            Wand toevoegen
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </details>
-    }
 }
 
 @if (State.Wanden.Count == 0)
@@ -146,18 +86,15 @@ else
         ? State.Wanden
         : State.Wanden.Where(wand => wand.Id != actieveWand.Id).ToList();
 
-    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
-        <div>
-            <h5 class="mb-1">Wandenoverzicht</h5>
-            @if (actieveWand is null)
-            {
-                <p class="text-muted mb-0">Kies daarna precies één wand om maten, kasten, objecten en de visualisatie per werkruimte te bewerken.</p>
-            }
-        </div>
-    </div>
-
     @if (actieveWand is null)
     {
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+            <div>
+                <h5 class="mb-1">Wandenoverzicht</h5>
+                <p class="text-muted mb-0">Kies daarna precies één wand om maten, kasten, objecten en de visualisatie per werkruimte te bewerken.</p>
+            </div>
+        </div>
+
         <div class="row g-3 mb-4">
             @foreach (var wand in overzichtWanden)
             {
@@ -213,57 +150,37 @@ else
                 </div>
             }
         </div>
-    }
-    else if (overzichtWanden.Count > 0)
-    {
-        <details class="indeling-overige-wanden mb-4"
-                 data-testid="indeling-overige-wanden-details">
-            <summary class="indeling-overige-wanden-summary"
-                     data-testid="indeling-overige-wanden-summary">
-                <div>
-                    <h5 class="mb-0">Andere wanden</h5>
-                    <div class="small text-muted">Open alleen als u naar een andere wand wilt wisselen.</div>
-                </div>
-                <span class="badge text-bg-light indeling-workspace-hint">@overzichtWanden.Count wand(en) beschikbaar</span>
-            </summary>
-            <div class="indeling-overige-wanden-body">
-                <div class="indeling-overige-wanden-lijst">
-                    @foreach (var wand in overzichtWanden)
-                    {
-                        var wandKasten = State.KastenVoorWand(wand.Id);
-                        var wandApparaten = State.ApparatenVoorWand(wand.Id);
-                        var gevuldeBreedte = wand.TotaleBreedte(State.Kasten);
-                        var vrijeBreedte = Math.Max(0, wand.Breedte - gevuldeBreedte);
 
-                        <div class="indeling-overige-wand-schakelaar"
-                             data-testid="indeling-wand-card"
-                             data-wand-id="@wand.Id"
-                             data-wand-naam="@wand.Naam"
-                             @key="wand.Id">
-                            <div class="indeling-overige-wand-inhoud">
-                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                    <h6 class="mb-0">@wand.Naam</h6>
-                                    <span class="badge text-bg-light">@wandKasten.Count kast(en)</span>
-                                    @if (wandApparaten.Count > 0)
-                                    {
-                                        <span class="badge text-bg-light">@wandApparaten.Count apparaat(en)</span>
-                                    }
-                                </div>
-                                <div class="small text-muted">
-                                    @gevuldeBreedte mm ingevuld · @vrijeBreedte mm vrij · @wand.Breedte mm wandbreedte
-                                </div>
-                            </div>
-                            <button class="btn btn-outline-primary btn-sm"
-                                    @onclick="() => OpenWandWerkruimte(wand.Id)"
-                                    data-testid="open-wand-workspace-button"
-                                    data-wand-id="@wand.Id">
-                                Open wand
+        @if (State.HeeftProjectInhoud())
+        {
+            <details class="indeling-overige-wanden mb-4" data-testid="indeling-project-acties-details">
+                <summary class="indeling-overige-wanden-summary" data-testid="indeling-project-acties-summary">
+                    <div>
+                        <h5 class="mb-0">Projectacties</h5>
+                        <div class="small text-muted">Verborgen zodat wissen niet concurreert met het kiezen of bewerken van een wand.</div>
+                    </div>
+                </summary>
+                <div class="indeling-overige-wanden-body">
+                    @if (bevestigWisAlles)
+                    {
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="text-danger small fw-semibold">Hele keuken wissen? Alle wanden, kasten, panelen en apparaten worden teruggezet.</span>
+                            <button class="btn btn-sm btn-danger" @onclick="WisAllesAsync">Ja, wis alles</button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigWisAlles = false">Annuleren</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <p class="small text-muted mb-0">Gebruik dit alleen als u de hele keuken opnieuw wilt beginnen.</p>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigWisAlles = true">
+                                Wis hele keuken
                             </button>
                         </div>
                     }
                 </div>
-            </div>
-        </details>
+            </details>
+        }
     }
 
     @if (actieveWand is not null)
@@ -529,6 +446,115 @@ else
                     </div>
                 </details>
             </div>
+        </div>
+
+        <div class="indeling-workspace-secondary">
+            @if (overzichtWanden.Count > 0)
+            {
+                <details class="indeling-overige-wanden mb-4"
+                         data-testid="indeling-overige-wanden-details">
+                    <summary class="indeling-overige-wanden-summary"
+                             data-testid="indeling-overige-wanden-summary">
+                        <div>
+                            <h5 class="mb-0">Andere wanden</h5>
+                            <div class="small text-muted">Open alleen als u bewust naar een andere wand wilt wisselen.</div>
+                        </div>
+                        <span class="badge text-bg-light indeling-workspace-hint">@overzichtWanden.Count wand(en) beschikbaar</span>
+                    </summary>
+                    <div class="indeling-overige-wanden-body">
+                        <div class="indeling-overige-wanden-lijst">
+                            @foreach (var wand in overzichtWanden)
+                            {
+                                var overigeWandKasten = State.KastenVoorWand(wand.Id);
+                                var overigeWandApparaten = State.ApparatenVoorWand(wand.Id);
+                                var overigeGevuldeBreedte = wand.TotaleBreedte(State.Kasten);
+                                var overigeVrijeBreedte = Math.Max(0, wand.Breedte - overigeGevuldeBreedte);
+
+                                <div class="indeling-overige-wand-schakelaar"
+                                     data-testid="indeling-wand-card"
+                                     data-wand-id="@wand.Id"
+                                     data-wand-naam="@wand.Naam"
+                                     @key="wand.Id">
+                                    <div class="indeling-overige-wand-inhoud">
+                                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                            <h6 class="mb-0">@wand.Naam</h6>
+                                            <span class="badge text-bg-light">@overigeWandKasten.Count kast(en)</span>
+                                            @if (overigeWandApparaten.Count > 0)
+                                            {
+                                                <span class="badge text-bg-light">@overigeWandApparaten.Count apparaat(en)</span>
+                                            }
+                                        </div>
+                                        <div class="small text-muted">
+                                            @overigeGevuldeBreedte mm ingevuld · @overigeVrijeBreedte mm vrij · @wand.Breedte mm wandbreedte
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm"
+                                            @onclick="() => OpenWandWerkruimte(wand.Id)"
+                                            data-testid="open-wand-workspace-button"
+                                            data-wand-id="@wand.Id">
+                                        Open wand
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </details>
+            }
+
+            <details class="indeling-overige-wanden mb-4" data-testid="indeling-extra-wand-details">
+                <summary class="indeling-overige-wanden-summary" data-testid="indeling-extra-wand-summary">
+                    <div>
+                        <h5 class="mb-0">Nog een wand toevoegen</h5>
+                        <div class="small text-muted">Open dit pas als deze werkruimte voorlopig klopt.</div>
+                    </div>
+                </summary>
+                <div class="indeling-overige-wanden-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-xl-8">
+                            <label class="form-label fw-semibold">Wandnaam</label>
+                            <input type="text" class="form-control" @bind="nieuweWandNaam" @bind:event="oninput"
+                                   @onkeydown="WandToevoegenBijEnter"
+                                   data-testid="nieuwe-wand-naam-input" />
+                            <div class="form-text hulp-hint mb-0" data-testid="nieuwe-wand-naam-hint">Bijvoorbeeld Kopwand of Eilandzijde.</div>
+                        </div>
+                        <div class="col-xl-4 d-flex justify-content-xl-end">
+                            <button class="btn btn-primary" @onclick="WandToevoegen"
+                                    disabled="@string.IsNullOrWhiteSpace(nieuweWandNaam)"
+                                    data-testid="wand-toevoegen-button">
+                                Wand toevoegen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="indeling-overige-wanden mb-4" data-testid="indeling-project-acties-details">
+                <summary class="indeling-overige-wanden-summary" data-testid="indeling-project-acties-summary">
+                    <div>
+                        <h5 class="mb-0">Projectacties</h5>
+                        <div class="small text-muted">Open dit alleen voor zeldzame of destructieve acties buiten deze wand.</div>
+                    </div>
+                </summary>
+                <div class="indeling-overige-wanden-body">
+                    @if (bevestigWisAlles)
+                    {
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="text-danger small fw-semibold">Hele keuken wissen? Alle wanden, kasten, panelen en apparaten worden teruggezet.</span>
+                            <button class="btn btn-sm btn-danger" @onclick="WisAllesAsync">Ja, wis alles</button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigWisAlles = false">Annuleren</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <p class="small text-muted mb-0">Gebruik dit alleen als u de hele keuken opnieuw wilt beginnen.</p>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigWisAlles = true">
+                                Wis hele keuken
+                            </button>
+                        </div>
+                    }
+                </div>
+            </details>
         </div>
     }
 }
