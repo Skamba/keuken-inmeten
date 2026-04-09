@@ -99,6 +99,17 @@ public class PersistentieService : IDisposable
         return $"{routeUrl}{scheiding}share={token}";
     }
 
+    public string MaakDeelUrlVoorHuidigeRoute()
+    {
+        var relatieveUrl = _navigation.ToBaseRelativePath(_navigation.Uri);
+        var queryOfFragmentIndex = relatieveUrl.IndexOfAny(['?', '#']);
+        var route = queryOfFragmentIndex >= 0
+            ? relatieveUrl[..queryOfFragmentIndex]
+            : relatieveUrl;
+
+        return MaakDeelUrl(route);
+    }
+
     public async Task SlaanAsync()
     {
         try

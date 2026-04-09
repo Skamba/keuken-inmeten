@@ -1,6 +1,7 @@
 ﻿@using Keuken_inmeten.Services.Interop
 @inject IJSRuntime JS
 @inject KeukenStateService State
+@inject DeelLinkService Delen
 @implements IAsyncDisposable
 
 <div class="top-row ps-3 navbar navbar-dark">
@@ -48,8 +49,20 @@
                 }
             </div>
         }
+        <div class="nav-item px-3">
+            <button type="button"
+                    class="nav-link border-0 w-100 text-start nav-action-button"
+                    @onclick="DeelHuidigePagina"
+                    title="Deel een link naar deze keukenconfiguratie"
+                    data-testid="nav-share-button">
+                🔗 Deel link
+            </button>
+        </div>
         <div class="nav-item px-3 mt-auto">
-            <button class="nav-link border-0 w-100 text-start theme-toggle" @onclick="ToggleTheme" title="Wissel tussen licht en donker thema">
+            <button type="button"
+                    class="nav-link border-0 w-100 text-start nav-action-button"
+                    @onclick="ToggleTheme"
+                    title="Wissel tussen licht en donker thema">
                 @themeIcon Thema
             </button>
         </div>
@@ -83,6 +96,9 @@
         var newTheme = await ThemeInterop.ToggleThemeAsync();
         themeIcon = newTheme == "dark" ? "☀️" : "🌙";
     }
+
+    private Task DeelHuidigePagina()
+        => Delen.DeelHuidigePaginaAsync();
 
     private void ToggleNavMenu()
     {

@@ -11,6 +11,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddSingleton<KeukenStateService>();
 builder.Services.AddScoped<PersistentieService>();
 builder.Services.AddScoped<ActieFeedbackService>();
+builder.Services.AddScoped<DeelLinkService>();
 
 var host = builder.Build();
 

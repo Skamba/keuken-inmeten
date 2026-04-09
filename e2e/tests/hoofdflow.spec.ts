@@ -25,6 +25,23 @@ test('home toont een hervatdashboard zodra er projectdata bestaat', async ({ pag
   await expect(page.getByTestId('home-onboarding-help')).toBeVisible();
 });
 
+test('navbar deelt een link naar de huidige stap', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
+    Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true });
+  });
+
+  await page.goto('/kasten');
+  await page.getByTestId('nav-share-button').click();
+
+  await expect(page.getByTestId('actie-feedback-toast')).toContainText('De deellink is gekopieerd.');
+
+  await expect
+    .poll(async () => page.evaluate(() => navigator.clipboard.readText()))
+    .toContain('/kasten?share=');
+});
+
 test('stap 1 toont maar één actieve wandwerkruimte tegelijk', async ({ page }) => {
   const indeling = new IndelingPage(page);
 
