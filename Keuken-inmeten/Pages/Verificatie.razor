@@ -12,11 +12,11 @@
 <h2 class="page-header">Stap 3: Verificatie</h2>
 @if (_fase == VerificatieFase.Overzicht)
 {
-    <p class="text-muted mb-3">Controleer per paneel eerst de maat in de opening en daarna de systeemgaten. De bestelmaat moet logisch volgen uit opening en speling.</p>
+    <p class="text-muted mb-3">Controleer per paneel eerst de maat in de opening. Controleer systeemgaten alleen bij deuren.</p>
     <div class="stap-ondersteuning mb-3" data-testid="verificatie-stap-ondersteuning">
-        <StapHulpDrawer StapId="verificatie" KnopLabel="Staphulp" />
+        <StapHulpDrawer StapId="verificatie" KnopLabel="Hulp bij stap" />
         <TerminologieUitleg Compact="true"
-                            CompactLabel="Begrippen"
+                            CompactLabel="Leg termen uit"
                             Sleutels="openingsmaat,werkmaat,gaatjesrij,montageplaat,pothart"
                             Beschrijving="Deze woordenlijst helpt bij de controletermen die u in de verificatiestap ziet." />
     </div>
@@ -36,8 +36,8 @@ else if (_fase == VerificatieFase.Overzicht)
 {
     <div class="card mb-4">
         <div class="card-body">
-            <h5 class="card-title">Verificatietaken per wand en paneel</h5>
-            <p class="text-muted small">Er zijn <strong>@resultaten.Count</strong> panelen. Open per paneel de volgende controle; maatuitleg en techniek blijven daarna in de detailstap apart staan.</p>
+            <h5 class="card-title">Taken per wand</h5>
+            <p class="text-muted small">Er zijn <strong>@resultaten.Count</strong> panelen. Open per paneel de eerstvolgende controle; technische uitleg blijft daarna in de detailstap verborgen tot u die nodig hebt.</p>
 
             @{
                 var verificatieTaken = resultaten

@@ -6,11 +6,11 @@
 <StapIndicator HuidigeStap="zaagplan" />
 
 <h2 class="page-header">Stap 5: Zaagplan</h2>
-<p class="text-muted mb-3">Controleer hier plaatmaat en indeling.</p>
+<p class="text-muted mb-3">Kies plaatmaat en controleer daarna de indeling. Open geavanceerde instellingen alleen als het resultaat daarom vraagt.</p>
 <div class="stap-ondersteuning mb-3" data-testid="zaagplan-stap-ondersteuning">
-    <StapHulpDrawer StapId="zaagplan" KnopLabel="Staphulp" />
+    <StapHulpDrawer StapId="zaagplan" KnopLabel="Hulp bij stap" />
     <TerminologieUitleg Compact="true"
-                        CompactLabel="Begrippen"
+                        CompactLabel="Leg termen uit"
                         Sleutels="zaagbreedte"
                         Beschrijving="Deze woordenlijst licht de zaagterm op deze pagina in gewone taal toe." />
 </div>
@@ -141,60 +141,67 @@ else
 
     if (resultaat.NietGeplaatst.Count > 0)
     {
-        <div class="alert alert-danger mb-4 zaagplan-waarschuwing" data-testid="zaagplan-niet-geplaatst-waarschuwing">
-            <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3">
-                <div>
-                    <div class="small fw-semibold text-uppercase text-danger-emphasis mb-1">Niet plaatsbaar op dit plaatformaat</div>
-                    <h5 class="mb-1">@nietGeplaatstAantal paneel(en) zijn groter dan @FormatMm(_plaatBreedte) × @FormatMm(_plaatHoogte) mm</h5>
-                    <p class="mb-0">Deze panelen passen niet eens los op de huidige plaatmaat. Pas eerst het plaatformaat aan of ga terug naar de bestellijst als een paneel bewust uit een andere plaat of materiaalsoort moet komen.</p>
-                </div>
-                @if (grootsteNietGeplaatst is not null)
-                {
-                    <div class="zaagplan-waarschuwing-kern card border-danger-subtle bg-body-tertiary">
-                        <div class="card-body py-3">
-                            <div class="small fw-semibold text-uppercase text-danger-emphasis">Grootste ontbrekende paneel</div>
+        <section class="zaagplan-waarschuwing card border-warning-subtle shadow-sm mb-4"
+                 data-testid="zaagplan-niet-geplaatst-waarschuwing">
+            <div class="card-body d-grid gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-3">
+                    <div>
+                        <div class="zaagplan-waarschuwing-kicker">Actie nodig</div>
+                        <h5 class="mb-1">@nietGeplaatstAantal paneel(en) passen nog niet op deze plaat</h5>
+                        <p class="text-muted mb-0">Begin met een grotere plaat. Gebruik draaien alleen als het materiaal dat toelaat en ga pas terug naar de bestellijst als een paneel bewust elders gemaakt moet worden.</p>
+                    </div>
+                    @if (grootsteNietGeplaatst is not null)
+                    {
+                        <div class="zaagplan-waarschuwing-kern">
+                            <div class="zaagplan-waarschuwing-kicker text-muted">Grootste ontbrekende paneel</div>
                             <div class="fw-semibold">@grootsteNietGeplaatst.Naam</div>
                             <div class="small text-muted">@FormatMm(grootsteNietGeplaatst.Breedte) × @FormatMm(grootsteNietGeplaatst.Hoogte) mm</div>
-                            <div class="small text-muted">Richt op minstens @FormatMm(minimalePlaatLangeZijde) × @FormatMm(minimalePlaatKorteZijde) mm voor dit paneel.</div>
+                            <div class="small text-muted">Richt op minstens @FormatMm(minimalePlaatLangeZijde) × @FormatMm(minimalePlaatKorteZijde) mm.</div>
                         </div>
-                    </div>
-                }
-            </div>
-
-            <div class="zaagplan-waarschuwing-acties mt-3">
-                <div class="zaagplan-waarschuwing-actie">
-                    <div class="fw-semibold">1. Kies een grotere plaat</div>
-                    <div class="small text-muted">Vergroot vooral de langste zijde. De grootste ontbrekende maat vraagt nu minstens @FormatMm(minimalePlaatLangeZijde) × @FormatMm(minimalePlaatKorteZijde) mm.</div>
+                    }
                 </div>
 
-                @if (rotatieKanHelpen)
-                {
-                    <div class="zaagplan-waarschuwing-actie">
-                        <div class="fw-semibold">2. Zet draaien aan als dat technisch mag</div>
-                        <div class="small text-muted">Minstens een ontbrekend paneel past wel zodra de plaat 90 graden gedraaid gebruikt mag worden.</div>
-                        <button type="button"
-                                class="btn btn-outline-primary btn-sm mt-2"
-                                @onclick="SchakelDraaienIn"
-                                data-testid="zaagplan-draaien-aanzetten">
-                            Zet draaien aan
-                        </button>
-                    </div>
-                }
+                <div class="zaagplan-waarschuwing-acties">
+                    <section class="zaagplan-waarschuwing-actie zaagplan-waarschuwing-actie--aanbevolen">
+                        <div class="zaagplan-waarschuwing-actie-label">Aanbevolen</div>
+                        <div class="fw-semibold">Kies een grotere plaat</div>
+                        <div class="small text-muted">Vergroot vooral de langste zijde. De grootste ontbrekende maat vraagt nu minstens @FormatMm(minimalePlaatLangeZijde) × @FormatMm(minimalePlaatKorteZijde) mm.</div>
+                    </section>
 
-                <div class="zaagplan-waarschuwing-actie">
-                    <div class="fw-semibold">@((rotatieKanHelpen ? "3" : "2")). Controleer de bestellijst</div>
-                    <div class="small text-muted">Ga terug als een paneel bewust uit een andere plaatsoort moet komen of gesplitst moet worden voordat u gaat zagen.</div>
-                    <a href="bestellijst" class="btn btn-outline-secondary btn-sm mt-2">Terug naar bestellijst</a>
+                    @if (rotatieKanHelpen)
+                    {
+                        <section class="zaagplan-waarschuwing-actie">
+                            <div class="zaagplan-waarschuwing-actie-label">Alternatief</div>
+                            <div class="fw-semibold">Zet draaien aan als dat technisch mag</div>
+                            <div class="small text-muted">Minstens een ontbrekend paneel past wel zodra de plaat 90 graden gedraaid gebruikt mag worden.</div>
+                            <button type="button"
+                                    class="btn btn-outline-primary btn-sm mt-2"
+                                    @onclick="SchakelDraaienIn"
+                                    data-testid="zaagplan-draaien-aanzetten">
+                                Zet draaien aan
+                            </button>
+                        </section>
+                    }
+
+                    <section class="zaagplan-waarschuwing-actie">
+                        <div class="zaagplan-waarschuwing-actie-label">Controle</div>
+                        <div class="fw-semibold">Terug naar bestellijst</div>
+                        <div class="small text-muted">Ga terug als een paneel bewust uit een andere plaatsoort moet komen of gesplitst moet worden voordat u gaat zagen.</div>
+                        <a href="bestellijst" class="btn btn-outline-secondary btn-sm mt-2">Terug naar bestellijst</a>
+                    </section>
                 </div>
-            </div>
 
-            <ul class="mb-0 mt-3">
-                @foreach (var p in resultaat.NietGeplaatst)
-                {
-                    <li>@p.Naam — @FormatMm(p.Breedte) × @FormatMm(p.Hoogte) mm (@p.Aantal×)</li>
-                }
-            </ul>
-        </div>
+                <details class="zaagplan-waarschuwing-details">
+                    <summary>Bekijk betrokken panelen</summary>
+                    <ul class="zaagplan-waarschuwing-lijst mb-0 mt-3">
+                        @foreach (var p in resultaat.NietGeplaatst)
+                        {
+                            <li>@p.Naam — @FormatMm(p.Breedte) × @FormatMm(p.Hoogte) mm (@p.Aantal×)</li>
+                        }
+                    </ul>
+                </details>
+            </div>
+        </section>
     }
 
     @if (resultaat.Platen.Count == 0)

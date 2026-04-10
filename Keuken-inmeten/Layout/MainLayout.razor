@@ -8,20 +8,20 @@
 
     <main>
         <article class="content px-4">
-            <div class="d-flex justify-content-end mt-3">
+            <div class="layout-status-row">
                 <OpslagStatusBadge />
             </div>
 
             @if (Persistentie.HeeftGedeeldeLinkGeladen)
             {
-                <div class="alert alert-info mt-3" role="status">
+                <div class="app-inline-alert app-inline-alert--info" role="status">
                     Gedeelde configuratie geladen. Wijzigingen worden vanaf nu automatisch op dit apparaat opgeslagen.
                 </div>
             }
 
             @if (Persistentie.HeeftOngeldigeDeelLink)
             {
-                <div class="alert alert-warning mt-3" role="alert">
+                <div class="app-inline-alert app-inline-alert--warning" role="alert">
                     De deellink kon niet worden gelezen. Controleer of de volledige URL is gekopieerd.
                 </div>
             }

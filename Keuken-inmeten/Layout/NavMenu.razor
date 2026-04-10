@@ -8,7 +8,10 @@
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Keuken Inmeten</a>
+        <a class="navbar-brand" href="">
+            <span class="navbar-brand-title">Keuken Inmeten</span>
+            <span class="navbar-brand-subtitle">Rustig van maat naar zaagplan</span>
+        </a>
         <button title="Navigatiemenu openen of sluiten"
                 aria-label="Navigatiemenu openen of sluiten"
                 aria-expanded="@(!collapseNavMenu)"
@@ -29,7 +32,10 @@
             <div class="nav-section-label px-3">Stappen</div>
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    🏠 Home
+                    <span class="nav-link-content">
+                        <span class="nav-link-index nav-link-index--home">Start</span>
+                        <span class="nav-link-label">Home</span>
+                    </span>
                 </NavLink>
             </div>
             @foreach (var stap in StappenFlowHelper.AlleStappen)
@@ -39,7 +45,10 @@
                     @if (gate is null)
                     {
                         <NavLink class="nav-link" href="@stap.Route">
-                            @StapIcoon(stap.Id) @stap.Nummer. @stap.Label
+                            <span class="nav-link-content">
+                                <span class="nav-link-index">@stap.Nummer</span>
+                                <span class="nav-link-label">@stap.Label</span>
+                            </span>
                         </NavLink>
                     }
                     else
@@ -48,7 +57,10 @@
                               title="@gate.Reden"
                               aria-disabled="true"
                               aria-label="@($"{stap.Nummer}. {stap.Label}. {gate.Reden}")">
-                            🔒 @stap.Nummer. @stap.Label
+                            <span class="nav-link-content">
+                                <span class="nav-link-index nav-link-index--locked">@stap.Nummer</span>
+                                <span class="nav-link-label">@stap.Label</span>
+                            </span>
                         </span>
                     }
                 </div>
@@ -57,14 +69,17 @@
 
         <div class="nav-utility-section" data-testid="nav-utility-section">
             <div class="nav-section-divider px-3" aria-hidden="true"></div>
-            <div class="nav-section-label px-3">Project en weergave</div>
+            <div class="nav-section-label px-3">Project</div>
             <div class="nav-item px-3">
                 <button type="button"
                         class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
                         @onclick="DeelHuidigePagina"
                         title="Deel een link naar deze keukenconfiguratie"
                         data-testid="nav-share-button">
-                    🔗 Deel link
+                    <span class="nav-link-content">
+                        <span class="nav-link-index nav-link-index--utility">Deel</span>
+                        <span class="nav-link-label">Deel project</span>
+                    </span>
                 </button>
             </div>
             <div class="nav-item px-3">
@@ -73,7 +88,10 @@
                         @onclick="ExporteerProject"
                         title="Download het volledige keukenproject als JSON-bestand"
                         data-testid="nav-export-button">
-                    📤 Exporteer JSON
+                    <span class="nav-link-content">
+                        <span class="nav-link-index nav-link-index--utility">JSON</span>
+                        <span class="nav-link-label">Download project</span>
+                    </span>
                 </button>
             </div>
             <div class="nav-item px-3">
@@ -83,7 +101,10 @@
                         @onclick:stopPropagation="true"
                         title="Importeer een opgeslagen keukenproject vanuit JSON"
                         data-testid="nav-import-button">
-                    📥 Importeer JSON
+                    <span class="nav-link-content">
+                        <span class="nav-link-index nav-link-index--utility">Laad</span>
+                        <span class="nav-link-label">Laad project</span>
+                    </span>
                 </button>
             </div>
             <div class="nav-item px-3">
@@ -91,7 +112,10 @@
                         class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
                         @onclick="ToggleTheme"
                         title="Wissel tussen licht en donker thema">
-                    @themeIcon Thema
+                    <span class="nav-link-content">
+                        <span class="nav-link-index nav-link-index--utility">Thema</span>
+                        <span class="nav-link-label">@ThemeLabel</span>
+                    </span>
                 </button>
             </div>
         </div>
@@ -173,7 +197,7 @@
 @code {
     private bool collapseNavMenu = true;
     private bool toonImportModal;
-    private string themeIcon = "🌙";
+    private bool isDarkTheme;
     private IBrowserFile? gekozenImportBestand;
     private string? gekozenImportBestandNaam;
     private ThemeJsInterop? themeInterop;
@@ -183,6 +207,8 @@
 
     private ThemeJsInterop ThemeInterop => themeInterop ??= new(JS);
 
+    private string ThemeLabel => isDarkTheme ? "Licht uiterlijk" : "Donker uiterlijk";
+
     protected override void OnInitialized()
         => State.OnStateChanged += HandleStateChanged;
 
@@ -191,7 +217,7 @@
         if (firstRender)
         {
             var theme = await ThemeInterop.GetThemeAsync();
-            themeIcon = theme == "dark" ? "☀️" : "🌙";
+            isDarkTheme = theme == "dark";
             StateHasChanged();
         }
     }
@@ -199,7 +225,7 @@
     private async Task ToggleTheme()
     {
         var newTheme = await ThemeInterop.ToggleThemeAsync();
-        themeIcon = newTheme == "dark" ? "☀️" : "🌙";
+        isDarkTheme = newTheme == "dark";
     }
 
     private Task DeelHuidigePagina()
@@ -261,16 +287,6 @@
             importInputVersion++;
         }
     }
-
-    private static string StapIcoon(string stapId) => stapId switch
-    {
-        "kasten" => "📐",
-        "panelen" => "🪟",
-        "verificatie" => "✅",
-        "bestellijst" => "🧾",
-        "zaagplan" => "🪚",
-        _ => "•"
-    };
 
     public async ValueTask DisposeAsync()
     {

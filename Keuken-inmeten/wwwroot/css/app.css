@@ -393,6 +393,11 @@ html, body {
 .terminologie-inline-panel {
     width: min(100%, 48rem);
     margin-top: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.95rem;
+    background: var(--bs-body-bg);
+    box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.08);
 }
 
 .terminologie-list {
@@ -469,8 +474,31 @@ html, body {
 .stap-ondersteuning {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: flex-start;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.stap-ondersteuning .btn,
+.terminologie-inline > .btn {
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--bs-secondary-color);
+    box-shadow: none;
+}
+
+.stap-ondersteuning .btn:hover,
+.terminologie-inline > .btn:hover {
+    border-color: var(--bs-border-color);
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+}
+
+.stap-ondersteuning .btn:focus-visible,
+.terminologie-inline > .btn:focus-visible {
+    border-color: color-mix(in srgb, var(--app-focus-ring-color) 40%, var(--bs-border-color));
+    background: var(--bs-body-bg);
 }
 
 .paneel-stap-intro--compact {
@@ -1249,12 +1277,12 @@ code {
 
 /* ── Page header ── */
 .page-header {
-    font-size: 1.4rem;
+    font-size: 1.28rem;
     font-weight: 700;
     color: var(--bs-body-color, #1a1a2e);
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--bs-border-color, #dee2e6);
-    margin-bottom: 1.25rem;
+    padding-bottom: 0;
+    border-bottom: 0;
+    margin-bottom: 0.5rem;
 }
 
 /* ── Empty state alerts ── */
@@ -1499,15 +1527,19 @@ code {
 /* ── Stap Indicator (progress stepper) ── */
 .stap-indicator {
     padding: 0;
+    margin-bottom: 0.85rem !important;
 }
 
 .stap-indicator-list {
     display: flex;
     align-items: flex-start;
     list-style: none;
-    padding: 0;
+    padding: 0.65rem 0.85rem;
     margin: 0;
     gap: 0;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--bs-tertiary-bg) 70%, var(--bs-body-bg, #fff));
 }
 
 .stap-indicator-item {
@@ -1520,7 +1552,7 @@ code {
 
 .stap-connector {
     position: absolute;
-    top: 17px;
+    top: 15px;
     right: 50%;
     width: 100%;
     height: 2px;
@@ -1535,14 +1567,14 @@ code {
 }
 
 .stap-cirkel {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     position: relative;
     z-index: 1;
     border: 2px solid var(--bs-border-color, #dee2e6);
@@ -1580,9 +1612,10 @@ code {
 
 .stap-label {
     margin-top: 6px;
-    font-size: 0.82rem;
+    font-size: 0.76rem;
     text-align: center;
     color: var(--bs-secondary-color, #6c757d);
+    line-height: 1.25;
 }
 
 .stap-indicator-item.klaar .stap-label {
@@ -2413,11 +2446,25 @@ code {
 }
 
 .zaagplan-waarschuwing {
-    border: 1px solid var(--bs-danger-border-subtle, #f1aeb5);
+    border: 1px solid var(--bs-warning-border-subtle, #ffe69c);
+    background: var(--bs-warning-bg-subtle, #fff3cd);
+}
+
+.zaagplan-waarschuwing-kicker {
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bs-warning-text-emphasis, #664d03);
 }
 
 .zaagplan-waarschuwing-kern {
     min-width: min(20rem, 100%);
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--bs-border-color, #d0d7de);
+    border-radius: 0.9rem;
+    background: var(--bs-body-bg, #fff);
 }
 
 .zaagplan-waarschuwing-acties {
@@ -2430,7 +2477,62 @@ code {
     padding: 0.9rem 1rem;
     border: 1px solid var(--bs-border-color);
     border-radius: 0.85rem;
-    background: var(--bs-body-bg);
+    background: var(--bs-body-bg, #fff);
+}
+
+.zaagplan-waarschuwing-actie--aanbevolen {
+    border-color: color-mix(in srgb, var(--bs-warning-border-subtle, #ffe69c) 55%, var(--bs-border-color, #d0d7de));
+    box-shadow: 0 0.35rem 1rem rgba(146, 64, 14, 0.08);
+}
+
+.zaagplan-waarschuwing-actie-label {
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.zaagplan-waarschuwing-details {
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(146, 64, 14, 0.12);
+}
+
+.zaagplan-waarschuwing-details summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+}
+
+.zaagplan-waarschuwing-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.zaagplan-waarschuwing-details summary::marker {
+    content: "";
+}
+
+.zaagplan-waarschuwing-details summary::after {
+    content: "+";
+    color: var(--bs-secondary-color, #516173);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.zaagplan-waarschuwing-details[open] summary::after {
+    content: "−";
+}
+
+.zaagplan-waarschuwing-lijst {
+    display: grid;
+    gap: 0.45rem;
+    padding-left: 1rem;
 }
 
 @media (max-width: 767.98px) {

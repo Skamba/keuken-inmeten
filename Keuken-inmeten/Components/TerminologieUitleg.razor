@@ -18,41 +18,39 @@
 
             @if (isCompactOpen)
             {
-                <div id="@compactPanelId" class="terminologie-inline-panel card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="fw-semibold">@Titel</div>
-                        <div class="small text-muted mb-3">@Beschrijving</div>
-                        <div class="terminologie-list mb-0">
-                            @foreach (var term in termen)
-                            {
-                                <details class="terminologie-item">
-                                    <summary class="terminologie-item-summary">
-                                        <div>
-                                            <div class="fw-semibold">@term.Label</div>
-                                            <div class="small text-muted">Technische term: @term.TechnischeTerm</div>
-                                        </div>
-                                        <span class="terminologie-item-tag">Wanneer relevant?</span>
-                                    </summary>
-
-                                    <div class="terminologie-item-body">
-                                        <div>
-                                            <div class="terminologie-item-kop">Wat is het?</div>
-                                            <div class="small text-muted">@term.Uitleg</div>
-                                        </div>
-                                        <div>
-                                            <div class="terminologie-item-kop">Wanneer maakt het uit?</div>
-                                            <div class="small text-muted">@term.WanneerRelevant</div>
-                                        </div>
-                                        <div class="small">
-                                            <strong>Bijvoorbeeld:</strong> @term.Voorbeeld
-                                        </div>
-                                        <div class="small">
-                                            <strong>Wat doet u nu?</strong> @term.WatNuDoen
-                                        </div>
+                <div id="@compactPanelId" class="terminologie-inline-panel">
+                    <div class="fw-semibold">@Titel</div>
+                    <div class="small text-muted mb-3">@Beschrijving</div>
+                    <div class="terminologie-list mb-0">
+                        @foreach (var term in termen)
+                        {
+                            <details class="terminologie-item">
+                                <summary class="terminologie-item-summary">
+                                    <div>
+                                        <div class="fw-semibold">@term.Label</div>
+                                        <div class="small text-muted">Technische term: @term.TechnischeTerm</div>
                                     </div>
-                                </details>
-                            }
-                        </div>
+                                    <span class="terminologie-item-tag">Wanneer relevant?</span>
+                                </summary>
+
+                                <div class="terminologie-item-body">
+                                    <div>
+                                        <div class="terminologie-item-kop">Wat is het?</div>
+                                        <div class="small text-muted">@term.Uitleg</div>
+                                    </div>
+                                    <div>
+                                        <div class="terminologie-item-kop">Wanneer maakt het uit?</div>
+                                        <div class="small text-muted">@term.WanneerRelevant</div>
+                                    </div>
+                                    <div class="small">
+                                        <strong>Bijvoorbeeld:</strong> @term.Voorbeeld
+                                    </div>
+                                    <div class="small">
+                                        <strong>Wat doet u nu?</strong> @term.WatNuDoen
+                                    </div>
+                                </div>
+                            </details>
+                        }
                     </div>
                 </div>
             }
