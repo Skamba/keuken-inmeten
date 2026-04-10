@@ -159,6 +159,151 @@ test('actieve werkruimtes tonen minder overbodige uitleg in stap 1 en stap 2', a
   await expect(page.getByText('Wissel hier van wand zonder de actieve editorflow kwijt te raken.')).toHaveCount(0);
 });
 
+test('paneel-editor opent na sluiten weer met schone standaardwaarden', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+
+  await indeling.gaNaarPanelen();
+  await panelen.expectLoaded();
+  await panelen.selecteerEersteKastOpWand('Achterwand');
+
+  const blindpaneelKnop = page.getByTestId('paneel-type-button-BlindPaneel');
+  const deurKnop = page.getByTestId('paneel-type-button-Deur');
+  const linksKnop = page.getByTestId('paneel-scharnier-links-button');
+  const rechtsKnop = page.getByTestId('paneel-scharnier-rechts-button');
+  const potHartInput = page.getByTestId('paneel-pot-hart-input');
+
+  await blindpaneelKnop.click();
+  await expect(blindpaneelKnop).toHaveClass(/btn-primary/);
+  await page.getByTestId('close-paneel-editor-button').click();
+
+  await page.getByTestId('open-paneel-editor-button').click();
+  await expect(deurKnop).toHaveClass(/btn-primary/);
+  await expect(blindpaneelKnop).toHaveClass(/btn-outline-secondary/);
+
+  await rechtsKnop.click();
+  await potHartInput.fill('24.5');
+  await expect(rechtsKnop).toHaveClass(/btn-primary/);
+  await expect(potHartInput).toHaveValue('24.5');
+  await page.getByTestId('close-paneel-editor-button').click();
+
+  await page.getByTestId('open-paneel-editor-button').click();
+  await expect(linksKnop).toHaveClass(/btn-primary/);
+  await expect(rechtsKnop).toHaveClass(/btn-outline-secondary/);
+  await expect(potHartInput).toHaveValue('22.5');
+});
+
+test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+  const verificatie = new VerificatiePage(page);
+
+  async function openIndelingWand(wandId: string) {
+    const kaart = page.locator(`[data-testid="indeling-wand-card"][data-wand-id="${wandId}"]`);
+    const knop = kaart.getByTestId('open-wand-workspace-button');
+    if (!(await knop.isVisible())) {
+      const samenvatting = page.getByTestId('indeling-overige-wanden-summary');
+      if (await samenvatting.isVisible()) {
+        await samenvatting.click();
+        await expect(knop).toBeVisible();
+      }
+    }
+
+    await knop.click();
+    await expect(page.locator(`[data-testid="actieve-wand-werkruimte"][data-wand-id="${wandId}"]`)).toBeVisible();
+  }
+
+  async function openPaneelWand(wandId: string) {
+    const kaart = page.locator(`[data-testid="paneel-wand-card"][data-wand-id="${wandId}"]`);
+    const knop = kaart.getByTestId('open-paneel-wand-button');
+    if (!(await knop.isVisible())) {
+      const samenvatting = page.getByTestId('paneel-overige-wanden-summary');
+      if (await samenvatting.isVisible()) {
+        await samenvatting.click();
+        await expect(knop).toBeVisible();
+      }
+    }
+
+    await knop.click();
+    await expect(page.locator(`[data-testid="paneel-actieve-wand-werkruimte"][data-wand-id="${wandId}"]`)).toBeVisible();
+  }
+
+  await indeling.goto();
+  await indeling.openWandToevoegenModal();
+  await page.getByTestId('nieuwe-wand-naam-input').fill('Muur');
+  await page.getByTestId('wand-toevoegen-button').click();
+  await expect(page.getByTestId('wand-toevoegen-modal')).toBeHidden();
+
+  await indeling.openWandToevoegenModal();
+  await page.getByTestId('nieuwe-wand-naam-input').fill('Muur');
+  await page.getByTestId('wand-toevoegen-button').click();
+  await expect(page.getByTestId('wand-toevoegen-modal')).toBeHidden();
+
+  const wandKaarten = page.locator('[data-testid="indeling-wand-card"][data-wand-naam="Muur"]');
+  await expect(wandKaarten).toHaveCount(2);
+  const eersteWandId = await wandKaarten.nth(0).getAttribute('data-wand-id');
+  const tweedeWandId = await wandKaarten.nth(1).getAttribute('data-wand-id');
+
+  expect(eersteWandId).toBeTruthy();
+  expect(tweedeWandId).toBeTruthy();
+  expect(eersteWandId).not.toBe(tweedeWandId);
+
+  await openIndelingWand(eersteWandId!);
+  await indeling.voegKastToeAanWand('Muur', {
+    naam: 'Onderkast links',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await page.getByRole('button', { name: 'Werkruimte sluiten' }).click();
+
+  await openIndelingWand(tweedeWandId!);
+  await page.getByTestId('open-kast-form-button').click();
+  await page.getByTestId('kast-naam-input').fill('Onderkast rechts');
+  await indeling.gaNaarVolgendeKastFormStap();
+  await page.getByTestId('kast-breedte-input').fill('600');
+  await page.getByTestId('kast-hoogte-input').fill('720');
+  await page.getByTestId('kast-diepte-input').fill('560');
+  await indeling.gaNaarVolgendeKastFormStap();
+  await indeling.bevestigTechnischeKastControle();
+  await indeling.gaNaarVolgendeKastFormStap();
+  await page.getByTestId('kast-opslaan-button').click();
+  await page.getByRole('button', { name: 'Werkruimte sluiten' }).click();
+
+  await indeling.gaNaarPanelen();
+  await panelen.expectLoaded();
+
+  await openPaneelWand(eersteWandId!);
+  await page.locator('[data-testid="paneel-kast"]').first().click();
+  await page.getByTestId('paneel-opslaan-button').click();
+  await page.getByRole('button', { name: 'Werkruimte sluiten' }).click();
+
+  await openPaneelWand(tweedeWandId!);
+  await page.locator('[data-testid="paneel-kast"]').first().click();
+  await page.getByTestId('paneel-opslaan-button').click();
+
+  await panelen.openReviewWeergave();
+  await expect(page.getByTestId('paneel-review-groep')).toHaveCount(2);
+  await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${eersteWandId}"]`)).toBeVisible();
+  await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${tweedeWandId}"]`)).toBeVisible();
+
+  await panelen.gaNaarVerificatie();
+  await verificatie.expectLoaded();
+  await verificatie.expectTaaklijst();
+  await expect(page.getByTestId('verificatie-taakgroep')).toHaveCount(2);
+  await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${eersteWandId}"]`)).toBeVisible();
+  await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${tweedeWandId}"]`)).toBeVisible();
+});
+
 test('stap 1 toont maar één actieve wandwerkruimte tegelijk', async ({ page }) => {
   const indeling = new IndelingPage(page);
 

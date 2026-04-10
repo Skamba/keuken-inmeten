@@ -53,8 +53,9 @@ else
     var gerangschiktePaneelReviewGroepen = geopendeWand is null
         ? paneelReviewGroepen
         : paneelReviewGroepen
-            .OrderBy(groep => groep.WandNaam == geopendeWand.Naam ? 0 : 1)
+            .OrderBy(groep => groep.WandId == geopendeWand.Id ? 0 : 1)
             .ThenBy(groep => groep.WandNaam)
+            .ThenBy(groep => groep.WandId?.ToString("N"))
             .ToList();
     var overzichtWanden = geopendeWand is null
         ? State.Wanden
@@ -430,9 +431,12 @@ else
 
                         @foreach (var groep in gerangschiktePaneelReviewGroepen)
                         {
-                            var isActieveGroep = geopendeWand is not null && groep.WandNaam == geopendeWand.Naam;
+                            var isActieveGroep = geopendeWand is not null && groep.WandId == geopendeWand.Id;
 
-                            <div class="card border-0 mb-3 paneel-review-groep @(isActieveGroep ? "paneel-review-groep--actief" : null)">
+                            <div class="card border-0 mb-3 paneel-review-groep @(isActieveGroep ? "paneel-review-groep--actief" : null)"
+                                 data-testid="paneel-review-groep"
+                                 data-wand-id="@groep.WandId"
+                                 data-wand-naam="@groep.WandNaam">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                                         <div>
@@ -598,7 +602,8 @@ else
                                     {
                                         <button type="button"
                                                 class="btn btn-sm @(formToewijzing.Type == type ? "btn-primary" : "btn-outline-secondary")"
-                                                @onclick="() => formToewijzing.Type = type">
+                                                @onclick="() => formToewijzing.Type = type"
+                                                data-testid="paneel-type-button-@type">
                                             @TypeNaam(type)
                                         </button>
                                     }
@@ -618,12 +623,14 @@ else
                                     <div class="d-flex gap-2">
                                         <button type="button"
                                                 class="btn btn-sm @(formToewijzing.ScharnierZijde == ScharnierZijde.Links ? "btn-primary" : "btn-outline-secondary")"
-                                                @onclick="() => formToewijzing.ScharnierZijde = ScharnierZijde.Links">
+                                                @onclick="() => formToewijzing.ScharnierZijde = ScharnierZijde.Links"
+                                                data-testid="paneel-scharnier-links-button">
                                             ◄ Links
                                         </button>
                                         <button type="button"
                                                 class="btn btn-sm @(formToewijzing.ScharnierZijde == ScharnierZijde.Rechts ? "btn-primary" : "btn-outline-secondary")"
-                                                @onclick="() => formToewijzing.ScharnierZijde = ScharnierZijde.Rechts">
+                                                @onclick="() => formToewijzing.ScharnierZijde = ScharnierZijde.Rechts"
+                                                data-testid="paneel-scharnier-rechts-button">
                                             Rechts ►
                                         </button>
                                     </div>
@@ -641,7 +648,8 @@ else
                                            class="form-control"
                                            @bind="PotHartInput"
                                            min="@ScharnierBerekeningService.MinCupCenterVanRand"
-                                           step="0.5" />
+                                           step="0.5"
+                                           data-testid="paneel-pot-hart-input" />
                                     <div class="form-text hulp-hint">Technische term: pot-hart van rand. Deze maat wordt gebruikt voor alle 35 mm scharnierpotjes in dit deurpaneel en de laatst gebruikte waarde wordt onthouden.</div>
                                 </div>
                             }

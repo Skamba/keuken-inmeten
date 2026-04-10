@@ -17,7 +17,7 @@ public partial class PaneelConfiguratie
     protected override void OnInitialized()
     {
         State.OnStateChanged += HandleStateChanged;
-        formToewijzing.PotHartVanRand = State.LaatstGebruiktePotHartVanRand;
+        ResetFormToewijzing();
     }
 
     public void Dispose()
@@ -32,6 +32,7 @@ public partial class PaneelConfiguratie
             bewerkToewijzingId = null;
             geselecteerdeKastIds.Clear();
             conceptPaneel = null;
+            ResetFormToewijzing();
         }
 
         if (reviewWeergaveActief && State.Toewijzingen.Count == 0)
@@ -222,6 +223,7 @@ public partial class PaneelConfiguratie
         foreach (var id in wandKastIds)
             geselecteerdeKastIds.Remove(id);
 
+        ResetFormToewijzing();
         ResetConceptPaneel();
     }
 
@@ -240,6 +242,7 @@ public partial class PaneelConfiguratie
     {
         bewerkToewijzingId = null;
         geselecteerdeKastIds.Clear();
+        ResetFormToewijzing();
         ResetConceptPaneel();
     }
 
@@ -249,6 +252,7 @@ public partial class PaneelConfiguratie
         {
             bewerkToewijzingId = null;
             geselecteerdeKastIds.Clear();
+            ResetFormToewijzing();
         }
 
         reviewWeergaveActief = false;
@@ -263,6 +267,7 @@ public partial class PaneelConfiguratie
         toonEditorDrawer = false;
         bewerkToewijzingId = null;
         geselecteerdeKastIds.Clear();
+        ResetFormToewijzing();
         ResetConceptPaneel();
     }
 
@@ -286,7 +291,13 @@ public partial class PaneelConfiguratie
         }
     }
 
-    private void SluitEditorDrawer() => toonEditorDrawer = false;
+    private void SluitEditorDrawer()
+    {
+        toonEditorDrawer = false;
+        bewerkToewijzingId = null;
+        ResetFormToewijzing();
+        ResetConceptPaneel();
+    }
 
     private string EditorDrawerTitel()
         => IsBewerkModus
@@ -345,6 +356,9 @@ public partial class PaneelConfiguratie
         UpdateFormVanConcept();
     }
 
+    private void ResetFormToewijzing()
+        => formToewijzing = IndelingFormulierHelper.NieuwePaneelToewijzing(State.LaatstGebruiktePotHartVanRand);
+
     private void LaadToewijzingInFormulier(PaneelToewijzing toewijzing)
     {
         var paneelBron = PaneelBron(toewijzing);
@@ -355,6 +369,7 @@ public partial class PaneelConfiguratie
             return;
         }
 
+        ResetFormToewijzing();
         formToewijzing.Type = toewijzing.Type;
         formToewijzing.ScharnierZijde = toewijzing.ScharnierZijde;
         formToewijzing.PotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
@@ -507,6 +522,7 @@ public partial class PaneelConfiguratie
         reviewWeergaveActief = false;
         toonEditorDrawer = false;
         bewerkToewijzingId = null;
+        ResetFormToewijzing();
         ResetConceptPaneel();
     }
 
@@ -555,6 +571,7 @@ public partial class PaneelConfiguratie
     private void AnnuleerBewerken()
     {
         bewerkToewijzingId = null;
+        ResetFormToewijzing();
         ResetConceptPaneel();
     }
 

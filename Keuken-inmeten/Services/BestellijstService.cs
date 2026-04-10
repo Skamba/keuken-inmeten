@@ -98,6 +98,7 @@ public static class BestellijstService
                     Breedte = eerste.Resultaat.Breedte,
                     Boorgaten = eerste.Resultaat.Boorgaten
                         .OrderBy(boorgat => boorgat.Y)
+                        .ThenBy(boorgat => boorgat.X)
                         .Select(boorgat => new Boorgat
                         {
                             X = boorgat.X,
@@ -156,9 +157,13 @@ public static class BestellijstService
 
     private static string BepaalSignatuur(PaneelResultaat resultaat, string basisNaam, PaneelToewijzing? toewijzing, Guid? wandId)
     {
+        var scharnierSignatuur = resultaat.Type == PaneelType.Deur
+            ? resultaat.ScharnierZijde.ToString()
+            : string.Empty;
         var boorgaten = string.Join(";",
             resultaat.Boorgaten
                 .OrderBy(boorgat => boorgat.Y)
+                .ThenBy(boorgat => boorgat.X)
                 .Select(boorgat => $"{Fmt(boorgat.X)},{Fmt(boorgat.Y)},{Fmt(boorgat.Diameter)}"));
 
         return string.Join("|",
@@ -167,7 +172,7 @@ public static class BestellijstService
             resultaat.Type,
             Fmt(resultaat.Breedte),
             Fmt(resultaat.Hoogte),
-            resultaat.ScharnierZijde,
+            scharnierSignatuur,
             toewijzing?.Type.ToString() ?? "",
             boorgaten);
     }

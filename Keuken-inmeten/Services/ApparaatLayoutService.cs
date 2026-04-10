@@ -6,32 +6,54 @@ public static class ApparaatLayoutService
 {
     private const double RasterMm = 10.0;
 
+    public static bool TryBepaalStandaardPlaatsing(
+        KeukenWand wand,
+        Apparaat apparaat,
+        IEnumerable<Kast> kastenBron,
+        IEnumerable<Apparaat> apparatenBron,
+        out (double xPositie, double hoogteVanVloer) plaatsing)
+    {
+        var kasten = kastenBron.ToList();
+        var apparaten = apparatenBron.ToList();
+        var maxX = wand.Breedte - apparaat.Breedte;
+        var maxY = wand.Hoogte - apparaat.Hoogte;
+
+        if (maxX < -0.001 || maxY < -0.001)
+        {
+            plaatsing = default;
+            return false;
+        }
+
+        var voorkeursY = ClampOpRaster(Math.Clamp(wand.PlintHoogte, 0, Math.Max(0, maxY)));
+
+        if (TryVindVrijePlaats(voorkeursY, Math.Max(0, maxX), Math.Max(0, maxY), apparaat, kasten, apparaten, out plaatsing))
+            return true;
+
+        for (double y = 0; y <= Math.Max(0, maxY) + 0.001; y += RasterMm)
+        {
+            var kandidaatY = ClampOpRaster(y);
+            if (Math.Abs(kandidaatY - voorkeursY) < 0.001)
+                continue;
+
+            if (TryVindVrijePlaats(kandidaatY, Math.Max(0, maxX), Math.Max(0, maxY), apparaat, kasten, apparaten, out plaatsing))
+                return true;
+        }
+
+        plaatsing = default;
+        return false;
+    }
+
     public static (double xPositie, double hoogteVanVloer) BepaalStandaardPlaatsing(
         KeukenWand wand,
         Apparaat apparaat,
         IEnumerable<Kast> kastenBron,
         IEnumerable<Apparaat> apparatenBron)
     {
-        var kasten = kastenBron.ToList();
-        var apparaten = apparatenBron.ToList();
-        var maxX = Math.Max(0, wand.Breedte - apparaat.Breedte);
-        var maxY = Math.Max(0, wand.Hoogte - apparaat.Hoogte);
-        var voorkeursY = ClampOpRaster(Math.Clamp(wand.PlintHoogte, 0, maxY));
-
-        if (TryVindVrijePlaats(voorkeursY, maxX, maxY, apparaat, kasten, apparaten, out var plaatsing))
+        if (TryBepaalStandaardPlaatsing(wand, apparaat, kastenBron, apparatenBron, out var plaatsing))
             return plaatsing;
 
-        for (double y = 0; y <= maxY + 0.001; y += RasterMm)
-        {
-            var kandidaatY = ClampOpRaster(y);
-            if (Math.Abs(kandidaatY - voorkeursY) < 0.001)
-                continue;
-
-            if (TryVindVrijePlaats(kandidaatY, maxX, maxY, apparaat, kasten, apparaten, out plaatsing))
-                return plaatsing;
-        }
-
-        return (0, voorkeursY);
+        var maxY = Math.Max(0, wand.Hoogte - apparaat.Hoogte);
+        return (0, ClampOpRaster(Math.Clamp(wand.PlintHoogte, 0, maxY)));
     }
 
     public static bool HeeftOverlap(Apparaat apparaat, Kast kast)

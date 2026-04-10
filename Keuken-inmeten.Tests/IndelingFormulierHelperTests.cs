@@ -105,4 +105,79 @@ public class IndelingFormulierHelperTests
         Assert.Equal(200d, kopie.Planken[0].HoogteVanBodem);
         Assert.Equal(100d, kopie.MontagePlaatPosities[0].AfstandVanBoven);
     }
+
+    [Fact]
+    public void TryVindVrijeKastPlaatsing_gebruikt_huidige_positie_als_die_past()
+    {
+        var wand = MaakWand();
+        var bestaandeKasten = new[]
+        {
+            MaakKast("Links", xPositie: 0)
+        };
+        var kast = MaakKast("Nieuw", xPositie: 600);
+
+        var gevonden = IndelingFormulierHelper.TryVindVrijeKastPlaatsing(wand, bestaandeKasten, kast, out var plaatsing);
+
+        Assert.True(gevonden);
+        Assert.Equal(600, plaatsing.xPositie);
+        Assert.Equal(100, plaatsing.hoogteVanVloer);
+    }
+
+    [Fact]
+    public void TryVindVrijeKastPlaatsing_vindt_een_vrije_tussenruimte()
+    {
+        var wand = MaakWand();
+        var bestaandeKasten = new[]
+        {
+            MaakKast("Links", xPositie: 0),
+            MaakKast("Rechts", xPositie: 1200)
+        };
+        var kast = MaakKast("Kopie", xPositie: 0);
+
+        var gevonden = IndelingFormulierHelper.TryVindVrijeKastPlaatsing(wand, bestaandeKasten, kast, out var plaatsing);
+
+        Assert.True(gevonden);
+        Assert.Equal(600, plaatsing.xPositie);
+        Assert.Equal(100, plaatsing.hoogteVanVloer);
+    }
+
+    [Fact]
+    public void TryVindVrijeKastPlaatsing_geeft_false_als_de_wand_vol_is()
+    {
+        var wand = MaakWand(breedte: 1200);
+        var bestaandeKasten = new[]
+        {
+            MaakKast("Links", xPositie: 0),
+            MaakKast("Rechts", xPositie: 600)
+        };
+        var kast = MaakKast("Extra", xPositie: 0);
+
+        var gevonden = IndelingFormulierHelper.TryVindVrijeKastPlaatsing(wand, bestaandeKasten, kast, out _);
+
+        Assert.False(gevonden);
+    }
+
+    private static KeukenWand MaakWand(double breedte = 2400, double hoogte = 2700) => new()
+    {
+        Id = Guid.NewGuid(),
+        Naam = "Wand",
+        Breedte = breedte,
+        Hoogte = hoogte,
+        PlintHoogte = 100
+    };
+
+    private static Kast MaakKast(string naam, double xPositie) => new()
+    {
+        Id = Guid.NewGuid(),
+        Naam = naam,
+        Type = KastType.Onderkast,
+        Breedte = 600,
+        Hoogte = 720,
+        Diepte = 560,
+        Wanddikte = 18,
+        GaatjesAfstand = 32,
+        EersteGaatVanBoven = 19,
+        HoogteVanVloer = 100,
+        XPositie = xPositie
+    };
 }

@@ -287,6 +287,44 @@ public class KeukenStateServiceTests
     }
 
     [Fact]
+    public void WerkKastBijOpWand_verplaatst_kast_naar_een_andere_wand()
+    {
+        var state = new KeukenStateService();
+        var bronWand = MaakWand("Bron");
+        var doelWand = MaakWand("Doel");
+        state.VoegWandToe(bronWand);
+        state.VoegWandToe(doelWand);
+
+        var kast = MaakKast("Onderkast");
+        state.VoegKastToe(kast, bronWand.Id);
+
+        var notificaties = 0;
+        state.OnStateChanged += () => notificaties++;
+
+        var gewijzigd = state.WerkKastBijOpWand(new Kast
+        {
+            Id = kast.Id,
+            Naam = "Onderkast verplaatst",
+            Type = kast.Type,
+            Breedte = kast.Breedte,
+            Hoogte = kast.Hoogte,
+            Diepte = kast.Diepte,
+            Wanddikte = kast.Wanddikte,
+            GaatjesAfstand = kast.GaatjesAfstand,
+            EersteGaatVanBoven = kast.EersteGaatVanBoven,
+            HoogteVanVloer = kast.HoogteVanVloer,
+            XPositie = kast.XPositie
+        }, doelWand.Id);
+
+        Assert.True(gewijzigd);
+        Assert.Equal(1, notificaties);
+        Assert.DoesNotContain(kast.Id, bronWand.KastIds);
+        Assert.Contains(kast.Id, doelWand.KastIds);
+        Assert.Equal(doelWand.Id, state.WandVoorKast(kast.Id)?.Id);
+        Assert.Equal("Onderkast verplaatst", Assert.Single(state.Kasten).Naam);
+    }
+
+    [Fact]
     public void Laden_gebruikt_dezelfde_domeinvalidatie_als_importpaden()
     {
         var state = new KeukenStateService();

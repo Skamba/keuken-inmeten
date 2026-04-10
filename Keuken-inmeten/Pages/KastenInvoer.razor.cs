@@ -175,25 +175,20 @@ public partial class KastenInvoer
     {
         if (string.IsNullOrWhiteSpace(formKast.Naam)) return;
         if (actieveWandId is null) return;
-
-        formKast.Type = InferKastType(formKast.Hoogte);
-        AutoBerekenPosities();
+        if (!TryMaakOpTeSlaanKast(out var opTeSlaanKast, out var doelWandId))
+            return;
 
         if (isBewerken && bewerkKastId.HasValue)
         {
-            // Preserve planks managed via SVG drag/drop
-            var bestaand = State.Kasten.Find(k => k.Id == bewerkKastId.Value);
-            if (bestaand != null)
-                formKast.Planken = bestaand.Planken;
-            formKast.Id = bewerkKastId.Value;
-            State.WerkKastBij(formKast);
+            opTeSlaanKast.Id = bewerkKastId.Value;
+            if (!State.WerkKastBijOpWand(opTeSlaanKast, doelWandId))
+                return;
         }
         else
         {
-            formKast.Id = Guid.NewGuid();
-            var bestaandeKasten = State.KastenVoorWand(actieveWandId.Value);
-            formKast.XPositie = bestaandeKasten.Sum(k => k.Breedte);
-            State.VoegKastToe(formKast, actieveWandId.Value);
+            opTeSlaanKast.Id = Guid.NewGuid();
+            if (!State.VoegKastToe(opTeSlaanKast, doelWandId))
+                return;
         }
 
         formKast = NieuweKastMetVorigeWaarden();
@@ -227,18 +222,71 @@ public partial class KastenInvoer
     private Kast NieuweKastMetVorigeWaarden()
         => IndelingFormulierHelper.MaakKastMetVorigeWaarden(State.KastTemplates);
 
+    private bool TryMaakOpTeSlaanKast(out Kast kast, out Guid wandId)
+    {
+        kast = NieuweKast();
+        wandId = Guid.Empty;
+
+        if (actieveWandId is not Guid actieveId)
+            return false;
+
+        var wand = State.Wanden.Find(item => item.Id == actieveId);
+        if (wand is null)
+            return false;
+
+        kast = KopieerKast(formKast);
+        kast.Type = InferKastType(kast.Hoogte);
+        kast.MontagePlaatPosities = IndelingFormulierHelper.BerekenMontageplaatPosities(kast);
+
+        if (isBewerken && bewerkKastId is Guid bestaandKastId)
+        {
+            var bestaand = State.Kasten.Find(item => item.Id == bestaandKastId);
+            if (bestaand is null)
+                return false;
+
+            kast.Id = bestaand.Id;
+            kast.Planken = KopieerKast(bestaand).Planken;
+        }
+
+        if (!IndelingFormulierHelper.TryVindVrijeKastPlaatsing(
+                wand,
+                State.KastenVoorWand(actieveId),
+                kast,
+                out var plaatsing,
+                bewerkKastId))
+        {
+            Feedback.ToonFout("Deze kast past niet op de gekozen wand. Kies een andere wand of maak ruimte vrij.");
+            return false;
+        }
+
+        kast.XPositie = plaatsing.xPositie;
+        kast.HoogteVanVloer = plaatsing.hoogteVanVloer;
+        wandId = actieveId;
+        return true;
+    }
+
     private void KopieerKast(Kast kast, Guid wandId)
     {
         var kopie = KopieerKast(kast, behoudPlankIds: false);
-        kopie.Id = Guid.NewGuid();
         kopie.Naam = kast.Naam + " (kopie)";
-        kopie.XPositie = Math.Min(
-            State.KastenVoorWand(wandId).Sum(bestaandeKast => bestaandeKast.Breedte),
-            Math.Max(
-                0,
-                (State.Wanden.Find(w => w.KastIds.Contains(kast.Id))?.Breedte
-                 ?? State.Wanden.Find(w => w.Id == wandId)?.Breedte
-                 ?? double.MaxValue) - kast.Breedte));
+
+        var wand = State.Wanden.Find(item => item.Id == wandId);
+        if (wand is null)
+            return;
+
+        if (!IndelingFormulierHelper.TryVindVrijeKastPlaatsing(
+                wand,
+                State.KastenVoorWand(wandId),
+                kopie,
+                out var plaatsing))
+        {
+            Feedback.ToonFout("Deze kast kan niet worden gekopieerd omdat er geen vrije plek meer op deze wand is.");
+            return;
+        }
+
+        kopie.Id = Guid.NewGuid();
+        kopie.XPositie = plaatsing.xPositie;
+        kopie.HoogteVanVloer = plaatsing.hoogteVanVloer;
         State.VoegKastToe(kopie, wandId);
     }
 
@@ -453,28 +501,39 @@ public partial class KastenInvoer
         if (string.IsNullOrWhiteSpace(formApparaat.Naam)) return;
         if (actieveWandId is null) return;
 
+        var opTeSlaanApparaat = KopieerApparaat(formApparaat);
+
         if (isApparaatBewerken && bewerkApparaatId.HasValue)
         {
-            formApparaat.Id = bewerkApparaatId.Value;
-            State.WerkApparaatBij(formApparaat);
+            opTeSlaanApparaat.Id = bewerkApparaatId.Value;
+            if (!State.WerkApparaatBij(opTeSlaanApparaat))
+                return;
         }
         else
         {
-            formApparaat.Id = Guid.NewGuid();
             var wand = State.Wanden.Find(w => w.Id == actieveWandId.Value);
             var bestaandeKasten = State.KastenVoorWand(actieveWandId.Value);
             var bestaandeApparaten = State.ApparatenVoorWand(actieveWandId.Value);
-            if (wand is not null)
-            {
-                var plaatsing = ApparaatLayoutService.BepaalStandaardPlaatsing(
+            if (wand is null)
+                return;
+
+            if (!ApparaatLayoutService.TryBepaalStandaardPlaatsing(
                     wand,
-                    formApparaat,
+                    opTeSlaanApparaat,
                     bestaandeKasten,
-                    bestaandeApparaten);
-                formApparaat.XPositie = plaatsing.xPositie;
-                formApparaat.HoogteVanVloer = plaatsing.hoogteVanVloer;
+                    bestaandeApparaten,
+                    out var plaatsing))
+            {
+                Feedback.ToonFout("Dit apparaat past niet meer op de gekozen wand. Maak ruimte vrij of kies een andere oplossing.");
+                return;
             }
-            State.VoegApparaatToe(formApparaat, actieveWandId.Value);
+
+            opTeSlaanApparaat.Id = Guid.NewGuid();
+            opTeSlaanApparaat.XPositie = plaatsing.xPositie;
+            opTeSlaanApparaat.HoogteVanVloer = plaatsing.hoogteVanVloer;
+
+            if (!State.VoegApparaatToe(opTeSlaanApparaat, actieveWandId.Value))
+                return;
         }
 
         SluitApparaatFormulier();

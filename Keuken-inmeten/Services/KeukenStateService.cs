@@ -239,6 +239,32 @@ public class KeukenStateService
         return true;
     }
 
+    public bool WerkKastBijOpWand(Kast kast, Guid wandId)
+    {
+        if (Wanden.All(wand => wand.Id != wandId))
+            return false;
+
+        var genormaliseerd = KeukenDomeinValidatieService.NormaliseerKast(kast);
+        var index = Kasten.FindIndex(item => item.Id == genormaliseerd.Id);
+        if (index < 0)
+            return false;
+
+        Kasten[index] = genormaliseerd;
+        BijwerkenKastTemplate(genormaliseerd);
+        VerplaatsKastNaarWandZonderNotify(genormaliseerd.Id, wandId);
+        NotifyChanged();
+        return true;
+    }
+
+    public bool VerplaatsKastNaarWand(Guid kastId, Guid wandId, int? index = null)
+    {
+        if (!VerplaatsKastNaarWandZonderNotify(kastId, wandId, index))
+            return false;
+
+        NotifyChanged();
+        return true;
+    }
+
     public bool VerplaatsKast(Guid id, double xPositie, double hoogteVanVloer)
     {
         var kast = Kasten.Find(item => item.Id == id);
@@ -603,6 +629,34 @@ public class KeukenStateService
 
     private static bool ZijnBijnaGelijk(double links, double rechts)
         => Math.Abs(links - rechts) < 0.001;
+
+    private bool VerplaatsKastNaarWandZonderNotify(Guid kastId, Guid wandId, int? index = null)
+    {
+        var doelWand = Wanden.Find(item => item.Id == wandId);
+        if (doelWand is null)
+            return false;
+
+        var huidigeWand = Wanden.Find(item => item.KastIds.Contains(kastId));
+        if (huidigeWand?.Id == wandId)
+        {
+            if (index is not int insertIndex)
+                return true;
+
+            huidigeWand.KastIds.Remove(kastId);
+            huidigeWand.KastIds.Insert(Math.Clamp(insertIndex, 0, huidigeWand.KastIds.Count), kastId);
+            return true;
+        }
+
+        huidigeWand?.KastIds.Remove(kastId);
+        doelWand.KastIds.Remove(kastId);
+
+        if (index is int doelIndex)
+            doelWand.KastIds.Insert(Math.Clamp(doelIndex, 0, doelWand.KastIds.Count), kastId);
+        else
+            doelWand.KastIds.Add(kastId);
+
+        return true;
+    }
 
     private static void SynchroniseerWand(KeukenWand doel, KeukenWand bron)
     {

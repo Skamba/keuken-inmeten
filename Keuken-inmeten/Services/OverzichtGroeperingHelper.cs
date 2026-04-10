@@ -9,6 +9,7 @@ public static class OverzichtGroeperingHelper
     public sealed record PaneelReviewItem(
         int Volgnummer,
         Guid Id,
+        Guid? WandId,
         string WandNaam,
         string KastenLabel,
         PaneelType Type,
@@ -19,6 +20,7 @@ public static class OverzichtGroeperingHelper
         string ScharnierLabel);
 
     public sealed record PaneelReviewGroep(
+        Guid? WandId,
         string WandNaam,
         int AantalPanelen,
         List<Telling> TypeTellingen,
@@ -57,11 +59,15 @@ public static class OverzichtGroeperingHelper
             {
                 var kasten = state.ZoekKasten(toewijzing.KastIds);
                 var kastenLabel = string.Join(" + ", kasten.Select(kast => kast.Naam));
-                var wandNaam = state.WandNaamVoorKasten(toewijzing.KastIds, "Onbekende wand");
+                var wand = toewijzing.KastIds
+                    .Select(state.WandVoorKast)
+                    .FirstOrDefault(kandidaat => kandidaat is not null);
+                var wandNaam = string.IsNullOrWhiteSpace(wand?.Naam) ? "Onbekende wand" : wand.Naam;
 
                 return new PaneelReviewItem(
                     index + 1,
                     toewijzing.Id,
+                    wand?.Id,
                     wandNaam,
                     string.IsNullOrWhiteSpace(kastenLabel) ? "Onbekende kast" : kastenLabel,
                     toewijzing.Type,
@@ -71,11 +77,12 @@ public static class OverzichtGroeperingHelper
                     PlaatsingLabel(toewijzing),
                     ScharnierLabel(toewijzing));
             })
-            .GroupBy(item => item.WandNaam, StringComparer.CurrentCultureIgnoreCase)
+            .GroupBy(BepaalPaneelReviewWandSleutel)
             .Select(groep =>
             {
                 var items = groep.ToList();
                 return new PaneelReviewGroep(
+                    groep.First().WandId,
                     groep.First().WandNaam,
                     items.Count,
                     MaakTellingen(items, item => item.TypeLabel),
@@ -117,6 +124,9 @@ public static class OverzichtGroeperingHelper
         => string.IsNullOrWhiteSpace(wandNaam) ? "Onbekende wand" : wandNaam.Trim();
 
     private static string BepaalBestellijstWandSleutel(BestellijstItem item)
+        => item.WandId?.ToString("N") ?? NormaliseerWandNaam(item.WandNaam).ToUpperInvariant();
+
+    private static string BepaalPaneelReviewWandSleutel(PaneelReviewItem item)
         => item.WandId?.ToString("N") ?? NormaliseerWandNaam(item.WandNaam).ToUpperInvariant();
 
     private static string FormatMm(double waarde) => $"{waarde:0.#} mm";

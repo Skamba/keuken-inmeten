@@ -94,6 +94,35 @@ public class BestellijstServiceTests
     }
 
     [Fact]
+    public void Identieke_ladefronten_met_verschillende_scharnierzijde_worden_gegroepeerd()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Muur",
+            Breedte = 2400,
+            Hoogte = 2700,
+            PlintHoogte = 100
+        };
+
+        state.VoegWandToe(wand);
+
+        var kastLinks = MaakOnderkast("Onderkast links", xPositie: 0);
+        var kastRechts = MaakOnderkast("Onderkast rechts", xPositie: 600);
+        state.VoegKastToe(kastLinks, wand.Id);
+        state.VoegKastToe(kastRechts, wand.Id);
+
+        state.VoegToewijzingToe(MaakLadefrontToewijzing(kastLinks.Id, ScharnierZijde.Links));
+        state.VoegToewijzingToe(MaakLadefrontToewijzing(kastRechts.Id, ScharnierZijde.Rechts));
+
+        var item = Assert.Single(BestellijstService.BerekenItems(state));
+        Assert.Equal(2, item.Aantal);
+        Assert.Equal("Ladefront", item.PaneelRolLabel);
+        Assert.Equal("Muur", item.WandNaam);
+    }
+
+    [Fact]
     public void Excel_export_bevat_boorgatkolommen_en_metadata()
     {
         var item = MaakBestellijstItem();
@@ -195,11 +224,12 @@ public class BestellijstServiceTests
         XPositie = xPositie
     };
 
-    private static PaneelToewijzing MaakLadefrontToewijzing(Guid kastId) => new()
+    private static PaneelToewijzing MaakLadefrontToewijzing(Guid kastId, ScharnierZijde scharnierZijde = ScharnierZijde.Links) => new()
     {
         Id = Guid.NewGuid(),
         KastIds = [kastId],
         Type = PaneelType.LadeFront,
+        ScharnierZijde = scharnierZijde,
         Breedte = 597,
         Hoogte = 200
     };

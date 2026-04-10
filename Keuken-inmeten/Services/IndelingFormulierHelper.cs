@@ -21,6 +21,12 @@ public static class IndelingFormulierHelper
         };
     }
 
+    public static PaneelToewijzing NieuwePaneelToewijzing(double potHartVanRand = ScharnierBerekeningService.CupCenterVanRand)
+        => new()
+        {
+            PotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(potHartVanRand)
+        };
+
     public static Kast MaakKastVanTemplate(KastTemplate template) => new()
     {
         Naam = template.Naam,
@@ -106,6 +112,39 @@ public static class IndelingFormulierHelper
             .ToList()
     };
 
+    public static bool TryVindVrijeKastPlaatsing(
+        KeukenWand wand,
+        IEnumerable<Kast> bestaandeKastenBron,
+        Kast kast,
+        out (double xPositie, double hoogteVanVloer) plaatsing,
+        Guid? uitsluitenKastId = null)
+    {
+        var bestaandeKasten = bestaandeKastenBron
+            .Where(bestaandeKast => bestaandeKast.Id != uitsluitenKastId)
+            .ToList();
+        var maxX = wand.Breedte - kast.Breedte;
+        var maxY = wand.Hoogte - kast.Hoogte;
+
+        if (maxX < -0.001 || maxY < -0.001)
+        {
+            plaatsing = default;
+            return false;
+        }
+
+        var kandidaatY = Math.Clamp(KeukenDomeinValidatieService.NormaliseerPositie(kast.HoogteVanVloer), 0, Math.Max(0, maxY));
+        foreach (var kandidaatX in BepaalKastPlaatsKandidaten(kast, bestaandeKasten, maxX))
+        {
+            if (!IsVrijeKastPlaats(kandidaatX, kandidaatY, kast, bestaandeKasten))
+                continue;
+
+            plaatsing = (Math.Round(kandidaatX, 1), Math.Round(kandidaatY, 1));
+            return true;
+        }
+
+        plaatsing = default;
+        return false;
+    }
+
     public static Apparaat KopieerApparaat(Apparaat bron) => new()
     {
         Id = bron.Id,
@@ -142,4 +181,53 @@ public static class IndelingFormulierHelper
         ApparaatType.Afzuigkap => "Afzuigkap",
         _ => type.ToString()
     };
+
+    private static IEnumerable<double> BepaalKastPlaatsKandidaten(Kast kast, IReadOnlyList<Kast> bestaandeKasten, double maxX)
+    {
+        var gezien = new HashSet<double>();
+
+        if (VoegKandidaatToe(Math.Clamp(KeukenDomeinValidatieService.NormaliseerPositie(kast.XPositie), 0, Math.Max(0, maxX))))
+            yield return Math.Clamp(KeukenDomeinValidatieService.NormaliseerPositie(kast.XPositie), 0, Math.Max(0, maxX));
+
+        if (VoegKandidaatToe(0))
+            yield return 0;
+
+        foreach (var kandidaat in bestaandeKasten
+                     .OrderBy(bestaandeKast => bestaandeKast.XPositie)
+                     .Select(bestaandeKast => Math.Clamp(Math.Round(bestaandeKast.XPositie + bestaandeKast.Breedte, 1), 0, Math.Max(0, maxX))))
+        {
+            if (VoegKandidaatToe(kandidaat))
+                yield return kandidaat;
+        }
+
+        bool VoegKandidaatToe(double kandidaat)
+            => gezien.Add(Math.Round(kandidaat, 1));
+    }
+
+    private static bool IsVrijeKastPlaats(double xPositie, double hoogteVanVloer, Kast kast, IReadOnlyList<Kast> bestaandeKasten)
+        => bestaandeKasten.All(bestaandeKast =>
+            !HeeftOverlap(
+                xPositie,
+                hoogteVanVloer,
+                kast.Breedte,
+                kast.Hoogte,
+                bestaandeKast.XPositie,
+                bestaandeKast.HoogteVanVloer,
+                bestaandeKast.Breedte,
+                bestaandeKast.Hoogte));
+
+    private static bool HeeftOverlap(
+        double linksX,
+        double linksY,
+        double linksBreedte,
+        double linksHoogte,
+        double rechtsX,
+        double rechtsY,
+        double rechtsBreedte,
+        double rechtsHoogte)
+    {
+        var overlapX = Math.Min(linksX + linksBreedte, rechtsX + rechtsBreedte) - Math.Max(linksX, rechtsX);
+        var overlapY = Math.Min(linksY + linksHoogte, rechtsY + rechtsHoogte) - Math.Max(linksY, rechtsY);
+        return overlapX > 0.1 && overlapY > 0.1;
+    }
 }

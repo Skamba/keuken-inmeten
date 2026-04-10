@@ -190,6 +190,47 @@ public class OverzichtGroeperingHelperTests
         Assert.Equal([3, 6], groepen.Select(groep => groep.PanelenTotaal).OrderBy(totaal => totaal).ToArray());
     }
 
+    [Fact]
+    public void GroepeerPaneelToewijzingen_gebruikt_wandidentiteit_bij_gelijke_namen()
+    {
+        var state = new KeukenStateService();
+        var wandLinks = new KeukenWand { Id = Guid.NewGuid(), Naam = "Muur", Breedte = 2400, Hoogte = 2700, PlintHoogte = 100 };
+        var wandRechts = new KeukenWand { Id = Guid.NewGuid(), Naam = "Muur", Breedte = 2400, Hoogte = 2700, PlintHoogte = 100 };
+
+        state.VoegWandToe(wandLinks);
+        state.VoegWandToe(wandRechts);
+
+        var kastLinks = MaakKast("Kast links", 0);
+        var kastRechts = MaakKast("Kast rechts", 0);
+        state.VoegKastToe(kastLinks, wandLinks.Id);
+        state.VoegKastToe(kastRechts, wandRechts.Id);
+
+        state.VoegToewijzingToe(new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            KastIds = [kastLinks.Id],
+            Type = PaneelType.Deur,
+            Breedte = 597,
+            Hoogte = 717
+        });
+        state.VoegToewijzingToe(new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            KastIds = [kastRechts.Id],
+            Type = PaneelType.LadeFront,
+            Breedte = 597,
+            Hoogte = 177
+        });
+
+        var groepen = OverzichtGroeperingHelper.GroepeerPaneelToewijzingen(state);
+        Guid?[] verwachteWandIds = [wandLinks.Id, wandRechts.Id];
+        var actueleWandIds = groepen.Select(groep => groep.WandId).OrderBy(id => id).ToArray();
+
+        Assert.Equal(2, groepen.Count);
+        Assert.All(groepen, groep => Assert.Equal("Muur", groep.WandNaam));
+        Assert.Equal(verwachteWandIds.OrderBy(id => id).ToArray(), actueleWandIds);
+    }
+
     private static Kast MaakKast(string naam, double xPositie) => new()
     {
         Id = Guid.NewGuid(),

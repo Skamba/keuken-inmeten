@@ -42,6 +42,9 @@ else if (_fase == VerificatieFase.Overzicht)
                     {
                         Index = index,
                         Resultaat = r,
+                        WandId = r.KastIds
+                            .Select(State.WandVoorKast)
+                            .FirstOrDefault(kandidaat => kandidaat is not null)?.Id,
                         WandNaam = State.WandNaamVoorKasten(r.KastIds),
                         Geverifieerd = AlleChecksVoorPaneel(index, r),
                         OpenChecks = OpenChecksVoorPaneel(index, r),
@@ -55,7 +58,7 @@ else if (_fase == VerificatieFase.Overzicht)
                     {
                         Wand = wand,
                         Taken = verificatieTaken
-                            .Where(taak => taak.WandNaam == wand.Naam)
+                            .Where(taak => taak.WandId == wand.Id)
                             .ToList()
                     })
                     .Where(groep => groep.Taken.Count > 0)
@@ -99,6 +102,7 @@ else if (_fase == VerificatieFase.Overzicht)
 
                     <div class="card shadow-sm mb-3"
                          data-testid="verificatie-taakgroep"
+                         data-wand-id="@groep.Wand.Id"
                          data-wand-naam="@groep.Wand.Naam">
                         <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-start gap-3 flex-wrap">
                             <div>
