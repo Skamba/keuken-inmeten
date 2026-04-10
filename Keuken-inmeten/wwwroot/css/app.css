@@ -788,6 +788,8 @@ a, .btn-link {
 .paneel-review-item-details summary:focus-visible,
 .indeling-overige-wanden-summary:focus,
 .indeling-overige-wanden-summary:focus-visible,
+.indeling-row-details summary:focus,
+.indeling-row-details summary:focus-visible,
 .paneel-editor-empty-details summary:focus,
 .paneel-editor-empty-details summary:focus-visible,
 .bestellijst-overzicht-details summary:focus,
@@ -819,6 +821,8 @@ a, .btn-link {
 .hulp-details-summary:focus-visible,
 .indeling-overige-wanden-summary:focus,
 .indeling-overige-wanden-summary:focus-visible,
+.indeling-row-details summary:focus,
+.indeling-row-details summary:focus-visible,
 .bestellijst-overzicht-details summary:focus,
 .bestellijst-overzicht-details summary:focus-visible,
 .zaagplan-geavanceerd summary:focus,
@@ -1267,6 +1271,16 @@ code {
     gap: 0.35rem 0.85rem;
 }
 
+.paneel-editor-header-meta {
+    margin-top: 0.25rem;
+}
+
+.paneel-review-status {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--bs-primary-text-emphasis, #0a58ca);
+}
+
 .paneel-editor-placement,
 .paneel-editor-empty-details {
     padding: 0.9rem 1rem;
@@ -1624,6 +1638,46 @@ code {
     gap: 0.5rem;
 }
 
+.indeling-row-details {
+    min-width: fit-content;
+}
+
+.indeling-row-details summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.indeling-row-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.indeling-row-details summary::marker {
+    content: "";
+}
+
+.indeling-row-details summary::after {
+    content: "+";
+    color: var(--bs-secondary-color, #516173);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.indeling-row-details[open] summary::after {
+    content: "−";
+}
+
+.indeling-row-details-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+    justify-content: flex-end;
+}
+
 @media (min-width: 768px) {
     .indeling-overige-wand-schakelaar {
         flex-direction: row;
@@ -1657,6 +1711,11 @@ code {
 @media (max-width: 767.98px) {
     .indeling-object-acties,
     .indeling-object-confirmatie {
+        width: 100%;
+    }
+
+    .indeling-row-details,
+    .indeling-row-details-body {
         width: 100%;
     }
 

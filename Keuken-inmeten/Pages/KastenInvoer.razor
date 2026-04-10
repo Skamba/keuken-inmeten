@@ -324,14 +324,19 @@ else
                                                     @onclick="() => BewerkKast(kast, actieveWand.Id)">
                                                 Bewerk
                                             </button>
-                                            <button class="btn btn-outline-secondary btn-sm"
-                                                    @onclick="() => KopieerKast(kast, actieveWand.Id)">
-                                                Kopieer
-                                            </button>
-                                            <button class="btn btn-outline-danger btn-sm"
-                                                    @onclick="() => bevestigVerwijderKastId = kast.Id">
-                                                Verwijder
-                                            </button>
+                                            <details class="indeling-row-details">
+                                                <summary class="small fw-semibold text-secondary">Meer acties</summary>
+                                                <div class="indeling-row-details-body">
+                                                    <button class="btn btn-outline-secondary btn-sm"
+                                                            @onclick="() => KopieerKast(kast, actieveWand.Id)">
+                                                        Kopieer
+                                                    </button>
+                                                    <button class="btn btn-outline-danger btn-sm"
+                                                            @onclick="() => bevestigVerwijderKastId = kast.Id">
+                                                        Verwijder
+                                                    </button>
+                                                </div>
+                                            </details>
                                         </div>
                                     }
                                 </div>
@@ -386,10 +391,15 @@ else
                                                         @onclick="() => BewerkApparaat(apparaat, actieveWand.Id)">
                                                     Bewerk
                                                 </button>
-                                                <button class="btn btn-outline-danger btn-sm"
-                                                        @onclick="() => bevestigVerwijderApparaatId = apparaat.Id">
-                                                    Verwijder
-                                                </button>
+                                                <details class="indeling-row-details">
+                                                    <summary class="small fw-semibold text-secondary">Meer acties</summary>
+                                                    <div class="indeling-row-details-body">
+                                                        <button class="btn btn-outline-danger btn-sm"
+                                                                @onclick="() => bevestigVerwijderApparaatId = apparaat.Id">
+                                                            Verwijder
+                                                        </button>
+                                                    </div>
+                                                </details>
                                             </div>
                                         }
                                     </div>
