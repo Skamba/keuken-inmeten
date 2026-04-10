@@ -55,11 +55,11 @@ public class KeukenStateServiceHelperTests
     public void ZoekKasten_vindt_kasten_op_id_en_behoudt_volgorde()
     {
         var state = new KeukenStateService();
-        var wand = new KeukenWand { Naam = "Muur" };
+        var wand = new KeukenWand { Naam = "Muur", Breedte = 2400, Hoogte = 2700, PlintHoogte = 100 };
         state.VoegWandToe(wand);
 
-        var kast1 = new Kast { Naam = "Kast A", Breedte = 600, Hoogte = 720 };
-        var kast2 = new Kast { Naam = "Kast B", Breedte = 400, Hoogte = 720 };
+        var kast1 = new Kast { Naam = "Kast A", Breedte = 600, Hoogte = 720, HoogteVanVloer = 100, XPositie = 0 };
+        var kast2 = new Kast { Naam = "Kast B", Breedte = 400, Hoogte = 720, HoogteVanVloer = 100, XPositie = 600 };
         state.VoegKastToe(kast1, wand.Id);
         state.VoegKastToe(kast2, wand.Id);
 

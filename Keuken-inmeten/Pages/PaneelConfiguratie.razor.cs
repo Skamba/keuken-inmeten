@@ -89,6 +89,7 @@ public partial class PaneelConfiguratie
         HeeftConceptPaneel: conceptPaneel is not null,
         HeeftGeldigeMaat: formToewijzing.Breedte > 0 && formToewijzing.Hoogte > 0,
         RaaktGeselecteerdeKast: RaaktGeselecteerdeKast(),
+        HeeftConflicterendPaneel: HeeftConflicterendPaneel(),
         ActieveWandNaam: GeopendeWand?.Naam ?? ActieveWandNaam,
         GeselecteerdeKastNamen: string.Join(" + ", geselecteerdeKasten.Select(kast => kast.Naam)));
 
@@ -104,6 +105,10 @@ public partial class PaneelConfiguratie
     private bool RaaktGeselecteerdeKast()
         => conceptPaneel is not null
             && PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel).Count > 0;
+
+    private bool HeeftConflicterendPaneel()
+        => conceptPaneel is not null
+            && BestaandePaneelRechthoeken().Any(bestaandPaneel => PaneelLayoutService.HeeftOverlap(conceptPaneel, bestaandPaneel));
 
     private string PaneelEditorSelectieSamenvatting()
         => geselecteerdeKasten.Count switch
@@ -123,6 +128,9 @@ public partial class PaneelConfiguratie
 
         if (conceptPaneel is null)
             return "Sleep in de tekening of kies een vrij vak. De velden hieronder volgen direct mee.";
+
+        if (HeeftConflicterendPaneel())
+            return "Verplaats of verklein het paneel totdat het geen bestaand paneel meer overlapt.";
 
         return RaaktGeselecteerdeKast()
             ? "Controleer hieronder maat en type voordat u opslaat."
@@ -496,6 +504,12 @@ public partial class PaneelConfiguratie
     {
         if (conceptPaneel is null || geselecteerdeKastIds.Count == 0)
             return;
+
+        if (HeeftConflicterendPaneel())
+        {
+            Feedback.ToonFout("Dit paneel overlapt nog een bestaand paneel. Verplaats of verklein het eerst.");
+            return;
+        }
 
         var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel);
         if (dragendeKasten.Count == 0)

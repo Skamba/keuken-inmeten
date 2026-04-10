@@ -17,7 +17,8 @@ public static class PaneelConfiguratieHelper
             && context.HeeftSelectie
             && context.HeeftConceptPaneel
             && context.HeeftGeldigeMaat
-            && context.RaaktGeselecteerdeKast;
+            && context.RaaktGeselecteerdeKast
+            && !context.HeeftConflicterendPaneel;
 
     public static string BepaalVolgendePaneelStapTekst(PaneelFlowContext context)
         => !context.HeeftWandContext
@@ -26,6 +27,8 @@ public static class PaneelConfiguratieHelper
                 ? "Selecteer eerst een of meer kasten binnen de actieve wand."
                 : !context.HeeftConceptPaneel
                     ? "Plaats of pas het paneel aan in het schema."
+                    : context.HeeftConflicterendPaneel
+                        ? "Verplaats of verklein het paneel totdat het geen bestaand paneel meer overlapt."
                     : KanPaneelOpslaan(context)
                         ? "Sla het paneel op zodra maat en type kloppen."
                         : "Controleer maat, type en plaatsing zodat het paneel weer een kast raakt.";
@@ -43,6 +46,9 @@ public static class PaneelConfiguratieHelper
 
         if (!context.HeeftGeldigeMaat)
             return "Nee, breedte en hoogte moeten groter dan 0 zijn.";
+
+        if (context.HeeftConflicterendPaneel)
+            return "Nee, het paneel overlapt nog een bestaand paneel.";
 
         return context.RaaktGeselecteerdeKast
             ? "Ja, u kunt nu opslaan."
@@ -153,7 +159,7 @@ public static class PaneelConfiguratieHelper
         IEnumerable<PaneelRechthoek> bestaandePaneelRechthoeken)
     {
         var bezetteSegmenten = bestaandePaneelRechthoeken
-            .Where(paneel => HeeftZelfdeHorizontaleSpan(paneel, selectieBereik))
+            .Where(paneel => HeeftHorizontaleOverlap(paneel, selectieBereik))
             .ToList();
         if (bezetteSegmenten.Count == 0)
             return [];
@@ -234,11 +240,10 @@ public static class PaneelConfiguratieHelper
 
     private static double RondRaster(double waarde) => Math.Round(waarde / 10.0) * 10.0;
 
-    private static bool HeeftZelfdeHorizontaleSpan(PaneelRechthoek links, PaneelRechthoek rechts)
+    private static bool HeeftHorizontaleOverlap(PaneelRechthoek links, PaneelRechthoek rechts)
     {
         const double tolerantie = 1.0;
-        return Math.Abs(links.XPositie - rechts.XPositie) <= tolerantie
-               && Math.Abs(links.Rechterkant - rechts.Rechterkant) <= tolerantie;
+        return Math.Min(links.Rechterkant, rechts.Rechterkant) - Math.Max(links.XPositie, rechts.XPositie) > tolerantie;
     }
 }
 
@@ -250,5 +255,6 @@ public readonly record struct PaneelFlowContext(
     bool HeeftConceptPaneel,
     bool HeeftGeldigeMaat,
     bool RaaktGeselecteerdeKast,
+    bool HeeftConflicterendPaneel,
     string ActieveWandNaam,
     string GeselecteerdeKastNamen);

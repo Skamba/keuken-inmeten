@@ -394,11 +394,34 @@ public partial class KastenInvoer
         var breedte = eigenschap == nameof(KeukenWand.Breedte) ? waarde : wand.Breedte;
         var hoogte = eigenschap == nameof(KeukenWand.Hoogte) ? waarde : wand.Hoogte;
         var plintHoogte = eigenschap == nameof(KeukenWand.PlintHoogte) ? waarde : wand.PlintHoogte;
-        State.WerkWandAfmetingenBij(wand.Id, breedte, hoogte, plintHoogte);
+        if (Math.Abs(wand.Breedte - breedte) < 0.001
+            && Math.Abs(wand.Hoogte - hoogte) < 0.001
+            && Math.Abs(wand.PlintHoogte - plintHoogte) < 0.001)
+        {
+            return;
+        }
+
+        if (!State.WerkWandAfmetingenBij(wand.Id, breedte, hoogte, plintHoogte))
+        {
+            Feedback.ToonFout("Deze wandmaat past niet meer bij de huidige kasten en apparaten. Maak eerst ruimte vrij of verplaats de inhoud.");
+        }
     }
 
     private void VerplaatsKastOpWand(KastPositieWijziging wijziging)
-        => State.VerplaatsKast(wijziging.KastId, wijziging.XPositie, wijziging.HoogteVanVloer);
+    {
+        var kast = State.Kasten.Find(item => item.Id == wijziging.KastId);
+        if (kast is null)
+            return;
+
+        if (Math.Abs(kast.XPositie - wijziging.XPositie) < 0.001
+            && Math.Abs(kast.HoogteVanVloer - wijziging.HoogteVanVloer) < 0.001)
+        {
+            return;
+        }
+
+        if (!State.VerplaatsKast(wijziging.KastId, wijziging.XPositie, wijziging.HoogteVanVloer))
+            Feedback.ToonFout("Deze kast kan hier niet staan. Houd de kast binnen de wand en vrij van andere kasten.");
+    }
 
     private void VerwerkPlankActie(WandPlankActie actie)
     {
@@ -507,7 +530,10 @@ public partial class KastenInvoer
         {
             opTeSlaanApparaat.Id = bewerkApparaatId.Value;
             if (!State.WerkApparaatBij(opTeSlaanApparaat))
+            {
+                Feedback.ToonFout("Dit apparaat past niet meer op deze plek. Verklein het apparaat of maak eerst ruimte vrij.");
                 return;
+            }
         }
         else
         {
@@ -625,7 +651,7 @@ public partial class KastenInvoer
             [.. snapshot.Toewijzingen.Select(item => new GeindexeerdeToewijzing(KopieerToewijzing(item.Toewijzing), item.Index))]);
         if (!hersteld)
         {
-            Feedback.ToonFout("Kast kan niet worden teruggezet omdat de wand niet meer bestaat.");
+            Feedback.ToonFout("Kast kan niet worden teruggezet omdat de wand ontbreekt of de oude plek niet meer vrij is.");
             return Task.CompletedTask;
         }
         Feedback.ToonSucces($"Kast '{snapshot.Kast.Naam}' is teruggezet.");
@@ -636,7 +662,7 @@ public partial class KastenInvoer
     {
         if (!State.HerstelApparaat(KopieerApparaat(snapshot.Apparaat), snapshot.WandId, snapshot.Index))
         {
-            Feedback.ToonFout("Apparaat kan niet worden teruggezet omdat de wand niet meer bestaat.");
+            Feedback.ToonFout("Apparaat kan niet worden teruggezet omdat de wand ontbreekt of de oude plek niet meer vrij is.");
             return Task.CompletedTask;
         }
         Feedback.ToonSucces($"Apparaat '{snapshot.Apparaat.Naam}' is teruggezet.");
@@ -663,7 +689,20 @@ public partial class KastenInvoer
     private sealed record ApparaatVerwijderSnapshot(Apparaat Apparaat, Guid WandId, int Index);
 
     private void VerplaatsApparaatOpWand(ApparaatPositieWijziging wijziging)
-        => State.VerplaatsApparaat(wijziging.ApparaatId, wijziging.XPositie, wijziging.HoogteVanVloer);
+    {
+        var apparaat = State.Apparaten.Find(item => item.Id == wijziging.ApparaatId);
+        if (apparaat is null)
+            return;
+
+        if (Math.Abs(apparaat.XPositie - wijziging.XPositie) < 0.001
+            && Math.Abs(apparaat.HoogteVanVloer - wijziging.HoogteVanVloer) < 0.001)
+        {
+            return;
+        }
+
+        if (!State.VerplaatsApparaat(wijziging.ApparaatId, wijziging.XPositie, wijziging.HoogteVanVloer))
+            Feedback.ToonFout("Dit apparaat kan hier niet staan. Houd het vrij van kasten, andere apparaten en buitenranden van de wand.");
+    }
 
     private static string ApparaatTypeLabel(ApparaatType type)
         => IndelingFormulierHelper.ApparaatTypeLabel(type);

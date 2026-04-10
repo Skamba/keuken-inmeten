@@ -193,6 +193,105 @@ public class KeukenStateServiceTests
     }
 
     [Fact]
+    public void WerkWandAfmetingenBij_weigert_krimp_als_inhoud_niet_meer_past()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        state.VoegWandToe(wand);
+        state.VoegKastToe(MaakGeplaatsteKast("Rechts", xPositie: 1800), wand.Id);
+
+        var gewijzigd = state.WerkWandAfmetingenBij(wand.Id, 2000, wand.Hoogte, wand.PlintHoogte);
+
+        Assert.False(gewijzigd);
+        Assert.Equal(2400, wand.Breedte);
+    }
+
+    [Fact]
+    public void VerplaatsKast_weigert_overlap_met_bestaande_kast()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        state.VoegWandToe(wand);
+        var links = MaakGeplaatsteKast("Links", xPositie: 0);
+        var rechts = MaakGeplaatsteKast("Rechts", xPositie: 600);
+        state.VoegKastToe(links, wand.Id);
+        state.VoegKastToe(rechts, wand.Id);
+
+        var verplaatst = state.VerplaatsKast(rechts.Id, 0, rechts.HoogteVanVloer);
+
+        Assert.False(verplaatst);
+        Assert.Equal(600, rechts.XPositie);
+    }
+
+    [Fact]
+    public void VerplaatsApparaat_weigert_overlap_met_kast()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        state.VoegWandToe(wand);
+        state.VoegKastToe(MaakGeplaatsteKast("Onderkast", xPositie: 0), wand.Id);
+        var apparaat = MaakApparaat("Oven", xPositie: 700, hoogteVanVloer: 100);
+        state.VoegApparaatToe(apparaat, wand.Id);
+
+        var verplaatst = state.VerplaatsApparaat(apparaat.Id, 0, 100);
+
+        Assert.False(verplaatst);
+        Assert.Equal(700, apparaat.XPositie);
+    }
+
+    [Fact]
+    public void WerkApparaatBij_weigert_maten_die_met_andere_apparaten_botsen()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        state.VoegWandToe(wand);
+        var links = MaakApparaat("Oven", xPositie: 600, hoogteVanVloer: 100, breedte: 300);
+        var rechts = MaakApparaat("Magnetron", xPositie: 900, hoogteVanVloer: 100, breedte: 300, type: ApparaatType.Magnetron);
+        state.VoegApparaatToe(links, wand.Id);
+        state.VoegApparaatToe(rechts, wand.Id);
+
+        var gewijzigd = state.WerkApparaatBij(MaakApparaat("Oven", links.Id, xPositie: 600, hoogteVanVloer: 100, breedte: 400));
+
+        Assert.False(gewijzigd);
+        Assert.Equal(300, links.Breedte);
+    }
+
+    [Fact]
+    public void HerstelKastMetToewijzingen_weigert_bezette_plek()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        state.VoegWandToe(wand);
+        state.VoegKastToe(MaakGeplaatsteKast("Bestaand", xPositie: 0), wand.Id);
+
+        var hersteld = state.HerstelKastMetToewijzingen(
+            MaakGeplaatsteKast("Terug", xPositie: 0, id: Guid.NewGuid()),
+            wand.Id,
+            0,
+            []);
+
+        Assert.False(hersteld);
+        Assert.Single(state.Kasten);
+    }
+
+    [Fact]
+    public void HerstelApparaat_weigert_bezette_plek()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        state.VoegWandToe(wand);
+        state.VoegApparaatToe(MaakApparaat("Bestaand", xPositie: 600, hoogteVanVloer: 100), wand.Id);
+
+        var hersteld = state.HerstelApparaat(
+            MaakApparaat("Terug", Guid.NewGuid(), xPositie: 600, hoogteVanVloer: 100),
+            wand.Id,
+            0);
+
+        Assert.False(hersteld);
+        Assert.Single(state.Apparaten);
+    }
+
+    [Fact]
     public void Plank_commando_synchroniseren_state_change_pipeline()
     {
         var state = new KeukenStateService();
@@ -402,5 +501,39 @@ public class KeukenStateServiceTests
         Wanddikte = 18,
         GaatjesAfstand = 32,
         EersteGaatVanBoven = 19
+    };
+
+    private static Kast MaakGeplaatsteKast(string naam, double xPositie, double hoogteVanVloer = 100, Guid? id = null) => new()
+    {
+        Id = id ?? Guid.NewGuid(),
+        Naam = naam,
+        Type = KastType.Onderkast,
+        Breedte = 600,
+        Hoogte = 720,
+        Diepte = 560,
+        Wanddikte = 18,
+        GaatjesAfstand = 32,
+        EersteGaatVanBoven = 19,
+        XPositie = xPositie,
+        HoogteVanVloer = hoogteVanVloer
+    };
+
+    private static Apparaat MaakApparaat(
+        string naam,
+        Guid? id = null,
+        double xPositie = 600,
+        double hoogteVanVloer = 100,
+        double breedte = 600,
+        double hoogte = 600,
+        ApparaatType type = ApparaatType.Oven) => new()
+    {
+        Id = id ?? Guid.NewGuid(),
+        Naam = naam,
+        Type = type,
+        Breedte = breedte,
+        Hoogte = hoogte,
+        Diepte = 560,
+        XPositie = xPositie,
+        HoogteVanVloer = hoogteVanVloer
     };
 }

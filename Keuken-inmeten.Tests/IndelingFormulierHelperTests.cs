@@ -142,9 +142,27 @@ public class IndelingFormulierHelperTests
     }
 
     [Fact]
+    public void TryVindVrijeKastPlaatsing_vindt_een_vrije_verticale_plek_boven_bestaande_kasten()
+    {
+        var wand = MaakWand(breedte: 1200, hoogte: 2000);
+        var bestaandeKasten = new[]
+        {
+            MaakKast("Links", xPositie: 0),
+            MaakKast("Rechts", xPositie: 600)
+        };
+        var kast = MaakKast("Boven", xPositie: 0);
+
+        var gevonden = IndelingFormulierHelper.TryVindVrijeKastPlaatsing(wand, bestaandeKasten, kast, out var plaatsing);
+
+        Assert.True(gevonden);
+        Assert.Equal(0, plaatsing.xPositie);
+        Assert.Equal(820, plaatsing.hoogteVanVloer);
+    }
+
+    [Fact]
     public void TryVindVrijeKastPlaatsing_geeft_false_als_de_wand_vol_is()
     {
-        var wand = MaakWand(breedte: 1200);
+        var wand = MaakWand(breedte: 1200, hoogte: 820);
         var bestaandeKasten = new[]
         {
             MaakKast("Links", xPositie: 0),

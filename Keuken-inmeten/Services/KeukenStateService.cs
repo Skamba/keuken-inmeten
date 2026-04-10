@@ -121,28 +121,29 @@ public class KeukenStateService
         if (wand is null)
             return false;
 
-        var gewijzigd = false;
-        if (!ZijnBijnaGelijk(wand.Breedte, breedte))
-        {
-            wand.Breedte = breedte;
-            gewijzigd = true;
-        }
-
-        if (!ZijnBijnaGelijk(wand.Hoogte, hoogte))
-        {
-            wand.Hoogte = hoogte;
-            gewijzigd = true;
-        }
-
-        if (!ZijnBijnaGelijk(wand.PlintHoogte, plintHoogte))
-        {
-            wand.PlintHoogte = plintHoogte;
-            gewijzigd = true;
-        }
-
+        var gewijzigdeBreedte = !ZijnBijnaGelijk(wand.Breedte, breedte);
+        var gewijzigdeHoogte = !ZijnBijnaGelijk(wand.Hoogte, hoogte);
+        var gewijzigdePlint = !ZijnBijnaGelijk(wand.PlintHoogte, plintHoogte);
+        var gewijzigd = gewijzigdeBreedte || gewijzigdeHoogte || gewijzigdePlint;
         if (!gewijzigd)
             return false;
 
+        var kandidaatWand = new KeukenWand
+        {
+            Id = wand.Id,
+            Naam = wand.Naam,
+            Breedte = breedte,
+            Hoogte = hoogte,
+            PlintHoogte = plintHoogte,
+            KastIds = [.. wand.KastIds],
+            ApparaatIds = [.. wand.ApparaatIds]
+        };
+        if (!PastIndelingOpWand(kandidaatWand))
+            return false;
+
+        wand.Breedte = breedte;
+        wand.Hoogte = hoogte;
+        wand.PlintHoogte = plintHoogte;
         NotifyChanged();
         return true;
     }
@@ -196,6 +197,10 @@ public class KeukenStateService
     public bool VoegKastToe(Kast kast, Guid wandId)
     {
         SynchroniseerKast(kast, KeukenDomeinValidatieService.NormaliseerKast(kast));
+        var wand = Wanden.Find(item => item.Id == wandId);
+        if (wand is null || !PastKastOpWand(wand, kast))
+            return false;
+
         if (!VoegKastToeZonderNotify(kast, wandId))
             return false;
 
@@ -241,12 +246,16 @@ public class KeukenStateService
 
     public bool WerkKastBijOpWand(Kast kast, Guid wandId)
     {
-        if (Wanden.All(wand => wand.Id != wandId))
+        var doelWand = Wanden.Find(wand => wand.Id == wandId);
+        if (doelWand is null)
             return false;
 
         var genormaliseerd = KeukenDomeinValidatieService.NormaliseerKast(kast);
         var index = Kasten.FindIndex(item => item.Id == genormaliseerd.Id);
         if (index < 0)
+            return false;
+
+        if (!PastKastOpWand(doelWand, genormaliseerd, genormaliseerd.Id))
             return false;
 
         Kasten[index] = genormaliseerd;
@@ -271,9 +280,19 @@ public class KeukenStateService
         if (kast is null)
             return false;
 
+        var wand = WandVoorKast(id);
+        if (wand is null)
+            return false;
+
         var genormaliseerdeX = KeukenDomeinValidatieService.NormaliseerPositie(xPositie);
         var genormaliseerdeHoogte = KeukenDomeinValidatieService.NormaliseerPositie(hoogteVanVloer);
         if (ZijnBijnaGelijk(kast.XPositie, genormaliseerdeX) && ZijnBijnaGelijk(kast.HoogteVanVloer, genormaliseerdeHoogte))
+            return false;
+
+        var kandidaat = IndelingFormulierHelper.KopieerKast(kast);
+        kandidaat.XPositie = genormaliseerdeX;
+        kandidaat.HoogteVanVloer = genormaliseerdeHoogte;
+        if (!PastKastOpWand(wand, kandidaat, id))
             return false;
 
         kast.XPositie = genormaliseerdeX;
@@ -350,7 +369,11 @@ public class KeukenStateService
         if (wand is null)
             return false;
 
-        if (!VoegKastToeZonderNotify(KeukenDomeinValidatieService.NormaliseerKast(kast), wandId, kastIndex))
+        var genormaliseerd = KeukenDomeinValidatieService.NormaliseerKast(kast);
+        if (!PastKastOpWand(wand, genormaliseerd))
+            return false;
+
+        if (!VoegKastToeZonderNotify(genormaliseerd, wandId, kastIndex))
             return false;
 
         foreach (var toewijzing in toewijzingen.OrderBy(item => item.Index))
@@ -410,6 +433,10 @@ public class KeukenStateService
     public bool VoegApparaatToe(Apparaat apparaat, Guid wandId)
     {
         SynchroniseerApparaat(apparaat, KeukenDomeinValidatieService.NormaliseerApparaat(apparaat));
+        var wand = Wanden.Find(item => item.Id == wandId);
+        if (wand is null || !PastApparaatOpWand(wand, apparaat))
+            return false;
+
         if (!VoegApparaatToeZonderNotify(apparaat, wandId))
             return false;
 
@@ -437,6 +464,10 @@ public class KeukenStateService
         if (index < 0)
             return false;
 
+        var wand = Wanden.Find(item => item.ApparaatIds.Contains(genormaliseerd.Id));
+        if (wand is null || !PastApparaatOpWand(wand, genormaliseerd, genormaliseerd.Id))
+            return false;
+
         Apparaten[index] = genormaliseerd;
         NotifyChanged();
         return true;
@@ -448,9 +479,19 @@ public class KeukenStateService
         if (apparaat is null)
             return false;
 
+        var wand = Wanden.Find(item => item.ApparaatIds.Contains(id));
+        if (wand is null)
+            return false;
+
         var genormaliseerdeX = KeukenDomeinValidatieService.NormaliseerPositie(xPositie);
         var genormaliseerdeHoogte = KeukenDomeinValidatieService.NormaliseerPositie(hoogteVanVloer);
         if (ZijnBijnaGelijk(apparaat.XPositie, genormaliseerdeX) && ZijnBijnaGelijk(apparaat.HoogteVanVloer, genormaliseerdeHoogte))
+            return false;
+
+        var kandidaat = IndelingFormulierHelper.KopieerApparaat(apparaat);
+        kandidaat.XPositie = genormaliseerdeX;
+        kandidaat.HoogteVanVloer = genormaliseerdeHoogte;
+        if (!PastApparaatOpWand(wand, kandidaat, id))
             return false;
 
         apparaat.XPositie = genormaliseerdeX;
@@ -465,7 +506,11 @@ public class KeukenStateService
         if (wand is null)
             return false;
 
-        if (!VoegApparaatToeZonderNotify(KeukenDomeinValidatieService.NormaliseerApparaat(apparaat), wandId, index))
+        var genormaliseerd = KeukenDomeinValidatieService.NormaliseerApparaat(apparaat);
+        if (!PastApparaatOpWand(wand, genormaliseerd))
+            return false;
+
+        if (!VoegApparaatToeZonderNotify(genormaliseerd, wandId, index))
             return false;
 
         NotifyChanged();
@@ -629,6 +674,59 @@ public class KeukenStateService
 
     private static bool ZijnBijnaGelijk(double links, double rechts)
         => Math.Abs(links - rechts) < 0.001;
+
+    private bool PastIndelingOpWand(KeukenWand wand)
+    {
+        var wandKasten = KastenVoorWand(wand.Id);
+        foreach (var kast in wandKasten)
+        {
+            if (!PastKastOpWand(wand, kast, kast.Id))
+                return false;
+        }
+
+        var wandApparaten = ApparatenVoorWand(wand.Id);
+        foreach (var apparaat in wandApparaten)
+        {
+            if (!PastApparaatOpWand(wand, apparaat, apparaat.Id))
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool PastKastOpWand(KeukenWand wand, Kast kast, Guid? uitsluitenKastId = null)
+        => IndelingFormulierHelper.IsVrijeKastPlaatsing(
+            wand,
+            KastenVoorWand(wand.Id),
+            kast,
+            kast.XPositie,
+            kast.HoogteVanVloer,
+            uitsluitenKastId);
+
+    private bool PastApparaatOpWand(KeukenWand wand, Apparaat apparaat, Guid? uitsluitenApparaatId = null)
+    {
+        var maxX = wand.Breedte - apparaat.Breedte;
+        var maxY = wand.Hoogte - apparaat.Hoogte;
+        if (maxX < -0.001 || maxY < -0.001)
+            return false;
+
+        if (apparaat.XPositie > Math.Max(0, maxX) + 0.001 || apparaat.HoogteVanVloer > Math.Max(0, maxY) + 0.001)
+            return false;
+
+        foreach (var kast in KastenVoorWand(wand.Id))
+        {
+            if (ApparaatLayoutService.HeeftOverlap(apparaat, kast))
+                return false;
+        }
+
+        foreach (var bestaandApparaat in ApparatenVoorWand(wand.Id).Where(item => item.Id != uitsluitenApparaatId))
+        {
+            if (ApparaatLayoutService.HeeftOverlap(apparaat, bestaandApparaat))
+                return false;
+        }
+
+        return true;
+    }
 
     private bool VerplaatsKastNaarWandZonderNotify(Guid kastId, Guid wandId, int? index = null)
     {

@@ -69,12 +69,15 @@ public static class PaneelLayoutService
             .ThenBy(kast => kast.Naam)
             .ToList();
 
-    public static bool HeeftOverlap(PaneelRechthoek paneel, Kast kast, double minimumOverlap = 1.0)
+    public static bool HeeftOverlap(PaneelRechthoek links, PaneelRechthoek rechts, double minimumOverlap = 1.0)
     {
-        var overlapX = Math.Min(paneel.Rechterkant, kast.XPositie + kast.Breedte) - Math.Max(paneel.XPositie, kast.XPositie);
-        var overlapY = Math.Min(paneel.Bovenzijde, kast.HoogteVanVloer + kast.Hoogte) - Math.Max(paneel.HoogteVanVloer, kast.HoogteVanVloer);
+        var overlapX = Math.Min(links.Rechterkant, rechts.Rechterkant) - Math.Max(links.XPositie, rechts.XPositie);
+        var overlapY = Math.Min(links.Bovenzijde, rechts.Bovenzijde) - Math.Max(links.HoogteVanVloer, rechts.HoogteVanVloer);
         return overlapX >= minimumOverlap && overlapY >= minimumOverlap;
     }
+
+    public static bool HeeftOverlap(PaneelRechthoek paneel, Kast kast, double minimumOverlap = 1.0)
+        => HeeftOverlap(paneel, NaarRechthoek(kast), minimumOverlap);
 
     public static PaneelRechthoek ClampBinnen(PaneelRechthoek paneel, PaneelRechthoek grenzen)
     {

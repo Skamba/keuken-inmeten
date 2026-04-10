@@ -151,8 +151,10 @@ else if (_fase == VerificatieFase.Overzicht)
 else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten.Count)
 {
     var r = resultaten[_paneelIndex];
-    var toewijzing = State.Toewijzingen.FirstOrDefault(t => t.Id == r.ToewijzingId) ?? State.Toewijzingen[_paneelIndex];
-    var potHartVanRand = r.Boorgaten.FirstOrDefault()?.X ?? toewijzing.PotHartVanRand;
+    var toewijzing = State.Toewijzingen.FirstOrDefault(t => t.Id == r.ToewijzingId);
+    var potHartVanRand = r.Boorgaten.FirstOrDefault()?.X
+        ?? toewijzing?.PotHartVanRand
+        ?? State.LaatstGebruiktePotHartVanRand;
     var paneelKasten = State.ZoekKasten(r.KastIds);
     var checks = GetChecks(_paneelIndex);
     var isDeur = r.Type == PaneelType.Deur && r.Boorgaten.Count > 0;

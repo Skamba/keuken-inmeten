@@ -15,6 +15,7 @@ public class PaneelConfiguratieHelperTests
             HeeftConceptPaneel: false,
             HeeftGeldigeMaat: false,
             RaaktGeselecteerdeKast: false,
+            HeeftConflicterendPaneel: false,
             ActieveWandNaam: string.Empty,
             GeselecteerdeKastNamen: string.Empty);
         var klaar = new PaneelFlowContext(
@@ -23,6 +24,16 @@ public class PaneelConfiguratieHelperTests
             HeeftConceptPaneel: true,
             HeeftGeldigeMaat: true,
             RaaktGeselecteerdeKast: true,
+            HeeftConflicterendPaneel: false,
+            ActieveWandNaam: "Achterwand",
+            GeselecteerdeKastNamen: "Kast 1");
+        var conflict = new PaneelFlowContext(
+            HeeftWandContext: true,
+            HeeftSelectie: true,
+            HeeftConceptPaneel: true,
+            HeeftGeldigeMaat: true,
+            RaaktGeselecteerdeKast: true,
+            HeeftConflicterendPaneel: true,
             ActieveWandNaam: "Achterwand",
             GeselecteerdeKastNamen: "Kast 1");
 
@@ -33,6 +44,9 @@ public class PaneelConfiguratieHelperTests
         Assert.True(PaneelConfiguratieHelper.KanPaneelOpslaan(klaar));
         Assert.Equal("Ja, u kunt nu opslaan.", PaneelConfiguratieHelper.BepaalOpslaanStatusTekst(klaar));
         Assert.Equal("active", PaneelConfiguratieHelper.BepaalPaneelFlowStatus("opslaan", klaar));
+
+        Assert.False(PaneelConfiguratieHelper.KanPaneelOpslaan(conflict));
+        Assert.Equal("Nee, het paneel overlapt nog een bestaand paneel.", PaneelConfiguratieHelper.BepaalOpslaanStatusTekst(conflict));
     }
 
     [Fact]
@@ -98,7 +112,7 @@ public class PaneelConfiguratieHelperTests
     }
 
     [Fact]
-    public void BepaalVrijeSegmenten_en_startrechthoek_gebruiken_alleen_gelijke_span()
+    public void BepaalVrijeSegmenten_en_startrechthoek_behandelen_ook_deels_overlappende_panelen_als_bezet()
     {
         var selectieBereik = new PaneelRechthoek
         {
@@ -121,8 +135,8 @@ public class PaneelConfiguratieHelperTests
             vrijeSegmenten,
             segment =>
             {
-                Assert.Equal(200d, segment.HoogteVanVloer);
-                Assert.Equal(200d, segment.Hoogte);
+                Assert.Equal(300d, segment.HoogteVanVloer);
+                Assert.Equal(100d, segment.Hoogte);
             },
             segment =>
             {
