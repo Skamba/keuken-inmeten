@@ -706,7 +706,7 @@ else
                     </div>
 
                     <div class="small text-muted mb-0">
-                        U vult hier alleen de hoofdmaten in. Technische gaatjesrij en afwijkende kastdetails komen pas in de volgende stap in beeld.
+                        U vult hier alleen de hoofdmaten in. In de volgende stap controleert u bewust de gaatjesrij en kastdetails, ook als de standaard blijft staan.
                     </div>
                 }
                 else if (kastFormStap == 3)
@@ -717,58 +717,84 @@ else
                                     class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center gap-3"
                                     @onclick="ToggleTechnischeInstellingen">
                                 <span class="text-start">
-                                    <span class="d-block fw-semibold">Afwijkende gaatjesrij of kastdetails</span>
-                                    <span class="small text-muted">Open alleen als deze kast afwijkt van de standaard voor wanddikte, systeemgaten of planken.</span>
+                                    <span class="d-block fw-semibold">Controleer gaatjesrij en kastdetails</span>
+                                    <span class="small text-muted">Kritieke controle voor passende panelen en correcte boringen. Open om waarden te controleren of aan te passen.</span>
                                 </span>
                                 <span class="fs-5" aria-hidden="true">@(toonTechnischeInstellingen ? "−" : "+")</span>
                             </button>
 
                             @if (toonTechnischeInstellingen)
                             {
-                                    <div class="mt-3">
-                                        <div class="row g-3 mb-3">
-                                            <div class="col-md-4">
-                                                <div class="d-flex align-items-center gap-2 mb-1">
-                                                    <label class="form-label mb-0">Dikte van de kastwand (mm)</label>
-                                                    <HulpInfoKnop Titel="Dikte van de kastwand"
-                                                                  Tekst="Gebruik hier de werkelijke dikte van de zijplaten van deze kast. Die maat heeft invloed op systeemgaten en scharnieronderdelen."
-                                                                  Voorbeeld="Standaard is dit meestal 18 mm."
-                                                                  WatNuDoen="Laat de standaard staan tenzij deze kast met een andere plaatdikte wordt gebouwd." />
-                                                </div>
-                                                <input type="number" class="form-control" @bind="formKast.Wanddikte" @bind:after="AutoBerekenPosities" min="1" step="1" />
-                                                <div class="form-text hulp-hint">Gebruik alleen een afwijkende waarde als het materiaal van deze kast echt dikker of dunner is.</div>
+                                <div class="mt-3">
+                                    <div class="alert alert-warning small mb-3" role="alert">
+                                        Controleer deze waarden bewust. Ze bepalen of panelen passen en of de gaatjesrij goed aansluit.
+                                    </div>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-4">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <label class="form-label mb-0">Dikte van de kastwand (mm)</label>
+                                                <HulpInfoKnop Titel="Dikte van de kastwand"
+                                                              Tekst="Gebruik hier de werkelijke dikte van de zijplaten van deze kast. Die maat heeft invloed op systeemgaten en scharnieronderdelen."
+                                                              Voorbeeld="Standaard is dit meestal 18 mm."
+                                                              WatNuDoen="Controleer of deze standaard klopt; pas hem alleen aan als deze kast met een andere plaatdikte wordt gebouwd." />
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="d-flex align-items-center gap-2 mb-1">
-                                                    <label class="form-label mb-0">Afstand tussen systeemgaten (mm)</label>
-                                                    <HulpInfoKnop Titel="Rij systeemgaten"
-                                                                  Tekst="Dit is de vaste steek van de gatenrij in de kastzijwand. Die bepaalt waar de montageplaat en andere boringen uitkomen."
-                                                                  Voorbeeld="Voor veel keukenkasten is 32 mm de standaard."
-                                                                  WatNuDoen="Pas dit alleen aan als deze kast een andere gatensteek gebruikt dan de standaard." />
-                                                </div>
-                                                <input type="number" class="form-control" @bind="formKast.GaatjesAfstand" @bind:after="AutoBerekenPosities" min="1" step="1" />
-                                                <div class="form-text hulp-hint">De standaard gatensteek is meestal 32 mm.</div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="d-flex align-items-center gap-2 mb-1">
-                                                    <label class="form-label mb-0">Afstand onderkant bovenplank tot eerste gat (mm)</label>
-                                                    <HulpInfoKnop Titel="Eerste gat vanaf de bovenste plank"
-                                                                  Tekst="Deze maat bepaalt waar de eerste positie van de systeemgaten start ten opzichte van de bovenkant van de kastromp."
-                                                                  Voorbeeld="Bij veel kasten is dit 19 mm vanaf de onderkant van de bovenste plank."
-                                                                  WatNuDoen="Controleer deze maat alleen als uw leverancier of bestaand kasttype van de standaard afwijkt." />
-                                                </div>
-                                                <input type="number" class="form-control" @bind="formKast.EersteGaatVanBoven" @bind:after="AutoBerekenPosities" min="1" step="1" />
-                                                <div class="form-text hulp-hint">Meet vanaf de onderkant van de bovenste plank naar het eerste gat.</div>
-                                            </div>
+                                            <input type="number" class="form-control" @bind="formKast.Wanddikte" @bind:after="() => { AutoBerekenPosities(); MarkeerTechnischeControleOnbevestigd(); }" min="1" step="1" />
+                                            <div class="form-text hulp-hint">Controleer deze maat bewust, ook als u 18 mm laat staan.</div>
                                         </div>
+                                        <div class="col-md-4">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <label class="form-label mb-0">Afstand tussen systeemgaten (mm)</label>
+                                                <HulpInfoKnop Titel="Rij systeemgaten"
+                                                              Tekst="Dit is de vaste steek van de gatenrij in de kastzijwand. Die bepaalt waar de montageplaat en andere boringen uitkomen."
+                                                              Voorbeeld="Voor veel keukenkasten is 32 mm de standaard."
+                                                              WatNuDoen="Controleer of 32 mm klopt; pas dit aan als deze kast een andere gatensteek gebruikt dan de standaard." />
+                                            </div>
+                                            <input type="number" class="form-control" @bind="formKast.GaatjesAfstand" @bind:after="() => { AutoBerekenPosities(); MarkeerTechnischeControleOnbevestigd(); }" min="1" step="1" />
+                                            <div class="form-text hulp-hint">De standaard gatensteek is vaak 32 mm, maar controle blijft nodig.</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <label class="form-label mb-0">Afstand onderkant bovenplank tot eerste gat (mm)</label>
+                                                <HulpInfoKnop Titel="Eerste gat vanaf de bovenste plank"
+                                                              Tekst="Deze maat bepaalt waar de eerste positie van de systeemgaten start ten opzichte van de bovenkant van de kastromp."
+                                                              Voorbeeld="Bij veel kasten is dit 19 mm vanaf de onderkant van de bovenste plank."
+                                                              WatNuDoen="Controleer of deze maat klopt voor deze kast; pas alleen aan als leverancier of kasttype van de standaard afwijkt." />
+                                            </div>
+                                            <input type="number" class="form-control" @bind="formKast.EersteGaatVanBoven" @bind:after="() => { AutoBerekenPosities(); MarkeerTechnischeControleOnbevestigd(); }" min="1" step="1" />
+                                            <div class="form-text hulp-hint">Meet vanaf de onderkant van de bovenste plank naar het eerste gat.</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="kast-technische-controle-checkbox"
+                                               @bind="technischeControleBevestigd"
+                                               data-testid="kast-technische-controle-checkbox" />
+                                        <label class="form-check-label" for="kast-technische-controle-checkbox">
+                                            @TechnischeControleCheckboxLabel()
+                                        </label>
+                                    </div>
 
                                     <p class="text-muted small mb-0"><em>Tip: dubbelklik in de wandopstelling om een plank toe te voegen. Sleep planken of gebruik de pijltjestoetsen. Selecteer een plank en druk Delete om hem te verwijderen.</em></p>
                                 </div>
                             }
                             else
                             {
-                                <div class="small text-muted mt-3 mb-0">
-                                    Deze kast gebruikt de standaard voor wanddikte, systeemgaten en eerste gat vanaf de bovenste plank. U kunt direct doorgaan naar de controle.
+                                <div class="alert alert-warning mt-3 mb-0" role="alert">
+                                    <div class="fw-semibold mb-1">Kritieke controle</div>
+                                    <div class="small mb-2">Deze waarden bepalen of panelen passen en of de gaatjesrij aansluit. Controleer bewust of de standaard klopt voor deze kast.</div>
+                                    <div class="small text-body-secondary mb-3">@TechnischeControleSamenvatting()</div>
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="kast-technische-controle-checkbox"
+                                               @bind="technischeControleBevestigd"
+                                               data-testid="kast-technische-controle-checkbox" />
+                                        <label class="form-check-label" for="kast-technische-controle-checkbox">
+                                            @TechnischeControleCheckboxLabel()
+                                        </label>
+                                    </div>
                                 </div>
                             }
                         </div>
@@ -796,14 +822,7 @@ else
 
                                         <dt class="col-sm-4">Techniek</dt>
                                         <dd class="col-sm-8">
-                                            @if (toonTechnischeInstellingen)
-                                            {
-                                                <span>Afwijkend: @formKast.Wanddikte mm wanddikte, @formKast.GaatjesAfstand mm systeemgaten, @formKast.EersteGaatVanBoven mm eerste gat</span>
-                                            }
-                                            else
-                                            {
-                                                <span>Standaard gaatjesrij en kastdetails</span>
-                                            }
+                                            <span>@TechnischeControleSamenvatting()</span>
                                         </dd>
                                     </dl>
                                 </div>

@@ -252,9 +252,13 @@ test('kastpopup werkt als een korte ministepper', async ({ page }) => {
   await indeling.gaNaarVolgendeKastFormStap();
 
   await indeling.expectKastFormStap('Techniek');
+  await expect(page.getByTestId('kast-form-volgende-button')).toBeDisabled();
+  await indeling.bevestigTechnischeKastControle();
+  await expect(page.getByTestId('kast-form-volgende-button')).toBeEnabled();
   await indeling.gaNaarVolgendeKastFormStap();
 
   await indeling.expectKastFormStap('Controle');
+  await expect(page.getByText('Standaard bevestigd')).toBeVisible();
 });
 
 test('invoerhulp blijft zichtbaar bij wand-, kast- en apparaatvelden', async ({ page }) => {

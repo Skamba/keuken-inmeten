@@ -111,6 +111,14 @@ export class IndelingPage {
     await this.page.getByTestId('kast-form-volgende-button').click();
   }
 
+  async bevestigTechnischeKastControle() {
+    const checkbox = this.page.getByTestId('kast-technische-controle-checkbox');
+    await expect(checkbox).toBeVisible();
+    if (!(await checkbox.isChecked())) {
+      await checkbox.check();
+    }
+  }
+
   async gaNaarVolgendeApparaatFormStap() {
     await this.page.getByTestId('apparaat-form-volgende-button').click();
   }
@@ -126,6 +134,7 @@ export class IndelingPage {
     await this.page.getByTestId('kast-hoogte-input').fill(kast.hoogte.toString());
     await this.page.getByTestId('kast-diepte-input').fill(kast.diepte.toString());
     await this.gaNaarVolgendeKastFormStap();
+    await this.bevestigTechnischeKastControle();
     await this.gaNaarVolgendeKastFormStap();
 
     await this.page.getByTestId('kast-opslaan-button').click();
