@@ -152,6 +152,44 @@ public class OverzichtGroeperingHelperTests
             });
     }
 
+    [Fact]
+    public void GroepeerBestellijstOpWand_gebruikt_wandidentiteit_bij_gelijke_namen()
+    {
+        var items = new List<BestellijstItem>
+        {
+            new()
+            {
+                Naam = "Ladefront 1",
+                PaneelRolLabel = "Ladefront",
+                WandId = Guid.NewGuid(),
+                WandNaam = "Muur",
+                Aantal = 3,
+                Hoogte = 177,
+                Breedte = 597
+            },
+            new()
+            {
+                Naam = "Ladefront 2",
+                PaneelRolLabel = "Ladefront",
+                WandId = Guid.NewGuid(),
+                WandNaam = "Muur",
+                Aantal = 6,
+                Hoogte = 177,
+                Breedte = 597
+            }
+        };
+
+        var groepen = OverzichtGroeperingHelper.GroepeerBestellijstOpWand(items);
+
+        Assert.Equal(2, groepen.Count);
+        Assert.All(groepen, groep =>
+        {
+            Assert.Equal("Muur", groep.WandNaam);
+            Assert.Equal(1, groep.Orderregels);
+        });
+        Assert.Equal([3, 6], groepen.Select(groep => groep.PanelenTotaal).OrderBy(totaal => totaal).ToArray());
+    }
+
     private static Kast MaakKast(string naam, double xPositie) => new()
     {
         Id = Guid.NewGuid(),

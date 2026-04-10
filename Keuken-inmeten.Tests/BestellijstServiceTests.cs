@@ -41,6 +41,59 @@ public class BestellijstServiceTests
     }
 
     [Fact]
+    public void Identieke_panelen_op_verschillende_wanden_worden_niet_samengevoegd()
+    {
+        var state = new KeukenStateService();
+        var wandLinks = new KeukenWand
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Links",
+            Breedte = 2400,
+            Hoogte = 2700,
+            PlintHoogte = 100
+        };
+        var wandRechts = new KeukenWand
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Rechts",
+            Breedte = 2400,
+            Hoogte = 2700,
+            PlintHoogte = 100
+        };
+
+        state.VoegWandToe(wandLinks);
+        state.VoegWandToe(wandRechts);
+
+        var kastLinks = MaakOnderkast("Onderkast links", xPositie: 0);
+        var kastRechts = MaakOnderkast("Onderkast rechts", xPositie: 0);
+
+        state.VoegKastToe(kastLinks, wandLinks.Id);
+        state.VoegKastToe(kastRechts, wandRechts.Id);
+
+        state.VoegToewijzingToe(MaakLadefrontToewijzing(kastLinks.Id));
+        state.VoegToewijzingToe(MaakLadefrontToewijzing(kastRechts.Id));
+
+        var items = BestellijstService.BerekenItems(state)
+            .OrderBy(item => item.WandNaam, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.Collection(
+            items,
+            links =>
+            {
+                Assert.Equal("Links", links.WandNaam);
+                Assert.Equal(wandLinks.Id, links.WandId);
+                Assert.Equal(1, links.Aantal);
+            },
+            rechts =>
+            {
+                Assert.Equal("Rechts", rechts.WandNaam);
+                Assert.Equal(wandRechts.Id, rechts.WandId);
+                Assert.Equal(1, rechts.Aantal);
+            });
+    }
+
+    [Fact]
     public void Excel_export_bevat_boorgatkolommen_en_metadata()
     {
         var item = MaakBestellijstItem();
@@ -127,6 +180,30 @@ public class BestellijstServiceTests
         Hoogte = 2200
     };
 
+    private static Kast MaakOnderkast(string naam, double xPositie) => new()
+    {
+        Id = Guid.NewGuid(),
+        Naam = naam,
+        Type = KastType.Onderkast,
+        Breedte = 600,
+        Hoogte = 720,
+        Diepte = 560,
+        Wanddikte = 18,
+        GaatjesAfstand = 32,
+        EersteGaatVanBoven = 19,
+        HoogteVanVloer = 100,
+        XPositie = xPositie
+    };
+
+    private static PaneelToewijzing MaakLadefrontToewijzing(Guid kastId) => new()
+    {
+        Id = Guid.NewGuid(),
+        KastIds = [kastId],
+        Type = PaneelType.LadeFront,
+        Breedte = 597,
+        Hoogte = 200
+    };
+
     private static BestellijstItem MaakBestellijstItem() => new()
     {
         BasisNaam = "Hoge Deur",
@@ -134,6 +211,7 @@ public class BestellijstServiceTests
         Aantal = 2,
         AbsBandLabel = BestellijstService.StandaardAbsBandLabel,
         PaneelRolLabel = "Deur",
+        WandId = Guid.NewGuid(),
         WandNaam = "Muur",
         KastenLabel = "Hoge kast links",
         ContextLabel = "Muur • Hoge kast links (+1 meer)",

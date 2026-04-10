@@ -86,12 +86,15 @@ public static class OverzichtGroeperingHelper
 
     public static List<BestellijstWandGroep> GroepeerBestellijstOpWand(IEnumerable<BestellijstItem> items)
         => items
-            .GroupBy(item => NormaliseerWandNaam(item.WandNaam), StringComparer.CurrentCultureIgnoreCase)
+            .GroupBy(BepaalBestellijstWandSleutel)
             .Select(groep =>
             {
                 var itemLijst = groep.ToList();
+                var wandNaam = itemLijst
+                    .Select(item => NormaliseerWandNaam(item.WandNaam))
+                    .FirstOrDefault(naam => !string.IsNullOrWhiteSpace(naam)) ?? "Onbekende wand";
                 return new BestellijstWandGroep(
-                    groep.Key,
+                    wandNaam,
                     itemLijst.Count,
                     itemLijst.Sum(item => item.Aantal),
                     MaakTellingen(itemLijst, item => item.PaneelRolLabel, item => item.Aantal),
@@ -112,6 +115,9 @@ public static class OverzichtGroeperingHelper
 
     private static string NormaliseerWandNaam(string? wandNaam)
         => string.IsNullOrWhiteSpace(wandNaam) ? "Onbekende wand" : wandNaam.Trim();
+
+    private static string BepaalBestellijstWandSleutel(BestellijstItem item)
+        => item.WandId?.ToString("N") ?? NormaliseerWandNaam(item.WandNaam).ToUpperInvariant();
 
     private static string FormatMm(double waarde) => $"{waarde:0.#} mm";
 }

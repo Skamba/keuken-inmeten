@@ -10,6 +10,7 @@ public static class BestellijstService
     private sealed record BestellijstBron(
         string BasisNaam,
         string ContextLabel,
+        Guid? WandId,
         string WandNaam,
         string KastenLabel,
         string PaneelRolLabel,
@@ -27,8 +28,10 @@ public static class BestellijstService
             var resultaat = resultaten[i];
             var toewijzing = state.Toewijzingen.Find(t => t.Id == resultaat.ToewijzingId);
             var kasten = state.ZoekKasten(resultaat.KastIds.ToList());
-
-            var wandNaam = state.WandNaamVoorKasten(resultaat.KastIds, "Onbekende wand");
+            var wand = resultaat.KastIds
+                .Select(kastId => state.WandVoorKast(kastId))
+                .FirstOrDefault(kandidaat => kandidaat is not null);
+            var wandNaam = string.IsNullOrWhiteSpace(wand?.Naam) ? "Onbekende wand" : wand.Naam;
             var kastenLabel = string.Join(" + ", kasten.Select(k => k.Naam));
             var basisNaam = BepaalBasisNaam(resultaat, kasten);
             var contextParts = new List<string> { wandNaam };
@@ -47,11 +50,12 @@ public static class BestellijstService
             bronnen.Add(new BestellijstBron(
                 basisNaam,
                 contextLabel,
+                wand?.Id,
                 wandNaam,
                 kastenLabel,
                 TypeLabel(resultaat.Type),
                 scharnierLabel,
-                BepaalSignatuur(resultaat, basisNaam, toewijzing),
+                BepaalSignatuur(resultaat, basisNaam, toewijzing, wand?.Id),
                 resultaat));
         }
 
@@ -85,6 +89,7 @@ public static class BestellijstService
                     Aantal = groep.Count(),
                     AbsBandLabel = StandaardAbsBandLabel,
                     PaneelRolLabel = eerste.PaneelRolLabel,
+                    WandId = eerste.WandId,
                     WandNaam = eerste.WandNaam,
                     KastenLabel = eerste.KastenLabel,
                     ContextLabel = contextLabel,
@@ -149,7 +154,7 @@ public static class BestellijstService
         return "Deur";
     }
 
-    private static string BepaalSignatuur(PaneelResultaat resultaat, string basisNaam, PaneelToewijzing? toewijzing)
+    private static string BepaalSignatuur(PaneelResultaat resultaat, string basisNaam, PaneelToewijzing? toewijzing, Guid? wandId)
     {
         var boorgaten = string.Join(";",
             resultaat.Boorgaten
@@ -157,6 +162,7 @@ public static class BestellijstService
                 .Select(boorgat => $"{Fmt(boorgat.X)},{Fmt(boorgat.Y)},{Fmt(boorgat.Diameter)}"));
 
         return string.Join("|",
+            wandId?.ToString("N") ?? "",
             basisNaam,
             resultaat.Type,
             Fmt(resultaat.Breedte),
