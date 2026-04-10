@@ -1070,16 +1070,30 @@ code {
     background: var(--bs-body-bg, #fff);
 }
 
+.stap-meta-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    font-size: 0.86rem;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.stap-meta-list span {
+    white-space: nowrap;
+}
+
 .paneel-pagina-shell {
     position: relative;
 }
 
 .paneel-weergave-tabs {
+    border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 82%, transparent);
+    border-radius: 1rem;
     background: color-mix(in srgb, var(--bs-tertiary-bg) 75%, var(--bs-body-bg, #fff));
 }
 
-.paneel-weergave-meta {
-    align-self: flex-start;
+.paneel-weergave-meta-list {
+    justify-content: flex-end;
 }
 
 .paneel-weergave-tabs--editor-open {
@@ -1145,12 +1159,25 @@ code {
     gap: 0.75rem 1rem;
 }
 
+.paneel-selectie-strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 76%, transparent);
+    border-radius: 0.95rem;
+    background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 72%, var(--bs-body-bg, #fff));
+}
+
 .paneel-review-weergave {
     scroll-margin-top: 5rem;
 }
 
 .paneel-review-samenvatting {
     background: var(--bs-tertiary-bg);
+    border-color: color-mix(in srgb, var(--bs-border-color, #d0d7de) 75%, transparent);
 }
 
 .paneel-review-samenvatting-details summary,
@@ -1194,8 +1221,64 @@ code {
     min-width: min(24rem, 100%);
 }
 
+.paneel-review-header {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 72%, transparent);
+}
+
+.paneel-review-groep {
+    border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 78%, transparent);
+}
+
+.paneel-review-groep--actief {
+    border-color: color-mix(in srgb, var(--bs-primary, #0d6efd) 24%, var(--bs-border-color, #d0d7de));
+    box-shadow: 0 0.55rem 1.4rem rgba(13, 110, 253, 0.08);
+}
+
 .paneel-editor-empty-state {
     background: var(--bs-tertiary-bg);
+}
+
+.paneel-editor-focus {
+    background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 82%, var(--bs-body-bg, #fff));
+}
+
+.paneel-editor-focus-meta-list {
+    gap: 0.35rem 0.85rem;
+}
+
+.paneel-editor-placement,
+.paneel-editor-empty-details {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--bs-border-color, #d0d7de);
+    border-radius: 0.95rem;
+    background: var(--bs-body-bg, #fff);
+}
+
+.paneel-editor-placement-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem 1rem;
+}
+
+.paneel-editor-placement-list div {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.paneel-editor-placement-list dt {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.paneel-editor-placement-list dd {
+    margin: 0;
+}
+
+.paneel-editor-vrije-vakken {
+    background: color-mix(in srgb, var(--bs-success-bg-subtle, #d1e7dd) 40%, var(--bs-body-bg, #fff));
 }
 
 @media (max-width: 1199.98px) {
@@ -1335,6 +1418,8 @@ code {
 
 .indeling-actieve-werkruimte {
     scroll-margin-top: 5rem;
+    border: 1px solid color-mix(in srgb, var(--bs-primary, #0d6efd) 14%, var(--bs-border-color, #d0d7de));
+    border-radius: 1rem;
 }
 
 .indeling-nieuwe-wand-strip {
@@ -1361,6 +1446,25 @@ code {
 
 .indeling-workspace-state {
     min-width: 9rem;
+}
+
+.indeling-workspace-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem 1.5rem;
+    padding-bottom: 0.95rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 72%, transparent);
+}
+
+.indeling-workspace-kicker {
+    margin-bottom: 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-primary-text-emphasis, #0a58ca);
 }
 
 .indeling-overige-wanden-summary {
@@ -1403,9 +1507,9 @@ code {
     align-items: flex-start;
     gap: 1rem;
     padding: 0.95rem 1rem;
-    border: 1px solid var(--bs-border-color);
+    border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 78%, transparent);
     border-radius: 0.95rem;
-    background: var(--bs-tertiary-bg);
+    background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 78%, var(--bs-body-bg, #fff));
 }
 
 .indeling-workspace-secondary {
@@ -1421,7 +1525,7 @@ code {
 .indeling-maten-kaart,
 .indeling-visualisatie-kaart {
     padding: 1rem;
-    border: 1px solid var(--bs-border-color);
+    border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 76%, transparent);
     border-radius: 0.95rem;
     background: var(--bs-body-bg);
 }
@@ -1433,6 +1537,19 @@ code {
 .indeling-overige-wanden-lijst {
     display: grid;
     gap: 0.75rem;
+}
+
+.indeling-lijst-sectie {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.indeling-lijst-kop {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem 1rem;
 }
 
 .indeling-overige-wand-schakelaar {
@@ -1465,7 +1582,7 @@ code {
     justify-content: space-between;
     gap: 0.75rem 1rem;
     padding: 0.9rem 1rem;
-    border: 1px solid var(--bs-border-color);
+    border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 76%, transparent);
     border-radius: 0.85rem;
     background: var(--bs-body-bg);
 }
@@ -1521,6 +1638,10 @@ code {
     .indeling-object-acties,
     .indeling-object-confirmatie {
         width: 100%;
+    }
+
+    .paneel-editor-placement-list {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

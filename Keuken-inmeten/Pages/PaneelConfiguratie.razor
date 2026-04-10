@@ -68,10 +68,13 @@ else
                     <div>
                         <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Werklaag</div>
                         <div class="fw-semibold">Editor open voor @geopendeWand?.Naam</div>
+                        <div class="small text-muted">Rond selectie, maat en opslaan af zonder extra schermwissels.</div>
                     </div>
                     @if (reviewBeschikbaar)
                     {
-                        <span class="badge text-bg-light border">@State.Toewijzingen.Count paneel/panelen klaar</span>
+                        <div class="stap-meta-list paneel-weergave-meta-list">
+                            <span>@State.Toewijzingen.Count paneel/panelen klaar</span>
+                        </div>
                     }
                 </div>
             }
@@ -102,15 +105,15 @@ else
                             </div>
                         }
                     </div>
-                    <div class="d-flex flex-wrap align-items-center gap-2 paneel-weergave-meta">
+                    <div class="stap-meta-list paneel-weergave-meta-list">
                         @if (geopendeWand is not null && !isReviewWeergaveActief)
                         {
-                            <span class="badge text-bg-light border">Actief: @geopendeWand.Naam</span>
-                            <span class="badge text-bg-light border">@(toonEditorDrawer ? "Editor open" : "Editor klaar")</span>
+                            <span>Actief: @geopendeWand.Naam</span>
+                            <span>@(toonEditorDrawer ? "Editor open" : "Editor gesloten")</span>
                         }
                         @if (reviewBeschikbaar)
                         {
-                            <span class="badge text-bg-light border">@State.Toewijzingen.Count paneel/panelen</span>
+                            <span>@State.Toewijzingen.Count paneel/panelen</span>
                         }
                     </div>
                 </div>
@@ -170,14 +173,17 @@ else
                                                     {
                                                         <span class="badge text-bg-primary">Nu open</span>
                                                     }
+                                                </div>
+                                                <div class="stap-meta-list">
                                                     @if (wandKasten.Count > 0)
                                                     {
-                                                        <span class="badge text-bg-light">@wandKasten.Count kast(en)</span>
+                                                        <span>@wandKasten.Count kast(en)</span>
                                                     }
                                                     @if (wandPanelen.Count > 0)
                                                     {
-                                                        <span class="badge text-bg-light">@wandPanelen.Count paneel/panelen</span>
+                                                        <span>@wandPanelen.Count paneel/panelen</span>
                                                     }
+                                                    <span>@wand.Breedte mm wand</span>
                                                 </div>
                                                 <div class="small text-muted">
                                                     @(wandKasten.Count == 0
@@ -232,11 +238,14 @@ else
                                         <div class="indeling-overige-wand-inhoud">
                                             <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                 <h6 class="mb-0">@wand.Naam</h6>
-                                                <span class="badge text-bg-light">@wandKasten.Count kast(en)</span>
+                                            </div>
+                                            <div class="stap-meta-list">
+                                                <span>@wandKasten.Count kast(en)</span>
                                                 @if (wandPanelen.Count > 0)
                                                 {
-                                                    <span class="badge text-bg-light">@wandPanelen.Count paneel/panelen</span>
+                                                    <span>@wandPanelen.Count paneel/panelen</span>
                                                 }
+                                                <span>@wand.Breedte mm wand</span>
                                             </div>
                                             <div class="small text-muted">
                                                 @(wandKasten.Count == 0
@@ -264,26 +273,26 @@ else
                     var geopendeWandApparaten = State.ApparatenVoorWand(geopendeWand.Id);
                     var geopendeWandPanelen = ToewijzingenVoorWand(geopendeWand);
 
-                    <div class="card mb-4 border-primary shadow-sm indeling-actieve-werkruimte"
+                    <div class="card border-0 shadow-sm mb-4 indeling-actieve-werkruimte paneel-actieve-werkruimte"
                          data-testid="paneel-actieve-wand-werkruimte"
                          data-wand-id="@geopendeWand.Id"
                          data-wand-naam="@geopendeWand.Naam">
-                        <div class="card-header bg-primary bg-opacity-10">
-                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                        <div class="card-body">
+                            <div class="indeling-workspace-header paneel-workspace-header mb-3">
                                 <div>
-                                    <div class="small fw-semibold text-uppercase text-primary-emphasis">Actieve wand</div>
-                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                        <h5 class="mb-0">@geopendeWand.Naam</h5>
-                                        <span class="badge text-bg-light">@geopendeWandKasten.Count kast(en)</span>
-                                        <span class="badge text-bg-light">@geopendeWandPanelen.Count paneel/panelen</span>
+                                    <div class="indeling-workspace-kicker">Actieve wand</div>
+                                    <h5 class="mb-1">@geopendeWand.Naam</h5>
+                                    <div class="stap-meta-list">
+                                        <span>@geopendeWandKasten.Count kast(en)</span>
+                                        <span>@geopendeWandPanelen.Count paneel/panelen</span>
                                         @if (geopendeWandApparaten.Count > 0)
                                         {
-                                            <span class="badge text-bg-light">@geopendeWandApparaten.Count apparaat(en)</span>
+                                            <span>@geopendeWandApparaten.Count apparaat(en)</span>
                                         }
+                                        <span>@(toonEditorDrawer ? "Editor open" : "Editor gesloten")</span>
                                     </div>
                                 </div>
                                 <div class="d-flex flex-wrap align-items-center justify-content-sm-end gap-2">
-                                    <span class="badge text-bg-light border">@(toonEditorDrawer ? "Editor open" : "Editor klaar")</span>
                                     @if (!toonEditorDrawer)
                                     {
                                         <button type="button"
@@ -298,8 +307,7 @@ else
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                        <div class="card-body">
+
                             @if (!toonEditorDrawer)
                             {
                                 <div class="paneel-werkruimte-status border rounded p-3 mb-3 bg-body-tertiary">
@@ -332,7 +340,7 @@ else
 
                             @if (geselecteerdeKastIds.Count > 0 && !toonEditorDrawer)
                             {
-                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
+                                <div class="paneel-selectie-strip mt-3">
                                     <div class="small text-muted">Uw selectie staat klaar. Open of houd de editor open om plaatsing, maat en opslaan af te ronden.</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <button type="button" class="btn btn-sm btn-link text-secondary p-0" @onclick="DeselecteerAlles">
@@ -367,15 +375,15 @@ else
         else
         {
             <div class="mt-4 paneel-review-weergave" data-testid="paneel-review-weergave">
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3 paneel-review-header">
                     <div>
-                        <h5 class="mb-1">Overzicht: toegewezen panelen</h5>
-                        <p class="text-muted mb-0 small">Deze weergave richt zich op lijstbeheer, status en acties. Gebruik de editorweergave om weer een wand te openen of panelen te plaatsen.</p>
+                        <h5 class="mb-1">Overzicht van toegewezen panelen</h5>
+                        <p class="text-muted mb-0 small">Gebruik dit scherm voor aantallen, status en acties per wand. Ga alleen terug naar de editor als u opnieuw wilt plaatsen of bewerken.</p>
                     </div>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         @if (geopendeWand is not null)
                         {
-                            <span class="badge text-bg-light">Actieve wand klaar in editor: @geopendeWand.Naam</span>
+                            <span class="small text-muted">Editor klaar voor @geopendeWand.Naam</span>
                         }
                         <button type="button"
                                 class="btn btn-outline-primary btn-sm"
@@ -387,20 +395,6 @@ else
                 </div>
 
                 <div>
-                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
-                        <div>
-                            <h6 class="d-flex align-items-center gap-2 mb-1">
-                                Toegewezen panelen
-                                <span class="badge bg-secondary rounded-pill">@State.Toewijzingen.Count</span>
-                            </h6>
-                            <p class="text-muted small mb-0">Het overzicht staat nu los van de editorweergave, zodat lijst, status en acties zonder canvas erboven scanbaar blijven.</p>
-                        </div>
-                        @if (geopendeWand is not null)
-                        {
-                            <span class="badge text-bg-light">Actieve wand: @geopendeWand.Naam</span>
-                        }
-                    </div>
-
                     @if (State.Toewijzingen.Count == 0)
                     {
                         <p class="text-muted small">Nog geen panelen. Open de editorweergave, kies een wand en voeg daarna een paneel toe.</p>
@@ -433,7 +427,7 @@ else
                         {
                             var isActieveGroep = geopendeWand is not null && groep.WandNaam == geopendeWand.Naam;
 
-                            <div class="card shadow-sm mb-3 @(isActieveGroep ? "border-primary-subtle" : "border-0")">
+                            <div class="card border-0 shadow-sm mb-3 paneel-review-groep @(isActieveGroep ? "paneel-review-groep--actief" : null)">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                                         <div>
@@ -568,9 +562,9 @@ else
                             <div class="paneel-editor-focus border rounded p-3 mb-3 bg-body-tertiary">
                                 <div class="fw-semibold mb-1">@VolgendePaneelStapTekst()</div>
                                 <div class="small text-muted">@PaneelEditorKernHintTekst(kanOpslaan)</div>
-                                <div class="d-flex flex-wrap gap-2 align-items-start paneel-editor-focus-meta mt-2">
-                                    <span class="badge text-bg-light border">Selectie: @PaneelEditorSelectieSamenvatting()</span>
-                                    <span class="badge @(kanOpslaan ? "text-bg-success" : "text-bg-light border")">Opslaan: @PaneelEditorOpslaanSamenvatting(kanOpslaan)</span>
+                                <div class="stap-meta-list paneel-editor-focus-meta-list mt-2">
+                                    <span>Selectie: @PaneelEditorSelectieSamenvatting()</span>
+                                    <span>Opslaan: @PaneelEditorOpslaanSamenvatting(kanOpslaan)</span>
                                 </div>
                             </div>
 
@@ -666,14 +660,14 @@ else
 
                             @if (conceptPaneel is not null)
                             {
-                                <div class="border rounded bg-light p-3 mb-3 small">
+                                <div class="paneel-editor-placement mb-3 small">
                                     <div class="fw-semibold mb-2">Plaatsing</div>
-                                    <div class="d-flex flex-wrap gap-3">
-                                        <span>Links <strong>@FormatMm(conceptPaneel.XPositie)</strong></span>
-                                        <span>Onderkant <strong>@FormatMm(conceptPaneel.HoogteVanVloer)</strong></span>
-                                        <span>Rechts <strong>@FormatMm(conceptPaneel.Rechterkant)</strong></span>
-                                        <span>Bovenkant <strong>@FormatMm(conceptPaneel.Bovenzijde)</strong></span>
-                                    </div>
+                                    <dl class="paneel-editor-placement-list mb-0">
+                                        <div><dt>Links</dt><dd><strong>@FormatMm(conceptPaneel.XPositie)</strong></dd></div>
+                                        <div><dt>Onderkant</dt><dd><strong>@FormatMm(conceptPaneel.HoogteVanVloer)</strong></dd></div>
+                                        <div><dt>Rechts</dt><dd><strong>@FormatMm(conceptPaneel.Rechterkant)</strong></dd></div>
+                                        <div><dt>Bovenkant</dt><dd><strong>@FormatMm(conceptPaneel.Bovenzijde)</strong></dd></div>
+                                    </dl>
                                 </div>
                             }
 
@@ -693,9 +687,10 @@ else
 
                             @if (vrijeSegmenten.Count > 0)
                             {
-                                <div class="border rounded bg-light p-3 mb-3 small">
-                                    <div class="fw-semibold mb-2">Vrije vakken</div>
-                                    <div class="d-flex flex-wrap gap-2">
+                                <details class="paneel-editor-empty-details paneel-editor-vrije-vakken mb-3"
+                                         open="@(vrijeSegmenten.Count == 1)">
+                                    <summary class="small fw-semibold text-secondary">Gebruik een vrij vak (@vrijeSegmenten.Count beschikbaar)</summary>
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
                                         @for (int i = 0; i < vrijeSegmenten.Count; i++)
                                         {
                                             var segment = vrijeSegmenten[i];
@@ -706,7 +701,7 @@ else
                                             </button>
                                         }
                                     </div>
-                                </div>
+                                </details>
                             }
 
                             <HulpDetailsBlok Titel="Zo leest u de tekening"

@@ -174,41 +174,39 @@ else
         var toonPrimaireActies = !toonKastFormulier && !toonApparaatFormulier;
         var toonWandOpstelling = wandKasten.Count > 0 || wandApparaten.Count > 0;
 
-        <div class="card mb-4 border-primary shadow-sm indeling-actieve-werkruimte"
+        <div class="card border-0 shadow-sm mb-4 indeling-actieve-werkruimte"
              data-testid="actieve-wand-werkruimte"
              data-wand-id="@actieveWand.Id"
              data-wand-naam="@actieveWand.Naam">
-            <div class="card-header bg-primary bg-opacity-10">
-                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div class="card-body">
+                <div class="indeling-workspace-header mb-3">
                     <div>
-                        <div class="small fw-semibold text-uppercase text-primary-emphasis">Actieve wand</div>
-                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                            <h5 class="mb-0">@actieveWand.Naam</h5>
-                            <span class="badge text-bg-light">@wandKasten.Count kast(en)</span>
+                        <div class="indeling-workspace-kicker">Actieve wand</div>
+                        <h5 class="mb-1">@actieveWand.Naam</h5>
+                        <div class="stap-meta-list">
+                            <span>@wandKasten.Count kast(en)</span>
                             @if (wandApparaten.Count > 0)
                             {
-                                <span class="badge text-bg-light">@wandApparaten.Count apparaat(en)</span>
+                                <span>@wandApparaten.Count apparaat(en)</span>
                             }
-                        </div>
-                        <div class="small text-muted">
-                            @gevuldeBreedte mm ingevuld · @vrijeBreedte mm vrije wandruimte
+                            <span>@gevuldeBreedte mm ingevuld</span>
+                            <span>@vrijeBreedte mm vrij</span>
                         </div>
                     </div>
-                    <div class="d-flex flex-column align-items-start align-items-sm-end gap-2 indeling-workspace-state">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
                         <button class="btn btn-sm btn-outline-secondary" @onclick="SluitWandWerkruimte">
                             Werkruimte sluiten
                         </button>
                     </div>
                 </div>
-            </div>
-            <div class="card-body">
+
                 @if (toonPrimaireActies)
                 {
                     <div class="indeling-werkstap mb-4">
                         <div>
                             <div class="small fw-semibold text-uppercase text-muted mb-1">Nu doen</div>
-                            <div class="fw-semibold">@(wandKasten.Count == 0 ? "Voeg eerst een kast toe." : "Werk kasten, apparaten en opstelling op deze wand bij.")</div>
-                            <div class="small text-muted">@(wandKasten.Count == 0 ? "Gebruik een apparaat alleen als het echt wandruimte inneemt." : "Open alleen het formulier dat u nu nodig hebt; de rest blijft rustig staan.")</div>
+                            <div class="fw-semibold">@(wandKasten.Count == 0 ? "Voeg eerst de eerste kast toe." : "Werk alleen bij wat op deze wand nu nog ontbreekt.")</div>
+                            <div class="small text-muted">@(wandKasten.Count == 0 ? "Gebruik een apparaat pas zodra het echt wandruimte of de vrije opening verandert." : "Laat secundaire acties dicht en open alleen het formulier dat u nu nodig hebt.")</div>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
                             <button class="btn btn-primary"
@@ -288,9 +286,12 @@ else
                     }
                 </div>
 
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="mb-0">Kasten</h6>
+                <section class="indeling-lijst-sectie mb-4">
+                    <div class="indeling-lijst-kop">
+                        <div>
+                            <h6 class="mb-1">Kasten op deze wand</h6>
+                            <div class="small text-muted">Gebruik deze lijst vooral voor bewerken, dupliceren of verwijderen.</div>
+                        </div>
                         <span class="text-muted small">@(wandKasten.Count == 0 ? "Nog geen kasten" : $"{wandKasten.Count} toegevoegd")</span>
                     </div>
                     @if (wandKasten.Count > 0)
@@ -343,58 +344,70 @@ else
                             Nog geen kasten. Begin met <strong>Kast toevoegen</strong>.
                         </div>
                     }
-                </div>
+                </section>
 
                 @if (wandApparaten.Count > 0)
                 {
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0">Apparaten</h6>
-                            <span class="text-muted small">@wandApparaten.Count toegevoegd</span>
-                        </div>
-                        <div class="indeling-object-lijst">
-                            @foreach (var apparaat in wandApparaten)
-                            {
-                                <div class="indeling-object-rij @(bewerkApparaatId == apparaat.Id && actieveWandId == actieveWand.Id ? "is-active" : null)">
-                                    <div class="indeling-object-meta">
-                                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                            <span class="badge bg-secondary">@ApparaatTypeLabel(apparaat.Type)</span>
-                                            <span class="fw-semibold">@apparaat.Naam</span>
+                    <details class="indeling-overige-wanden mb-4"
+                             open="@((bewerkApparaatId is not null && actieveWandId == actieveWand.Id) || bevestigVerwijderApparaatId is not null)">
+                        <summary class="indeling-overige-wanden-summary">
+                            <div>
+                                <h5 class="mb-0">Apparaten op deze wand</h5>
+                                <div class="small text-muted">Open dit alleen als een apparaat de indeling van deze wand echt raakt.</div>
+                            </div>
+                            <span class="badge text-bg-light indeling-workspace-hint">@wandApparaten.Count toegevoegd</span>
+                        </summary>
+                        <div class="indeling-overige-wanden-body">
+                            <div class="indeling-object-lijst">
+                                @foreach (var apparaat in wandApparaten)
+                                {
+                                    <div class="indeling-object-rij @(bewerkApparaatId == apparaat.Id && actieveWandId == actieveWand.Id ? "is-active" : null)">
+                                        <div class="indeling-object-meta">
+                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                <span class="badge bg-secondary">@ApparaatTypeLabel(apparaat.Type)</span>
+                                                <span class="fw-semibold">@apparaat.Naam</span>
+                                            </div>
+                                            <div class="small text-muted">@apparaat.Breedte × @apparaat.Hoogte mm</div>
                                         </div>
-                                        <div class="small text-muted">@apparaat.Breedte × @apparaat.Hoogte mm</div>
+                                        @if (bevestigVerwijderApparaatId == apparaat.Id)
+                                        {
+                                            <div class="indeling-object-confirmatie">
+                                                <span class="text-danger small fw-semibold">Verwijderen?</span>
+                                                <button class="btn btn-danger btn-sm"
+                                                        @onclick="() => { VerwijderApparaat(apparaat.Id); bevestigVerwijderApparaatId = null; }">Ja</button>
+                                                <button class="btn btn-outline-secondary btn-sm"
+                                                        @onclick="() => bevestigVerwijderApparaatId = null">Annuleer</button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="indeling-object-acties">
+                                                <button class="btn btn-outline-primary btn-sm"
+                                                        @onclick="() => BewerkApparaat(apparaat, actieveWand.Id)">
+                                                    Bewerk
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm"
+                                                        @onclick="() => bevestigVerwijderApparaatId = apparaat.Id">
+                                                    Verwijder
+                                                </button>
+                                            </div>
+                                        }
                                     </div>
-                                    @if (bevestigVerwijderApparaatId == apparaat.Id)
-                                    {
-                                        <div class="indeling-object-confirmatie">
-                                            <span class="text-danger small fw-semibold">Verwijderen?</span>
-                                            <button class="btn btn-danger btn-sm"
-                                                    @onclick="() => { VerwijderApparaat(apparaat.Id); bevestigVerwijderApparaatId = null; }">Ja</button>
-                                            <button class="btn btn-outline-secondary btn-sm"
-                                                    @onclick="() => bevestigVerwijderApparaatId = null">Annuleer</button>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="indeling-object-acties">
-                                            <button class="btn btn-outline-primary btn-sm"
-                                                    @onclick="() => BewerkApparaat(apparaat, actieveWand.Id)">
-                                                Bewerk
-                                            </button>
-                                            <button class="btn btn-outline-danger btn-sm"
-                                                    @onclick="() => bevestigVerwijderApparaatId = apparaat.Id">
-                                                Verwijder
-                                            </button>
-                                        </div>
-                                    }
-                                </div>
-                            }
+                                }
+                            </div>
                         </div>
-                    </div>
+                    </details>
                 }
 
-                <details class="mt-3" open="@(bewerkWandId == actieveWand.Id || bevestigVerwijderWandId == actieveWand.Id)">
-                    <summary class="small fw-semibold text-secondary">Meer acties voor deze wand</summary>
-                    <div class="border rounded p-3 mt-2 bg-body-tertiary">
+                <details class="indeling-overige-wanden mb-4 indeling-workspace-actions"
+                         open="@(bewerkWandId == actieveWand.Id || bevestigVerwijderWandId == actieveWand.Id)">
+                    <summary class="indeling-overige-wanden-summary">
+                        <div>
+                            <h5 class="mb-0">Meer acties voor deze wand</h5>
+                            <div class="small text-muted">Open dit alleen voor hernoemen of verwijderen buiten de hoofdtaak.</div>
+                        </div>
+                    </summary>
+                    <div class="indeling-overige-wanden-body">
                         <p class="text-muted small mb-3">Zelden gebruikte of destructieve acties staan hier zodat de hoofdtaak op deze wand rustig blijft.</p>
 
                         @if (bewerkWandId == actieveWand.Id)
