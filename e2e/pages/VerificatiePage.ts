@@ -23,14 +23,14 @@ export class VerificatiePage {
     const knop = this.page.getByTestId('verificatie-start-button');
     await knop.scrollIntoViewIfNeeded();
     await knop.click();
-    await expect(this.page.getByRole('heading', { name: 'Meet de maat in de opening na' })).toBeVisible();
+    await expect(this.page.locator('.verificatie-check').first()).toBeVisible();
   }
 
   async openControleVoorWand(wandNaam: string) {
     const knop = this.taakGroep(wandNaam).getByTestId('verificatie-open-controle-button').first();
     await knop.scrollIntoViewIfNeeded();
     await knop.click();
-    await expect(this.page.getByRole('heading', { name: 'Meet de maat in de opening na' })).toBeVisible();
+    await expect(this.page.locator('.verificatie-check').first()).toBeVisible();
   }
 
   async gaNaarBestellijst() {

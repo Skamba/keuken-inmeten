@@ -92,6 +92,26 @@ html, body {
     flex-direction: column;
 }
 
+.home-secondary-link {
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.home-secondary-link:hover {
+    text-decoration: underline;
+}
+
+.home-resume-priority {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.85rem;
+    background: var(--bs-body-bg);
+}
+
+.home-resume-meta {
+    color: var(--bs-secondary-color);
+}
+
 .home-resume-status {
     display: grid;
     gap: 0.7rem;
@@ -2164,6 +2184,18 @@ code {
     background: var(--bs-body-bg, #fff);
 }
 
+.bestellijst-primary-strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem 1.5rem;
+}
+
+.bestellijst-primary-meta {
+    margin-top: 0.5rem;
+}
+
 .bestellijst-toolbar-meta {
     display: flex;
     flex-wrap: wrap;
@@ -2916,6 +2948,55 @@ code {
     background: var(--bs-tertiary-bg, #f8f9fa);
 }
 
+.verificatie-overview-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem 1.5rem;
+}
+
+.verificatie-overview-action {
+    min-width: min(19rem, 100%);
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.95rem;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+}
+
+.verificatie-overview-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.95rem;
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-secondary-color, #516173);
+    font-size: 0.9rem;
+}
+
+.verificatie-detail-strip {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.95rem;
+    background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 76%, var(--bs-body-bg, #fff));
+}
+
+.verificatie-detail-strip-meta {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.verificatie-zijkader {
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.95rem;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+}
+
 .verificatie-paneelselectie {
     padding: 0.95rem 1rem;
     border: 1px solid var(--bs-border-color, #dee2e6);
@@ -2969,6 +3050,15 @@ code {
 
 @media (min-width: 768px) {
     .verificatie-paneelselectie-lijst {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .verificatie-detail-strip {
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .verificatie-detail-strip-meta {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
