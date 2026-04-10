@@ -3050,10 +3050,11 @@ code {
 }
 
 .verificatie-zijkader {
-    padding: 0.95rem 1rem;
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 0.95rem;
-    background: var(--bs-tertiary-bg, #f8f9fa);
+    display: grid;
+    gap: 0.25rem;
+    padding: 0;
+    border: 0;
+    background: none;
 }
 
 .verificatie-paneelselectie {
