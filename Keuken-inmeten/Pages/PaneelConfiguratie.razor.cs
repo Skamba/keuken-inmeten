@@ -211,12 +211,29 @@ public partial class PaneelConfiguratie
     private void DeselecteerWand(Guid wandId)
     {
         bewerkToewijzingId = null;
+        if (geopendeWandId == wandId)
+        {
+            reviewWeergaveActief = false;
+            geopendeWandId = null;
+            toonEditorDrawer = false;
+        }
 
         var wandKastIds = State.KastenVoorWand(wandId).Select(k => k.Id).ToList();
         foreach (var id in wandKastIds)
             geselecteerdeKastIds.Remove(id);
 
         ResetConceptPaneel();
+    }
+
+    private void ToggleWandWerkruimte(Guid wandId)
+    {
+        if (geopendeWandId == wandId)
+        {
+            DeselecteerWand(wandId);
+            return;
+        }
+
+        OpenWandWerkruimte(wandId);
     }
 
     private void DeselecteerAlles()

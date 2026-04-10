@@ -340,6 +340,27 @@ test('stap 2 toont maar één actieve wandwerkruimte tegelijk', async ({ page })
   await panelen.expectActieveWerkruimte('Linkerwand');
 });
 
+test('stap 2 sluit de actieve wand bij een tweede klik op dezelfde wand', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast toggle',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await panelen.openWandWerkruimte('Achterwand');
+  await panelen.sluitActieveWand('Achterwand');
+  await expect(page.getByTestId('paneel-editor-weergave')).toBeVisible();
+  await expect(page.getByText('Open eerst één wand')).toBeVisible();
+});
+
 test('stap 2 scheidt editor en review expliciet', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);

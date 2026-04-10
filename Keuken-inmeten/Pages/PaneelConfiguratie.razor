@@ -197,7 +197,7 @@ else
 
                                         <div class="mt-auto">
                                             <button class="btn @(wandKasten.Count == 0 ? "btn-outline-secondary" : "btn-primary")"
-                                                    @onclick="() => OpenWandWerkruimte(wand.Id)"
+                                                    @onclick="() => ToggleWandWerkruimte(wand.Id)"
                                                     disabled="@(isActieveWerkruimte || wandKasten.Count == 0)"
                                                     data-testid="open-paneel-wand-button"
                                                     data-wand-id="@wand.Id">
@@ -254,7 +254,7 @@ else
                                             </div>
                                         </div>
                                         <button class="btn btn-outline-primary btn-sm"
-                                                @onclick="() => OpenWandWerkruimte(wand.Id)"
+                                                @onclick="() => ToggleWandWerkruimte(wand.Id)"
                                                 disabled="@(wandKasten.Count == 0)"
                                                 data-testid="open-paneel-wand-button"
                                                 data-wand-id="@wand.Id">
@@ -279,10 +279,15 @@ else
                          data-wand-naam="@geopendeWand.Naam">
                         <div class="card-body">
                             <div class="indeling-workspace-header paneel-workspace-header mb-3">
-                                <div>
-                                    <div class="indeling-workspace-kicker">Actieve wand</div>
-                                    <h5 class="mb-1">@geopendeWand.Naam</h5>
-                                    <div class="stap-meta-list">
+                                <button type="button"
+                                        class="btn btn-link p-0 text-start text-body text-decoration-none"
+                                        @onclick="() => ToggleWandWerkruimte(geopendeWand.Id)"
+                                        data-testid="toggle-paneel-actieve-wand-button"
+                                        data-wand-id="@geopendeWand.Id"
+                                        data-wand-naam="@geopendeWand.Naam">
+                                    <span class="indeling-workspace-kicker d-block">Actieve wand</span>
+                                    <span class="h5 d-block mb-1 text-body">@geopendeWand.Naam</span>
+                                    <span class="stap-meta-list">
                                         <span>@geopendeWandKasten.Count kast(en)</span>
                                         <span>@geopendeWandPanelen.Count paneel/panelen</span>
                                         @if (geopendeWandApparaten.Count > 0)
@@ -290,8 +295,8 @@ else
                                             <span>@geopendeWandApparaten.Count apparaat(en)</span>
                                         }
                                         <span>@(toonEditorDrawer ? "Editor open" : "Editor gesloten")</span>
-                                    </div>
-                                </div>
+                                    </span>
+                                </button>
                                 <div class="d-flex flex-wrap align-items-center justify-content-sm-end gap-2">
                                     @if (!toonEditorDrawer)
                                     {

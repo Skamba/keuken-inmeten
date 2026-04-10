@@ -13,6 +13,12 @@ export class PanelenPage {
     );
   }
 
+  private actieveWandToggle(wandNaam: string): Locator {
+    return this.page.locator(
+      `[data-testid="toggle-paneel-actieve-wand-button"][data-wand-naam="${wandNaam}"]`,
+    );
+  }
+
   async expectLoaded() {
     await expect(this.page.getByRole('heading', { name: 'Stap 2: Panelen' })).toBeVisible();
   }
@@ -53,6 +59,12 @@ export class PanelenPage {
   async expectActieveWerkruimte(wandNaam: string) {
     await expect(this.page.getByTestId('paneel-actieve-wand-werkruimte')).toHaveCount(1);
     await expect(this.actieveWerkruimte(wandNaam)).toBeVisible();
+  }
+
+  async sluitActieveWand(wandNaam: string) {
+    await this.expectActieveWerkruimte(wandNaam);
+    await this.actieveWandToggle(wandNaam).click();
+    await expect(this.page.getByTestId('paneel-actieve-wand-werkruimte')).toHaveCount(0);
   }
 
   async selecteerEersteKastOpWand(wandNaam: string) {
