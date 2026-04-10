@@ -7,7 +7,7 @@ export class BestellijstPage {
 
   async expectLoaded() {
     await expect(this.page.getByRole('heading', { name: 'Stap 4: Bestellijst' })).toBeVisible();
-    await expect(this.page.getByTestId('bestellijst-tabel')).toBeVisible();
+    await expect(this.page.getByTestId('bestellijst-tabel').first()).toBeVisible();
     await expect(this.page.getByTestId('bestellijst-open-exportflow-button')).toBeVisible();
   }
 
