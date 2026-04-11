@@ -28,6 +28,55 @@ function createInstance(svgEl, dotNetRef) {
         };
     }
 
+    function findKastInTree(el) {
+        let current = el;
+        while (current && current !== svgEl) {
+            if (current.classList && current.classList.contains('paneel-kast-selecteerbaar')) {
+                return current;
+            }
+
+            current = current.parentNode;
+        }
+
+        return null;
+    }
+
+    function pointIsInsideRect(clientX, clientY, rect) {
+        return clientX >= rect.left
+            && clientX <= rect.right
+            && clientY >= rect.top
+            && clientY <= rect.bottom;
+    }
+
+    function findKastAtPoint(clientX, clientY, ignoredGroup) {
+        const elements = document.elementsFromPoint(clientX, clientY);
+        for (const element of elements) {
+            if (ignoredGroup && (element === ignoredGroup || ignoredGroup.contains(element))) {
+                continue;
+            }
+
+            const kast = findKastInTree(element);
+            if (kast?.dataset.kastId) {
+                return kast;
+            }
+        }
+
+        const kasten = svgEl.querySelectorAll('.paneel-kast-selecteerbaar');
+        for (const kast of kasten) {
+            const body = kast.querySelector('rect');
+            if (!body) {
+                continue;
+            }
+
+            const rect = body.getBoundingClientRect();
+            if (pointIsInsideRect(clientX, clientY, rect)) {
+                return kast;
+            }
+        }
+
+        return null;
+    }
+
     function setAttr(el, name, value) {
         if (el) el.setAttribute(name, `${value}`);
     }
@@ -170,6 +219,12 @@ function createInstance(svgEl, dotNetRef) {
             if (dragState.moved) {
                 const rect = dragState.preview ?? dragState.rect;
                 dotNetRef.invokeMethodAsync('OnConceptPaneelUpdate', dragState.mode, rect.x, rect.y, rect.width, rect.height);
+            }
+            else if (dragState.mode === 'move') {
+                const kast = findKastAtPoint(e.clientX, e.clientY, dragState.group);
+                if (kast?.dataset.kastId) {
+                    dotNetRef.invokeMethodAsync('OnKastKlik', kast.dataset.kastId);
+                }
             }
             dragState = null;
             e.preventDefault();

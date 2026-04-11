@@ -202,6 +202,51 @@ test('paneel-editor opent na sluiten weer met schone standaardwaarden', async ({
   await expect(potHartInput).toHaveValue('22.5');
 });
 
+test('paneelselectie laat dezelfde kast met een tweede klik weer los', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast selectie',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+
+  await indeling.gaNaarPanelen();
+  await panelen.expectLoaded();
+  await panelen.openWandWerkruimte('Achterwand');
+
+  const kastBody = page
+    .locator('[data-testid="paneel-actieve-wand-werkruimte"][data-wand-naam="Achterwand"]')
+    .locator('[data-testid="paneel-kast"]')
+    .locator('rect')
+    .first();
+
+  await kastBody.scrollIntoViewIfNeeded();
+  const box = await kastBody.boundingBox();
+  expect(box).not.toBeNull();
+
+  const clickX = box!.x + box!.width / 2;
+  const clickY = box!.y + box!.height / 2;
+
+  await page.mouse.click(clickX, clickY);
+  await expect(page.getByTestId('paneel-opslaan-button')).toBeVisible();
+
+  await kastBody.scrollIntoViewIfNeeded();
+  const geselecteerdeBox = await kastBody.boundingBox();
+  expect(geselecteerdeBox).not.toBeNull();
+
+  await page.mouse.click(
+    geselecteerdeBox!.x + geselecteerdeBox!.width / 2,
+    geselecteerdeBox!.y + geselecteerdeBox!.height / 2,
+  );
+  await expect(page.getByText('Selecteer nu kast(en) in de tekening')).toBeVisible();
+  await expect(page.getByTestId('paneel-opslaan-button')).toHaveCount(0);
+});
+
 test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
