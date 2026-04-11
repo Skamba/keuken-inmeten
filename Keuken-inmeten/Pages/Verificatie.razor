@@ -26,6 +26,7 @@
     var flowStatus = StappenFlowHelper.BepaalStatus(State);
     var routeGate = StappenFlowHelper.BepaalRouteGate("verificatie", flowStatus);
     var resultaten = State.BerekenResultaten();
+    var uitlijnWaarschuwingen = WandUitlijnControleService.BepaalWaarschuwingen(State.Wanden, State.Kasten);
 }
 
 @if (routeGate is not null)
@@ -34,6 +35,36 @@
 }
 else if (_fase == VerificatieFase.Overzicht)
 {
+    @if (uitlijnWaarschuwingen.Count > 0)
+    {
+        <section class="alert alert-warning shadow-sm mb-4"
+                 role="alert"
+                 data-testid="verificatie-uitlijn-waarschuwing">
+            <div class="fw-semibold mb-1">Let op: er lijken kasten bijna, maar niet helemaal, uitgelijnd.</div>
+            <div class="small mb-3">Afwijkingen kleiner dan 25 mm geven vaak onverwachte verschillen in paneelmaten en bestellijstregels.</div>
+            <div class="d-flex flex-column gap-2" data-testid="verificatie-uitlijn-waarschuwing-lijst">
+                @foreach (var wandWaarschuwing in uitlijnWaarschuwingen)
+                {
+                    <div data-testid="verificatie-uitlijn-waarschuwing-item"
+                         data-wand-naam="@wandWaarschuwing.WandNaam">
+                        <div class="fw-semibold">@wandWaarschuwing.WandNaam</div>
+                        @foreach (var waarschuwing in wandWaarschuwing.Waarschuwingen.Take(4))
+                        {
+                            <div class="small">
+                                <strong>@waarschuwing.EersteKastNaam</strong> en <strong>@waarschuwing.TweedeKastNaam</strong>:
+                                @FormatUitlijnAfwijkingen(waarschuwing.Afwijkingen)
+                            </div>
+                        }
+                        @if (wandWaarschuwing.Waarschuwingen.Count > 4)
+                        {
+                            <div class="small text-muted">+@(wandWaarschuwing.Waarschuwingen.Count - 4) extra aandachtspunt(en)</div>
+                        }
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
     <div class="card border-0 shadow-sm mb-4 verificatie-overzicht-card">
         <div class="card-body">
             @{
@@ -550,6 +581,9 @@ else if (_fase == VerificatieFase.Afronding)
 
     private static string FormatMm(double waarde)
         => $"{waarde:0.#} mm";
+
+    private static string FormatUitlijnAfwijkingen(IReadOnlyList<UitlijnAfwijking> afwijkingen)
+        => string.Join(", ", afwijkingen.Select(afwijking => $"{afwijking.Label} {FormatMm(afwijking.AfwijkingMm)}"));
 
     private BrowserWindowJsInterop? _browserWindowInterop;
 

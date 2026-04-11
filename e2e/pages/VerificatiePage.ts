@@ -26,6 +26,25 @@ export class VerificatiePage {
     await expect(this.taakGroep(wandNaam)).toBeVisible();
   }
 
+  async expectUitlijnWaarschuwing(wandNaam?: string) {
+    const waarschuwing = this.page.getByTestId('verificatie-uitlijn-waarschuwing');
+    await expect(waarschuwing).toBeVisible();
+
+    if (wandNaam) {
+      await expect(
+        this.page.locator(`[data-testid="verificatie-uitlijn-waarschuwing-item"][data-wand-naam="${wandNaam}"]`),
+      ).toBeVisible();
+    }
+  }
+
+  async expectGeenUitlijnWaarschuwing() {
+    await expect(this.page.getByTestId('verificatie-uitlijn-waarschuwing')).toHaveCount(0);
+  }
+
+  async expectUitlijnTekst(tekst: string) {
+    await expect(this.page.getByTestId('verificatie-uitlijn-waarschuwing')).toContainText(tekst);
+  }
+
   async startVerificatie() {
     const knop = this.page.getByTestId('verificatie-start-button');
     await knop.scrollIntoViewIfNeeded();

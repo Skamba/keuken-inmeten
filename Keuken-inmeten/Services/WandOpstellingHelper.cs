@@ -5,7 +5,7 @@ using Keuken_inmeten.Models;
 public static class WandOpstellingHelper
 {
     private const double RasterMm = 10.0;
-    private const double SnapDrempel = 20.0;
+    private const double SnapDrempel = 25.0;
 
     public static IReadOnlyList<int> BepaalHoogteMarkeringen(double wandHoogte)
         => BepaalMarkeringen(wandHoogte);
@@ -47,14 +47,14 @@ public static class WandOpstellingHelper
         var xPositie = (svgX - padding) / schaal;
         var topFromFloorMm = (vloerY - svgY) / schaal;
         var hoogteVanVloer = topFromFloorMm - kast.Hoogte;
-        var andereKastLijst = andereKasten.ToList();
-
-        xPositie = SnapValue(xPositie, BepaalXSnapTargets(kast, andereKastLijst, wandBreedte), SnapDrempel);
-        hoogteVanVloer = SnapValue(hoogteVanVloer, BepaalYSnapTargets(kast, andereKastLijst, plintHoogte), SnapDrempel);
-
-        return new WandPositie(
-            Math.Clamp(xPositie, 0, Math.Max(0, wandBreedte - kast.Breedte)),
-            Math.Clamp(hoogteVanVloer, 0, Math.Max(0, wandHoogte - kast.Hoogte)));
+        return SnapKastPositie(
+            kast,
+            andereKasten,
+            xPositie,
+            hoogteVanVloer,
+            wandBreedte,
+            wandHoogte,
+            plintHoogte);
     }
 
     public static double BepaalPlankHoogteNaDrop(Kast kast, double svgCenterY, double vloerY, double schaal)
@@ -85,7 +85,14 @@ public static class WandOpstellingHelper
             _ => null
         };
 
-    public static WandPositie? BepaalKastPositieNaToets(Kast kast, string key, double stap, double wandBreedte, double wandHoogte)
+    public static WandPositie? BepaalKastPositieNaToets(
+        Kast kast,
+        IEnumerable<Kast> andereKasten,
+        string key,
+        double stap,
+        double wandBreedte,
+        double wandHoogte,
+        double plintHoogte)
     {
         var xPositie = kast.XPositie;
         var hoogteVanVloer = kast.HoogteVanVloer;
@@ -108,7 +115,14 @@ public static class WandOpstellingHelper
                 return null;
         }
 
-        return new WandPositie(xPositie, hoogteVanVloer);
+        return SnapKastPositie(
+            kast,
+            andereKasten,
+            xPositie,
+            hoogteVanVloer,
+            wandBreedte,
+            wandHoogte,
+            plintHoogte);
     }
 
     private static IReadOnlyList<int> BepaalMarkeringen(double maat)
@@ -153,6 +167,25 @@ public static class WandOpstellingHelper
         return Math.Abs(best - waarde) <= drempel
             ? Math.Round(best)
             : ClampOpRaster(waarde);
+    }
+
+    private static WandPositie SnapKastPositie(
+        Kast kast,
+        IEnumerable<Kast> andereKasten,
+        double xPositie,
+        double hoogteVanVloer,
+        double wandBreedte,
+        double wandHoogte,
+        double plintHoogte)
+    {
+        var andereKastLijst = andereKasten.ToList();
+
+        xPositie = SnapValue(xPositie, BepaalXSnapTargets(kast, andereKastLijst, wandBreedte), SnapDrempel);
+        hoogteVanVloer = SnapValue(hoogteVanVloer, BepaalYSnapTargets(kast, andereKastLijst, plintHoogte), SnapDrempel);
+
+        return new WandPositie(
+            Math.Clamp(xPositie, 0, Math.Max(0, wandBreedte - kast.Breedte)),
+            Math.Clamp(hoogteVanVloer, 0, Math.Max(0, wandHoogte - kast.Hoogte)));
     }
 
     private static double ClampOpRaster(double waarde)

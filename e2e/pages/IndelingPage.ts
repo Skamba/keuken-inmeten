@@ -32,8 +32,19 @@ export class IndelingPage {
     return this.actieveWerkruimte(wandNaam).getByTestId('wand-kast').first();
   }
 
+  wandKast(wandNaam: string, kastNaam: string): Locator {
+    return this.actieveWerkruimte(wandNaam)
+      .getByTestId('wand-kast')
+      .filter({ hasText: kastNaam })
+      .first();
+  }
+
   eersteWandKastRect(wandNaam: string): Locator {
     return this.eersteWandKast(wandNaam).locator('rect').first();
+  }
+
+  wandKastRect(wandNaam: string, kastNaam: string): Locator {
+    return this.wandKast(wandNaam, kastNaam).locator('rect').first();
   }
 
   eersteWandPlank(wandNaam: string): Locator {
@@ -187,10 +198,37 @@ export class IndelingPage {
     await expect(this.eersteWandPlank(wandNaam)).toBeVisible();
   }
 
+  async leesKastXMm(wandNaam: string, kastNaam: string) {
+    return this.leesKastAttribuutAsGetal(wandNaam, kastNaam, 'data-x-mm');
+  }
+
+  async leesKastFloorMm(wandNaam: string, kastNaam: string) {
+    return this.leesKastAttribuutAsGetal(wandNaam, kastNaam, 'data-floor-mm');
+  }
+
+  async klikKast(wandNaam: string, kastNaam: string) {
+    const rect = this.wandKastRect(wandNaam, kastNaam);
+    await rect.scrollIntoViewIfNeeded();
+
+    const box = await rect.boundingBox();
+    expect(box).not.toBeNull();
+
+    await this.page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  }
+
   async gaNaarPanelen() {
     const knop = this.page.getByTestId('stap-navigatie-volgende');
     await knop.scrollIntoViewIfNeeded();
     await knop.click();
     await expect(this.page).toHaveURL(/\/panelen$/);
+  }
+
+  private async leesKastAttribuutAsGetal(wandNaam: string, kastNaam: string, attribuut: string) {
+    const waarde = await this.wandKast(wandNaam, kastNaam).getAttribute(attribuut);
+    expect(waarde, `${attribuut} ontbreekt op kast ${kastNaam}`).not.toBeNull();
+
+    const getal = Number.parseFloat(waarde!);
+    expect(Number.isFinite(getal), `${attribuut} is geen geldig getal: ${waarde}`).toBeTruthy();
+    return getal;
   }
 }

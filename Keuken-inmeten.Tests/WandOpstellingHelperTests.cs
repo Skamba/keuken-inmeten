@@ -109,13 +109,91 @@ public class WandOpstellingHelperTests
 
         var positie = WandOpstellingHelper.BepaalKastPositieNaToets(
             kast,
+            [],
             key: "ArrowRight",
             stap: 100,
             wandBreedte: 1900,
-            wandHoogte: 2600);
+            wandHoogte: 2600,
+            plintHoogte: 100);
 
         Assert.NotNull(positie);
         Assert.Equal(1300d, positie.Value.XPositie);
         Assert.Equal(1800d, positie.Value.HoogteVanVloer);
+    }
+
+    [Fact]
+    public void BepaalKastPositieNaDrop_snapt_ook_binnen_25mm_naar_stapeling()
+    {
+        var kleineKast = new Kast { Breedte = 600, Hoogte = 315 };
+        var hogeKast = new Kast { Breedte = 600, Hoogte = 1915, XPositie = 0, HoogteVanVloer = 0 };
+
+        var positie = WandOpstellingHelper.BepaalKastPositieNaDrop(
+            kleineKast,
+            [hogeKast],
+            svgX: 50,
+            svgY: 396,
+            padding: 50,
+            schaal: 1,
+            vloerY: 2650,
+            wandBreedte: 2000,
+            wandHoogte: 2600,
+            plintHoogte: 100);
+
+        Assert.Equal(0d, positie.XPositie);
+        Assert.Equal(1915d, positie.HoogteVanVloer);
+    }
+
+    [Fact]
+    public void BepaalKastPositieNaDrop_snapt_niet_buiten_25mm_naar_stapeling()
+    {
+        var kleineKast = new Kast { Breedte = 600, Hoogte = 315 };
+        var hogeKast = new Kast { Breedte = 600, Hoogte = 1915, XPositie = 0, HoogteVanVloer = 0 };
+
+        var positie = WandOpstellingHelper.BepaalKastPositieNaDrop(
+            kleineKast,
+            [hogeKast],
+            svgX: 50,
+            svgY: 380,
+            padding: 50,
+            schaal: 1,
+            vloerY: 2650,
+            wandBreedte: 2000,
+            wandHoogte: 2600,
+            plintHoogte: 100);
+
+        Assert.Equal(0d, positie.XPositie);
+        Assert.Equal(1960d, positie.HoogteVanVloer);
+    }
+
+    [Fact]
+    public void BepaalKastPositieNaToets_snapt_naar_bijna_gelijkliggende_bovenkant()
+    {
+        var kleineKast = new Kast
+        {
+            Breedte = 600,
+            Hoogte = 315,
+            XPositie = 0,
+            HoogteVanVloer = 1890
+        };
+        var hogeKast = new Kast
+        {
+            Breedte = 600,
+            Hoogte = 1915,
+            XPositie = 0,
+            HoogteVanVloer = 0
+        };
+
+        var positie = WandOpstellingHelper.BepaalKastPositieNaToets(
+            kleineKast,
+            [hogeKast],
+            key: "ArrowUp",
+            stap: 1,
+            wandBreedte: 2000,
+            wandHoogte: 2600,
+            plintHoogte: 100);
+
+        Assert.NotNull(positie);
+        Assert.Equal(1915d, positie.Value.HoogteVanVloer);
+        Assert.Equal(0d, positie.Value.XPositie);
     }
 }

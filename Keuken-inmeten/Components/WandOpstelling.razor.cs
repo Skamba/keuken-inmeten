@@ -226,7 +226,14 @@ public partial class WandOpstelling
             var kast = Kasten.FirstOrDefault(k => k.Id == GeselecteerdeKastId.Value);
             if (kast != null)
             {
-                var nieuwePositie = WandOpstellingHelper.BepaalKastPositieNaToets(kast, key, stap, WandBreedte, WandHoogte);
+                var nieuwePositie = WandOpstellingHelper.BepaalKastPositieNaToets(
+                    kast,
+                    Kasten.Where(item => item.Id != kast.Id),
+                    key,
+                    stap,
+                    WandBreedte,
+                    WandHoogte,
+                    PlintHoogte);
                 if (nieuwePositie is WandPositie positie)
                 {
                     await OnKastVerplaatst.InvokeAsync(
