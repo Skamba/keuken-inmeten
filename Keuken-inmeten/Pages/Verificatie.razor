@@ -471,6 +471,12 @@ else if (_fase == VerificatieFase.Afronding)
     private VerificatieFase _fase = VerificatieFase.Overzicht;
     private int _paneelIndex;
 
+    protected override void OnInitialized()
+        => State.OnStateChanged += HandleStateChanged;
+
+    private void HandleStateChanged()
+        => _ = InvokeAsync(StateHasChanged);
+
     private PaneelVerificatieStatus GetChecks(PaneelResultaat resultaat)
         => State.LeesVerificatieStatus(resultaat.ToewijzingId);
 
@@ -599,6 +605,7 @@ else if (_fase == VerificatieFase.Afronding)
 
     public async ValueTask DisposeAsync()
     {
+        State.OnStateChanged -= HandleStateChanged;
         if (_browserWindowInterop is not null)
             await _browserWindowInterop.DisposeAsync();
     }
