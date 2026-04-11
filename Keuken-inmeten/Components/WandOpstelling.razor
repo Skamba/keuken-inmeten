@@ -61,12 +61,14 @@
             var y = VloerY - (kast.HoogteVanVloer + kast.Hoogte) * Schaal;
             var wdPx = kast.Wanddikte * Schaal;
             var isSelected = GeselecteerdeKastId == kast.Id || (GeselecteerdeKastIds?.Contains(kast.Id) ?? false);
+            var plankSnapData = BouwPlankSnapData(kast);
 
             <g class="wand-kast-sleepbaar @(isSelected ? "geselecteerd" : "")"
                data-kast-id="@kast.Id"
                data-bot-y="@Fmt(y + h)"
                data-wd-px="@Fmt(wdPx)"
                data-schaal="@Fmt(Schaal)"
+               data-plank-snaps="@plankSnapData"
                style="cursor: @(LeesAlleen ? "pointer" : "grab");">
 
                 <rect x="@Fmt(x)" y="@Fmt(y)" width="@Fmt(w)" height="@Fmt(h)"
@@ -168,7 +170,7 @@
                               fill="@(isPlankSelected ? "#a8d5ff" : "#c8a040")"
                               stroke="@(isPlankSelected ? "#0d6efd" : "#7a5e20")"
                               stroke-width="@(isPlankSelected ? "1.5" : "0.8")" />
-                        @((MarkupString)$"<text class=\"plank-label\" x=\"{Fmt(x + wdPx + 3)}\" y=\"{Fmt(plnLabelYs[pi])}\" font-size=\"9\" fill=\"{(isPlankSelected ? "#0d6efd" : "#7a5e20")}\" font-weight=\"bold\" text-anchor=\"start\" pointer-events=\"none\">{plank.HoogteVanBodem:F0} mm</text>")
+                        @((MarkupString)$"<text class=\"plank-label\" x=\"{Fmt(x + wdPx + 3)}\" y=\"{Fmt(plnLabelYs[pi])}\" font-size=\"9\" fill=\"{(isPlankSelected ? "#0d6efd" : "#7a5e20")}\" font-weight=\"bold\" text-anchor=\"start\" pointer-events=\"none\">{Encode(FormatPlankLabel(kast, plank.HoogteVanBodem))}</text>")
                     </g>
                 }
 

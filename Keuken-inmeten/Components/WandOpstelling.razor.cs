@@ -3,6 +3,7 @@ using Microsoft.JSInterop;
 using Keuken_inmeten.Models;
 using Keuken_inmeten.Services;
 using Keuken_inmeten.Services.Interop;
+using System.Globalization;
 
 namespace Keuken_inmeten.Components;
 
@@ -147,25 +148,36 @@ public partial class WandOpstelling
     }
 
     [JSInvokable]
-    public async Task OnPlankDrop(string kastIdStr, string plankIdStr, double svgCenterY)
+    public async Task<bool> OnPlankDrop(string kastIdStr, string plankIdStr, double svgCenterY)
     {
-        if (LeesAlleen) return;
-        if (!Guid.TryParse(kastIdStr, out var kastId)) return;
-        if (!Guid.TryParse(plankIdStr, out var plankId)) return;
+        if (LeesAlleen) return false;
+        if (!Guid.TryParse(kastIdStr, out var kastId)) return false;
+        if (!Guid.TryParse(plankIdStr, out var plankId)) return false;
 
         var kast = Kasten.FirstOrDefault(k => k.Id == kastId);
-        if (kast is null) return;
+        if (kast is null) return false;
         var plank = kast.Planken.FirstOrDefault(p => p.Id == plankId);
-        if (plank is null) return;
+        if (plank is null) return false;
 
         var hoogteVanBodem = WandOpstellingHelper.BepaalPlankHoogteNaDrop(kast, svgCenterY, VloerY, Schaal);
 
-        if (OnPlankActie.HasDelegate)
-            await OnPlankActie.InvokeAsync(ComponentInteractieHelper.MaakPlankVerplaatsing(kastId, plankId, hoogteVanBodem));
+        if (Math.Abs(plank.HoogteVanBodem - hoogteVanBodem) < 0.05)
+        {
+            _geselecteerdeePlankKastId = kastId;
+            _geselecteerdeePlankId = plankId;
+            StateHasChanged();
+            return false;
+        }
+
+        if (!OnPlankActie.HasDelegate)
+            return false;
+
+        await OnPlankActie.InvokeAsync(ComponentInteractieHelper.MaakPlankVerplaatsing(kastId, plankId, hoogteVanBodem));
         _geselecteerdeePlankKastId = kastId;
         _geselecteerdeePlankId = plankId;
 
         StateHasChanged();
+        return true;
     }
 
     [JSInvokable]
@@ -294,6 +306,22 @@ public partial class WandOpstelling
     private static string ApparaatKleur(ApparaatType type) => VisualisatieHelper.ApparaatKleur(type);
 
     private static string Fmt(double v) => VisualisatieHelper.Fmt(v);
+
+    private static string Encode(string value) => System.Net.WebUtility.HtmlEncode(value);
+
+    private static string BouwPlankSnapData(Kast kast)
+        => string.Join("|",
+            PlankGaatjesHelper.BepaalSnapPunten(kast)
+                .Select(snap => $"{snap.HoogteVanBodem.ToString("0.###", CultureInfo.InvariantCulture)}:{snap.GatIndex}"));
+
+    private static string FormatPlankLabel(Kast kast, double hoogteVanBodem)
+    {
+        var hoogteLabel = hoogteVanBodem.ToString("0.#", CultureInfo.InvariantCulture);
+        var snap = PlankGaatjesHelper.ZoekDichtstbijzijndeSnap(kast, hoogteVanBodem);
+        return snap is null
+            ? $"{hoogteLabel} mm"
+            : $"{hoogteLabel} mm | gat {snap.Value.GatIndex}";
+    }
 
     public async ValueTask DisposeAsync()
     {

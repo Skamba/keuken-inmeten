@@ -37,6 +37,49 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
         return null;
     }
 
+    function parsePlankSnaps(kastG) {
+        const raw = kastG?.dataset?.plankSnaps;
+        if (!raw) return [];
+
+        return raw
+            .split('|')
+            .map(item => {
+                const [heightStr, holeIndexStr] = item.split(':');
+                const height = parseFloat(heightStr);
+                const holeIndex = parseInt(holeIndexStr, 10);
+                return Number.isFinite(height) && Number.isFinite(holeIndex)
+                    ? { height, holeIndex }
+                    : null;
+            })
+            .filter(Boolean);
+    }
+
+    function formatMm(value) {
+        const rounded = Math.round(value * 10) / 10;
+        return Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1);
+    }
+
+    function formatPlankLabel(height, holeIndex) {
+        return holeIndex ? `${formatMm(height)} mm | gat ${holeIndex}` : `${formatMm(height)} mm`;
+    }
+
+    function getPlankSnapPreview(dragState, rawCenterY) {
+        if (!dragState || !(dragState.schaal > 0)) {
+            return { centerY: rawCenterY, height: 0, holeIndex: null };
+        }
+
+        const rawHeight = Math.max(0, (dragState.botY - dragState.wdPx - rawCenterY) / dragState.schaal);
+        if (!dragState.snapTargets.length) {
+            return { centerY: rawCenterY, height: rawHeight, holeIndex: null };
+        }
+
+        const best = dragState.snapTargets.reduce((closest, candidate) =>
+            Math.abs(candidate.height - rawHeight) < Math.abs(closest.height - rawHeight) ? candidate : closest);
+        const snappedCenterY = dragState.botY - dragState.wdPx - best.height * dragState.schaal;
+
+        return { centerY: snappedCenterY, height: best.height, holeIndex: best.holeIndex };
+    }
+
     function onPointerDown(e) {
         if (leesAlleen) return;
         const plankG = findPlankGroup(e.target);
@@ -47,14 +90,21 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
 
             const pt = getSvgPoint(e);
             const rect = plankG.querySelector('rect');
+            const kastG = plankG.closest('.wand-kast-sleepbaar');
             const ry = parseFloat(rect.getAttribute('y'));
             const rh = parseFloat(rect.getAttribute('height'));
             const centerY = ry + rh / 2;
+            const botY = parseFloat(kastG?.dataset?.botY);
+            const wdPx = parseFloat(kastG?.dataset?.wdPx);
+            const schaal = parseFloat(kastG?.dataset?.schaal);
 
             dragging = {
                 type: 'plank', kastId, plankId, g: plankG,
                 offsetY: pt.y - centerY, startCenterY: centerY,
-                startClientX: e.clientX, startClientY: e.clientY, moved: false
+                startClientX: e.clientX, startClientY: e.clientY, moved: false,
+                kastG, botY, wdPx, schaal,
+                snapTargets: parsePlankSnaps(kastG),
+                snappedCenterY: centerY
             };
             plankG.style.cursor = 'grabbing';
             svgEl.setPointerCapture(e.pointerId);
@@ -92,21 +142,14 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
 
         const pt = getSvgPoint(e);
         if (dragging.type === 'plank') {
-            const centerY = pt.y - dragging.offsetY;
-            dragging.g.setAttribute('transform', `translate(0, ${centerY - dragging.startCenterY})`);
+            const rawCenterY = pt.y - dragging.offsetY;
+            const snap = getPlankSnapPreview(dragging, rawCenterY);
+            dragging.snappedCenterY = snap.centerY;
+            dragging.g.setAttribute('transform', `translate(0, ${snap.centerY - dragging.startCenterY})`);
 
             // Live label update
-            const kastG = dragging.g.closest('.wand-kast-sleepbaar');
-            if (kastG) {
-                const botY  = parseFloat(kastG.dataset.botY);
-                const wdPx  = parseFloat(kastG.dataset.wdPx);
-                const schaal = parseFloat(kastG.dataset.schaal);
-                if (schaal > 0) {
-                    const mm = Math.max(0, (botY - wdPx - centerY) / schaal);
-                    const lbl = dragging.g.querySelector('.plank-label');
-                    if (lbl) lbl.textContent = `${Math.round(mm)} mm`;
-                }
-            }
+            const lbl = dragging.g.querySelector('.plank-label');
+            if (lbl) lbl.textContent = formatPlankLabel(snap.height, snap.holeIndex);
         } else {
             const nx = pt.x - dragging.offsetX;
             const ny = pt.y - dragging.offsetY;
@@ -118,16 +161,29 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
         if (!dragging) return;
         const { type, g, moved } = dragging;
         g.style.cursor = type === 'plank' ? 'ns-resize' : 'grab';
-        g.removeAttribute('transform');
         svgEl.releasePointerCapture(e.pointerId);
 
         const pt = getSvgPoint(e);
 
         if (type === 'plank') {
             if (moved) {
-                dotNetRef.invokeMethodAsync('OnPlankDrop', dragging.kastId, dragging.plankId, pt.y - dragging.offsetY);
+                const finalSnap = getPlankSnapPreview(dragging, pt.y - dragging.offsetY);
+                g.setAttribute('transform', `translate(0, ${finalSnap.centerY - dragging.startCenterY})`);
+                const lbl = g.querySelector('.plank-label');
+                if (lbl) lbl.textContent = formatPlankLabel(finalSnap.height, finalSnap.holeIndex);
+                const dropPromise = dotNetRef.invokeMethodAsync('OnPlankDrop', dragging.kastId, dragging.plankId, finalSnap.centerY);
+                dropPromise
+                    .then(changed => {
+                        if (!changed) {
+                            g.removeAttribute('transform');
+                        }
+                    })
+                    .catch(() => {
+                        g.removeAttribute('transform');
+                    });
                 lastUpPlankTime = 0;
             } else {
+                g.removeAttribute('transform');
                 const now = Date.now();
                 const isDoubleTap = (now - lastUpPlankTime < 400) &&
                                     (lastUpPlankId === dragging.plankId) &&
@@ -146,6 +202,7 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
             }
             lastUpTime = 0;
         } else {
+            g.removeAttribute('transform');
             if (moved) {
                 dotNetRef.invokeMethodAsync('OnDrop', dragging.kastId, pt.x - dragging.offsetX, pt.y - dragging.offsetY);
                 lastUpTime = 0;

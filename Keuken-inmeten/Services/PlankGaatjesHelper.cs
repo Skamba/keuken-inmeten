@@ -6,21 +6,34 @@ public static class PlankGaatjesHelper
 {
     private const double TolerantieMm = 0.5;
 
+    public readonly record struct PlankGatSnap(int GatIndex, double GatVanBoven, double HoogteVanBodem);
+
     public static IReadOnlyList<double> BepaalSnapHoogtesVanBodem(Kast kast)
-        => BepaalGaatjesMetPlankHoogte(kast)
+        => BepaalSnapPunten(kast)
             .Select(item => item.HoogteVanBodem)
             .ToList();
+
+    public static IReadOnlyList<PlankGatSnap> BepaalSnapPunten(Kast kast)
+        => BepaalGaatjesMetPlankHoogte(kast);
+
+    public static PlankGatSnap? ZoekDichtstbijzijndeSnap(Kast kast, double hoogteVanBodem)
+    {
+        var snapTargets = BepaalSnapPunten(kast);
+        if (snapTargets.Count == 0)
+            return null;
+
+        return snapTargets.MinBy(target => Math.Abs(target.HoogteVanBodem - hoogteVanBodem));
+    }
 
     public static double SnapHoogteVanBodem(Kast kast, double hoogteVanBodem)
     {
         var (minimum, maximum) = BepaalPlankBereik(kast);
         var genormaliseerd = Math.Round(Math.Clamp(hoogteVanBodem, minimum, maximum), 1);
-        var snapTargets = BepaalSnapHoogtesVanBodem(kast);
-        if (snapTargets.Count == 0)
+        var dichtstbij = ZoekDichtstbijzijndeSnap(kast, genormaliseerd);
+        if (dichtstbij is null)
             return genormaliseerd;
 
-        var dichtstbij = snapTargets.MinBy(target => Math.Abs(target - genormaliseerd));
-        return Math.Round(dichtstbij, 1);
+        return Math.Round(dichtstbij.Value.HoogteVanBodem, 1);
     }
 
     public static double? BepaalVolgendeSnapHoogteVanBodem(Kast kast, double huidigeHoogteVanBodem, bool omhoog)
@@ -50,16 +63,16 @@ public static class PlankGaatjesHelper
 
     public static IReadOnlyList<double> BepaalBezetteGatenVanBoven(Kast kast)
     {
-        var gaatjes = BepaalGaatjesMetPlankHoogte(kast);
+        var gaatjes = BepaalSnapPunten(kast);
         if (gaatjes.Count == 0 || kast.Planken.Count == 0)
             return [];
 
         return kast.Planken
             .Select(plank =>
             {
-                var match = gaatjes.MinBy(item => Math.Abs(item.HoogteVanBodem - plank.HoogteVanBodem));
-                return Math.Abs(match.HoogteVanBodem - plank.HoogteVanBodem) <= TolerantieMm
-                    ? (double?)match.GatVanBoven
+                var match = ZoekDichtstbijzijndeSnap(kast, plank.HoogteVanBodem);
+                return match is not null && Math.Abs(match.Value.HoogteVanBodem - plank.HoogteVanBodem) <= TolerantieMm
+                    ? (double?)match.Value.GatVanBoven
                     : null;
             })
             .Where(hoogte => hoogte.HasValue)
@@ -71,7 +84,7 @@ public static class PlankGaatjesHelper
     public static double BepaalHoogteVanBoven(Kast kast, double hoogteVanBodem)
         => Math.Round((kast.Hoogte - kast.Wanddikte) - hoogteVanBodem, 1);
 
-    private static List<(double GatVanBoven, double HoogteVanBodem)> BepaalGaatjesMetPlankHoogte(Kast kast)
+    private static List<PlankGatSnap> BepaalGaatjesMetPlankHoogte(Kast kast)
     {
         var (minimum, maximum) = BepaalPlankBereik(kast);
 
@@ -79,9 +92,10 @@ public static class PlankGaatjesHelper
                 kast.Hoogte,
                 kast.EersteGaatPositieVanafBoven,
                 kast.GaatjesAfstand)
-            .Select(gatVanBoven => (
-                GatVanBoven: Math.Round(gatVanBoven, 1),
-                HoogteVanBodem: Math.Round((kast.Hoogte - kast.Wanddikte) - gatVanBoven, 1)))
+            .Select((gatVanBoven, index) => new PlankGatSnap(
+                index + 1,
+                Math.Round(gatVanBoven, 1),
+                Math.Round((kast.Hoogte - kast.Wanddikte) - gatVanBoven, 1)))
             .Where(item => item.HoogteVanBodem >= minimum - TolerantieMm && item.HoogteVanBodem <= maximum + TolerantieMm)
             .OrderBy(item => item.HoogteVanBodem)
             .ToList();
