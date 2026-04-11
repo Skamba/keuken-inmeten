@@ -343,4 +343,35 @@ public class BerekenPaneelOnderbouwingTests
             Assert.InRange(gat.Onderbouwing!.MontagePlaatMiddenInKast, 1000, 1900);
         });
     }
+
+    [Fact]
+    public void Plank_op_systeemgat_blokkeert_scharnier_dat_dat_gat_gebruikt()
+    {
+        var kast = new Kast
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Onderkast",
+            Breedte = 600,
+            Hoogte = 720,
+            Wanddikte = 18,
+            GaatjesAfstand = 64,
+            EersteGaatVanBoven = 19,
+            Planken = [new Plank { HoogteVanBodem = 601 }]
+        };
+
+        var toewijzing = new PaneelToewijzing
+        {
+            Type = PaneelType.Deur,
+            Breedte = 600,
+            Hoogte = 720,
+            ScharnierZijde = ScharnierZijde.Links,
+            KastIds = [kast.Id]
+        };
+
+        var resultaat = ScharnierBerekeningService.BerekenPaneel(toewijzing, [kast]);
+
+        Assert.Equal(2, resultaat.Boorgaten.Count);
+        Assert.DoesNotContain(resultaat.Boorgaten, gat => gat.Y == 133.0);
+        Assert.Equal(197.0, resultaat.Boorgaten[0].Y);
+    }
 }

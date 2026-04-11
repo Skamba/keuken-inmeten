@@ -6,7 +6,6 @@ public static class WandOpstellingHelper
 {
     private const double RasterMm = 10.0;
     private const double SnapDrempel = 20.0;
-    private const double StandaardGaatjesAfstand = 32.0;
 
     public static IReadOnlyList<int> BepaalHoogteMarkeringen(double wandHoogte)
         => BepaalMarkeringen(wandHoogte);
@@ -64,9 +63,7 @@ public static class WandOpstellingHelper
         var wanddiktePx = kast.Wanddikte * schaal;
         var hoogteVanBodem = (kastBotY - wanddiktePx - svgCenterY) / schaal;
 
-        return Math.Round(
-            Math.Clamp(hoogteVanBodem, kast.Wanddikte, kast.Hoogte - kast.Wanddikte * 2),
-            1);
+        return PlankGaatjesHelper.SnapHoogteVanBodem(kast, hoogteVanBodem);
     }
 
     public static double BepaalPlankHoogteVoorToevoegen(Kast kast, double svgY, double vloerY, double schaal)
@@ -74,17 +71,17 @@ public static class WandOpstellingHelper
         var kastBotY = vloerY - kast.HoogteVanVloer * schaal;
         var wanddiktePx = kast.Wanddikte * schaal;
         var hoogteVanBodem = (kastBotY - wanddiktePx - svgY) / schaal;
-        var gaatjesAfstand = kast.GaatjesAfstand > 0 ? kast.GaatjesAfstand : StandaardGaatjesAfstand;
 
-        hoogteVanBodem = Math.Round(hoogteVanBodem / gaatjesAfstand) * gaatjesAfstand;
-        return Math.Clamp(Math.Round(hoogteVanBodem, 1), kast.Wanddikte, kast.Hoogte - kast.Wanddikte * 2);
+        return PlankGaatjesHelper.SnapHoogteVanBodem(kast, hoogteVanBodem);
     }
 
     public static double? BepaalPlankHoogteNaToets(Kast kast, Plank plank, string key, double stap)
         => key switch
         {
-            "ArrowUp" => Math.Min(kast.Hoogte - kast.Wanddikte * 2, plank.HoogteVanBodem + stap),
-            "ArrowDown" => Math.Max(kast.Wanddikte, plank.HoogteVanBodem - stap),
+            "ArrowUp" => PlankGaatjesHelper.BepaalVolgendeSnapHoogteVanBodem(kast, plank.HoogteVanBodem, omhoog: true)
+                ?? Math.Min(kast.Hoogte - kast.Wanddikte * 2, plank.HoogteVanBodem + stap),
+            "ArrowDown" => PlankGaatjesHelper.BepaalVolgendeSnapHoogteVanBodem(kast, plank.HoogteVanBodem, omhoog: false)
+                ?? Math.Max(kast.Wanddikte, plank.HoogteVanBodem - stap),
             _ => null
         };
 

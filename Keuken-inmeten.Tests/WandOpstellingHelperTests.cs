@@ -36,13 +36,14 @@ public class WandOpstellingHelperTests
     }
 
     [Fact]
-    public void BepaalPlankHoogteVoorToevoegen_rondt_af_op_gaatjesafstand()
+    public void BepaalPlankHoogteVoorToevoegen_snapt_naar_dichtstbijzijnde_gatpositie()
     {
         var kast = new Kast
         {
             Hoogte = 720,
             Wanddikte = 18,
             GaatjesAfstand = 32,
+            EersteGaatVanBoven = 19,
             HoogteVanVloer = 0
         };
 
@@ -52,7 +53,47 @@ public class WandOpstellingHelperTests
             vloerY: 1000,
             schaal: 1);
 
-        Assert.Equal(352d, hoogte);
+        Assert.Equal(345d, hoogte);
+    }
+
+    [Fact]
+    public void BepaalPlankHoogteNaDrop_snapt_naar_dichtstbijzijnde_gatpositie()
+    {
+        var kast = new Kast
+        {
+            Hoogte = 720,
+            Wanddikte = 18,
+            GaatjesAfstand = 32,
+            EersteGaatVanBoven = 19,
+            HoogteVanVloer = 0
+        };
+
+        var hoogte = WandOpstellingHelper.BepaalPlankHoogteNaDrop(
+            kast,
+            svgCenterY: 635,
+            vloerY: 1000,
+            schaal: 1);
+
+        Assert.Equal(345d, hoogte);
+    }
+
+    [Fact]
+    public void BepaalPlankHoogteNaToets_gaat_naar_volgend_of_vorig_gat()
+    {
+        var kast = new Kast
+        {
+            Hoogte = 720,
+            Wanddikte = 18,
+            GaatjesAfstand = 32,
+            EersteGaatVanBoven = 19
+        };
+        var plank = new Plank { HoogteVanBodem = 345 };
+
+        var omhoog = WandOpstellingHelper.BepaalPlankHoogteNaToets(kast, plank, "ArrowUp", stap: 1);
+        var omlaag = WandOpstellingHelper.BepaalPlankHoogteNaToets(kast, plank, "ArrowDown", stap: 1);
+
+        Assert.Equal(377d, omhoog);
+        Assert.Equal(313d, omlaag);
     }
 
     [Fact]

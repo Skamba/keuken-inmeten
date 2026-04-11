@@ -141,7 +141,7 @@ public static class ScharnierBerekeningService
             .ToList();
         var plankPositiesVanBoven = segmenten
             .SelectMany(segment => segment.Kast.Planken.Select(plank =>
-                segment.TopVanPaneel + ((segment.Kast.Hoogte - plank.HoogteVanBodem) - segment.KastOffsetVanBoven)))
+                segment.TopVanPaneel + (PlankGaatjesHelper.BepaalHoogteVanBoven(segment.Kast, plank.HoogteVanBodem) - segment.KastOffsetVanBoven)))
             .Where(plankY => plankY >= 0 && plankY <= paneelHoogte)
             .ToList();
 
@@ -384,8 +384,14 @@ public static class ScharnierBerekeningService
             if (segment.Kast.GaatjesAfstand <= 0) continue;
 
             var gaten = GaatjesRijPosities(segment.Kast.Hoogte, segment.Kast.EersteGaatPositieVanafBoven, segment.Kast.GaatjesAfstand);
+            var bezetteGaten = PlankGaatjesHelper.BepaalBezetteGatenVanBoven(segment.Kast);
             for (int i = 0; i < gaten.Count - 1; i++)
             {
+                if (bezetteGaten.Any(bezetteY => Math.Abs(bezetteY - gaten[i]) < 0.5 || Math.Abs(bezetteY - gaten[i + 1]) < 0.5))
+                {
+                    continue;
+                }
+
                 var montagePlaatMidden = (gaten[i] + gaten[i + 1]) / 2.0;
                 if (montagePlaatMidden < segment.KastOffsetVanBoven - 0.1 ||
                     montagePlaatMidden > segment.KastOffsetVanBoven + segment.Hoogte + 0.1)
