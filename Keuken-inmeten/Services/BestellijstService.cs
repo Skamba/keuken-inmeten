@@ -160,11 +160,6 @@ public static class BestellijstService
         var scharnierSignatuur = resultaat.Type == PaneelType.Deur
             ? resultaat.ScharnierZijde.ToString()
             : string.Empty;
-        var boorgaten = string.Join(";",
-            resultaat.Boorgaten
-                .OrderBy(boorgat => boorgat.Y)
-                .ThenBy(boorgat => boorgat.X)
-                .Select(boorgat => $"{Fmt(boorgat.X)},{Fmt(boorgat.Y)},{Fmt(boorgat.Diameter)}"));
 
         return string.Join("|",
             wandId?.ToString("N") ?? "",
@@ -173,8 +168,7 @@ public static class BestellijstService
             Fmt(resultaat.Breedte),
             Fmt(resultaat.Hoogte),
             scharnierSignatuur,
-            toewijzing?.Type.ToString() ?? "",
-            boorgaten);
+            toewijzing?.Type.ToString() ?? "");
     }
 
     private static string TypeLabel(PaneelType type) => VisualisatieHelper.PaneelTypeLabel(type);

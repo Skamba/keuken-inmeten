@@ -42,6 +42,43 @@ public class BestellijstServiceTests
     }
 
     [Fact]
+    public void Identieke_deuren_met_verschillende_planken_worden_gegroepeerd()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Muur",
+            Breedte = 2400,
+            Hoogte = 2700,
+            PlintHoogte = 100
+        };
+
+        state.VoegWandToe(wand);
+        state.StelPaneelRandSpelingIn(0);
+
+        var kastMetVeelPlanken = MaakHogeKast("Hoge kast links", xPositie: 0);
+        kastMetVeelPlanken.Planken.AddRange([
+            new Plank { HoogteVanBodem = 347 }, new Plank { HoogteVanBodem = 603 },
+            new Plank { HoogteVanBodem = 923 }, new Plank { HoogteVanBodem = 1243 },
+            new Plank { HoogteVanBodem = 1563 }]);
+        var kastMetWeinigPlanken = MaakHogeKast("Hoge kast rechts", xPositie: 600);
+        kastMetWeinigPlanken.Planken.AddRange([
+            new Plank { HoogteVanBodem = 571 }, new Plank { HoogteVanBodem = 1275 }]);
+
+        state.VoegKastToe(kastMetVeelPlanken, wand.Id);
+        state.VoegKastToe(kastMetWeinigPlanken, wand.Id);
+
+        state.VoegToewijzingToe(MaakDeurToewijzing(kastMetVeelPlanken.Id));
+        state.VoegToewijzingToe(MaakDeurToewijzing(kastMetWeinigPlanken.Id));
+
+        var items = BestellijstService.BerekenItems(state);
+
+        var item = Assert.Single(items);
+        Assert.Equal(2, item.Aantal);
+    }
+
+    [Fact]
     public void Identieke_panelen_op_verschillende_wanden_worden_niet_samengevoegd()
     {
         var state = new KeukenStateService();
