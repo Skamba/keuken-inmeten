@@ -158,6 +158,9 @@ public static class KeukenShareCodec
 
     private static CompactShareData MaakCompacteData(KeukenData data)
     {
+        var verificatieStatusOpToewijzingId = data.VerificatieStatussen
+            .GroupBy(status => status.ToewijzingId)
+            .ToDictionary(groep => groep.Key, groep => groep.Last());
         var kastenOpIndex = data.Kasten
             .Select((kast, index) => (kast, index))
             .ToDictionary(item => item.kast.Id, item => item.index);
@@ -251,7 +254,8 @@ public static class KeukenShareCodec
                     ? standaardVloer is double vloerStandaard && IsBijnaGelijk(hoogteVanVloer, vloerStandaard)
                         ? null
                         : Round1(hoogteVanVloer)
-                    : null
+                    : null,
+                VerificationStatus = EncodeVerificatieStatus(verificatieStatusOpToewijzingId.GetValueOrDefault(toewijzing.Id))
             };
         }).ToList();
 
@@ -404,15 +408,49 @@ public static class KeukenShareCodec
             };
         }).ToList();
 
+        var verificatieStatussen = panels
+            .Select((panel, index) => DecodeVerificatieStatus(panel.VerificationStatus, toewijzingen[index].Id))
+            .Where(status => status is not null)
+            .Cast<PaneelVerificatieStatus>()
+            .ToList();
+
         return new KeukenData
         {
             Wanden = wanden,
             Kasten = kasten,
             Apparaten = apparaten,
             Toewijzingen = toewijzingen,
+            VerificatieStatussen = verificatieStatussen,
             KastTemplates = [],
             LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(data.LastCupOffset ?? ScharnierBerekeningService.CupCenterVanRand),
             PaneelRandSpeling = paneelRandSpeling
+        };
+    }
+
+    private static int? EncodeVerificatieStatus(PaneelVerificatieStatus? status)
+    {
+        if (status is null)
+            return null;
+
+        var bits = 0;
+        if (status.MatenOk)
+            bits |= 1;
+        if (status.ScharnierPositiesOk)
+            bits |= 2;
+
+        return bits == 0 ? null : bits;
+    }
+
+    private static PaneelVerificatieStatus? DecodeVerificatieStatus(int? bits, Guid toewijzingId)
+    {
+        if (bits is null || bits.Value == 0)
+            return null;
+
+        return new PaneelVerificatieStatus
+        {
+            ToewijzingId = toewijzingId,
+            MatenOk = (bits.Value & 1) != 0,
+            ScharnierPositiesOk = (bits.Value & 2) != 0
         };
     }
 
@@ -726,5 +764,8 @@ public static class KeukenShareCodec
 
         [JsonPropertyName("y")]
         public double? FloorHeight { get; set; }
+
+        [JsonPropertyName("q")]
+        public int? VerificationStatus { get; set; }
     }
 }

@@ -41,6 +41,10 @@ public class KeukenShareCodecTests
         Assert.Equal(24.5, toewijzing.PotHartVanRand);
         Assert.Equal([hogeKast.Id], toewijzing.KastIds);
         Assert.Equal(24.5, decoded.LaatstGebruiktePotHartVanRand);
+        var verificatieStatus = Assert.Single(decoded.VerificatieStatussen);
+        Assert.Equal(toewijzing.Id, verificatieStatus.ToewijzingId);
+        Assert.True(verificatieStatus.MatenOk);
+        Assert.True(verificatieStatus.ScharnierPositiesOk);
         Assert.Empty(decoded.KastTemplates);
     }
 
@@ -147,6 +151,9 @@ public class KeukenShareCodecTests
 
         Assert.True(decodedOk);
         Assert.Equal(5, decoded.PaneelRandSpeling);
+        var verificatieStatus = Assert.Single(decoded.VerificatieStatussen);
+        Assert.True(verificatieStatus.MatenOk);
+        Assert.True(verificatieStatus.ScharnierPositiesOk);
     }
 
     [Fact]
@@ -244,6 +251,15 @@ public class KeukenShareCodecTests
                     Hoogte = 900,
                     XPositie = 2400,
                     HoogteVanVloer = 700
+                }
+            ],
+            VerificatieStatussen =
+            [
+                new PaneelVerificatieStatus
+                {
+                    ToewijzingId = toewijzingId,
+                    MatenOk = true,
+                    ScharnierPositiesOk = true
                 }
             ],
             KastTemplates =
