@@ -259,31 +259,31 @@ else
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    @if (toonWandOpstelling)
-                    {
-                        <div class="indeling-visualisatie-kaart">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div>
-                                    <h6 class="mb-0">Wandopstelling</h6>
-                                    <div class="small text-muted">Live controle van maat, volgorde en vrije ruimte.</div>
+                        @if (toonWandOpstelling)
+                        {
+                            <div class="indeling-visualisatie-kaart mt-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <h6 class="mb-0">Wandopstelling</h6>
+                                        <div class="small text-muted">Live controle van maat, volgorde en vrije ruimte.</div>
+                                    </div>
                                 </div>
+                                <WandOpstelling Kasten="@wandKasten"
+                                                Apparaten="@wandApparaten"
+                                                WandHoogte="@actieveWand.Hoogte"
+                                                WandBreedte="@actieveWand.Breedte"
+                                                PlintHoogte="@actieveWand.PlintHoogte"
+                                                 GeselecteerdeKastId="@(actieveWandId == actieveWand.Id ? bewerkKastId : null)"
+                                                 OnKastGeselecteerd="(id) => SelecteerKast(id, actieveWand.Id)"
+                                                  OnKastVerplaatst="VerplaatsKastOpWand"
+                                                  OnKastKopieren="KopieerNaarKlembord"
+                                                  OnKastPlakken="() => PlakUitKlembord(actieveWand.Id)"
+                                                  OnApparaatVerplaatst="VerplaatsApparaatOpWand"
+                                                  OnPlankActie="VerwerkPlankActie" />
                             </div>
-                            <WandOpstelling Kasten="@wandKasten"
-                                            Apparaten="@wandApparaten"
-                                            WandHoogte="@actieveWand.Hoogte"
-                                            WandBreedte="@actieveWand.Breedte"
-                                            PlintHoogte="@actieveWand.PlintHoogte"
-                                             GeselecteerdeKastId="@(actieveWandId == actieveWand.Id ? bewerkKastId : null)"
-                                             OnKastGeselecteerd="(id) => SelecteerKast(id, actieveWand.Id)"
-                                              OnKastVerplaatst="VerplaatsKastOpWand"
-                                              OnKastKopieren="KopieerNaarKlembord"
-                                              OnKastPlakken="() => PlakUitKlembord(actieveWand.Id)"
-                                              OnApparaatVerplaatst="VerplaatsApparaatOpWand"
-                                              OnPlankActie="VerwerkPlankActie" />
-                        </div>
-                    }
+                        }
+                    </div>
                 </div>
 
                 <section class="indeling-lijst-sectie mb-4">
