@@ -42,7 +42,7 @@ public static class PaneelMaatUitlegHelper
     private static string BouwAftrekUitleg(string asLabel, IReadOnlyList<string> randen)
         => randen.Count == 0
             ? $"{asLabel}: geen aftrek, deze randen zijn vrij."
-            : $"{asLabel}: aftrek op {SamenvoegenMetEn(randen)} doordat die randen een andere kast-, apparaat- of paneelrand raken.";
+            : $"{asLabel}: aftrek op {SamenvoegenMetEn(randen)} doordat die randen een apparaat of paneelrand raken.";
 
     private static IReadOnlyList<string> SpelingDelen(
         bool eersteRaakt,

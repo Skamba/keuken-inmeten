@@ -125,8 +125,92 @@ public class PaneelGeometrieServiceTests
         Assert.True(resultaat.MaatInfo.RaaktRechts);
         Assert.False(resultaat.MaatInfo.RaaktOnder);
         Assert.True(resultaat.MaatInfo.RaaktBoven);
-        Assert.Equal(597, resultaat.WerkRechthoek.Breedte);
+        Assert.Equal(599, resultaat.WerkRechthoek.Breedte);
         Assert.Equal(597, resultaat.WerkRechthoek.Hoogte);
+    }
+
+    [Fact]
+    public void Buurkast_zonder_buurpaneel_geeft_geen_voeg()
+    {
+        var dragendeKast = NieuweKast("Links", 0, 100, 600, 600);
+        var buurKast = NieuweKast("Rechts", 600, 100, 600, 600);
+        var toewijzing = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            KastIds = [dragendeKast.Id],
+            Type = PaneelType.Deur,
+            Breedte = 600,
+            Hoogte = 600,
+            XPositie = 0,
+            HoogteVanVloer = 100
+        };
+
+        var resultaat = PaneelGeometrieService.BerekenVoorToewijzing(
+            toewijzing,
+            [dragendeKast],
+            [dragendeKast, buurKast],
+            [],
+            [],
+            3);
+
+        Assert.NotNull(resultaat);
+        Assert.False(resultaat!.MaatInfo.RaaktRechts);
+        Assert.Equal(600, resultaat.WerkRechthoek.Breedte);
+    }
+
+    [Fact]
+    public void State_verdeelt_totale_voeg_tussen_aangrenzende_stapelpaneels_op_drie_mm()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Muur",
+            Breedte = 3200,
+            Hoogte = 2700,
+            PlintHoogte = 100
+        };
+        var linksOnder = NieuweKast("Links onder", 1800, 100, 600, 1920);
+        var linksBoven = NieuweKast("Links boven", 1800, 2020, 600, 320);
+        var rechtsOnder = NieuweKast("Rechts onder", 2400, 100, 600, 1920);
+        var rechtsBoven = NieuweKast("Rechts boven", 2400, 2020, 600, 320);
+        var linksToewijzing = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            KastIds = [linksBoven.Id, linksOnder.Id],
+            Type = PaneelType.Deur,
+            ScharnierZijde = ScharnierZijde.Rechts,
+            Breedte = 600,
+            Hoogte = 2240
+        };
+        var rechtsToewijzing = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            KastIds = [rechtsBoven.Id, rechtsOnder.Id],
+            Type = PaneelType.Deur,
+            ScharnierZijde = ScharnierZijde.Links,
+            Breedte = 600,
+            Hoogte = 2240
+        };
+
+        state.VoegWandToe(wand);
+        state.VoegKastToe(linksOnder, wand.Id);
+        state.VoegKastToe(linksBoven, wand.Id);
+        state.VoegKastToe(rechtsOnder, wand.Id);
+        state.VoegKastToe(rechtsBoven, wand.Id);
+        state.VoegToewijzingToe(linksToewijzing);
+        state.VoegToewijzingToe(rechtsToewijzing);
+
+        var linksMaatInfo = state.BerekenPaneelMaatInfo(linksToewijzing);
+        var rechtsMaatInfo = state.BerekenPaneelMaatInfo(rechtsToewijzing);
+
+        Assert.NotNull(linksMaatInfo);
+        Assert.NotNull(rechtsMaatInfo);
+        Assert.Equal(1, linksMaatInfo!.InkortingRechts);
+        Assert.Equal(2, rechtsMaatInfo!.InkortingLinks);
+        Assert.Equal(599, linksMaatInfo.PaneelRechthoek.Breedte);
+        Assert.Equal(598, rechtsMaatInfo.PaneelRechthoek.Breedte);
+        Assert.Equal(3, rechtsMaatInfo.PaneelRechthoek.XPositie - linksMaatInfo.PaneelRechthoek.Rechterkant);
     }
 
     [Fact]

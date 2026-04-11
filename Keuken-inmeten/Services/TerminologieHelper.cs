@@ -65,9 +65,9 @@ public static class TerminologieHelper
             "randspeling",
             "Totale voeg tussen rakende delen",
             "randspeling",
-            "De totale vrije ruimte tussen een paneel en wat het raakt. Bij twee panelen naast elkaar wordt die voeg over beide panelen verdeeld.",
-            "Randspeling maakt uit op elke zijde waar het paneel ergens tegenaan loopt of netjes vrij moet kunnen bewegen.",
-            "Een totale voeg van 3 mm tussen twee panelen kan bijvoorbeeld 1 mm op het ene paneel en 2 mm op het andere worden.",
+            "De totale vrije ruimte tussen twee rakende panelen of tussen een paneel en een apparaat. Vrije buitenranden en gewone kastvlakken krijgen geen aftrek.",
+            "Randspeling maakt uit langs randen waar een buurpaneel of apparaat bewegingsruimte vraagt.",
+            "Een totale voeg van 3 mm tussen twee panelen kan bijvoorbeeld 1 mm op het ene paneel en 2 mm op het andere worden, terwijl een vrije buitenrand 0 mm aftrek houdt.",
             "Begin met de standaardwaarde en pas alleen aan als het paneel strakker of juist ruimer moet vallen."),
         ["scharnierzijde"] = new(
             "scharnierzijde",

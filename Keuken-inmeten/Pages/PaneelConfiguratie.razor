@@ -145,13 +145,13 @@ else
                 <div>
                     <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Projectinstelling</div>
                     <div class="fw-semibold">@PaneelMaatUitlegHelper.RandSpelingLabel</div>
-                    <div class="small text-muted">Deze waarde geldt voor het hele project. Raakt een paneel een kast of apparaat, dan krijgt dat paneel de volledige voeg. Tussen twee panelen wordt die totale voeg verdeeld, bijvoorbeeld 1 mm en 2 mm, zodat zaagmaten hele millimeters blijven.</div>
+                    <div class="small text-muted">Deze waarde geldt voor het hele project. Raakt een paneel een apparaat, dan krijgt die zijde de volledige voeg. Tussen twee panelen wordt die totale voeg verdeeld, bijvoorbeeld 1 mm en 2 mm, zodat zaagmaten hele millimeters blijven. Vrije buitenranden en gewone kastvlakken houden geen aftrek.</div>
                 </div>
                 <div class="w-100" style="max-width: 22rem;">
                     <div class="d-flex align-items-center gap-2 mb-1">
                         <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">@PaneelMaatUitlegHelper.RandSpelingLabel (mm)</label>
                         <HulpInfoKnop Titel="Totale voeg tussen rakende delen"
-                                      Tekst="Deze projectinstelling bepaalt de totale vrije ruimte tussen een paneel en wat het raakt."
+                                      Tekst="Deze projectinstelling bepaalt de totale vrije ruimte tussen een paneel en een apparaat of buurpaneel."
                                       Voorbeeld="Bij een totale voeg van 3 mm tussen twee panelen krijgt het ene paneel bijvoorbeeld 1 mm aftrek en het andere 2 mm."
                                       WatNuDoen="Laat de standaard staan tenzij uw beslag, afwerking of montage bewust om meer of minder totale voeg vraagt." />
                     </div>
@@ -161,7 +161,7 @@ else
                            min="0"
                            step="1"
                            data-testid="project-randspeling-input" />
-                    <div class="form-text hulp-hint">Standaard 3 mm totaal voor het hele project. De app verdeelt een oneven voeg automatisch over twee rakende panelen.</div>
+                    <div class="form-text hulp-hint">Standaard 3 mm totaal voor het hele project. De app verdeelt een oneven voeg automatisch over twee rakende panelen; vrije buitenranden blijven ongewijzigd.</div>
                 </div>
             </div>
         </div>

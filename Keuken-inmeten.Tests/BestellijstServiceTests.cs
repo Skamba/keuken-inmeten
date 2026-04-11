@@ -20,6 +20,7 @@ public class BestellijstServiceTests
         };
 
         state.VoegWandToe(wand);
+        state.StelPaneelRandSpelingIn(0);
 
         var kastLinks = MaakHogeKast("Hoge kast links", xPositie: 0);
         var kastRechts = MaakHogeKast("Hoge kast rechts", xPositie: 600);
@@ -107,6 +108,7 @@ public class BestellijstServiceTests
         };
 
         state.VoegWandToe(wand);
+        state.StelPaneelRandSpelingIn(0);
 
         var kastLinks = MaakOnderkast("Onderkast links", xPositie: 0);
         var kastRechts = MaakOnderkast("Onderkast rechts", xPositie: 600);

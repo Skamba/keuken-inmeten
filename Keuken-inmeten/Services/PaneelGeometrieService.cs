@@ -64,9 +64,10 @@ public static class PaneelGeometrieService
             .Where(paneel => bron.PaneelId is null || paneel.PaneelId != bron.PaneelId)
             .Select(paneel => paneel.OpeningsRechthoek.Kopie());
 
-        List<PaneelRechthoek> starreBuurRechthoeken = [.. buurKasten, .. buurApparaten];
+        // Kastvlakken bepalen de opening, maar krijgen zelf geen voeg. Alleen apparaten zijn starre buren.
+        List<PaneelRechthoek> starreBuurRechthoeken = [.. buurApparaten];
         List<PaneelRechthoek> buurPaneelRechthoeken = [.. buurPanelen];
-        List<PaneelRechthoek> buurRechthoeken = [.. starreBuurRechthoeken, .. buurPaneelRechthoeken];
+        List<PaneelRechthoek> buurRechthoeken = [.. buurKasten, .. starreBuurRechthoeken, .. buurPaneelRechthoeken];
         var maatInfo = PaneelSpelingService.BerekenMaatInfo(
             bron.OpeningsRechthoek,
             starreBuurRechthoeken,

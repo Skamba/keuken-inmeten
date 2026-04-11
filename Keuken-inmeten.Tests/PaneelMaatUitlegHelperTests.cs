@@ -24,7 +24,7 @@ public class PaneelMaatUitlegHelperTests
             "800 mm maat in de opening - 1 mm links - 2 mm rechts = 797 mm maat om te bestellen",
             PaneelMaatUitlegHelper.BreedteFormule(maatInfo));
         Assert.Equal(
-            "Links en rechts: aftrek op links en rechts doordat die randen een andere kast-, apparaat- of paneelrand raken.",
+            "Links en rechts: aftrek op links en rechts doordat die randen een apparaat of paneelrand raken.",
             PaneelMaatUitlegHelper.BreedteAftrekUitleg(maatInfo));
     }
 
