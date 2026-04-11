@@ -63,21 +63,79 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
         return holeIndex ? `${formatMm(height)} mm | gat ${holeIndex}` : `${formatMm(height)} mm`;
     }
 
-    function getPlankSnapPreview(dragState, rawCenterY) {
-        if (!dragState || !(dragState.schaal > 0)) {
-            return { centerY: rawCenterY, height: 0, holeIndex: null };
+    function setSvgNumberAttribute(el, name, value) {
+        if (!el || !Number.isFinite(value)) return;
+        const normalized = Math.round(value * 1000) / 1000;
+        el.setAttribute(name, `${normalized}`);
+    }
+
+    function settlePlankGeometry(dragState, centerY, labelText) {
+        if (!dragState?.g) return;
+
+        const offsetY = centerY - dragState.startCenterY;
+        const rect = dragState.g.querySelector('rect');
+        if (rect) {
+            setSvgNumberAttribute(rect, 'y', dragState.startRectY + offsetY);
         }
 
-        const rawHeight = Math.max(0, (dragState.botY - dragState.wdPx - rawCenterY) / dragState.schaal);
+        const lbl = dragState.g.querySelector('.plank-label');
+        if (lbl) {
+            if (Number.isFinite(dragState.startLabelY)) {
+                setSvgNumberAttribute(lbl, 'y', dragState.startLabelY + offsetY);
+            }
+
+            if (typeof labelText === 'string') {
+                lbl.textContent = labelText;
+            }
+        }
+
+        dragState.g.removeAttribute('transform');
+    }
+
+    function getPlankHeightRange(dragState) {
+        if (!dragState || !(dragState.schaal > 0)) {
+            return { minHeight: 0, maxHeight: 0 };
+        }
+
+        if (dragState.snapTargets.length) {
+            const heights = dragState.snapTargets.map(candidate => candidate.height);
+            return {
+                minHeight: Math.min(...heights),
+                maxHeight: Math.max(...heights)
+            };
+        }
+
+        const maxHeight = Math.max(0, (dragState.botY - dragState.wdPx) / dragState.schaal);
+        return { minHeight: 0, maxHeight };
+    }
+
+    function clampPlankCenterY(dragState, rawCenterY) {
+        if (!dragState || !(dragState.schaal > 0)) {
+            return rawCenterY;
+        }
+
+        const { minHeight, maxHeight } = getPlankHeightRange(dragState);
+        const rawHeight = (dragState.botY - dragState.wdPx - rawCenterY) / dragState.schaal;
+        const clampedHeight = Math.min(maxHeight, Math.max(minHeight, rawHeight));
+        return dragState.botY - dragState.wdPx - clampedHeight * dragState.schaal;
+    }
+
+    function getPlankSnapPreview(dragState, rawCenterY) {
+        if (!dragState || !(dragState.schaal > 0)) {
+            return { visualCenterY: rawCenterY, centerY: rawCenterY, height: 0, holeIndex: null };
+        }
+
+        const visualCenterY = clampPlankCenterY(dragState, rawCenterY);
+        const rawHeight = Math.max(0, (dragState.botY - dragState.wdPx - visualCenterY) / dragState.schaal);
         if (!dragState.snapTargets.length) {
-            return { centerY: rawCenterY, height: rawHeight, holeIndex: null };
+            return { visualCenterY, centerY: visualCenterY, height: rawHeight, holeIndex: null };
         }
 
         const best = dragState.snapTargets.reduce((closest, candidate) =>
             Math.abs(candidate.height - rawHeight) < Math.abs(closest.height - rawHeight) ? candidate : closest);
         const snappedCenterY = dragState.botY - dragState.wdPx - best.height * dragState.schaal;
 
-        return { centerY: snappedCenterY, height: best.height, holeIndex: best.holeIndex };
+        return { visualCenterY, centerY: snappedCenterY, height: best.height, holeIndex: best.holeIndex };
     }
 
     function onPointerDown(e) {
@@ -90,9 +148,11 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
 
             const pt = getSvgPoint(e);
             const rect = plankG.querySelector('rect');
+            const lbl = plankG.querySelector('.plank-label');
             const kastG = plankG.closest('.wand-kast-sleepbaar');
             const ry = parseFloat(rect.getAttribute('y'));
             const rh = parseFloat(rect.getAttribute('height'));
+            const labelY = parseFloat(lbl?.getAttribute('y'));
             const centerY = ry + rh / 2;
             const botY = parseFloat(kastG?.dataset?.botY);
             const wdPx = parseFloat(kastG?.dataset?.wdPx);
@@ -103,8 +163,12 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
                 type: 'plank', kastId, plankId, g: plankG,
                 offsetY: pt.y - centerY, startCenterY: centerY,
                 startClientX: e.clientX, startClientY: e.clientY, moved: false,
+                startRectY: ry,
+                startLabelY: labelY,
+                startLabelText: lbl?.textContent ?? '',
                 kastG, botY, wdPx, schaal,
                 snapTargets: parsePlankSnaps(kastG),
+                visualCenterY: initialSnap.visualCenterY,
                 snappedCenterY: initialSnap.centerY,
                 snappedHeight: initialSnap.height,
                 snappedHoleIndex: initialSnap.holeIndex
@@ -147,10 +211,11 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
         if (dragging.type === 'plank') {
             const rawCenterY = pt.y - dragging.offsetY;
             const snap = getPlankSnapPreview(dragging, rawCenterY);
+            dragging.visualCenterY = snap.visualCenterY;
             dragging.snappedCenterY = snap.centerY;
             dragging.snappedHeight = snap.height;
             dragging.snappedHoleIndex = snap.holeIndex;
-            dragging.g.setAttribute('transform', `translate(0, ${snap.centerY - dragging.startCenterY})`);
+            dragging.g.setAttribute('transform', `translate(0, ${snap.visualCenterY - dragging.startCenterY})`);
 
             // Live label update
             const lbl = dragging.g.querySelector('.plank-label');
@@ -164,7 +229,8 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
 
     function onPointerUp(e) {
         if (!dragging) return;
-        const { type, g, moved } = dragging;
+        const completedDrag = dragging;
+        const { type, g, moved } = completedDrag;
         g.style.cursor = type === 'plank' ? 'ns-resize' : 'grab';
         svgEl.releasePointerCapture(e.pointerId);
 
@@ -172,62 +238,66 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
 
         if (type === 'plank') {
             if (moved) {
-                const finalCenterY = dragging.snappedCenterY ?? dragging.startCenterY;
-                const finalHeight = dragging.snappedHeight ?? 0;
-                const finalHoleIndex = dragging.snappedHoleIndex ?? null;
-                g.setAttribute('transform', `translate(0, ${finalCenterY - dragging.startCenterY})`);
+                const finalCenterY = completedDrag.snappedCenterY ?? completedDrag.startCenterY;
+                const finalHeight = completedDrag.snappedHeight ?? 0;
+                const finalHoleIndex = completedDrag.snappedHoleIndex ?? null;
+                const finalLabelText = formatPlankLabel(finalHeight, finalHoleIndex);
+                g.setAttribute('transform', `translate(0, ${finalCenterY - completedDrag.startCenterY})`);
                 const lbl = g.querySelector('.plank-label');
-                if (lbl) lbl.textContent = formatPlankLabel(finalHeight, finalHoleIndex);
-                const dropPromise = dotNetRef.invokeMethodAsync('OnPlankDrop', dragging.kastId, dragging.plankId, finalHeight);
+                if (lbl) lbl.textContent = finalLabelText;
+                const dropPromise = dotNetRef.invokeMethodAsync('OnPlankDrop', completedDrag.kastId, completedDrag.plankId, finalHeight);
                 dropPromise
                     .then(changed => {
                         if (!changed) {
-                            g.removeAttribute('transform');
+                            settlePlankGeometry(completedDrag, completedDrag.startCenterY, completedDrag.startLabelText);
+                            return;
                         }
+
+                        settlePlankGeometry(completedDrag, finalCenterY, finalLabelText);
                     })
                     .catch(() => {
-                        g.removeAttribute('transform');
+                        settlePlankGeometry(completedDrag, completedDrag.startCenterY, completedDrag.startLabelText);
                     });
                 lastUpPlankTime = 0;
             } else {
                 g.removeAttribute('transform');
                 const now = Date.now();
                 const isDoubleTap = (now - lastUpPlankTime < 400) &&
-                                    (lastUpPlankId === dragging.plankId) &&
+                                    (lastUpPlankId === completedDrag.plankId) &&
                                     (Math.hypot(e.clientX - lastUpPlankX, e.clientY - lastUpPlankY) < 20);
                 if (isDoubleTap) {
-                    dotNetRef.invokeMethodAsync('OnPlankVerwijderen', dragging.kastId, dragging.plankId);
+                    dotNetRef.invokeMethodAsync('OnPlankVerwijderen', completedDrag.kastId, completedDrag.plankId);
                     lastUpPlankTime = 0;
                     lastUpPlankId = null;
                 } else {
-                    dotNetRef.invokeMethodAsync('OnPlankKlik', dragging.kastId, dragging.plankId);
+                    dotNetRef.invokeMethodAsync('OnPlankKlik', completedDrag.kastId, completedDrag.plankId);
                     lastUpPlankTime = now;
                     lastUpPlankX = e.clientX;
                     lastUpPlankY = e.clientY;
-                    lastUpPlankId = dragging.plankId;
+                    lastUpPlankId = completedDrag.plankId;
                 }
             }
             lastUpTime = 0;
         } else {
             g.removeAttribute('transform');
             if (moved) {
-                dotNetRef.invokeMethodAsync('OnDrop', dragging.kastId, pt.x - dragging.offsetX, pt.y - dragging.offsetY);
+                dotNetRef.invokeMethodAsync('OnDrop', completedDrag.kastId, pt.x - completedDrag.offsetX, pt.y - completedDrag.offsetY);
                 lastUpTime = 0;
             } else {
                 const now = Date.now();
                 const isDoubleTap = (now - lastUpTime < 400) &&
-                                    (lastUpKastId === dragging.kastId) &&
+                                    (lastUpKastId === completedDrag.kastId) &&
                                     (Math.hypot(e.clientX - lastUpX, e.clientY - lastUpY) < 20);
                 if (isDoubleTap) {
-                    dotNetRef.invokeMethodAsync('OnPlankToevoegen', dragging.kastId, pt.y);
+                    dotNetRef.invokeMethodAsync('OnPlankToevoegen', completedDrag.kastId, pt.y);
                     lastUpTime = 0;
                     lastUpKastId = null;
                 } else {
-                    dotNetRef.invokeMethodAsync('OnKastKlik', dragging.kastId);
+                    dotNetRef.invokeMethodAsync('OnKastKlik', completedDrag.kastId);
                     lastUpTime = now;
                     lastUpX = e.clientX;
                     lastUpY = e.clientY;
-                    lastUpKastId = dragging.kastId;
+                    lastUpKastId = completedDrag.kastId;
                 }
             }
         }

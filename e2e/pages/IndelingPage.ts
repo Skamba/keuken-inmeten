@@ -24,12 +24,24 @@ export class IndelingPage {
     return this.actieveWerkruimte(wandNaam).getByTestId('wand-opstelling-svg');
   }
 
+  werkruimte(wandNaam: string): Locator {
+    return this.actieveWerkruimte(wandNaam);
+  }
+
   eersteWandKast(wandNaam: string): Locator {
     return this.actieveWerkruimte(wandNaam).getByTestId('wand-kast').first();
   }
 
+  eersteWandKastRect(wandNaam: string): Locator {
+    return this.eersteWandKast(wandNaam).locator('rect').first();
+  }
+
   eersteWandPlank(wandNaam: string): Locator {
     return this.actieveWerkruimte(wandNaam).getByTestId('wand-plank').first();
+  }
+
+  eersteWandPlankRect(wandNaam: string): Locator {
+    return this.eersteWandPlank(wandNaam).locator('rect').first();
   }
 
   eersteWandPlankLabel(wandNaam: string): Locator {
@@ -162,7 +174,7 @@ export class IndelingPage {
   async voegPlankToeAanEersteKast(wandNaam: string, relativeY = 0.55) {
     await this.openWandWerkruimte(wandNaam);
 
-    const kastRect = this.eersteWandKast(wandNaam).locator('rect').first();
+    const kastRect = this.eersteWandKastRect(wandNaam);
     await kastRect.scrollIntoViewIfNeeded();
 
     const box = await kastRect.boundingBox();
