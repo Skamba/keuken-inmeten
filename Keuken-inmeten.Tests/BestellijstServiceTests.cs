@@ -79,7 +79,7 @@ public class BestellijstServiceTests
     }
 
     [Fact]
-    public void Identieke_panelen_op_verschillende_wanden_worden_niet_samengevoegd()
+    public void Identieke_panelen_op_verschillende_wanden_worden_samengevoegd()
     {
         var state = new KeukenStateService();
         var wandLinks = new KeukenWand
@@ -111,24 +111,8 @@ public class BestellijstServiceTests
         state.VoegToewijzingToe(MaakLadefrontToewijzing(kastLinks.Id));
         state.VoegToewijzingToe(MaakLadefrontToewijzing(kastRechts.Id));
 
-        var items = BestellijstService.BerekenItems(state)
-            .OrderBy(item => item.WandNaam, StringComparer.Ordinal)
-            .ToList();
-
-        Assert.Collection(
-            items,
-            links =>
-            {
-                Assert.Equal("Links", links.WandNaam);
-                Assert.Equal(wandLinks.Id, links.WandId);
-                Assert.Equal(1, links.Aantal);
-            },
-            rechts =>
-            {
-                Assert.Equal("Rechts", rechts.WandNaam);
-                Assert.Equal(wandRechts.Id, rechts.WandId);
-                Assert.Equal(1, rechts.Aantal);
-            });
+        var item = Assert.Single(BestellijstService.BerekenItems(state));
+        Assert.Equal(2, item.Aantal);
     }
 
     [Fact]

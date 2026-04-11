@@ -162,7 +162,6 @@ public static class BestellijstService
             : string.Empty;
 
         return string.Join("|",
-            wandId?.ToString("N") ?? "",
             basisNaam,
             resultaat.Type,
             Fmt(resultaat.Breedte),
