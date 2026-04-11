@@ -76,6 +76,25 @@ export class PanelenPage {
     await expect(this.page.getByTestId('paneel-opslaan-button')).toBeEnabled();
   }
 
+  async deelGeselecteerdeKastOp(hoogtes: number[]) {
+    await expect(this.page.getByTestId('open-paneel-opdelen-modal-button')).toBeEnabled();
+    await this.page.getByTestId('open-paneel-opdelen-modal-button').click();
+    await expect(this.page.getByTestId('paneel-opdelen-modal')).toBeVisible();
+
+    const aantalKnop = this.page.getByTestId(`paneel-opdelen-aantal-button-${hoogtes.length}`);
+    await expect(aantalKnop).toBeEnabled();
+    await aantalKnop.click();
+
+    for (let i = 0; i < hoogtes.length; i += 1) {
+      await this.page.getByTestId(`paneel-opdelen-hoogte-input-${i}`).fill(`${hoogtes[i]}`);
+    }
+
+    await expect(this.page.getByTestId('paneel-opdelen-bevestigen-button')).toBeEnabled();
+    await this.page.getByTestId('paneel-opdelen-bevestigen-button').click();
+    await expect(this.page.getByTestId('paneel-opdelen-modal')).toHaveCount(0);
+    await expect(this.page.getByTestId('paneel-editor-drawer')).toHaveCount(0);
+  }
+
   async voegPaneelToe() {
     await this.page.getByTestId('paneel-opslaan-button').click();
     await expect(this.page.getByTestId('paneel-editor-drawer')).toHaveCount(0);

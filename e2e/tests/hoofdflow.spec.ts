@@ -247,6 +247,35 @@ test('paneelselectie laat dezelfde kast met een tweede klik weer los', async ({ 
   await expect(page.getByTestId('paneel-opslaan-button')).toHaveCount(0);
 });
 
+test('paneel-editor deelt een geselecteerde kast op in meerdere fronten', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Ladeblok',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+
+  await indeling.gaNaarPanelen();
+  await panelen.expectLoaded();
+  await panelen.selecteerEersteKastOpWand('Achterwand');
+
+  await page.getByTestId('paneel-type-button-LadeFront').click();
+  await panelen.deelGeselecteerdeKastOp([200, 220, 300]);
+
+  await panelen.openReviewWeergave();
+  const groep = page.locator('[data-testid="paneel-review-groep"][data-wand-naam="Achterwand"]');
+  await expect(groep.locator('.paneel-review-item')).toHaveCount(3);
+
+  await groep.getByRole('button', { name: 'Bewerk' }).first().click();
+  await expect(page.getByTestId('paneel-editor-drawer')).toBeVisible();
+  await expect(page.getByTestId('paneel-type-button-LadeFront')).toHaveClass(/btn-primary/);
+});
+
 test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);

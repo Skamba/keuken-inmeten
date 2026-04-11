@@ -605,6 +605,37 @@ else
                                 </div>
                             </div>
 
+                            @if (HeeftEnkeleKastSelectie)
+                            {
+                                var opdeelBereik = OpdeelBereik;
+
+                                <div class="border rounded p-3 mb-3 bg-body-tertiary">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                        <div>
+                                            <div class="fw-semibold mb-1">Kast opdelen</div>
+                                            @if (opdeelBereik is not null)
+                                            {
+                                                <div class="small text-muted">
+                                                    Verdeel deze opening in meerdere fronten. Breedte volgt automatisch <strong>@FormatMm(opdeelBereik.Breedte)</strong> en beschikbare hoogte is <strong>@FormatMm(opdeelBereik.Hoogte)</strong>.
+                                                </div>
+                                                <div class="small text-muted mt-1">Instellingen voor alle delen: @OpdeelInstellingenTekst()</div>
+                                            }
+                                            else
+                                            {
+                                                <div class="small text-muted">Opdelen werkt alleen wanneer deze kast nog één duidelijke vrije opening heeft.</div>
+                                            }
+                                        </div>
+                                        <button type="button"
+                                                class="btn btn-outline-primary"
+                                                @onclick="OpenKastOpdelenModal"
+                                                disabled="@(!KanKastOpdelen)"
+                                                data-testid="open-paneel-opdelen-modal-button">
+                                            Kast opdelen
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+
                             <div class="mb-3">
                                 <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Type paneel</label>
                                 <div class="d-flex gap-2 flex-wrap">
@@ -773,6 +804,108 @@ else
                             @if (!kanOpslaan)
                             {
                                 <div class="form-text mt-2">@OpslaanStatusTekst()</div>
+                            }
+
+                            @if (toonKastOpdelenModal && OpdeelBereik is { } modalOpdeelBereik && geselecteerdeKasten.Count == 1)
+                            {
+                                var geselecteerdeKast = geselecteerdeKasten[0];
+                                var opdeelAnalyse = OpdeelAnalyse;
+
+                                <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
+                                     style="z-index: 1055; background: rgba(0,0,0,0.4); overflow-y: auto; padding: 2rem 1rem;"
+                                     @onclick="SluitKastOpdelenModal"
+                                     data-testid="paneel-opdelen-modal-overlay">
+                                    <div class="card border-0 shadow-lg"
+                                         style="max-width: 680px; width: 100%;"
+                                         role="dialog"
+                                         aria-modal="true"
+                                         aria-labelledby="paneel-opdelen-modal-title"
+                                         @onclick:stopPropagation="true"
+                                         data-testid="paneel-opdelen-modal">
+                                        <div class="card-header bg-primary bg-opacity-10 border-bottom">
+                                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                                <div>
+                                                    <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Meerdere fronten</div>
+                                                    <h5 class="mb-1" id="paneel-opdelen-modal-title">Kast opdelen</h5>
+                                                    <p class="text-muted mb-0">
+                                                        U verdeelt <strong>@geselecteerdeKast.Naam</strong> over <strong>@FormatMm(modalOpdeelBereik.Breedte)</strong> breed en <strong>@FormatMm(modalOpdeelBereik.Hoogte)</strong> hoog.
+                                                    </p>
+                                                </div>
+                                                <button type="button" class="btn-close" @onclick="SluitKastOpdelenModal" aria-label="Sluit kast opdelen"></button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="small text-muted mb-3">
+                                                Type en technische instellingen voor alle delen: <strong>@OpdeelInstellingenTekst()</strong>.
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Aantal delen</label>
+                                                <div class="d-flex gap-2 flex-wrap">
+                                                    @foreach (var aantal in Enumerable.Range(2, 3))
+                                                    {
+                                                        var deelAantal = aantal;
+                                                        <button type="button"
+                                                                class="btn btn-sm @(opdeelAantal == deelAantal ? "btn-primary" : "btn-outline-secondary")"
+                                                                @onclick="() => StelOpdeelAantalIn(deelAantal)"
+                                                                disabled="@(!KanKastOpdelenIn(deelAantal))"
+                                                                data-testid="paneel-opdelen-aantal-button-@deelAantal">
+                                                            @deelAantal delen
+                                                        </button>
+                                                    }
+                                                </div>
+                                                <div class="form-text">Deel 1 staat onderaan. Het laatste deel komt bovenaan in de opening.</div>
+                                            </div>
+
+                                            <div class="row g-2">
+                                                @for (var i = 0; i < opdeelHoogtes.Count; i++)
+                                                {
+                                                    var deelIndex = i;
+                                                    var deelLabel = i == 0
+                                                        ? $"Deel {i + 1} (onderaan)"
+                                                        : i == opdeelHoogtes.Count - 1
+                                                            ? $"Deel {i + 1} (bovenaan)"
+                                                            : $"Deel {i + 1}";
+
+                                                    <div class="col-sm-6">
+                                                        <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">@deelLabel</label>
+                                                        <input type="number"
+                                                               class="form-control"
+                                                               @bind="opdeelHoogtes[deelIndex]"
+                                                               @bind:event="oninput"
+                                                               min="@PaneelLayoutService.MinPaneelMaat"
+                                                               step="1"
+                                                               data-testid="paneel-opdelen-hoogte-input-@deelIndex" />
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <div class="alert @OpdeelStatusClass() mt-3 mb-0" role="status" data-testid="paneel-opdelen-status">
+                                                <div class="d-flex flex-wrap gap-3 small">
+                                                    <span><strong>Beschikbaar:</strong> @FormatMm(opdeelAnalyse.BeschikbareHoogte)</span>
+                                                    <span><strong>Ingevuld:</strong> @FormatMm(opdeelAnalyse.TotaalHoogte)</span>
+                                                    <span><strong>Restant:</strong> @FormatMm(opdeelAnalyse.RestantHoogte)</span>
+                                                </div>
+                                                <div class="small mt-2">@OpdeelStatusTekst()</div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-body d-flex justify-content-end gap-2">
+                                            <button type="button"
+                                                    class="btn btn-outline-secondary"
+                                                    @onclick="SluitKastOpdelenModal"
+                                                    data-testid="paneel-opdelen-annuleren-button">
+                                                Annuleren
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-primary"
+                                                    @onclick="BevestigKastOpdelen"
+                                                    disabled="@(!opdeelAnalyse.KanBevestigen)"
+                                                    data-testid="paneel-opdelen-bevestigen-button">
+                                                Fronten aanmaken
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             }
                         }
                     </div>

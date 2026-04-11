@@ -157,6 +157,35 @@ public class KeukenStateServiceTests
     }
 
     [Fact]
+    public void VoegToewijzingenToe_voegt_meerdere_toe_met_exact_een_state_change()
+    {
+        var state = new KeukenStateService();
+        var notificaties = 0;
+        state.OnStateChanged += () => notificaties++;
+
+        state.VoegToewijzingenToe(
+        [
+            new PaneelToewijzing
+            {
+                Type = PaneelType.Deur,
+                PotHartVanRand = 24.5,
+                Breedte = 600,
+                Hoogte = 200
+            },
+            new PaneelToewijzing
+            {
+                Type = PaneelType.LadeFront,
+                Breedte = 600,
+                Hoogte = 300
+            }
+        ]);
+
+        Assert.Equal(2, state.Toewijzingen.Count);
+        Assert.Equal(1, notificaties);
+        Assert.Equal(24.5, state.LaatstGebruiktePotHartVanRand);
+    }
+
+    [Fact]
     public void HernoemWand_triggert_exact_een_state_change()
     {
         var state = new KeukenStateService();

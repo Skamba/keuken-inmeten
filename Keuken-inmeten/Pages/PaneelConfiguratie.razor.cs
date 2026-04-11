@@ -12,6 +12,9 @@ public partial class PaneelConfiguratie
     private Guid? bewerkToewijzingId;
     private Guid? geopendeWandId;
     private bool toonEditorDrawer;
+    private bool toonKastOpdelenModal;
+    private int opdeelAantal = 2;
+    private List<double> opdeelHoogtes = [];
     private bool reviewWeergaveActief;
 
     protected override void OnInitialized()
@@ -38,12 +41,19 @@ public partial class PaneelConfiguratie
         if (reviewWeergaveActief && State.Toewijzingen.Count == 0)
             reviewWeergaveActief = false;
 
+        if (toonKastOpdelenModal && !KanKastOpdelen)
+            toonKastOpdelenModal = false;
+
         _ = InvokeAsync(StateHasChanged);
     }
 
     private bool IsBewerkModus => bewerkToewijzingId is not null;
     private bool IsReviewWeergaveActief => reviewWeergaveActief && State.Toewijzingen.Count > 0;
     private bool ToonCompacteEditorLeegstaat => !IsBewerkModus && geselecteerdeKastIds.Count == 0;
+    private bool HeeftEnkeleKastSelectie => !IsBewerkModus && geselecteerdeKasten.Count == 1;
+    private bool KanKastOpdelen
+        => OpdeelBereik is { Hoogte: var hoogte }
+           && hoogte >= (2 * PaneelLayoutService.MinPaneelMaat) - 0.001;
 
     private KeukenWand? GeopendeWand
         => geopendeWandId is Guid id ? State.Wanden.FirstOrDefault(wand => wand.Id == id) : null;
@@ -64,6 +74,23 @@ public partial class PaneelConfiguratie
             .Where(k => k is not null)
             .Cast<Kast>()
             .ToList();
+
+    private PaneelRechthoek? OpdeelBereik
+    {
+        get
+        {
+            if (!HeeftEnkeleKastSelectie)
+                return null;
+
+            var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
+            return selectieBereik is null
+                ? null
+                : PaneelConfiguratieHelper.BepaalOpdeelBereik(selectieBereik, BestaandePaneelRechthoeken());
+        }
+    }
+
+    private PaneelOpdeelAnalyse OpdeelAnalyse
+        => PaneelConfiguratieHelper.AnalyseerOpdeelHoogtes(OpdeelBereik?.Hoogte ?? 0, opdeelHoogtes);
 
     private Guid? ActieveWandId
     {
@@ -288,6 +315,7 @@ public partial class PaneelConfiguratie
 
         reviewWeergaveActief = true;
         toonEditorDrawer = false;
+        toonKastOpdelenModal = false;
     }
 
     private void OpenEditorDrawer()
@@ -341,8 +369,78 @@ public partial class PaneelConfiguratie
             ? $"{geselecteerdeKastIds.Count} kast(en) geselecteerd. {EditorStatusHintTekst()}"
             : EditorStatusHintTekst();
 
+    private bool KanKastOpdelenIn(int aantal)
+        => OpdeelBereik is { Hoogte: var hoogte }
+           && hoogte >= (aantal * PaneelLayoutService.MinPaneelMaat) - 0.001;
+
+    private string OpdeelInstellingenTekst()
+        => formToewijzing.Type == PaneelType.Deur
+            ? $"{TypeNaam(formToewijzing.Type)} · scharnier {formToewijzing.ScharnierZijde.ToString().ToLowerInvariant()} · pot-hart {FormatMm(PotHartInput)}"
+            : TypeNaam(formToewijzing.Type);
+
+    private string OpdeelStatusTekst()
+    {
+        if (!OpdeelAnalyse.HeeftGeldigeDeelHoogtes)
+            return $"Elk deel moet minimaal {FormatMm(PaneelLayoutService.MinPaneelMaat)} hoog zijn.";
+
+        if (OpdeelAnalyse.KanBevestigen)
+            return "De ingevulde hoogtes vullen de volledige opening.";
+
+        return OpdeelAnalyse.RestantHoogte > 0
+            ? $"Nog {FormatMm(OpdeelAnalyse.RestantHoogte)} te verdelen."
+            : $"{FormatMm(Math.Abs(OpdeelAnalyse.RestantHoogte))} te veel ingevuld.";
+    }
+
+    private string OpdeelStatusClass()
+        => OpdeelAnalyse.KanBevestigen
+            ? "alert-success"
+            : OpdeelAnalyse.HeeftGeldigeDeelHoogtes
+                ? "alert-warning"
+                : "alert-danger";
+
+    private void OpenKastOpdelenModal()
+    {
+        if (!KanKastOpdelen)
+            return;
+
+        StelOpdeelAantalIn(KanKastOpdelenIn(opdeelAantal) ? opdeelAantal : 2);
+        toonKastOpdelenModal = true;
+    }
+
+    private void SluitKastOpdelenModal() => toonKastOpdelenModal = false;
+
+    private void StelOpdeelAantalIn(int aantal)
+    {
+        if (!KanKastOpdelenIn(aantal) || OpdeelBereik is not { } bereik)
+            return;
+
+        opdeelAantal = aantal;
+        opdeelHoogtes = MaakStandaardOpdeelHoogtes(bereik.Hoogte, aantal);
+    }
+
+    private void BevestigKastOpdelen()
+    {
+        if (OpdeelBereik is not { } bereik || geselecteerdeKasten.Count != 1)
+            return;
+
+        var analyse = PaneelConfiguratieHelper.AnalyseerOpdeelHoogtes(bereik.Hoogte, opdeelHoogtes);
+        if (!analyse.KanBevestigen)
+            return;
+
+        var kast = geselecteerdeKasten[0];
+        var toewijzingen = PaneelConfiguratieHelper.BouwOpdeelSegmenten(bereik, opdeelHoogtes)
+            .Select(segment => MaakPaneelToewijzing(segment, [kast]))
+            .ToList();
+
+        State.VoegToewijzingenToe(toewijzingen);
+        Feedback.ToonSucces($"{toewijzingen.Count} panelen toegevoegd voor '{kast.Naam}'.");
+        RondPaneelInvoerAf();
+    }
+
     private void ResetConceptPaneel()
     {
+        toonKastOpdelenModal = false;
+
         if (BewerkteToewijzing is { } bewerkteToewijzing)
         {
             LaadToewijzingInFormulier(bewerkteToewijzing);
@@ -515,29 +613,14 @@ public partial class PaneelConfiguratie
         if (dragendeKasten.Count == 0)
             return;
 
-        var toewijzing = new PaneelToewijzing
-        {
-            Id = bewerkToewijzingId ?? Guid.NewGuid(),
-            Type = formToewijzing.Type,
-            ScharnierZijde = formToewijzing.ScharnierZijde,
-            PotHartVanRand = PotHartInput,
-            KastIds = dragendeKasten.Select(kast => kast.Id).ToList(),
-            Breedte = Math.Round(conceptPaneel.Breedte, 1),
-            Hoogte = Math.Round(conceptPaneel.Hoogte, 1),
-            XPositie = Math.Round(conceptPaneel.XPositie, 1),
-            HoogteVanVloer = Math.Round(conceptPaneel.HoogteVanVloer, 1)
-        };
+        var toewijzing = MaakPaneelToewijzing(conceptPaneel, dragendeKasten, bewerkToewijzingId);
 
         if (IsBewerkModus)
             State.WerkToewijzingBij(toewijzing);
         else
             State.VoegToewijzingToe(toewijzing);
 
-        reviewWeergaveActief = false;
-        toonEditorDrawer = false;
-        bewerkToewijzingId = null;
-        ResetFormToewijzing();
-        ResetConceptPaneel();
+        RondPaneelInvoerAf();
     }
 
     private List<PaneelToewijzing> ToewijzingenVoorWand(KeukenWand wand)
@@ -622,6 +705,40 @@ public partial class PaneelConfiguratie
         State.HerstelToewijzing(KopieerToewijzing(snapshot.Toewijzing), index);
         Feedback.ToonSucces($"Paneel {index + 1} is teruggezet.");
         return Task.CompletedTask;
+    }
+
+    private void RondPaneelInvoerAf()
+    {
+        toonKastOpdelenModal = false;
+        reviewWeergaveActief = false;
+        toonEditorDrawer = false;
+        bewerkToewijzingId = null;
+        ResetFormToewijzing();
+        ResetConceptPaneel();
+    }
+
+    private PaneelToewijzing MaakPaneelToewijzing(PaneelRechthoek paneel, IReadOnlyList<Kast> dragendeKasten, Guid? toewijzingId = null) => new()
+    {
+        Id = toewijzingId ?? Guid.NewGuid(),
+        Type = formToewijzing.Type,
+        ScharnierZijde = formToewijzing.ScharnierZijde,
+        PotHartVanRand = PotHartInput,
+        KastIds = dragendeKasten.Select(kast => kast.Id).ToList(),
+        Breedte = Math.Round(paneel.Breedte, 1),
+        Hoogte = Math.Round(paneel.Hoogte, 1),
+        XPositie = Math.Round(paneel.XPositie, 1),
+        HoogteVanVloer = Math.Round(paneel.HoogteVanVloer, 1)
+    };
+
+    private static List<double> MaakStandaardOpdeelHoogtes(double beschikbareHoogte, int aantal)
+    {
+        if (aantal <= 0)
+            return [];
+
+        var basisHoogte = Math.Floor(beschikbareHoogte / aantal);
+        var hoogtes = Enumerable.Repeat(basisHoogte, aantal).ToList();
+        hoogtes[^1] = Math.Round(beschikbareHoogte - (basisHoogte * (aantal - 1)), 1);
+        return hoogtes;
     }
 
     private static PaneelToewijzing KopieerToewijzing(PaneelToewijzing bron)

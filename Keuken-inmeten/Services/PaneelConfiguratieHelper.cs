@@ -182,6 +182,64 @@ public static class PaneelConfiguratieHelper
             .Kopie();
     }
 
+    public static PaneelRechthoek? BepaalOpdeelBereik(
+        PaneelRechthoek selectieBereik,
+        IEnumerable<PaneelRechthoek> bestaandePaneelRechthoeken)
+    {
+        var bezetteSegmenten = bestaandePaneelRechthoeken
+            .Where(paneel => HeeftHorizontaleOverlap(paneel, selectieBereik))
+            .OrderBy(segment => segment.HoogteVanVloer)
+            .ToList();
+        if (bezetteSegmenten.Count == 0)
+            return selectieBereik.Kopie();
+
+        var vrijeSegmenten = PaneelLayoutService.BepaalVrijeVerticaleSegmenten(selectieBereik, bezetteSegmenten)
+            .OrderBy(segment => segment.HoogteVanVloer)
+            .ToList();
+
+        return vrijeSegmenten.Count == 1 ? vrijeSegmenten[0].Kopie() : null;
+    }
+
+    public static PaneelOpdeelAnalyse AnalyseerOpdeelHoogtes(
+        double beschikbareHoogte,
+        IEnumerable<double> deelHoogtes,
+        double minimumDeelHoogte = PaneelLayoutService.MinPaneelMaat)
+    {
+        var hoogtes = deelHoogtes.ToList();
+        var totaalHoogte = Math.Round(hoogtes.Sum(), 1);
+        var restantHoogte = Math.Round(beschikbareHoogte - totaalHoogte, 1);
+        var heeftGeldigeDeelHoogtes = hoogtes.Count > 1 && hoogtes.All(hoogte => hoogte >= minimumDeelHoogte - 0.001);
+        var heeftGeldigeSom = Math.Abs(restantHoogte) < 0.001;
+
+        return new PaneelOpdeelAnalyse(
+            BeschikbareHoogte: Math.Round(beschikbareHoogte, 1),
+            TotaalHoogte: totaalHoogte,
+            RestantHoogte: restantHoogte,
+            HeeftGeldigeDeelHoogtes: heeftGeldigeDeelHoogtes,
+            HeeftGeldigeSom: heeftGeldigeSom);
+    }
+
+    public static List<PaneelRechthoek> BouwOpdeelSegmenten(PaneelRechthoek bereik, IEnumerable<double> deelHoogtes)
+    {
+        var segmenten = new List<PaneelRechthoek>();
+        var onderkant = bereik.HoogteVanVloer;
+
+        foreach (var hoogte in deelHoogtes)
+        {
+            segmenten.Add(new PaneelRechthoek
+            {
+                XPositie = Math.Round(bereik.XPositie, 1),
+                HoogteVanVloer = Math.Round(onderkant, 1),
+                Breedte = Math.Round(bereik.Breedte, 1),
+                Hoogte = Math.Round(hoogte, 1)
+            });
+
+            onderkant += hoogte;
+        }
+
+        return segmenten;
+    }
+
     public static string VrijSegmentLabel(int index, PaneelRechthoek segment)
         => $"Vak {index + 1} · {segment.Hoogte:0.#} hoog · onder {segment.HoogteVanVloer:0.#}";
 
@@ -248,6 +306,16 @@ public static class PaneelConfiguratieHelper
 }
 
 public sealed record PaneelFlowStap(string Id, string Titel, string Beschrijving);
+
+public readonly record struct PaneelOpdeelAnalyse(
+    double BeschikbareHoogte,
+    double TotaalHoogte,
+    double RestantHoogte,
+    bool HeeftGeldigeDeelHoogtes,
+    bool HeeftGeldigeSom)
+{
+    public bool KanBevestigen => HeeftGeldigeDeelHoogtes && HeeftGeldigeSom;
+}
 
 public readonly record struct PaneelFlowContext(
     bool HeeftWandContext,

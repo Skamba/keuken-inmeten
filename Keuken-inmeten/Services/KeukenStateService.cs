@@ -543,6 +543,20 @@ public class KeukenStateService
         NotifyChanged();
     }
 
+    public void VoegToewijzingenToe(IEnumerable<PaneelToewijzing> toewijzingen)
+    {
+        var genormaliseerd = toewijzingen
+            .Select(KeukenDomeinValidatieService.NormaliseerToewijzing)
+            .ToList();
+        if (genormaliseerd.Count == 0)
+            return;
+
+        foreach (var toewijzing in genormaliseerd)
+            VoegToewijzingToeZonderNotify(toewijzing);
+
+        NotifyChanged();
+    }
+
     public void WerkToewijzingBij(PaneelToewijzing toewijzing)
     {
         var genormaliseerd = KeukenDomeinValidatieService.NormaliseerToewijzing(toewijzing);

@@ -146,4 +146,105 @@ public class PaneelConfiguratieHelperTests
         Assert.Equal(700d, start.HoogteVanVloer);
         Assert.Equal(300d, start.Hoogte);
     }
+
+    [Fact]
+    public void BepaalOpdeelBereik_geeft_gehele_selectie_terug_als_er_geen_bestaande_panelen_zijn()
+    {
+        var selectieBereik = new PaneelRechthoek
+        {
+            XPositie = 0,
+            HoogteVanVloer = 0,
+            Breedte = 600,
+            Hoogte = 720
+        };
+
+        var bereik = PaneelConfiguratieHelper.BepaalOpdeelBereik(selectieBereik, []);
+
+        Assert.NotNull(bereik);
+        Assert.Equal(0d, bereik!.XPositie);
+        Assert.Equal(0d, bereik.HoogteVanVloer);
+        Assert.Equal(600d, bereik.Breedte);
+        Assert.Equal(720d, bereik.Hoogte);
+    }
+
+    [Fact]
+    public void BepaalOpdeelBereik_geeft_enkel_vrij_segment_terug_als_dat_de_enige_opening_is()
+    {
+        var selectieBereik = new PaneelRechthoek
+        {
+            XPositie = 0,
+            HoogteVanVloer = 0,
+            Breedte = 600,
+            Hoogte = 720
+        };
+        var bestaandePanelen = new[]
+        {
+            new PaneelRechthoek { XPositie = 0, HoogteVanVloer = 0, Breedte = 600, Hoogte = 200 },
+            new PaneelRechthoek { XPositie = 0, HoogteVanVloer = 500, Breedte = 600, Hoogte = 220 }
+        };
+
+        var bereik = PaneelConfiguratieHelper.BepaalOpdeelBereik(selectieBereik, bestaandePanelen);
+
+        Assert.NotNull(bereik);
+        Assert.Equal(200d, bereik!.HoogteVanVloer);
+        Assert.Equal(300d, bereik.Hoogte);
+    }
+
+    [Fact]
+    public void BepaalOpdeelBereik_geeft_null_als_meerdere_vrije_segmenten_overblijven()
+    {
+        var selectieBereik = new PaneelRechthoek
+        {
+            XPositie = 0,
+            HoogteVanVloer = 0,
+            Breedte = 600,
+            Hoogte = 900
+        };
+        var bestaandePanelen = new[]
+        {
+            new PaneelRechthoek { XPositie = 0, HoogteVanVloer = 200, Breedte = 600, Hoogte = 100 },
+            new PaneelRechthoek { XPositie = 0, HoogteVanVloer = 500, Breedte = 600, Hoogte = 100 }
+        };
+
+        var bereik = PaneelConfiguratieHelper.BepaalOpdeelBereik(selectieBereik, bestaandePanelen);
+
+        Assert.Null(bereik);
+    }
+
+    [Fact]
+    public void AnalyseerOpdeelHoogtes_en_bouw_segmenten_volgen_beschikbare_hoogte()
+    {
+        var analyse = PaneelConfiguratieHelper.AnalyseerOpdeelHoogtes(720, [200d, 220d, 300d]);
+        var segmenten = PaneelConfiguratieHelper.BouwOpdeelSegmenten(
+            new PaneelRechthoek
+            {
+                XPositie = 10,
+                HoogteVanVloer = 100,
+                Breedte = 600,
+                Hoogte = 720
+            },
+            [200d, 220d, 300d]);
+
+        Assert.True(analyse.KanBevestigen);
+        Assert.Equal(0d, analyse.RestantHoogte);
+        Assert.Collection(
+            segmenten,
+            segment =>
+            {
+                Assert.Equal(10d, segment.XPositie);
+                Assert.Equal(100d, segment.HoogteVanVloer);
+                Assert.Equal(600d, segment.Breedte);
+                Assert.Equal(200d, segment.Hoogte);
+            },
+            segment =>
+            {
+                Assert.Equal(300d, segment.HoogteVanVloer);
+                Assert.Equal(220d, segment.Hoogte);
+            },
+            segment =>
+            {
+                Assert.Equal(520d, segment.HoogteVanVloer);
+                Assert.Equal(300d, segment.Hoogte);
+            });
+    }
 }
