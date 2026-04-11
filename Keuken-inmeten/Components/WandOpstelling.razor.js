@@ -97,6 +97,7 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
             const botY = parseFloat(kastG?.dataset?.botY);
             const wdPx = parseFloat(kastG?.dataset?.wdPx);
             const schaal = parseFloat(kastG?.dataset?.schaal);
+            const initialSnap = getPlankSnapPreview({ botY, wdPx, schaal, snapTargets: parsePlankSnaps(kastG) }, centerY);
 
             dragging = {
                 type: 'plank', kastId, plankId, g: plankG,
@@ -104,7 +105,9 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
                 startClientX: e.clientX, startClientY: e.clientY, moved: false,
                 kastG, botY, wdPx, schaal,
                 snapTargets: parsePlankSnaps(kastG),
-                snappedCenterY: centerY
+                snappedCenterY: initialSnap.centerY,
+                snappedHeight: initialSnap.height,
+                snappedHoleIndex: initialSnap.holeIndex
             };
             plankG.style.cursor = 'grabbing';
             svgEl.setPointerCapture(e.pointerId);
@@ -145,6 +148,8 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
             const rawCenterY = pt.y - dragging.offsetY;
             const snap = getPlankSnapPreview(dragging, rawCenterY);
             dragging.snappedCenterY = snap.centerY;
+            dragging.snappedHeight = snap.height;
+            dragging.snappedHoleIndex = snap.holeIndex;
             dragging.g.setAttribute('transform', `translate(0, ${snap.centerY - dragging.startCenterY})`);
 
             // Live label update
@@ -167,11 +172,13 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
 
         if (type === 'plank') {
             if (moved) {
-                const finalSnap = getPlankSnapPreview(dragging, pt.y - dragging.offsetY);
-                g.setAttribute('transform', `translate(0, ${finalSnap.centerY - dragging.startCenterY})`);
+                const finalCenterY = dragging.snappedCenterY ?? dragging.startCenterY;
+                const finalHeight = dragging.snappedHeight ?? 0;
+                const finalHoleIndex = dragging.snappedHoleIndex ?? null;
+                g.setAttribute('transform', `translate(0, ${finalCenterY - dragging.startCenterY})`);
                 const lbl = g.querySelector('.plank-label');
-                if (lbl) lbl.textContent = formatPlankLabel(finalSnap.height, finalSnap.holeIndex);
-                const dropPromise = dotNetRef.invokeMethodAsync('OnPlankDrop', dragging.kastId, dragging.plankId, finalSnap.centerY);
+                if (lbl) lbl.textContent = formatPlankLabel(finalHeight, finalHoleIndex);
+                const dropPromise = dotNetRef.invokeMethodAsync('OnPlankDrop', dragging.kastId, dragging.plankId, finalCenterY);
                 dropPromise
                     .then(changed => {
                         if (!changed) {
