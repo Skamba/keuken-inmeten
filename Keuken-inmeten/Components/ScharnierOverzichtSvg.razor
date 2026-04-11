@@ -98,6 +98,16 @@
                 <circle cx="@Fmt(KastX + KastW / 2)" cy="@Fmt(P + gebruiktY * Scale)"
                         r="@Fmt(gebruiktRadius)" fill="#e74c3c" stroke="#c0392b" stroke-width="1.2" />
             }
+
+            @foreach (var gebruiktGat in GebruikteGatLabels(onderbouwing))
+            {
+                var gatY = P + gebruiktGat.PaneelY * Scale;
+                var labelOffset = gebruiktGat.IsBovenste ? -4.0 : 11.0;
+                @SvgText(KastX - 10, gatY + labelOffset,
+                    $"gat {gebruiktGat.GatIndex}: {FormatMm(gebruiktGat.KastY)} v. kasttop",
+                    "font-size=\"7.2\" fill=\"#5b7ea1\" text-anchor=\"end\"")
+            }
+
             <line x1="@Fmt(KastX + 5)" y1="@Fmt(y)"
                   x2="@Fmt(KastX + KastW - 5)" y2="@Fmt(y)"
                   stroke="#e67e22" stroke-width="1.2" stroke-dasharray="3,2" />
@@ -174,6 +184,26 @@
             var paneelY = segment.TopVanPaneel + (gatY - segment.KastOffsetVanBoven);
             if (paneelY >= 0 && paneelY <= Resultaat.Hoogte)
                 yield return paneelY;
+        }
+    }
+
+    private IEnumerable<(double PaneelY, int GatIndex, double KastY, bool IsBovenste)> GebruikteGatLabels(BoorgatOnderbouwing onderbouwing)
+    {
+        var segment = Segmenten.FirstOrDefault(s => s.Kast.Naam == onderbouwing.KastNaam);
+        if (segment is null)
+            yield break;
+
+        var gaten = new[]
+        {
+            (KastY: onderbouwing.GaatBovenY, GatIndex: onderbouwing.GaatBovenIndex, IsBovenste: true),
+            (KastY: onderbouwing.GaatOnderY, GatIndex: onderbouwing.GaatOnderIndex, IsBovenste: false)
+        };
+
+        foreach (var gat in gaten)
+        {
+            var paneelY = segment.TopVanPaneel + (gat.KastY - segment.KastOffsetVanBoven);
+            if (paneelY >= 0 && paneelY <= Resultaat.Hoogte)
+                yield return (paneelY, gat.GatIndex, gat.KastY, gat.IsBovenste);
         }
     }
 
