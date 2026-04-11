@@ -4,7 +4,8 @@ using Keuken_inmeten.Models;
 
 public static class PaneelSpelingService
 {
-    public const double DefaultRandSpeling = 2.0;
+    public const double DefaultRandSpeling = 3.0;
+    public const double LegacyDefaultRandSpeling = 2.0;
     private const double Tolerantie = 0.6;
 
     public static double NormaliseerRandSpeling(double waarde)
@@ -12,46 +13,96 @@ public static class PaneelSpelingService
         if (double.IsNaN(waarde) || double.IsInfinity(waarde))
             return DefaultRandSpeling;
 
+        return Math.Round(Math.Max(0, waarde), 0, MidpointRounding.AwayFromZero);
+    }
+
+    public static double NormaliseerLegacyRandSpeling(double waarde)
+    {
+        if (double.IsNaN(waarde) || double.IsInfinity(waarde))
+            return LegacyDefaultRandSpeling;
+
         return Math.Round(Math.Max(0, waarde), 1);
+    }
+
+    public static double MigreerLegacyRandSpeling(double legacyWaarde, bool heeftBestaandePanelen)
+    {
+        var legacySpeling = NormaliseerLegacyRandSpeling(legacyWaarde);
+        if (!heeftBestaandePanelen && Math.Abs(legacySpeling - LegacyDefaultRandSpeling) < 0.001)
+            return DefaultRandSpeling;
+
+        return NormaliseerRandSpeling(legacySpeling * 2);
     }
 
     public static PaneelMaatInfo BerekenMaatInfo(
         PaneelRechthoek openingsRechthoek,
-        IEnumerable<PaneelRechthoek> buurRechthoekenBron,
-        double randSpelingPerRaakrand)
+        IEnumerable<PaneelRechthoek> starreBuurRechthoekenBron,
+        double totaleRandSpeling)
+        => BerekenMaatInfo(openingsRechthoek, starreBuurRechthoekenBron, [], totaleRandSpeling);
+
+    public static PaneelMaatInfo BerekenMaatInfo(
+        PaneelRechthoek openingsRechthoek,
+        IEnumerable<PaneelRechthoek> starreBuurRechthoekenBron,
+        IEnumerable<PaneelRechthoek> buurPanelenBron,
+        double totaleRandSpeling)
     {
-        var randSpeling = NormaliseerRandSpeling(randSpelingPerRaakrand);
-        var buurRechthoeken = buurRechthoekenBron.ToList();
+        var randSpeling = NormaliseerRandSpeling(totaleRandSpeling);
+        var starreBuurRechthoeken = starreBuurRechthoekenBron.ToList();
+        var buurPanelen = buurPanelenBron.ToList();
 
-        var raaktLinks = RaaktVerticaleRand(openingsRechthoek.XPositie, openingsRechthoek.HoogteVanVloer, openingsRechthoek.Bovenzijde,
-            VerticaleSegmentenVanPanelen(buurRechthoeken));
-        var raaktRechts = RaaktVerticaleRand(openingsRechthoek.Rechterkant, openingsRechthoek.HoogteVanVloer, openingsRechthoek.Bovenzijde,
-            VerticaleSegmentenVanPanelen(buurRechthoeken));
-        var raaktOnder = RaaktHorizontaleRand(openingsRechthoek.HoogteVanVloer, openingsRechthoek.XPositie, openingsRechthoek.Rechterkant,
-            HorizontaleSegmentenVanPanelen(buurRechthoeken));
-        var raaktBoven = RaaktHorizontaleRand(openingsRechthoek.Bovenzijde, openingsRechthoek.XPositie, openingsRechthoek.Rechterkant,
-            HorizontaleSegmentenVanPanelen(buurRechthoeken));
+        var raaktLinksRigide = RaaktVerticaleRand(
+            openingsRechthoek.XPositie,
+            openingsRechthoek.HoogteVanVloer,
+            openingsRechthoek.Bovenzijde,
+            RechterRanden(starreBuurRechthoeken));
+        var raaktRechtsRigide = RaaktVerticaleRand(
+            openingsRechthoek.Rechterkant,
+            openingsRechthoek.HoogteVanVloer,
+            openingsRechthoek.Bovenzijde,
+            LinkerRanden(starreBuurRechthoeken));
+        var raaktOnderRigide = RaaktHorizontaleRand(
+            openingsRechthoek.HoogteVanVloer,
+            openingsRechthoek.XPositie,
+            openingsRechthoek.Rechterkant,
+            BovenRanden(starreBuurRechthoeken));
+        var raaktBovenRigide = RaaktHorizontaleRand(
+            openingsRechthoek.Bovenzijde,
+            openingsRechthoek.XPositie,
+            openingsRechthoek.Rechterkant,
+            OnderRanden(starreBuurRechthoeken));
 
-        var linksInset = raaktLinks ? randSpeling : 0;
-        var rechtsInset = raaktRechts ? randSpeling : 0;
-        var onderInset = raaktOnder ? randSpeling : 0;
-        var bovenInset = raaktBoven ? randSpeling : 0;
+        var raaktLinksPaneel = RaaktVerticaleRand(
+            openingsRechthoek.XPositie,
+            openingsRechthoek.HoogteVanVloer,
+            openingsRechthoek.Bovenzijde,
+            RechterRanden(buurPanelen));
+        var raaktRechtsPaneel = RaaktVerticaleRand(
+            openingsRechthoek.Rechterkant,
+            openingsRechthoek.HoogteVanVloer,
+            openingsRechthoek.Bovenzijde,
+            LinkerRanden(buurPanelen));
+        var raaktOnderPaneel = RaaktHorizontaleRand(
+            openingsRechthoek.HoogteVanVloer,
+            openingsRechthoek.XPositie,
+            openingsRechthoek.Rechterkant,
+            BovenRanden(buurPanelen));
+        var raaktBovenPaneel = RaaktHorizontaleRand(
+            openingsRechthoek.Bovenzijde,
+            openingsRechthoek.XPositie,
+            openingsRechthoek.Rechterkant,
+            OnderRanden(buurPanelen));
 
-        var maxHorizontaleInset = Math.Max(0, openingsRechthoek.Breedte - 1);
-        var totaleHorizontaleInset = Math.Min(maxHorizontaleInset, linksInset + rechtsInset);
-        if (totaleHorizontaleInset < linksInset + rechtsInset)
-        {
-            linksInset = Math.Min(linksInset, totaleHorizontaleInset / 2.0);
-            rechtsInset = Math.Min(rechtsInset, totaleHorizontaleInset - linksInset);
-        }
+        var raaktLinks = raaktLinksRigide || raaktLinksPaneel;
+        var raaktRechts = raaktRechtsRigide || raaktRechtsPaneel;
+        var raaktOnder = raaktOnderRigide || raaktOnderPaneel;
+        var raaktBoven = raaktBovenRigide || raaktBovenPaneel;
 
-        var maxVerticaleInset = Math.Max(0, openingsRechthoek.Hoogte - 1);
-        var totaleVerticaleInset = Math.Min(maxVerticaleInset, onderInset + bovenInset);
-        if (totaleVerticaleInset < onderInset + bovenInset)
-        {
-            onderInset = Math.Min(onderInset, totaleVerticaleInset / 2.0);
-            bovenInset = Math.Min(bovenInset, totaleVerticaleInset - onderInset);
-        }
+        var linksInset = BepaalInset(raaktLinksRigide, raaktLinksPaneel, randSpeling, krijgtGrotePaneelhelft: true);
+        var rechtsInset = BepaalInset(raaktRechtsRigide, raaktRechtsPaneel, randSpeling, krijgtGrotePaneelhelft: false);
+        var onderInset = BepaalInset(raaktOnderRigide, raaktOnderPaneel, randSpeling, krijgtGrotePaneelhelft: true);
+        var bovenInset = BepaalInset(raaktBovenRigide, raaktBovenPaneel, randSpeling, krijgtGrotePaneelhelft: false);
+
+        (linksInset, rechtsInset) = BeperkInsets(linksInset, rechtsInset, openingsRechthoek.Breedte);
+        (onderInset, bovenInset) = BeperkInsets(onderInset, bovenInset, openingsRechthoek.Hoogte);
 
         var paneelRechthoek = new PaneelRechthoek
         {
@@ -65,12 +116,42 @@ public static class PaneelSpelingService
         {
             OpeningsRechthoek = openingsRechthoek.Kopie(),
             PaneelRechthoek = paneelRechthoek,
-            RandSpelingPerRaakrand = randSpeling,
+            TotaleRandSpeling = randSpeling,
             RaaktLinks = raaktLinks,
             RaaktRechts = raaktRechts,
             RaaktOnder = raaktOnder,
-            RaaktBoven = raaktBoven
+            RaaktBoven = raaktBoven,
+            InkortingLinks = linksInset,
+            InkortingRechts = rechtsInset,
+            InkortingOnder = onderInset,
+            InkortingBoven = bovenInset
         };
+    }
+
+    private static double BepaalInset(bool raaktRigideRand, bool raaktPaneelRand, double totaleRandSpeling, bool krijgtGrotePaneelhelft)
+    {
+        if (raaktRigideRand)
+            return totaleRandSpeling;
+
+        if (!raaktPaneelRand)
+            return 0;
+
+        return krijgtGrotePaneelhelft
+            ? Math.Ceiling(totaleRandSpeling / 2.0)
+            : Math.Floor(totaleRandSpeling / 2.0);
+    }
+
+    private static (double eersteInset, double tweedeInset) BeperkInsets(double eersteInset, double tweedeInset, double beschikbareMaat)
+    {
+        var maxTotaleInset = Math.Max(0, beschikbareMaat - 1);
+        var gewensteInset = eersteInset + tweedeInset;
+        if (gewensteInset <= maxTotaleInset + 0.001)
+            return (eersteInset, tweedeInset);
+
+        var totaleInset = Math.Min(maxTotaleInset, gewensteInset);
+        var beperktEerste = Math.Min(eersteInset, totaleInset / 2.0);
+        var beperktTweede = Math.Min(tweedeInset, totaleInset - beperktEerste);
+        return (beperktEerste, beperktTweede);
     }
 
     private static bool RaaktVerticaleRand(double x, double startY, double eindY, IEnumerable<(double x, double start, double eind)> segmenten)
@@ -83,22 +164,28 @@ public static class PaneelSpelingService
             Math.Abs(segment.y - y) <= Tolerantie &&
             Overlap(segment.start, segment.eind, startX, eindX) > 0.5);
 
-    private static IEnumerable<(double x, double start, double eind)> VerticaleSegmentenVanPanelen(IEnumerable<PaneelRechthoek> panelen)
+    private static IEnumerable<(double x, double start, double eind)> LinkerRanden(IEnumerable<PaneelRechthoek> panelen)
     {
         foreach (var paneel in panelen)
-        {
             yield return (paneel.XPositie, paneel.HoogteVanVloer, paneel.Bovenzijde);
-            yield return (paneel.Rechterkant, paneel.HoogteVanVloer, paneel.Bovenzijde);
-        }
     }
 
-    private static IEnumerable<(double y, double start, double eind)> HorizontaleSegmentenVanPanelen(IEnumerable<PaneelRechthoek> panelen)
+    private static IEnumerable<(double x, double start, double eind)> RechterRanden(IEnumerable<PaneelRechthoek> panelen)
     {
         foreach (var paneel in panelen)
-        {
+            yield return (paneel.Rechterkant, paneel.HoogteVanVloer, paneel.Bovenzijde);
+    }
+
+    private static IEnumerable<(double y, double start, double eind)> OnderRanden(IEnumerable<PaneelRechthoek> panelen)
+    {
+        foreach (var paneel in panelen)
             yield return (paneel.HoogteVanVloer, paneel.XPositie, paneel.Rechterkant);
+    }
+
+    private static IEnumerable<(double y, double start, double eind)> BovenRanden(IEnumerable<PaneelRechthoek> panelen)
+    {
+        foreach (var paneel in panelen)
             yield return (paneel.Bovenzijde, paneel.XPositie, paneel.Rechterkant);
-        }
     }
 
     private static double Overlap(double startA, double eindA, double startB, double eindB)

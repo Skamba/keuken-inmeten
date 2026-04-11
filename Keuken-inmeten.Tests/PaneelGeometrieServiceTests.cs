@@ -45,13 +45,13 @@ public class PaneelGeometrieServiceTests
             [linkerKast, rechterKast],
             [bovenApparaat],
             [],
-            2);
+            3);
         var voorConcept = PaneelGeometrieService.BerekenVoorConceptPaneel(
             conceptPaneel,
             [linkerKast, rechterKast],
             [bovenApparaat],
             [],
-            2);
+            3);
 
         Assert.NotNull(voorToewijzing);
         Assert.NotNull(voorConcept);
@@ -65,7 +65,7 @@ public class PaneelGeometrieServiceTests
             voorConcept.DragendeKasten.Select(kast => kast.Id).ToArray());
         Assert.True(voorToewijzing.MaatInfo.RaaktBoven);
         Assert.True(voorConcept.MaatInfo.RaaktBoven);
-        Assert.Equal(2198, voorToewijzing.WerkRechthoek.Hoogte);
+        Assert.Equal(2197, voorToewijzing.WerkRechthoek.Hoogte);
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class PaneelGeometrieServiceTests
             [dragendeKast, buurKast],
             [buurApparaat],
             [buurPaneel],
-            2);
+            3);
 
         Assert.NotNull(resultaat);
         Assert.Single(resultaat!.DragendeKasten);
@@ -125,8 +125,8 @@ public class PaneelGeometrieServiceTests
         Assert.True(resultaat.MaatInfo.RaaktRechts);
         Assert.False(resultaat.MaatInfo.RaaktOnder);
         Assert.True(resultaat.MaatInfo.RaaktBoven);
-        Assert.Equal(598, resultaat.WerkRechthoek.Breedte);
-        Assert.Equal(598, resultaat.WerkRechthoek.Hoogte);
+        Assert.Equal(597, resultaat.WerkRechthoek.Breedte);
+        Assert.Equal(597, resultaat.WerkRechthoek.Hoogte);
     }
 
     [Fact]

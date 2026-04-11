@@ -12,14 +12,16 @@ public class PaneelMaatUitlegHelperTests
         var maatInfo = new PaneelMaatInfo
         {
             OpeningsRechthoek = new PaneelRechthoek { Breedte = 800, Hoogte = 600 },
-            PaneelRechthoek = new PaneelRechthoek { Breedte = 796, Hoogte = 596 },
-            RandSpelingPerRaakrand = 2,
+            PaneelRechthoek = new PaneelRechthoek { Breedte = 797, Hoogte = 596 },
+            TotaleRandSpeling = 3,
             RaaktLinks = true,
-            RaaktRechts = true
+            RaaktRechts = true,
+            InkortingLinks = 1,
+            InkortingRechts = 2
         };
 
         Assert.Equal(
-            "800 mm maat in de opening - 2 mm links - 2 mm rechts = 796 mm maat om te bestellen",
+            "800 mm maat in de opening - 1 mm links - 2 mm rechts = 797 mm maat om te bestellen",
             PaneelMaatUitlegHelper.BreedteFormule(maatInfo));
         Assert.Equal(
             "Links en rechts: aftrek op links en rechts doordat die randen een andere kast-, apparaat- of paneelrand raken.",
@@ -33,7 +35,7 @@ public class PaneelMaatUitlegHelperTests
         {
             OpeningsRechthoek = new PaneelRechthoek { Breedte = 800, Hoogte = 600 },
             PaneelRechthoek = new PaneelRechthoek { Breedte = 800, Hoogte = 600 },
-            RandSpelingPerRaakrand = 2
+            TotaleRandSpeling = 3
         };
 
         Assert.Equal(

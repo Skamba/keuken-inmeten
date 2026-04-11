@@ -5,7 +5,8 @@ using Keuken_inmeten.Models;
 public static class KeukenDataMigratieService
 {
     public const int LegacySchemaVersie = 1;
-    public const int HuidigeSchemaVersie = 2;
+    public const int PerPaneelSpelingSchemaVersie = 2;
+    public const int HuidigeSchemaVersie = 3;
 
     public static KeukenData MaakHuidigeLokaleOpslagData(KeukenData data)
         => MaakGenormaliseerdeKopie(data, behoudTemplates: true);
@@ -27,11 +28,26 @@ public static class KeukenDataMigratieService
 
         return schemaVersie switch
         {
-            LegacySchemaVersie => TryMaakMigratieResultaat(data, behoudTemplates, out resultaat),
+            LegacySchemaVersie => TryMaakMigratieResultaat(MigreerLegacyPaneelSpeling(data), behoudTemplates, out resultaat),
+            PerPaneelSpelingSchemaVersie => TryMaakMigratieResultaat(MigreerLegacyPaneelSpeling(data), behoudTemplates, out resultaat),
             HuidigeSchemaVersie => TryMaakMigratieResultaat(data, behoudTemplates, out resultaat),
             _ => false
         };
     }
+
+    private static KeukenData MigreerLegacyPaneelSpeling(KeukenData data)
+        => new()
+        {
+            Wanden = data.Wanden,
+            Kasten = data.Kasten,
+            Apparaten = data.Apparaten,
+            Toewijzingen = data.Toewijzingen,
+            KastTemplates = data.KastTemplates,
+            LaatstGebruiktePotHartVanRand = data.LaatstGebruiktePotHartVanRand,
+            PaneelRandSpeling = PaneelSpelingService.MigreerLegacyRandSpeling(
+                data.PaneelRandSpeling,
+                data.Toewijzingen.Count > 0)
+        };
 
     private static bool TryMaakMigratieResultaat(KeukenData data, bool behoudTemplates, out KeukenData resultaat)
     {

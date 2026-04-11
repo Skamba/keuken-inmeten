@@ -140,13 +140,26 @@ public class KeukenShareCodecTests
     public void V3_roundtript_niet_standaard_paneelrandspeling()
     {
         var data = MaakVoorbeeldData();
-        data.PaneelRandSpeling = 1.5;
+        data.PaneelRandSpeling = 5;
 
         var token = KeukenShareCodec.Encode(data);
         var decodedOk = KeukenShareCodec.TryDecode(token, out var decoded);
 
         Assert.True(decodedOk);
-        Assert.Equal(1.5, decoded.PaneelRandSpeling);
+        Assert.Equal(5, decoded.PaneelRandSpeling);
+    }
+
+    [Fact]
+    public void Legacy_compacte_json_zonder_schema_migreert_per_paneel_speling_naar_totale_voeg()
+    {
+        const string json = """
+            {"w":[{"n":"Muur","k":[0]}],"k":[{"n":"Onderkast","b":600,"h":720}],"t":[{"c":[0],"b":600,"h":720}],"r":2}
+            """;
+
+        var decodedOk = KeukenShareCodec.TryDecodeCompactJson(json, out var decoded);
+
+        Assert.True(decodedOk);
+        Assert.Equal(4, decoded.PaneelRandSpeling);
     }
 
     private static KeukenData MaakVoorbeeldData()

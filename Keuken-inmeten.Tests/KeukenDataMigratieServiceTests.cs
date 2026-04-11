@@ -48,6 +48,47 @@ public class KeukenDataMigratieServiceTests
         Assert.Empty(gemigreerd.Kasten);
     }
 
+    [Fact]
+    public void Schema2_migratie_zet_per_paneel_speling_om_naar_totale_voeg_als_er_panelen_bestaan()
+    {
+        var legacy = MaakVoorbeeldData();
+        legacy.PaneelRandSpeling = 1.5;
+        legacy.Toewijzingen =
+        [
+            new PaneelToewijzing
+            {
+                Id = Guid.NewGuid(),
+                KastIds = [legacy.Kasten[0].Id],
+                Type = PaneelType.Deur,
+                Breedte = 600,
+                Hoogte = 720
+            }
+        ];
+
+        var migreerde = KeukenDataMigratieService.TryMigreerLokaleOpslag(
+            KeukenDataMigratieService.PerPaneelSpelingSchemaVersie,
+            legacy,
+            out var gemigreerd);
+
+        Assert.True(migreerde);
+        Assert.Equal(3, gemigreerd.PaneelRandSpeling);
+    }
+
+    [Fact]
+    public void Schema2_migratie_zet_de_oude_standaard_zonder_panelen_om_naar_de_nieuwe_default()
+    {
+        var legacy = MaakVoorbeeldData();
+        legacy.PaneelRandSpeling = PaneelSpelingService.LegacyDefaultRandSpeling;
+
+        var migreerde = KeukenDataMigratieService.TryMigreerLokaleOpslag(
+            KeukenDataMigratieService.PerPaneelSpelingSchemaVersie,
+            legacy,
+            out var gemigreerd);
+
+        Assert.True(migreerde);
+        Assert.Equal(PaneelSpelingService.DefaultRandSpeling, gemigreerd.PaneelRandSpeling);
+    }
+
     private static KeukenData MaakVoorbeeldData()
     {
         var wandId = Guid.Parse("11111111-1111-1111-1111-111111111111");

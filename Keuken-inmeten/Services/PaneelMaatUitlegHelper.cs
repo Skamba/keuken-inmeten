@@ -8,7 +8,7 @@ public static class PaneelMaatUitlegHelper
     public const string MaatInOpeningLabelMetTerm = "Maat in de opening (openingsmaat)";
     public const string MaatOmTeBestellenLabel = "Maat om te bestellen";
     public const string MaatOmTeBestellenLabelMetTerm = "Maat om te bestellen (werkmaat)";
-    public const string RandSpelingLabel = "Vrije ruimte langs een rakende rand";
+    public const string RandSpelingLabel = "Totale voeg tussen rakende delen";
 
     public static string BreedteFormule(PaneelMaatInfo maatInfo)
         => BouwFormule(

@@ -263,7 +263,7 @@
     [Parameter] public double WandHoogte { get; set; } = 2600;
     [Parameter] public double WandBreedte { get; set; } = 3000;
     [Parameter] public double PlintHoogte { get; set; }
-    [Parameter] public double RandSpelingPerRaakrand { get; set; } = PaneelSpelingService.DefaultRandSpeling;
+    [Parameter] public double TotaleRandSpeling { get; set; } = PaneelSpelingService.DefaultRandSpeling;
     [Parameter] public string? SvgMaxHoogte { get; set; }
     [Parameter] public bool BeperkTotContainerBreedte { get; set; }
     [Parameter] public IReadOnlySet<Guid>? GeselecteerdeKastIds { get; set; }
@@ -356,7 +356,7 @@
                 Kasten,
                 Apparaten,
                 paneelBronnen,
-                RandSpelingPerRaakrand);
+                TotaleRandSpeling);
             var openingsRechthoek = geometrie.OpeningsRechthoek;
             var werkRechthoek = geometrie.WerkRechthoek;
             index++;
@@ -380,7 +380,7 @@
             Kasten,
             Apparaten,
             PaneelBronnen(),
-            RandSpelingPerRaakrand)?.MaatInfo;
+            TotaleRandSpeling)?.MaatInfo;
     }
 
     private PaneelGeometrieBron? PaneelBron(PaneelToewijzing toewijzing)

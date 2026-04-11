@@ -151,8 +151,9 @@ public static class KeukenShareCodec
         if (decoded is null)
             return false;
 
-        var decodedData = BouwKeukenData(decoded);
-        return KeukenDataMigratieService.TryMigreerDeelData(KeukenDataMigratieService.HuidigeSchemaVersie, decodedData, out data);
+        var schemaVersie = decoded.SchemaVersion ?? KeukenDataMigratieService.PerPaneelSpelingSchemaVersie;
+        var decodedData = BouwKeukenData(decoded, schemaVersie);
+        return KeukenDataMigratieService.TryMigreerDeelData(schemaVersie, decodedData, out data);
     }
 
     private static CompactShareData MaakCompacteData(KeukenData data)
@@ -256,6 +257,7 @@ public static class KeukenShareCodec
 
         return new CompactShareData
         {
+            SchemaVersion = KeukenDataMigratieService.HuidigeSchemaVersie,
             LastCupOffset = IsBijnaGelijk(data.LaatstGebruiktePotHartVanRand, ScharnierBerekeningService.CupCenterVanRand)
                 ? null
                 : Round1(data.LaatstGebruiktePotHartVanRand),
@@ -343,7 +345,7 @@ public static class KeukenShareCodec
         return result.Count == 0 ? null : result;
     }
 
-    private static KeukenData BouwKeukenData(CompactShareData data)
+    private static KeukenData BouwKeukenData(CompactShareData data, int schemaVersie)
     {
         var walls = data.Walls ?? [];
         var cabinets = data.Cabinets ?? [];
@@ -354,6 +356,9 @@ public static class KeukenShareCodec
         var applianceIds = appliances.Select(_ => Guid.NewGuid()).ToList();
         var defaultCabinetX = BerekenDecodeStandaardKastPosities(data);
         var defaultAppliancePlaatsingen = BerekenDecodeStandaardApparaatPlaatsingen(data, defaultCabinetX);
+        var paneelRandSpeling = schemaVersie >= KeukenDataMigratieService.HuidigeSchemaVersie
+            ? PaneelSpelingService.NormaliseerRandSpeling(data.PanelEdgeClearance ?? PaneelSpelingService.DefaultRandSpeling)
+            : PaneelSpelingService.NormaliseerLegacyRandSpeling(data.PanelEdgeClearance ?? PaneelSpelingService.LegacyDefaultRandSpeling);
 
         var wanden = walls.Select((wand, index) => new KeukenWand
         {
@@ -407,7 +412,7 @@ public static class KeukenShareCodec
             Toewijzingen = toewijzingen,
             KastTemplates = [],
             LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(data.LastCupOffset ?? ScharnierBerekeningService.CupCenterVanRand),
-            PaneelRandSpeling = PaneelSpelingService.NormaliseerRandSpeling(data.PanelEdgeClearance ?? PaneelSpelingService.DefaultRandSpeling)
+            PaneelRandSpeling = paneelRandSpeling
         };
     }
 
@@ -596,6 +601,9 @@ public static class KeukenShareCodec
 
     private sealed class CompactShareData
     {
+        [JsonPropertyName("v")]
+        public int? SchemaVersion { get; set; }
+
         [JsonPropertyName("w")]
         public List<CompactWall>? Walls { get; set; }
 

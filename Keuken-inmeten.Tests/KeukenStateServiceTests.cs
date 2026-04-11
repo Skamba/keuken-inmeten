@@ -37,14 +37,14 @@ public class KeukenStateServiceTests
     public void Exporteren_en_laden_bewaren_paneelrandspeling()
     {
         var state = new KeukenStateService();
-        state.StelPaneelRandSpelingIn(1.5);
+        state.StelPaneelRandSpelingIn(5);
 
         var snapshot = state.Exporteren();
         var herladen = new KeukenStateService();
         herladen.Laden(snapshot);
 
-        Assert.Equal(1.5, snapshot.PaneelRandSpeling);
-        Assert.Equal(1.5, herladen.PaneelRandSpeling);
+        Assert.Equal(5, snapshot.PaneelRandSpeling);
+        Assert.Equal(5, herladen.PaneelRandSpeling);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class KeukenStateServiceTests
         state.Importeer(new KeukenData
         {
             LaatstGebruiktePotHartVanRand = 24.5,
-            PaneelRandSpeling = 1.5,
+            PaneelRandSpeling = 5,
             Wanden =
             [
                 new KeukenWand
@@ -93,7 +93,7 @@ public class KeukenStateServiceTests
         Assert.Equal("Nieuwe kast", kast.Naam);
         Assert.DoesNotContain(state.Wanden, item => item.Id == oudeWand.Id);
         Assert.Equal(24.5, state.LaatstGebruiktePotHartVanRand);
-        Assert.Equal(1.5, state.PaneelRandSpeling);
+        Assert.Equal(5, state.PaneelRandSpeling);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class KeukenStateServiceTests
         var wand = MaakWand("Achterwand");
         state.VoegWandToe(wand);
         state.VoegKastToe(MaakKast("Onderkast"), wand.Id);
-        state.StelPaneelRandSpelingIn(1.5);
+        state.StelPaneelRandSpelingIn(5);
         state.VoegToewijzingToe(new PaneelToewijzing
         {
             Type = PaneelType.Deur,

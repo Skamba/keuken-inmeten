@@ -140,6 +140,32 @@ else
             </ul>
         </div>
 
+        <div class="border rounded p-3 mb-4 bg-body-tertiary" data-testid="paneel-projectinstellingen">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+                <div>
+                    <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Projectinstelling</div>
+                    <div class="fw-semibold">@PaneelMaatUitlegHelper.RandSpelingLabel</div>
+                    <div class="small text-muted">Deze waarde geldt voor het hele project. Raakt een paneel een kast of apparaat, dan krijgt dat paneel de volledige voeg. Tussen twee panelen wordt die totale voeg verdeeld, bijvoorbeeld 1 mm en 2 mm, zodat zaagmaten hele millimeters blijven.</div>
+                </div>
+                <div class="w-100" style="max-width: 22rem;">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">@PaneelMaatUitlegHelper.RandSpelingLabel (mm)</label>
+                        <HulpInfoKnop Titel="Totale voeg tussen rakende delen"
+                                      Tekst="Deze projectinstelling bepaalt de totale vrije ruimte tussen een paneel en wat het raakt."
+                                      Voorbeeld="Bij een totale voeg van 3 mm tussen twee panelen krijgt het ene paneel bijvoorbeeld 1 mm aftrek en het andere 2 mm."
+                                      WatNuDoen="Laat de standaard staan tenzij uw beslag, afwerking of montage bewust om meer of minder totale voeg vraagt." />
+                    </div>
+                    <input type="number"
+                           class="form-control"
+                           @bind="ProjectRandSpelingInput"
+                           min="0"
+                           step="1"
+                           data-testid="project-randspeling-input" />
+                    <div class="form-text hulp-hint">Standaard 3 mm totaal voor het hele project. De app verdeelt een oneven voeg automatisch over twee rakende panelen.</div>
+                </div>
+            </div>
+        </div>
+
         @if (!isReviewWeergaveActief)
         {
             <div data-testid="paneel-editor-weergave">
@@ -331,7 +357,7 @@ else
                                                     WandHoogte="@geopendeWand.Hoogte"
                                                     WandBreedte="@geopendeWand.Breedte"
                                                     PlintHoogte="@geopendeWand.PlintHoogte"
-                                                    RandSpelingPerRaakrand="@State.PaneelRandSpeling"
+                                                    TotaleRandSpeling="@State.PaneelRandSpeling"
                                                     GeselecteerdeKastIds="@geselecteerdeKastIds"
                                                     SvgMaxHoogte="65vh"
                                                     BeperkTotContainerBreedte="true"
@@ -580,22 +606,6 @@ else
                             </div>
 
                             <div class="mb-3">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">@PaneelMaatUitlegHelper.RandSpelingLabel (randspeling, mm)</label>
-                                    <HulpInfoKnop Titel="Vrije ruimte langs de rand"
-                                                  Tekst="Randspeling voorkomt dat een paneel klemt tegen een kast-, apparaat- of paneelrand. Die aftrek wordt meteen in de bestelmaten meegenomen."
-                                                  Voorbeeld="Standaard is dit vaak 2 mm per rakende rand."
-                                                  WatNuDoen="Laat de standaard staan tenzij uw beslag, spuitwerk of stelruimte om meer of minder speling vraagt." />
-                                </div>
-                                <input type="number"
-                                       class="form-control"
-                                       @bind="RandSpelingInput"
-                                       min="0"
-                                       step="0.5" />
-                                <div class="form-text hulp-hint">Standaard 2 mm. Elke rand die een andere kast-, apparaat- of paneelrand raakt, krijgt deze aftrek meteen mee in de maat om te bestellen.</div>
-                            </div>
-
-                            <div class="mb-3">
                                 <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Type paneel</label>
                                 <div class="d-flex gap-2 flex-wrap">
                                     @foreach (var type in Enum.GetValues<PaneelType>())
@@ -728,7 +738,7 @@ else
                                              Beschrijving="Open alleen als u maatlagen of sleepgedrag wilt nalopen."
                                              CssClass="mb-3 small">
                                 <div class="text-muted mb-3">
-                                    Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de vrije ruimte langs rakende randen is afgetrokken.
+                                    Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de totale voeg langs rakende randen is verwerkt.
                                 </div>
                                 <div class="row g-3 align-items-center">
                                     <div class="col-sm-5">
@@ -744,7 +754,7 @@ else
                                         </div>
                                         <div class="d-flex align-items-start gap-2">
                                             <span class="d-inline-block border border-primary rounded bg-primary bg-opacity-10 flex-shrink-0" style="width: 1rem; height: 1rem;"></span>
-                                            <div><strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel</strong>: de maat die overblijft nadat de aftrek per rakende rand is toegepast.</div>
+                                            <div><strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel</strong>: de maat die overblijft nadat de aftrek voor de totale voeg is toegepast.</div>
                                         </div>
                                     </div>
                                 </div>

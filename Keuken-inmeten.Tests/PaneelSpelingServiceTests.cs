@@ -17,7 +17,7 @@ public class PaneelSpelingServiceTests
             Hoogte = 2200
         };
 
-        var maatInfo = PaneelSpelingService.BerekenMaatInfo(opening, [], 2);
+        var maatInfo = PaneelSpelingService.BerekenMaatInfo(opening, [], 3);
 
         Assert.False(maatInfo.RaaktLinks);
         Assert.False(maatInfo.RaaktRechts);
@@ -54,14 +54,42 @@ public class PaneelSpelingServiceTests
             Hoogte = 300
         };
 
-        var maatInfo = PaneelSpelingService.BerekenMaatInfo(opening, [buurKast, buurApparaat], 2);
+        var maatInfo = PaneelSpelingService.BerekenMaatInfo(opening, [buurKast, buurApparaat], 3);
 
         Assert.False(maatInfo.RaaktLinks);
         Assert.True(maatInfo.RaaktRechts);
         Assert.False(maatInfo.RaaktOnder);
         Assert.True(maatInfo.RaaktBoven);
-        Assert.Equal(598, maatInfo.PaneelRechthoek.Breedte);
-        Assert.Equal(598, maatInfo.PaneelRechthoek.Hoogte);
+        Assert.Equal(597, maatInfo.PaneelRechthoek.Breedte);
+        Assert.Equal(597, maatInfo.PaneelRechthoek.Hoogte);
+    }
+
+    [Fact]
+    public void Aangrenzende_panelen_verdelen_oneven_totale_voeg_over_beide_panelen()
+    {
+        var links = new PaneelRechthoek
+        {
+            XPositie = 0,
+            HoogteVanVloer = 0,
+            Breedte = 600,
+            Hoogte = 2200
+        };
+        var rechts = new PaneelRechthoek
+        {
+            XPositie = 600,
+            HoogteVanVloer = 0,
+            Breedte = 600,
+            Hoogte = 2200
+        };
+
+        var linksMaatInfo = PaneelSpelingService.BerekenMaatInfo(links, [], [rechts], 3);
+        var rechtsMaatInfo = PaneelSpelingService.BerekenMaatInfo(rechts, [], [links], 3);
+
+        Assert.Equal(1, linksMaatInfo.InkortingRechts);
+        Assert.Equal(2, rechtsMaatInfo.InkortingLinks);
+        Assert.Equal(599, linksMaatInfo.PaneelRechthoek.Breedte);
+        Assert.Equal(598, rechtsMaatInfo.PaneelRechthoek.Breedte);
+        Assert.Equal(3, rechtsMaatInfo.PaneelRechthoek.XPositie - linksMaatInfo.PaneelRechthoek.Rechterkant);
     }
 
     [Fact]

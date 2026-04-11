@@ -21,7 +21,7 @@ public class KeukenPersistedStateCodecTests
         var json = KeukenPersistedStateCodec.Encode(data);
         var decodedOk = KeukenPersistedStateCodec.TryDecode(json, out var decoded);
 
-        Assert.Contains("\"schemaVersion\":2", json);
+        Assert.Contains("\"schemaVersion\":3", json);
         Assert.True(decodedOk);
         Assert.Single(decoded.KastTemplates);
         Assert.Equal("Template", decoded.KastTemplates[0].Naam);

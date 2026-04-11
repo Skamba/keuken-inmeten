@@ -19,7 +19,7 @@ public static class StapHulpHelper
             "hint",
             "Korte hint",
             "Gebruik een hint direct onder een veld voor de verwachte maat, eenheid of standaardkeuze.",
-            "Bijvoorbeeld: standaard 2 mm randspeling of meestal 18 mm wanddikte."),
+            "Bijvoorbeeld: standaard 3 mm totale voeg of meestal 18 mm wanddikte."),
         new(
             "info",
             "Info-knop",

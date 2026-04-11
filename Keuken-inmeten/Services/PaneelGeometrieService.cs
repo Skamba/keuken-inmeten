@@ -19,12 +19,12 @@ public static class PaneelGeometrieService
         IEnumerable<Kast> wandKasten,
         IEnumerable<Apparaat> wandApparaten,
         IEnumerable<PaneelGeometrieBron> wandPaneelBronnen,
-        double randSpelingPerRaakrand)
+        double totaleRandSpeling)
     {
         var bron = MaakBronVoorToewijzing(toewijzing, kastenVoorOpening);
         return bron is null
             ? null
-            : Bereken(bron, wandKasten, wandApparaten, wandPaneelBronnen, randSpelingPerRaakrand);
+            : Bereken(bron, wandKasten, wandApparaten, wandPaneelBronnen, totaleRandSpeling);
     }
 
     public static PaneelGeometrieResultaat? BerekenVoorConceptPaneel(
@@ -32,7 +32,7 @@ public static class PaneelGeometrieService
         IEnumerable<Kast> wandKasten,
         IEnumerable<Apparaat> wandApparaten,
         IEnumerable<PaneelGeometrieBron> wandPaneelBronnen,
-        double randSpelingPerRaakrand,
+        double totaleRandSpeling,
         Guid? paneelId = null)
     {
         var resultaat = Bereken(
@@ -40,7 +40,7 @@ public static class PaneelGeometrieService
             wandKasten,
             wandApparaten,
             wandPaneelBronnen,
-            randSpelingPerRaakrand);
+            totaleRandSpeling);
 
         return resultaat.DragendeKasten.Count == 0 ? null : resultaat;
     }
@@ -50,7 +50,7 @@ public static class PaneelGeometrieService
         IEnumerable<Kast> wandKastenBron,
         IEnumerable<Apparaat> wandApparatenBron,
         IEnumerable<PaneelGeometrieBron> wandPaneelBronnen,
-        double randSpelingPerRaakrand)
+        double totaleRandSpeling)
     {
         var wandKasten = wandKastenBron.ToList();
         var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(wandKasten, bron.OpeningsRechthoek);
@@ -64,8 +64,14 @@ public static class PaneelGeometrieService
             .Where(paneel => bron.PaneelId is null || paneel.PaneelId != bron.PaneelId)
             .Select(paneel => paneel.OpeningsRechthoek.Kopie());
 
-        List<PaneelRechthoek> buurRechthoeken = [.. buurKasten, .. buurApparaten, .. buurPanelen];
-        var maatInfo = PaneelSpelingService.BerekenMaatInfo(bron.OpeningsRechthoek, buurRechthoeken, randSpelingPerRaakrand);
+        List<PaneelRechthoek> starreBuurRechthoeken = [.. buurKasten, .. buurApparaten];
+        List<PaneelRechthoek> buurPaneelRechthoeken = [.. buurPanelen];
+        List<PaneelRechthoek> buurRechthoeken = [.. starreBuurRechthoeken, .. buurPaneelRechthoeken];
+        var maatInfo = PaneelSpelingService.BerekenMaatInfo(
+            bron.OpeningsRechthoek,
+            starreBuurRechthoeken,
+            buurPaneelRechthoeken,
+            totaleRandSpeling);
         List<Kast> dragendeKastenResultaat = [.. dragendeKasten];
 
         return new PaneelGeometrieResultaat(maatInfo, dragendeKastenResultaat, buurRechthoeken);
