@@ -48,6 +48,43 @@ public class KeukenStateServiceTests
     }
 
     [Fact]
+    public void Verificatiechecks_roundtrippen_via_export_en_laden()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        var kast = MaakKast("Onderkast");
+        var toewijzing = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            Type = PaneelType.BlindPaneel,
+            KastIds = [kast.Id],
+            Breedte = 600,
+            Hoogte = 720
+        };
+
+        state.VoegWandToe(wand);
+        state.VoegKastToe(kast, wand.Id);
+        state.VoegToewijzingToe(toewijzing);
+
+        var gewijzigd = state.WerkVerificatieStatusBij(toewijzing.Id, matenOk: true, scharnierPositiesOk: false);
+
+        Assert.True(gewijzigd);
+        var snapshot = state.Exporteren();
+        var herladen = new KeukenStateService();
+        herladen.Laden(snapshot);
+
+        var status = Assert.Single(snapshot.VerificatieStatussen);
+        Assert.Equal(toewijzing.Id, status.ToewijzingId);
+        Assert.True(status.MatenOk);
+        Assert.False(status.ScharnierPositiesOk);
+
+        var herladenStatus = Assert.Single(herladen.VerificatieStatussen);
+        Assert.Equal(toewijzing.Id, herladenStatus.ToewijzingId);
+        Assert.True(herladenStatus.MatenOk);
+        Assert.False(herladenStatus.ScharnierPositiesOk);
+    }
+
+    [Fact]
     public void Importeer_vervangt_de_huidige_status_en_triggert_exact_een_state_change()
     {
         var state = new KeukenStateService();
@@ -154,6 +191,26 @@ public class KeukenStateServiceTests
         Assert.Equal(620, bijgewerkt.Breedte);
         Assert.Equal(2100, bijgewerkt.Hoogte);
         Assert.Equal(24.5, state.LaatstGebruiktePotHartVanRand);
+    }
+
+    [Fact]
+    public void VerwijderToewijzing_wist_gekoppelde_verificatiestatus()
+    {
+        var state = new KeukenStateService();
+        var toewijzing = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            Type = PaneelType.BlindPaneel,
+            Breedte = 600,
+            Hoogte = 720
+        };
+
+        state.VoegToewijzingToe(toewijzing);
+        state.WerkVerificatieStatusBij(toewijzing.Id, matenOk: true, scharnierPositiesOk: false);
+
+        state.VerwijderToewijzing(toewijzing.Id);
+
+        Assert.Empty(state.VerificatieStatussen);
     }
 
     [Fact]

@@ -11,6 +11,7 @@ public class KeukenData
     public List<Kast> Kasten { get; set; } = [];
     public List<Apparaat> Apparaten { get; set; } = [];
     public List<PaneelToewijzing> Toewijzingen { get; set; } = [];
+    public List<PaneelVerificatieStatus> VerificatieStatussen { get; set; } = [];
     public List<KastTemplate> KastTemplates { get; set; } = [];
     public double LaatstGebruiktePotHartVanRand { get; set; } = ScharnierBerekeningService.CupCenterVanRand;
     public double PaneelRandSpeling { get; set; } = PaneelSpelingService.DefaultRandSpeling;

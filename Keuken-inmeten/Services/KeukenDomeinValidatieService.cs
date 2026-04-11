@@ -15,6 +15,7 @@ public static class KeukenDomeinValidatieService
         Kasten = [.. data.Kasten.Select(NormaliseerKast)],
         Apparaten = [.. data.Apparaten.Select(NormaliseerApparaat)],
         Toewijzingen = [.. data.Toewijzingen.Select(NormaliseerToewijzing)],
+        VerificatieStatussen = NormaliseerVerificatieStatussen(data),
         KastTemplates = [.. data.KastTemplates.Select(NormaliseerKastTemplate)],
         LaatstGebruiktePotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(data.LaatstGebruiktePotHartVanRand),
         PaneelRandSpeling = PaneelSpelingService.NormaliseerRandSpeling(data.PaneelRandSpeling)
@@ -109,6 +110,13 @@ public static class KeukenDomeinValidatieService
         };
     }
 
+    public static PaneelVerificatieStatus NormaliseerVerificatieStatus(PaneelVerificatieStatus status) => new()
+    {
+        ToewijzingId = status.ToewijzingId,
+        MatenOk = status.MatenOk,
+        ScharnierPositiesOk = status.ScharnierPositiesOk
+    };
+
     public static double NormaliseerPositie(double waarde)
         => NormaliseerNietNegatieveMaat(waarde, 0);
 
@@ -124,6 +132,19 @@ public static class KeukenDomeinValidatieService
 
     private static List<Guid> NormaliseerIdLijst(IEnumerable<Guid> ids)
         => [.. ids.Distinct()];
+
+    private static List<PaneelVerificatieStatus> NormaliseerVerificatieStatussen(KeukenData data)
+    {
+        var geldigeToewijzingIds = data.Toewijzingen
+            .Select(toewijzing => toewijzing.Id)
+            .ToHashSet();
+
+        return [..
+            data.VerificatieStatussen
+                .Where(status => geldigeToewijzingIds.Contains(status.ToewijzingId))
+                .GroupBy(status => status.ToewijzingId)
+                .Select(groep => NormaliseerVerificatieStatus(groep.Last()))];
+    }
 
     private static double NormaliseerPositieveMaat(double waarde, double fallback)
     {

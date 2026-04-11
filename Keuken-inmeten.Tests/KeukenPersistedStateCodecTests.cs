@@ -25,6 +25,9 @@ public class KeukenPersistedStateCodecTests
         Assert.True(decodedOk);
         Assert.Single(decoded.KastTemplates);
         Assert.Equal("Template", decoded.KastTemplates[0].Naam);
+        var verificatieStatus = Assert.Single(decoded.VerificatieStatussen);
+        Assert.Equal(Guid.Parse("33333333-3333-3333-3333-333333333333"), verificatieStatus.ToewijzingId);
+        Assert.True(verificatieStatus.MatenOk);
     }
 
     [Fact]
@@ -72,6 +75,7 @@ public class KeukenPersistedStateCodecTests
     {
         var wandId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         var kastId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var toewijzingId = Guid.Parse("33333333-3333-3333-3333-333333333333");
 
         return new KeukenData
         {
@@ -95,6 +99,25 @@ public class KeukenPersistedStateCodecTests
                     Type = KastType.Onderkast,
                     Breedte = 600,
                     Hoogte = 720
+                }
+            ],
+            Toewijzingen =
+            [
+                new PaneelToewijzing
+                {
+                    Id = toewijzingId,
+                    KastIds = [kastId],
+                    Type = PaneelType.BlindPaneel,
+                    Breedte = 600,
+                    Hoogte = 720
+                }
+            ],
+            VerificatieStatussen =
+            [
+                new PaneelVerificatieStatus
+                {
+                    ToewijzingId = toewijzingId,
+                    MatenOk = true
                 }
             ],
             KastTemplates =

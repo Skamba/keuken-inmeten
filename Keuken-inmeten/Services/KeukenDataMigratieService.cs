@@ -42,6 +42,7 @@ public static class KeukenDataMigratieService
             Kasten = data.Kasten,
             Apparaten = data.Apparaten,
             Toewijzingen = data.Toewijzingen,
+            VerificatieStatussen = data.VerificatieStatussen,
             KastTemplates = data.KastTemplates,
             LaatstGebruiktePotHartVanRand = data.LaatstGebruiktePotHartVanRand,
             PaneelRandSpeling = PaneelSpelingService.MigreerLegacyRandSpeling(

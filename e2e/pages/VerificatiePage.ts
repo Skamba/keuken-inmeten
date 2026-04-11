@@ -7,6 +7,13 @@ export class VerificatiePage {
     return this.page.locator(`[data-testid="verificatie-taakgroep"][data-wand-naam="${wandNaam}"]`);
   }
 
+  private taakItem(wandNaam: string, kastNaam: string) {
+    return this.taakGroep(wandNaam)
+      .getByTestId('verificatie-taak-item')
+      .filter({ hasText: kastNaam })
+      .first();
+  }
+
   async expectLoaded() {
     await expect(this.page.getByRole('heading', { name: 'Stap 3: Verificatie' })).toBeVisible();
   }
@@ -31,6 +38,32 @@ export class VerificatiePage {
     await knop.scrollIntoViewIfNeeded();
     await knop.click();
     await expect(this.page.locator('.verificatie-check').first()).toBeVisible();
+  }
+
+  async vinkMatenCheckAf() {
+    const knop = this.page.getByTestId('verificatie-check-toggle-maten');
+    await knop.scrollIntoViewIfNeeded();
+    await knop.click();
+    await expect(knop).toHaveClass(/ok/);
+  }
+
+  async expectMatenCheckAfgevinkt() {
+    await expect(this.page.getByTestId('verificatie-check-toggle-maten')).toHaveClass(/ok/);
+  }
+
+  async terugNaarTaaklijst() {
+    const knop = this.page.getByRole('button', { name: /Terug naar taaklijst/ });
+    await knop.scrollIntoViewIfNeeded();
+    await knop.click();
+    await this.expectTaaklijst();
+  }
+
+  async expectTaakItemKlaar(wandNaam: string, kastNaam: string) {
+    await expect(this.taakItem(wandNaam, kastNaam)).toContainText('Klaar');
+  }
+
+  async wachtTotAutomatischOpgeslagen() {
+    await expect(this.page.getByText(/Automatisch opgeslagen om/)).toBeVisible();
   }
 
   async gaNaarBestellijst() {

@@ -156,7 +156,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
         ?? toewijzing?.PotHartVanRand
         ?? State.LaatstGebruiktePotHartVanRand;
     var paneelKasten = State.ZoekKasten(r.KastIds);
-    var checks = GetChecks(_paneelIndex);
+    var checks = GetChecks(r);
     var isDeur = r.Type == PaneelType.Deur && r.Boorgaten.Count > 0;
     var openingB = r.MaatInfo?.OpeningsRechthoek.Breedte ?? r.Breedte;
     var openingH = r.MaatInfo?.OpeningsRechthoek.Hoogte ?? r.Hoogte;
@@ -208,8 +208,9 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                     <div class="verificatie-check @(checks.MatenOk ? "verificatie-check-ok" : "") mb-4">
                         <div class="d-flex align-items-start gap-3 mb-3">
                             <button class="verificatie-check-cirkel @(checks.MatenOk ? "ok" : "")"
-                                    @onclick="() => ToggleCheck(_paneelIndex, c => c.MatenOk = !c.MatenOk)"
-                                    title="@(checks.MatenOk ? "Vink af" : "Markeer als gecontroleerd")">
+                                    @onclick="() => ToggleMatenCheck(r)"
+                                    title="@(checks.MatenOk ? "Vink af" : "Markeer als gecontroleerd")"
+                                    data-testid="verificatie-check-toggle-maten">
                                 @if (checks.MatenOk) { <span>&#10003;</span> } else { <span>1</span> }
                             </button>
                             <div>
@@ -258,8 +259,9 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                         <div class="verificatie-check @(checks.ScharnierPositiesOk ? "verificatie-check-ok" : "") mb-4">
                             <div class="d-flex align-items-start gap-3 mb-3">
                                 <button class="verificatie-check-cirkel @(checks.ScharnierPositiesOk ? "ok" : "")"
-                                        @onclick="() => ToggleCheck(_paneelIndex, c => c.ScharnierPositiesOk = !c.ScharnierPositiesOk)"
-                                        title="@(checks.ScharnierPositiesOk ? "Vink af" : "Markeer als gecontroleerd")">
+                                        @onclick="() => ToggleScharnierCheck(r)"
+                                        title="@(checks.ScharnierPositiesOk ? "Vink af" : "Markeer als gecontroleerd")"
+                                        data-testid="verificatie-check-toggle-scharnier">
                                 @if (checks.ScharnierPositiesOk) { <span>&#10003;</span> } else { <span>2</span> }
                                 </button>
                                 <div>
@@ -438,33 +440,27 @@ else if (_fase == VerificatieFase.Afronding)
     private VerificatieFase _fase = VerificatieFase.Overzicht;
     private int _paneelIndex;
 
-    private class VerificatieChecks
+    private PaneelVerificatieStatus GetChecks(PaneelResultaat resultaat)
+        => State.LeesVerificatieStatus(resultaat.ToewijzingId);
+
+    private void ToggleMatenCheck(PaneelResultaat resultaat)
     {
-        public bool MatenOk { get; set; }
-        public bool ScharnierPositiesOk { get; set; }
+        var checks = GetChecks(resultaat);
+        State.WerkVerificatieStatusBij(resultaat.ToewijzingId, !checks.MatenOk, checks.ScharnierPositiesOk);
     }
 
-    private readonly Dictionary<int, VerificatieChecks> _checks = [];
-
-    private VerificatieChecks GetChecks(int index)
+    private void ToggleScharnierCheck(PaneelResultaat resultaat)
     {
-        if (!_checks.TryGetValue(index, out var checks))
-        {
-            checks = new VerificatieChecks();
-            _checks[index] = checks;
-        }
-        return checks;
+        var checks = GetChecks(resultaat);
+        State.WerkVerificatieStatusBij(resultaat.ToewijzingId, checks.MatenOk, !checks.ScharnierPositiesOk);
     }
-
-    private void ToggleCheck(int index, Action<VerificatieChecks> toggle)
-        => toggle(GetChecks(index));
 
     private static bool HeeftScharnierCheck(PaneelResultaat r)
         => r.Type == PaneelType.Deur && r.Boorgaten.Count > 0;
 
     private bool AlleChecksVoorPaneel(int index, PaneelResultaat r)
     {
-        if (!_checks.TryGetValue(index, out var checks)) return false;
+        var checks = GetChecks(r);
         if (!checks.MatenOk) return false;
         if (HeeftScharnierCheck(r))
             return checks.ScharnierPositiesOk;
@@ -473,7 +469,7 @@ else if (_fase == VerificatieFase.Afronding)
 
     private int AantalAfgevinktVoorPaneel(int index, PaneelResultaat r)
     {
-        if (!_checks.TryGetValue(index, out var checks)) return 0;
+        var checks = GetChecks(r);
         var count = checks.MatenOk ? 1 : 0;
         if (HeeftScharnierCheck(r) && checks.ScharnierPositiesOk)
             count++;
@@ -494,12 +490,12 @@ else if (_fase == VerificatieFase.Afronding)
 
     private string VolgendeControleTitel(int index, PaneelResultaat r)
     {
-        _checks.TryGetValue(index, out var checks);
+        var checks = GetChecks(r);
 
-        if (checks?.MatenOk != true)
+        if (!checks.MatenOk)
             return "Meet de maat in de opening na";
 
-        if (HeeftScharnierCheck(r) && checks?.ScharnierPositiesOk != true)
+        if (HeeftScharnierCheck(r) && !checks.ScharnierPositiesOk)
             return "Controleer de systeemgaten";
 
         return "Alle controles voor dit paneel zijn klaar";

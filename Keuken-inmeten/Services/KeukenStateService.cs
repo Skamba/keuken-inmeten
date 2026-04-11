@@ -8,6 +8,7 @@ public class KeukenStateService
     public List<Kast> Kasten { get; } = [];
     public List<Apparaat> Apparaten { get; } = [];
     public List<PaneelToewijzing> Toewijzingen { get; } = [];
+    public List<PaneelVerificatieStatus> VerificatieStatussen { get; } = [];
     public List<KastTemplate> KastTemplates { get; } = [];
     public double LaatstGebruiktePotHartVanRand { get; private set; } = ScharnierBerekeningService.CupCenterVanRand;
     public double PaneelRandSpeling { get; private set; } = PaneelSpelingService.DefaultRandSpeling;
@@ -25,6 +26,7 @@ public class KeukenStateService
         Kasten = [.. Kasten],
         Apparaten = [.. Apparaten],
         Toewijzingen = [.. Toewijzingen],
+        VerificatieStatussen = [.. VerificatieStatussen.Select(KeukenDomeinValidatieService.NormaliseerVerificatieStatus)],
         KastTemplates = [.. KastTemplates],
         LaatstGebruiktePotHartVanRand = LaatstGebruiktePotHartVanRand,
         PaneelRandSpeling = PaneelRandSpeling
@@ -37,12 +39,14 @@ public class KeukenStateService
         Kasten.Clear();
         Apparaten.Clear();
         Toewijzingen.Clear();
+        VerificatieStatussen.Clear();
         KastTemplates.Clear();
 
         Wanden.AddRange(genormaliseerd.Wanden);
         Kasten.AddRange(genormaliseerd.Kasten);
         Apparaten.AddRange(genormaliseerd.Apparaten);
         Toewijzingen.AddRange(genormaliseerd.Toewijzingen);
+        VerificatieStatussen.AddRange(genormaliseerd.VerificatieStatussen);
         KastTemplates.AddRange(genormaliseerd.KastTemplates);
         LaatstGebruiktePotHartVanRand = genormaliseerd.LaatstGebruiktePotHartVanRand;
         PaneelRandSpeling = genormaliseerd.PaneelRandSpeling;
@@ -213,6 +217,7 @@ public class KeukenStateService
         foreach (var wand in Wanden)
             wand.KastIds.Clear();
         Toewijzingen.RemoveAll(t => t.KastIds.Count > 0);
+        VerificatieStatussen.Clear();
         Kasten.Clear();
         NotifyChanged();
     }
@@ -225,8 +230,14 @@ public class KeukenStateService
 
     private void VerwijderKastZonderNotify(Guid id)
     {
+        var verwijderdeToewijzingIds = Toewijzingen
+            .Where(toewijzing => toewijzing.KastIds.Contains(id))
+            .Select(toewijzing => toewijzing.Id)
+            .ToHashSet();
+
         Kasten.RemoveAll(k => k.Id == id);
         Toewijzingen.RemoveAll(t => t.KastIds.Contains(id));
+        VerificatieStatussen.RemoveAll(status => verwijderdeToewijzingIds.Contains(status.ToewijzingId));
         foreach (var wand in Wanden)
             wand.KastIds.Remove(id);
     }
@@ -574,12 +585,52 @@ public class KeukenStateService
     public void VerwijderToewijzing(Guid id)
     {
         Toewijzingen.RemoveAll(t => t.Id == id);
+        VerificatieStatussen.RemoveAll(status => status.ToewijzingId == id);
         NotifyChanged();
     }
 
     public bool HerstelToewijzing(PaneelToewijzing toewijzing, int index)
     {
         VoegToewijzingToeZonderNotify(KeukenDomeinValidatieService.NormaliseerToewijzing(toewijzing), index);
+        NotifyChanged();
+        return true;
+    }
+
+    public PaneelVerificatieStatus LeesVerificatieStatus(Guid toewijzingId)
+        => VerificatieStatussen
+            .Where(status => status.ToewijzingId == toewijzingId)
+            .Select(KeukenDomeinValidatieService.NormaliseerVerificatieStatus)
+            .FirstOrDefault()
+        ?? new PaneelVerificatieStatus { ToewijzingId = toewijzingId };
+
+    public bool WerkVerificatieStatusBij(Guid toewijzingId, bool matenOk, bool scharnierPositiesOk)
+    {
+        if (Toewijzingen.All(toewijzing => toewijzing.Id != toewijzingId))
+            return false;
+
+        var bestaandeStatus = VerificatieStatussen.FirstOrDefault(status => status.ToewijzingId == toewijzingId);
+        if (bestaandeStatus is not null &&
+            bestaandeStatus.MatenOk == matenOk &&
+            bestaandeStatus.ScharnierPositiesOk == scharnierPositiesOk)
+        {
+            return false;
+        }
+
+        if (bestaandeStatus is null)
+        {
+            VerificatieStatussen.Add(new PaneelVerificatieStatus
+            {
+                ToewijzingId = toewijzingId,
+                MatenOk = matenOk,
+                ScharnierPositiesOk = scharnierPositiesOk
+            });
+        }
+        else
+        {
+            bestaandeStatus.MatenOk = matenOk;
+            bestaandeStatus.ScharnierPositiesOk = scharnierPositiesOk;
+        }
+
         NotifyChanged();
         return true;
     }
