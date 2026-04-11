@@ -31,7 +31,7 @@
         @foreach (var gatY in OverigeGaten(segment))
         {
             <circle cx="@Fmt(KastX + KastW / 2)" cy="@Fmt(P + gatY * Scale)"
-                    r="2.4" fill="#8899bb" stroke="#6677aa" stroke-width="0.4" />
+                    r="@Fmt(ScharnierVisualisatieHelper.OverigGatRadius)" fill="#8899bb" stroke="#6677aa" stroke-width="0.4" />
         }
     }
 
@@ -83,6 +83,7 @@
         @if (onderbouwing is not null)
         {
             var boorgatKast = Kasten.FirstOrDefault(k => k.Naam == onderbouwing.KastNaam);
+            var gebruiktRadius = ScharnierVisualisatieHelper.BerekenGebruiktGatRadius(Scale, onderbouwing);
             if (boorgatKast is not null)
             {
                 var kastBoven = onderbouwing.MontagePlaatMiddenInKast;
@@ -95,8 +96,11 @@
             @foreach (var gebruiktY in GebruikteGaten(onderbouwing))
             {
                 <circle cx="@Fmt(KastX + KastW / 2)" cy="@Fmt(P + gebruiktY * Scale)"
-                        r="4.1" fill="#e74c3c" stroke="#c0392b" stroke-width="1.2" />
+                        r="@Fmt(gebruiktRadius)" fill="#e74c3c" stroke="#c0392b" stroke-width="1.2" />
             }
+            <line x1="@Fmt(KastX + 5)" y1="@Fmt(y)"
+                  x2="@Fmt(KastX + KastW - 5)" y2="@Fmt(y)"
+                  stroke="#e67e22" stroke-width="1.2" stroke-dasharray="3,2" />
         }
     }
 
