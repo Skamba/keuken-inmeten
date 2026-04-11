@@ -7,6 +7,7 @@
     <svg @ref="svgRef"
          viewBox="0 0 @Fmt(SvgWidth) @Fmt(SvgHeight)"
          class="border rounded bg-body wand-opstelling-svg"
+         data-testid="wand-opstelling-svg"
          style="max-height: @(SvgMaxHoogte ?? "65vh"); width: auto; max-width: @(BeperkTotContainerBreedte ? "100%" : "none"); display: block; cursor: default; outline: none; margin: 0 auto;"
          tabindex="0">
 
@@ -64,6 +65,7 @@
             var plankSnapData = BouwPlankSnapData(kast);
 
             <g class="wand-kast-sleepbaar @(isSelected ? "geselecteerd" : "")"
+               data-testid="wand-kast"
                data-kast-id="@kast.Id"
                data-bot-y="@Fmt(y + h)"
                data-wd-px="@Fmt(wdPx)"
@@ -162,6 +164,7 @@
                     var plankRectY = plankCenterY - plankDiktePx / 2;
                     var isPlankSelected = _geselecteerdeePlankId == plank.Id;
                     <g class="wand-plank-sleepbaar"
+                       data-testid="wand-plank"
                        data-kast-id="@kast.Id"
                        data-plank-id="@plank.Id"
                        style="cursor: ns-resize;">
@@ -170,7 +173,7 @@
                               fill="@(isPlankSelected ? "#a8d5ff" : "#c8a040")"
                               stroke="@(isPlankSelected ? "#0d6efd" : "#7a5e20")"
                               stroke-width="@(isPlankSelected ? "1.5" : "0.8")" />
-                        @((MarkupString)$"<text class=\"plank-label\" x=\"{Fmt(x + wdPx + 3)}\" y=\"{Fmt(plnLabelYs[pi])}\" font-size=\"9\" fill=\"{(isPlankSelected ? "#0d6efd" : "#7a5e20")}\" font-weight=\"bold\" text-anchor=\"start\" pointer-events=\"none\">{Encode(FormatPlankLabel(kast, plank.HoogteVanBodem))}</text>")
+                        @((MarkupString)$"<text class=\"plank-label\" data-testid=\"wand-plank-label\" x=\"{Fmt(x + wdPx + 3)}\" y=\"{Fmt(plnLabelYs[pi])}\" font-size=\"9\" fill=\"{(isPlankSelected ? "#0d6efd" : "#7a5e20")}\" font-weight=\"bold\" text-anchor=\"start\" pointer-events=\"none\">{Encode(FormatPlankLabel(kast, plank.HoogteVanBodem))}</text>")
                     </g>
                 }
 

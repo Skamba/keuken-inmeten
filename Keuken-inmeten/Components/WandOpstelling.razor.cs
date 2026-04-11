@@ -148,7 +148,7 @@ public partial class WandOpstelling
     }
 
     [JSInvokable]
-    public async Task<bool> OnPlankDrop(string kastIdStr, string plankIdStr, double svgCenterY)
+    public async Task<bool> OnPlankDrop(string kastIdStr, string plankIdStr, double hoogteVanBodem)
     {
         if (LeesAlleen) return false;
         if (!Guid.TryParse(kastIdStr, out var kastId)) return false;
@@ -158,8 +158,6 @@ public partial class WandOpstelling
         if (kast is null) return false;
         var plank = kast.Planken.FirstOrDefault(p => p.Id == plankId);
         if (plank is null) return false;
-
-        var hoogteVanBodem = WandOpstellingHelper.BepaalPlankHoogteNaDrop(kast, svgCenterY, VloerY, Schaal);
 
         if (Math.Abs(plank.HoogteVanBodem - hoogteVanBodem) < 0.05)
         {

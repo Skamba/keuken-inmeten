@@ -178,7 +178,7 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
                 g.setAttribute('transform', `translate(0, ${finalCenterY - dragging.startCenterY})`);
                 const lbl = g.querySelector('.plank-label');
                 if (lbl) lbl.textContent = formatPlankLabel(finalHeight, finalHoleIndex);
-                const dropPromise = dotNetRef.invokeMethodAsync('OnPlankDrop', dragging.kastId, dragging.plankId, finalCenterY);
+                const dropPromise = dotNetRef.invokeMethodAsync('OnPlankDrop', dragging.kastId, dragging.plankId, finalHeight);
                 dropPromise
                     .then(changed => {
                         if (!changed) {

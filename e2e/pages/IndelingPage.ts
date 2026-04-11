@@ -20,6 +20,22 @@ export class IndelingPage {
     );
   }
 
+  wandOpstelling(wandNaam: string): Locator {
+    return this.actieveWerkruimte(wandNaam).getByTestId('wand-opstelling-svg');
+  }
+
+  eersteWandKast(wandNaam: string): Locator {
+    return this.actieveWerkruimte(wandNaam).getByTestId('wand-kast').first();
+  }
+
+  eersteWandPlank(wandNaam: string): Locator {
+    return this.actieveWerkruimte(wandNaam).getByTestId('wand-plank').first();
+  }
+
+  eersteWandPlankLabel(wandNaam: string): Locator {
+    return this.eersteWandPlank(wandNaam).getByTestId('wand-plank-label');
+  }
+
   async goto() {
     await this.page.goto('/kasten');
     await expect(this.page.getByRole('heading', { name: 'Stap 1: Indeling' })).toBeVisible();
@@ -141,6 +157,22 @@ export class IndelingPage {
 
     await expect(formulier).toBeHidden();
     await expect(werkruimte).toContainText(kast.naam);
+  }
+
+  async voegPlankToeAanEersteKast(wandNaam: string, relativeY = 0.55) {
+    await this.openWandWerkruimte(wandNaam);
+
+    const kastRect = this.eersteWandKast(wandNaam).locator('rect').first();
+    await kastRect.scrollIntoViewIfNeeded();
+
+    const box = await kastRect.boundingBox();
+    expect(box).not.toBeNull();
+
+    const clickX = box!.x + box!.width / 2;
+    const clickY = box!.y + box!.height * relativeY;
+
+    await this.page.mouse.click(clickX, clickY, { clickCount: 2, delay: 50 });
+    await expect(this.eersteWandPlank(wandNaam)).toBeVisible();
   }
 
   async gaNaarPanelen() {
