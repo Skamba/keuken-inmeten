@@ -6,7 +6,7 @@ public static class StappenFlowHelper
     [
         new("kasten", "kasten", 1, "Indeling", "Bouw uw keuken op per wand en voeg kasten toe."),
         new("panelen", "panelen", 2, "Panelen", "Wijs panelen toe en bepaal maat, plaatsing en scharnierzijde."),
-        new("verificatie", "verificatie", 3, "Verificatie", "Controleer openingen, paneelmaten en boorgaten."),
+        new("verificatie", "verificatie", 3, "Verificatie", "Controleer openingen, paneelmaten en 35 mm potscharniergaten."),
         new("bestellijst", "bestellijst", 4, "Bestellijst", "Bekijk orderregels en exporteer de lijst."),
         new("zaagplan", "zaagplan", 5, "Zaagplan", "Verdeel panelen over standaard platen.")
     ];

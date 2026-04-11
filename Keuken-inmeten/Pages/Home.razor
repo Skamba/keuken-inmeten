@@ -30,7 +30,7 @@
                     <h1 class="@(heeftProjectData ? "display-6" : "display-5") fw-bold mb-3">
                         @(heeftProjectData
                             ? "Ga verder met uw keukenproject"
-                            : "Van keukenmaat naar paneel, boorgat en zaagplan")
+                            : "Van keukenmaat naar paneel, 35 mm potscharniergaten en zaagplan")
                     </h1>
                     <p class="lead text-muted mb-4">
                         @(heeftProjectData
@@ -74,7 +74,7 @@
                                 }
                                 else if (totaalBoorgaten > 0)
                                 {
-                                    <span>@totaalBoorgaten boorgaten</span>
+                                    <span>@FormatPotscharnierGatTelling(totaalBoorgaten)</span>
                                 }
                             </div>
 
@@ -104,7 +104,7 @@
                                     <span class="home-summary-icon">🧾</span>
                                     <div>
                                         <strong>Daarna volgen controle en uitvoer</strong>
-                                        <div class="text-muted small">Na paneeltoewijzing ziet u maten, boorgaten, orderregels en plaatindeling terug.</div>
+                                        <div class="text-muted small">Na paneeltoewijzing ziet u maten, 35 mm potscharniergaten, orderregels en plaatindeling terug.</div>
                                     </div>
                                 </li>
                             </ul>
@@ -154,7 +154,7 @@
                             <div class="home-metric-card h-100">
                                 <div class="home-example-label">Uitvoer klaar</div>
                                 <div class="home-metric-value">@(aantalBestellijstItems > 0 ? aantalBestellijstItems : totaalBoorgaten)</div>
-                                <div class="text-muted small">@(aantalBestellijstItems > 0 ? "Orderregel(s) klaar voor export of zaagplan." : totaalBoorgaten > 0 ? "Boorgat(en) al berekend voor controle en bestelling." : "Nog geen exportdata; rond eerst panelen af.")</div>
+                                <div class="text-muted small">@(aantalBestellijstItems > 0 ? "Orderregel(s) klaar voor export of zaagplan." : totaalBoorgaten > 0 ? $"{FormatPotscharnierGatTelling(totaalBoorgaten)} al berekend voor controle en bestelling." : "Nog geen exportdata; rond eerst panelen af.")</div>
                             </div>
                         </div>
                     </div>
@@ -270,7 +270,7 @@
                     <summary>Toon compacte hulp</summary>
                     <ul class="home-help-list mt-3 mb-0">
                         <li><strong>Eerst invoeren:</strong> wanden en kasten vormen altijd de basis; apparaten en planken voegt u alleen toe als ze de maatvoering echt beïnvloeden.</li>
-                        <li><strong>Uitvoer:</strong> daarna ziet u paneelmaten, boorgaten, een bestellijst en een zaagplan terug.</li>
+                        <li><strong>Uitvoer:</strong> daarna ziet u paneelmaten, 35 mm potscharniergaten, een bestellijst en een zaagplan terug.</li>
                         <li><strong>Let extra op:</strong> gebruik apparaten alleen als ze echt wandruimte innemen en gebruik planken vooral als referentie voor de gatenrij.</li>
                     </ul>
                 </details>
@@ -365,7 +365,7 @@
             : aantalBestellijstItems == 0
                 ? new(
                     "Rond verificatie af",
-                    "Controleer eerst maat, scharnierzijde en boorgaten voordat u bestelt.")
+                    "Controleer eerst maat, scharnierzijde en 35 mm potscharniergaten voordat u bestelt.")
                 : new(
                     "Bestellijst en zaagplan zijn klaar",
                     "U kunt nu exporteren, orderregels nalopen en het plaatformaat controleren.");
@@ -373,18 +373,21 @@
     private static InfoBlok MaakBoorgatBlok(int totaalBoorgaten)
         => totaalBoorgaten > 0
             ? new(
-                $"{totaalBoorgaten} boorgat(en) al berekend",
+                $"{FormatPotscharnierGatTelling(totaalBoorgaten)} al berekend",
                 "U vindt deze terug in verificatie en bestellijst.")
             : new(
-                "Boorgaten verschijnen later",
+                "35 mm potscharniergaten verschijnen later",
                 "Zodra deuren of relevante fronten zijn toegewezen vult de app deze automatisch aan.");
 
     private static string MaakOutputSamenvatting(int aantalResultaten, int aantalBestellijstItems, int totaalBoorgaten)
         => aantalBestellijstItems > 0
-            ? $"{aantalBestellijstItems} orderregel(s) en {totaalBoorgaten} boorgat(en) klaar voor uitvoer"
+            ? $"{aantalBestellijstItems} orderregel(s) en {FormatPotscharnierGatTelling(totaalBoorgaten)} klaar voor uitvoer"
             : aantalResultaten > 0
                 ? $"{aantalResultaten} paneel/panelen klaar voor controle"
                 : "Nog geen uitvoer; wijs eerst panelen toe";
+
+    private static string FormatPotscharnierGatTelling(int aantal)
+        => $"{aantal} {(aantal == 1 ? "35 mm potscharniergat" : "35 mm potscharniergaten")}";
 
     private sealed record StartStap(
         string Href,

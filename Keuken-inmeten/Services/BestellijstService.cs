@@ -5,7 +5,7 @@ using Keuken_inmeten.Models;
 
 public static class BestellijstService
 {
-    public const string StandaardAbsBandLabel = "1 mm ABS rondom";
+    public const string StandaardKantenbandLabel = "1 mm kantenband rondom";
 
     private sealed record BestellijstBron(
         string BasisNaam,
@@ -87,7 +87,7 @@ public static class BestellijstService
                     BasisNaam = eerste.BasisNaam,
                     Naam = $"{eerste.BasisNaam} {huidigNummer}",
                     Aantal = groep.Count(),
-                    AbsBandLabel = StandaardAbsBandLabel,
+                    KantenbandLabel = StandaardKantenbandLabel,
                     PaneelRolLabel = eerste.PaneelRolLabel,
                     WandId = eerste.WandId,
                     WandNaam = eerste.WandNaam,

@@ -20,7 +20,7 @@ public sealed record BestellijstExportRegel(
     string PaneelRolLabel,
     double HoogteMm,
     double BreedteMm,
-    string AbsBandLabel,
+    string KantenbandLabel,
     string ContextLabel,
     IReadOnlyList<BestellijstExportBoorgat> Boorgaten,
     BestellijstVisualDocument Visual);

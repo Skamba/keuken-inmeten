@@ -52,6 +52,11 @@ public static class BestellijstExcelRenderer
         ]);
         AppendRow(sb,
         [
+            CellText("Boortype", "Meta"),
+            CellText("35 mm potscharniergaten")
+        ]);
+        AppendRow(sb,
+        [
             CellText("Gegenereerd op", "Meta"),
             CellText(BestellijstExportFormatter.FormatGeneratedAt(document.GeneratedAt))
         ]);
@@ -64,15 +69,15 @@ public static class BestellijstExcelRenderer
             CellText("Paneelrol", "Kop"),
             CellText("Hoogte (mm)", "Kop"),
             CellText("Breedte (mm)", "Kop"),
-            CellText("ABS-band", "Kop"),
+            CellText("Kantenband", "Kop"),
             CellText("Context", "Kop")
         };
 
         for (var i = 0; i < document.MaxBoorgaten; i++)
         {
             var nummer = i + 1;
-            koppen.Add(CellText($"Boorgat {nummer} X (links, mm)", "Kop"));
-            koppen.Add(CellText($"Boorgat {nummer} Y (boven, mm)", "Kop"));
+            koppen.Add(CellText($"Potscharniergat {nummer} X (links, mm)", "Kop"));
+            koppen.Add(CellText($"Potscharniergat {nummer} Y (boven, mm)", "Kop"));
         }
 
         AppendRow(sb, koppen);
@@ -86,7 +91,7 @@ public static class BestellijstExcelRenderer
                 CellText(regel.PaneelRolLabel),
                 CellNumber(regel.HoogteMm),
                 CellNumber(regel.BreedteMm),
-                CellText(regel.AbsBandLabel),
+                CellText(regel.KantenbandLabel),
                 CellText(regel.ContextLabel)
             };
 

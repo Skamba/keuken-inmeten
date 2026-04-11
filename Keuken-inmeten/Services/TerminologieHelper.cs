@@ -79,12 +79,12 @@ public static class TerminologieHelper
             "Kies de zijde waarop de deur praktisch moet openen en controleer daarna of de vrije ruimte rondom klopt."),
         ["scharnierpot"] = new(
             "scharnierpot",
-            "35 mm scharnierpot",
-            "pot 35 mm",
-            "Het ronde boorgat in het deurpaneel waarin het scharnier valt.",
+            "35 mm potscharnier",
+            "potscharnier 35 mm",
+            "Het ronde 35 mm potscharniergat in het deurpaneel waarin het scharnier valt.",
             "Deze term maakt uit bij deurpanelen met scharnieren; fronten zonder scharnieren hebben deze boring niet nodig.",
             "Een standaard Europese keukendeur gebruikt meestal een 35 mm scharnierpot.",
-            "Controleer dit vooral wanneer u technische boorgaten controleert of productiegegevens doorgeeft voor deurpanelen."),
+            "Controleer dit vooral wanneer u technische 35 mm potscharniergaten controleert of productiegegevens doorgeeft voor deurpanelen."),
         ["pothart"] = new(
             "pothart",
             "Afstand hart scharnierpot tot rand",
@@ -101,14 +101,14 @@ public static class TerminologieHelper
             "Deze term maakt uit wanneer u in de verificatiestap controleert of de scharnierplaat logisch op de gaatjesrij uitkomt.",
             "De plaat kan bijvoorbeeld midden tussen gat 5 en 6 van de systeemgatenrij landen.",
             "Gebruik deze controle alleen als u deurscharnieren technisch wilt nalopen; voor globale maatcontrole is dit niet nodig."),
-        ["absband"] = new(
-            "absband",
+        ["kantenband"] = new(
+            "kantenband",
             "Afwerkband op de rand",
-            "ABS-band",
-            "Een kunststof randafwerking op zichtbare paneelranden.",
+            "kantenband",
+            "Een randafwerking op zichtbare paneelranden, vaak als 1 mm kantenband.",
             "Deze term maakt uit wanneer u bestellijst of productie-uitvoer controleert op zichtkanten en afwerking.",
-            "Een zichtzijde van een front kan ABS-band nodig hebben, terwijl een verborgen rand kaal mag blijven.",
-            "Controleer bij orderregels welke randen zichtbaar blijven en zorg dat daar de juiste afwerkband voor staat."),
+            "Een zichtzijde van een front kan kantenband nodig hebben, terwijl een verborgen rand kaal mag blijven.",
+            "Controleer bij orderregels welke randen zichtbaar blijven en zorg dat daar de juiste kantenband voor staat."),
         ["cnc"] = new(
             "cnc",
             "Machinecoördinaten voor CNC",

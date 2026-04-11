@@ -56,7 +56,7 @@ public static class BestellijstExportService
             item.PaneelRolLabel,
             item.Hoogte,
             item.Breedte,
-            item.AbsBandLabel,
+            item.KantenbandLabel,
             item.ContextLabel,
             boorgaten,
             visual);

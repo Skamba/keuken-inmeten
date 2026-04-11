@@ -39,10 +39,10 @@ public static class BestellijstPrintHtmlRenderer
         sb.AppendLine("  <div class=\"summary\">");
         sb.AppendLine($"    <div class=\"summary-card\"><span class=\"muted\">Orderregels</span><strong>{document.Orderregels}</strong></div>");
         sb.AppendLine($"    <div class=\"summary-card\"><span class=\"muted\">Totaal aantal</span><strong>{document.TotaalAantal}</strong></div>");
-        sb.AppendLine($"    <div class=\"summary-card\"><span class=\"muted\">Totaal boorgaten</span><strong>{document.TotaalBoorgaten}</strong></div>");
+        sb.AppendLine($"    <div class=\"summary-card\"><span class=\"muted\">Totaal 35 mm potscharniergaten</span><strong>{document.TotaalBoorgaten}</strong></div>");
         sb.AppendLine("  </div>");
         sb.AppendLine("  <table>");
-        sb.AppendLine("    <thead><tr><th>Naam</th><th>Aantal</th><th>Afmeting</th><th>ABS-band</th><th>Boorgaten</th><th>Visual</th></tr></thead>");
+        sb.AppendLine("    <thead><tr><th>Naam</th><th>Aantal</th><th>Afmeting</th><th>Kantenband</th><th>Potscharniergaten (35 mm)</th><th>Visual</th></tr></thead>");
         sb.AppendLine("    <tbody>");
 
         foreach (var regel in document.Regels)
@@ -51,7 +51,7 @@ public static class BestellijstPrintHtmlRenderer
             sb.AppendLine($"        <td><div class=\"name\">{Encode(regel.Naam)}</div><div class=\"context\">{Encode(regel.ContextLabel)}</div></td>");
             sb.AppendLine($"        <td>{regel.Aantal}</td>");
             sb.AppendLine($"        <td>{Encode(regel.PaneelRolLabel)}<br />{Encode(BestellijstExportFormatter.FormatMm(regel.HoogteMm))} hoog<br />{Encode(BestellijstExportFormatter.FormatMm(regel.BreedteMm))} breed</td>");
-            sb.AppendLine($"        <td>{Encode(regel.AbsBandLabel)}</td>");
+            sb.AppendLine($"        <td>{Encode(regel.KantenbandLabel)}</td>");
             sb.AppendLine($"        <td class=\"holes\">{BuildHoleLines(regel)}</td>");
             sb.AppendLine($"        <td class=\"visual\">{BestellijstVisualRenderer.Render(regel.Visual)}</td>");
             sb.AppendLine("      </tr>");
@@ -72,10 +72,10 @@ public static class BestellijstPrintHtmlRenderer
     private static string BuildHoleLines(BestellijstExportRegel regel)
     {
         if (regel.Boorgaten.Count == 0)
-            return "<span class=\"muted\">Geen boorgaten</span>";
+            return "<span class=\"muted\">Geen 35 mm potscharniergaten</span>";
 
         var lines = regel.Boorgaten.Select(boorgat =>
-            $"<span class=\"muted\">B{boorgat.Nummer}: X {Encode(BestellijstExportFormatter.FormatMm(boorgat.XCncMm))}, Y {Encode(BestellijstExportFormatter.FormatMm(boorgat.YCncMm))}</span>");
+            $"<span class=\"muted\">Potscharniergat {boorgat.Nummer} (35 mm): X {Encode(BestellijstExportFormatter.FormatMm(boorgat.XCncMm))}, Y {Encode(BestellijstExportFormatter.FormatMm(boorgat.YCncMm))}</span>");
 
         return string.Join("<br />", lines);
     }

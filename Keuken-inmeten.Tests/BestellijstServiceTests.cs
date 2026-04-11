@@ -35,7 +35,7 @@ public class BestellijstServiceTests
         var item = Assert.Single(items);
         Assert.Equal("Hoge Deur 1", item.Naam);
         Assert.Equal(2, item.Aantal);
-        Assert.Equal(BestellijstService.StandaardAbsBandLabel, item.AbsBandLabel);
+        Assert.Equal(BestellijstService.StandaardKantenbandLabel, item.KantenbandLabel);
         Assert.Equal("Deur", item.PaneelRolLabel);
         Assert.Equal(4, item.Boorgaten.Count);
     }
@@ -134,12 +134,14 @@ public class BestellijstServiceTests
             new DateTime(2026, 4, 6, 14, 0, 0));
 
         Assert.Contains("Paneeltype", xml);
-        Assert.Contains("ABS-band", xml);
-        Assert.Contains(BestellijstService.StandaardAbsBandLabel, xml);
+        Assert.Contains("Kantenband", xml);
+        Assert.Contains(BestellijstService.StandaardKantenbandLabel, xml);
         Assert.Contains("CNC nulpunt", xml);
         Assert.Contains(BestellijstExportService.CncNulpuntLabel, xml);
-        Assert.Contains("Boorgat 1 X (links, mm)", xml);
-        Assert.Contains("Boorgat 1 Y (boven, mm)", xml);
+        Assert.Contains("Boortype", xml);
+        Assert.Contains("35 mm potscharniergaten", xml);
+        Assert.Contains("Potscharniergat 1 X (links, mm)", xml);
+        Assert.Contains("Potscharniergat 1 Y (boven, mm)", xml);
         Assert.DoesNotContain("Boorgat X (mm)", xml);
         Assert.DoesNotContain("Boorgat Y (mm)", xml);
         Assert.Contains("577.5", xml);
@@ -159,13 +161,13 @@ public class BestellijstServiceTests
             new DateTime(2026, 4, 6, 14, 0, 0));
 
         Assert.Contains("Bestellijst", html);
-        Assert.Contains("ABS-band", html);
-        Assert.Contains(BestellijstService.StandaardAbsBandLabel, html);
+        Assert.Contains("Kantenband", html);
+        Assert.Contains(BestellijstService.StandaardKantenbandLabel, html);
         Assert.Contains(BestellijstExportService.CncNulpuntLabel, html);
         Assert.DoesNotContain(">X: ", html);
         Assert.DoesNotContain(">Y: ", html);
-        Assert.Contains("Boorgaten", html);
-        Assert.Contains("B1: X", html);
+        Assert.Contains("Potscharniergaten (35 mm)", html);
+        Assert.Contains("Potscharniergat 1 (35 mm): X", html);
         Assert.Contains("Y 83 mm", html);
         Assert.Contains("Hoge Deur 1", html);
         Assert.Contains("<svg", html);
@@ -239,7 +241,7 @@ public class BestellijstServiceTests
         BasisNaam = "Hoge Deur",
         Naam = "Hoge Deur 1",
         Aantal = 2,
-        AbsBandLabel = BestellijstService.StandaardAbsBandLabel,
+        KantenbandLabel = BestellijstService.StandaardKantenbandLabel,
         PaneelRolLabel = "Deur",
         WandId = Guid.NewGuid(),
         WandNaam = "Muur",

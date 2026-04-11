@@ -31,7 +31,7 @@ public class BestellijstExportDocumentTests
         Assert.Equal("Deur", regel.PaneelRolLabel);
         Assert.Equal(2200, regel.HoogteMm);
         Assert.Equal(600, regel.BreedteMm);
-        Assert.Equal(BestellijstService.StandaardAbsBandLabel, regel.AbsBandLabel);
+        Assert.Equal(BestellijstService.StandaardKantenbandLabel, regel.KantenbandLabel);
         Assert.Equal("Muur • Hoge kast links (+1 meer)", regel.ContextLabel);
 
         Assert.Collection(
@@ -62,11 +62,13 @@ public class BestellijstRenderersTests
         var xml = BestellijstExcelRenderer.Render(document);
 
         Assert.Contains("Paneeltype", xml);
-        Assert.Contains("ABS-band", xml);
-        Assert.Contains(BestellijstService.StandaardAbsBandLabel, xml);
+        Assert.Contains("Kantenband", xml);
+        Assert.Contains(BestellijstService.StandaardKantenbandLabel, xml);
         Assert.Contains(BestellijstExportService.CncNulpuntLabel, xml);
-        Assert.Contains("Boorgat 1 X (links, mm)", xml);
-        Assert.Contains("Boorgat 1 Y (boven, mm)", xml);
+        Assert.Contains("Boortype", xml);
+        Assert.Contains("35 mm potscharniergaten", xml);
+        Assert.Contains("Potscharniergat 1 X (links, mm)", xml);
+        Assert.Contains("Potscharniergat 1 Y (boven, mm)", xml);
         Assert.Contains("577.5", xml);
         Assert.Contains("Hoge Deur 1", xml);
     }
@@ -79,11 +81,11 @@ public class BestellijstRenderersTests
         var html = BestellijstPrintHtmlRenderer.Render(document);
 
         Assert.Contains("Bestellijst", html);
-        Assert.Contains("ABS-band", html);
-        Assert.Contains(BestellijstService.StandaardAbsBandLabel, html);
+        Assert.Contains("Kantenband", html);
+        Assert.Contains(BestellijstService.StandaardKantenbandLabel, html);
         Assert.Contains(BestellijstExportService.CncNulpuntLabel, html);
-        Assert.Contains("Boorgaten", html);
-        Assert.Contains("B1: X", html);
+        Assert.Contains("Potscharniergaten (35 mm)", html);
+        Assert.Contains("Potscharniergat 1 (35 mm): X", html);
         Assert.Contains("Y 83 mm", html);
         Assert.Contains("Hoge Deur 1", html);
         Assert.Contains("<svg", html);
@@ -141,7 +143,7 @@ public class BestellijstExportFlowHelperTests
         var excelPunten = BestellijstExportFlowHelper.MaakPreviewPunten(document, BestellijstExportType.Excel);
 
         Assert.Contains(pdfPunten, punt => punt.Contains("visual", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(excelPunten, punt => punt.Contains("B3 X/Y", StringComparison.Ordinal));
+        Assert.Contains(excelPunten, punt => punt.Contains("1 t/m 3", StringComparison.Ordinal));
         Assert.Contains(excelPunten, punt => punt.Contains("sorteren", StringComparison.OrdinalIgnoreCase));
     }
 }
@@ -153,7 +155,7 @@ internal static class BestellijstExportTestData
         BasisNaam = "Hoge Deur",
         Naam = "Hoge Deur 1",
         Aantal = 2,
-        AbsBandLabel = BestellijstService.StandaardAbsBandLabel,
+        KantenbandLabel = BestellijstService.StandaardKantenbandLabel,
         PaneelRolLabel = "Deur",
         WandNaam = "Muur",
         KastenLabel = "Hoge kast links",

@@ -14,7 +14,7 @@
     <StapHulpDrawer StapId="bestellijst" KnopLabel="Hulp bij stap" />
     <TerminologieUitleg Compact="true"
                         CompactLabel="Leg termen uit"
-                        Sleutels="absband,cnc"
+                        Sleutels="kantenband,cnc,scharnierpot"
                         Beschrijving="Deze woordenlijst helpt bij de technische termen in de bestellijst en export." />
 </div>
 
@@ -70,8 +70,8 @@ else
                     <div>
                         <div class="fw-semibold">Technische controle voor productie (optioneel)</div>
                         <div class="small text-muted">@(_toonTechnischeDetails
-                            ? $"{totaalBoorgaten} boorgaten zichtbaar."
-                            : "Open alleen voor CNC-, boorgat- of productiecontrole.")</div>
+                            ? $"{FormatPotscharnierGatTelling(totaalBoorgaten)} zichtbaar."
+                            : "Open alleen voor CNC- of productiecontrole van 35 mm potscharniergaten.")</div>
                     </div>
                 </summary>
                 <div class="d-flex flex-column gap-3 mt-3">
@@ -83,19 +83,19 @@ else
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <label class="form-check-label fw-semibold" for="toon-technische-bestellijst">
                                 Toon technische kolommen
-                            </label>
-                            <HulpInfoKnop Titel="Technische details in de bestellijst"
-                                          Tekst="Deze kolommen zijn vooral bedoeld voor overdracht naar productie of controle van de boorgaten en CNC-bewerkingen."
+                             </label>
+                             <HulpInfoKnop Titel="Technische details in de bestellijst"
+                                          Tekst="Deze kolommen zijn vooral bedoeld voor overdracht naar productie of controle van de 35 mm potscharniergaten en CNC-bewerkingen."
                                           Voorbeeld="Laat de technische details uit zolang u vooral aantallen, typen en afmetingen wilt controleren."
                                           WatNuDoen="Schakel deze optie alleen in als u de lijst technisch wilt nalopen of exporteren voor nabewerking." />
                         </div>
-                        <div class="form-text hulp-hint">Gebruik dit voor boorgaten, CNC en productiecontrole.</div>
+                        <div class="form-text hulp-hint">Gebruik dit voor 35 mm potscharniergaten, CNC en productiecontrole.</div>
                     </div>
 
                     @if (_toonTechnischeDetails)
                     {
                         <div class="small text-muted bestellijst-toolbar-note">
-                            <strong>Technische weergave:</strong> @BestellijstExportFormatter.FormatCncAssenSamenvatting() · @totaalBoorgaten boorgaten totaal
+                            <strong>Technische weergave:</strong> @BestellijstExportFormatter.FormatCncAssenSamenvatting() · @FormatPotscharnierGatTelling(totaalBoorgaten) totaal
                         </div>
                     }
                 </div>
@@ -403,7 +403,7 @@ else
                                     <td>
                                         <div>@MaatLabel(item)</div>
                                     </td>
-                                    <td>@item.AbsBandLabel</td>
+                                    <td>@item.KantenbandLabel</td>
                                     <td class="small text-muted">@ContextSamenvatting(item)</td>
                                     @if (_toonTechnischeDetails)
                                     {
@@ -598,7 +598,7 @@ else
 
         if (item.Boorgaten.Count == 0)
         {
-            regels.Add("Geen boorgaten.");
+            regels.Add("Geen 35 mm potscharniergaten.");
             return regels;
         }
 
@@ -606,11 +606,14 @@ else
         {
             var boorgat = item.Boorgaten[i];
             regels.Add(
-                $"B{i + 1}: X {FormatNumber(BestellijstExportService.BerekenCncX(item, boorgat))} · Y {FormatNumber(BestellijstExportService.BerekenCncY(boorgat))}");
+                $"Potscharniergat {i + 1} (35 mm): X {FormatNumber(BestellijstExportService.BerekenCncX(item, boorgat))} · Y {FormatNumber(BestellijstExportService.BerekenCncY(boorgat))}");
         }
 
         return regels;
     }
+
+    private static string FormatPotscharnierGatTelling(int aantal)
+        => $"{aantal} {(aantal == 1 ? "35 mm potscharniergat" : "35 mm potscharniergaten")}";
 
     private static string FormatNumber(double value) => value.ToString("0.#");
 

@@ -317,15 +317,15 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                     <div class="text-center mb-2">
                         <PaneelVisueel Resultaat="@r" MaxHoogte="200" />
                     </div>
-                    <div class="verificatie-zijkader small text-muted">
-                        <div class="fw-semibold text-body mb-1">Paneelbeeld</div>
-                        <div>@FormatMm(r.Breedte) &#215; @FormatMm(r.Hoogte) · @OpenChecksLabel(_paneelIndex, r)</div>
-                        @if (isDeur)
-                        {
-                            <div>@r.Boorgaten.Count boorgaten &#216;@(r.Boorgaten.FirstOrDefault()?.Diameter ?? 35) mm</div>
-                        }
+                        <div class="verificatie-zijkader small text-muted">
+                            <div class="fw-semibold text-body mb-1">Paneelbeeld</div>
+                            <div>@FormatMm(r.Breedte) &#215; @FormatMm(r.Hoogte) · @OpenChecksLabel(_paneelIndex, r)</div>
+                            @if (isDeur)
+                            {
+                                <div>@r.Boorgaten.Count @(r.Boorgaten.Count == 1 ? "potscharniergat" : "potscharniergaten") &#216;@(r.Boorgaten.FirstOrDefault()?.Diameter ?? 35) mm</div>
+                            }
+                        </div>
                     </div>
-                </div>
             </div>
         </div>
 
