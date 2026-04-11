@@ -226,7 +226,7 @@ public static class WandOpstellingHelper
         IEnumerable<Kast> andereKasten)
     {
         const double minGap = 0.001;
-        const double maxGap = RasterMm - 0.001;
+        const double maxGap = RasterMm + 0.001;
         const double minOverlap = 1.0;
 
         var resultaat = new List<(Guid, double, double)>();

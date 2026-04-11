@@ -1,0 +1,16 @@
+using System.IO.Compression;
+using System.Text;
+
+var encoded = "fVS9UvMwEHyVjKrvm7nCOln-SUlDAQwdDUMhiICQYGdsJ8AwvDunv0h2YpqM7dvd2z2d8s0ObCmAfbDl_Tdr2JLd7PcdA_bKllhmGbANVTLggCAgBwkFlFBB_QBMucrDDzjmld5vdLM4qEY9068aPlTfay_GsyDGEbgAnh9512qle0I9UsvcoMZwakE9qJ95c4zLrm2HBffKNZc2AC-AaUqDwD6D1JeVArYzSrKgvpgLqFFAkQkQeRndb_W6cYpiIkj8VBAzLgPrYrtuVn5cFZU9awQXeRbgzjjOGx_5xVKCLJMBG4uBPTXJbVdezZkMvInNSEhs3ujVev8eBlzIUSc6P0OcDFdkyShVP7xp366O7eIsPbkUR48um_jrAEIwnATzJKwiKaKTVGbPbCZaNI5-0Wz8ZBz2uws25i3-bdrdWv__m39Cvm1Wulv0u1ZvH9XGOU05o3MPpLvJ5UkJp9783TlryaP9bfWWDtovuqxpZEfXZREXQL00euhagxtIwp2KGXDMKAhOulQm3Sd7U92rR7v9O1uwAvkcgJfej7B-LIDPSU8LJ9IjwDlpMM37gEB0O2lKOYi5kgR0uhi-mH_E9L0CdyHMc3F84hgfjXjKoL_EmZDTwknIESANSd87gv78Ag";
+
+var b64 = encoded.Replace('-', '+').Replace('_', '/');
+var mod = b64.Length % 4;
+if (mod != 0) b64 += new string('=', 4 - mod);
+
+var bytes = Convert.FromBase64String(b64);
+using var ms = new MemoryStream(bytes);
+using var outMs = new MemoryStream();
+using var br = new DeflateStream(ms, CompressionMode.Decompress);
+br.CopyTo(outMs);
+var json = Encoding.UTF8.GetString(outMs.ToArray());
+Console.WriteLine(json);

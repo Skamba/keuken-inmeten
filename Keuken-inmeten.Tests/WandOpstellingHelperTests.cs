@@ -283,6 +283,21 @@ public class WandOpstellingHelperTests
     }
 
     [Fact]
+    public void BepaalGatSluitingen_sluit_gap_van_exact_een_rasterstap()
+    {
+        // 10mm gap = RasterMm — still invisible in UI and should be closed by Uitlijnen
+        var groot = new Kast { Id = Guid.NewGuid(), Breedte = 600, Hoogte = 1915, XPositie = 0, HoogteVanVloer = 100 };
+        var blind = new Kast { Id = Guid.NewGuid(), Breedte = 600, Hoogte = 280, XPositie = 0, HoogteVanVloer = 2025 };
+        // groot top = 2015, blind bottom = 2025 → gap = 10mm
+
+        var sluitingen = WandOpstellingHelper.BepaalGatSluitingen(groot, [blind]);
+
+        var sluiting = Assert.Single(sluitingen);
+        Assert.Equal(blind.Id, sluiting.KastId);
+        Assert.Equal(2015d, sluiting.HoogteVanVloer); // blind snaps down to grots top
+    }
+
+    [Fact]
     public void BepaalGatSluitingen_negeert_kasten_zonder_overlap_in_dwarsrichting()
     {
         // Kasten on completely different x – no horizontal overlap, so vertical gap is irrelevant
