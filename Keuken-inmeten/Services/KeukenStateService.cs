@@ -272,8 +272,75 @@ public class KeukenStateService
         Kasten[index] = genormaliseerd;
         BijwerkenKastTemplate(genormaliseerd);
         VerplaatsKastNaarWandZonderNotify(genormaliseerd.Id, wandId);
+        SluitGatenNaKastWijziging(genormaliseerd, doelWand);
         NotifyChanged();
         return true;
+    }
+
+    private void SluitGatenNaKastWijziging(Kast gewijzigdeKast, KeukenWand wand)
+    {
+        var andereKasten = KastenVoorWand(wand.Id)
+            .Where(k => k.Id != gewijzigdeKast.Id)
+            .ToList();
+
+        foreach (var (kastId, nieuwX, nieuwY) in WandOpstellingHelper.BepaalGatSluitingen(gewijzigdeKast, andereKasten))
+        {
+            var andereKast = Kasten.Find(k => k.Id == kastId);
+            if (andereKast is null)
+                continue;
+
+            var kandidaat = IndelingFormulierHelper.KopieerKast(andereKast);
+            kandidaat.XPositie = KeukenDomeinValidatieService.NormaliseerPositie(nieuwX);
+            kandidaat.HoogteVanVloer = KeukenDomeinValidatieService.NormaliseerPositie(nieuwY);
+            if (PastKastOpWand(wand, kandidaat, kandidaat.Id))
+            {
+                andereKast.XPositie = kandidaat.XPositie;
+                andereKast.HoogteVanVloer = kandidaat.HoogteVanVloer;
+            }
+        }
+    }
+
+    public bool SluitAlleGatenOpWand(Guid wandId)
+    {
+        var wand = Wanden.Find(w => w.Id == wandId);
+        if (wand is null)
+            return false;
+
+        var gewijzigd = false;
+        var kasten = KastenVoorWand(wandId);
+
+        // Itereer totdat er geen aanpassingen meer zijn (gesloten gat kan volgend gat openen).
+        bool verandering;
+        do
+        {
+            verandering = false;
+            foreach (var kast in kasten)
+            {
+                var anderen = kasten.Where(k => k.Id != kast.Id).ToList();
+                foreach (var (kastId, nieuwX, nieuwY) in WandOpstellingHelper.BepaalGatSluitingen(kast, anderen))
+                {
+                    var andere = Kasten.Find(k => k.Id == kastId);
+                    if (andere is null)
+                        continue;
+
+                    var kandidaat = IndelingFormulierHelper.KopieerKast(andere);
+                    kandidaat.XPositie = KeukenDomeinValidatieService.NormaliseerPositie(nieuwX);
+                    kandidaat.HoogteVanVloer = KeukenDomeinValidatieService.NormaliseerPositie(nieuwY);
+                    if (PastKastOpWand(wand, kandidaat, kandidaat.Id))
+                    {
+                        andere.XPositie = kandidaat.XPositie;
+                        andere.HoogteVanVloer = kandidaat.HoogteVanVloer;
+                        gewijzigd = true;
+                        verandering = true;
+                    }
+                }
+            }
+        } while (verandering);
+
+        if (gewijzigd)
+            NotifyChanged();
+
+        return gewijzigd;
     }
 
     public bool VerplaatsKastNaarWand(Guid kastId, Guid wandId, int? index = null)

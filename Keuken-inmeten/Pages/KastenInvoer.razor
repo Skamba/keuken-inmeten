@@ -268,6 +268,11 @@ else
                                         <h6 class="mb-0">Wandopstelling</h6>
                                         <div class="small text-muted">Live controle van maat, volgorde en vrije ruimte.</div>
                                     </div>
+                                    <button class="btn btn-sm btn-outline-success"
+                                            title="Sluit kleine gaten (< 10 mm) tussen aangrenzende kasten automatisch"
+                                            @onclick="() => SluitGatenOpActieveWand()">
+                                        Uitlijnen
+                                    </button>
                                 </div>
                                 <WandOpstelling Kasten="@wandKasten"
                                                 Apparaten="@wandApparaten"

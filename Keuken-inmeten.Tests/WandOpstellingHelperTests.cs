@@ -196,4 +196,101 @@ public class WandOpstellingHelperTests
         Assert.Equal(1915d, positie.Value.HoogteVanVloer);
         Assert.Equal(0d, positie.Value.XPositie);
     }
+
+    [Fact]
+    public void BepaalAansluitingen_detecteert_horizontale_aanraking()
+    {
+        var groot = new Kast { Breedte = 600, Hoogte = 1915, XPositie = 0, HoogteVanVloer = 0 };
+        var klein = new Kast { Breedte = 600, Hoogte = 315, XPositie = 0, HoogteVanVloer = 1915 };
+
+        var aansluitingen = WandOpstellingHelper.BepaalAansluitingen([groot, klein]);
+
+        Assert.Single(aansluitingen);
+        var a = aansluitingen[0];
+        Assert.Equal(0d, a.X1);
+        Assert.Equal(600d, a.X2);
+        Assert.Equal(1915d, a.Y1);
+        Assert.Equal(1915d, a.Y2);
+    }
+
+    [Fact]
+    public void BepaalAansluitingen_detecteert_verticale_aanraking()
+    {
+        var links = new Kast { Breedte = 600, Hoogte = 720, XPositie = 0, HoogteVanVloer = 0 };
+        var rechts = new Kast { Breedte = 600, Hoogte = 720, XPositie = 600, HoogteVanVloer = 0 };
+
+        var aansluitingen = WandOpstellingHelper.BepaalAansluitingen([links, rechts]);
+
+        Assert.Single(aansluitingen);
+        var a = aansluitingen[0];
+        Assert.Equal(600d, a.X1);
+        Assert.Equal(600d, a.X2);
+        Assert.Equal(0d, a.Y1);
+        Assert.Equal(720d, a.Y2);
+    }
+
+    [Fact]
+    public void BepaalAansluitingen_negeert_kasten_met_een_gat_ertussen()
+    {
+        var groot = new Kast { Breedte = 600, Hoogte = 1915, XPositie = 0, HoogteVanVloer = 0 };
+        var klein = new Kast { Breedte = 600, Hoogte = 315, XPositie = 0, HoogteVanVloer = 1920 };
+
+        var aansluitingen = WandOpstellingHelper.BepaalAansluitingen([groot, klein]);
+
+        Assert.Empty(aansluitingen);
+    }
+
+    [Fact]
+    public void BepaalGatSluitingen_detecteert_klein_verticaal_gat_boven_gewijzigde_kast()
+    {
+        // Klein was h=320, now h=315. Blind was placed at y=2020+320=2340, now there's a 5mm gap.
+        var klein = new Kast { Id = Guid.NewGuid(), Breedte = 600, Hoogte = 315, XPositie = 2400, HoogteVanVloer = 2020 };
+        var blind = new Kast { Id = Guid.NewGuid(), Breedte = 600, Hoogte = 280, XPositie = 2400, HoogteVanVloer = 2340 };
+
+        var sluitingen = WandOpstellingHelper.BepaalGatSluitingen(klein, [blind]);
+
+        Assert.Single(sluitingen);
+        Assert.Equal(blind.Id, sluitingen[0].KastId);
+        Assert.Equal(2335d, sluitingen[0].HoogteVanVloer); // closes gap: klein.top = 2335
+        Assert.Equal(2400d, sluitingen[0].XPositie);
+    }
+
+    [Fact]
+    public void BepaalGatSluitingen_detecteert_klein_horizontaal_gat_rechts_van_gewijzigde_kast()
+    {
+        // Kast A was b=600, now b=595. Kast B was placed flush at x=600, now 5mm gap.
+        var kastA = new Kast { Id = Guid.NewGuid(), Breedte = 595, Hoogte = 720, XPositie = 0, HoogteVanVloer = 100 };
+        var kastB = new Kast { Id = Guid.NewGuid(), Breedte = 600, Hoogte = 720, XPositie = 600, HoogteVanVloer = 100 };
+
+        var sluitingen = WandOpstellingHelper.BepaalGatSluitingen(kastA, [kastB]);
+
+        Assert.Single(sluitingen);
+        Assert.Equal(kastB.Id, sluitingen[0].KastId);
+        Assert.Equal(595d, sluitingen[0].XPositie); // closes gap: kastA.right = 595
+        Assert.Equal(100d, sluitingen[0].HoogteVanVloer);
+    }
+
+    [Fact]
+    public void BepaalGatSluitingen_negeert_gaten_groter_dan_raster()
+    {
+        // 15mm gap is bigger than RasterMm (10mm) – should not snap
+        var groot = new Kast { Id = Guid.NewGuid(), Breedte = 600, Hoogte = 1915, XPositie = 0, HoogteVanVloer = 0 };
+        var klein = new Kast { Id = Guid.NewGuid(), Breedte = 600, Hoogte = 315, XPositie = 0, HoogteVanVloer = 1930 };
+
+        var sluitingen = WandOpstellingHelper.BepaalGatSluitingen(groot, [klein]);
+
+        Assert.Empty(sluitingen);
+    }
+
+    [Fact]
+    public void BepaalGatSluitingen_negeert_kasten_zonder_overlap_in_dwarsrichting()
+    {
+        // Kasten on completely different x – no horizontal overlap, so vertical gap is irrelevant
+        var kastA = new Kast { Id = Guid.NewGuid(), Breedte = 600, Hoogte = 315, XPositie = 0, HoogteVanVloer = 0 };
+        var kastB = new Kast { Id = Guid.NewGuid(), Breedte = 600, Hoogte = 315, XPositie = 1200, HoogteVanVloer = 320 };
+
+        var sluitingen = WandOpstellingHelper.BepaalGatSluitingen(kastA, [kastB]);
+
+        Assert.Empty(sluitingen);
+    }
 }

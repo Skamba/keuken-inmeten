@@ -109,6 +109,12 @@ public partial class KastenInvoer
         bewerkWandId = null;
     }
 
+    private void SluitGatenOpActieveWand()
+    {
+        if (actieveWandId is Guid wandId)
+            State.SluitAlleGatenOpWand(wandId);
+    }
+
     private void OpenWandWerkruimte(Guid wandId)
     {
         actieveWandId = wandId;

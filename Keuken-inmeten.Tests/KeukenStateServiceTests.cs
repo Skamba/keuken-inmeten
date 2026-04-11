@@ -448,6 +448,48 @@ public class KeukenStateServiceTests
     }
 
     [Fact]
+    public void SluitAlleGatenOpWand_sluit_kleine_gaten_tussen_aangrenzende_kasten()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand { Naam = "Testwand", Breedte = 3000, Hoogte = 2700 };
+        state.VoegWandToe(wand);
+
+        var groot = new Kast { Naam = "Groot", Type = KastType.Onderkast, Breedte = 600, Hoogte = 1915, Diepte = 560, Wanddikte = 18, GaatjesAfstand = 32, EersteGaatVanBoven = 19, HoogteVanVloer = 0 };
+        var klein = new Kast { Naam = "Klein", Type = KastType.Onderkast, Breedte = 600, Hoogte = 315, Diepte = 560, Wanddikte = 18, GaatjesAfstand = 32, EersteGaatVanBoven = 19, HoogteVanVloer = 1920 };
+
+        state.VoegKastToe(groot, wand.Id);
+        state.VoegKastToe(klein, wand.Id);
+
+        var gewijzigd = state.SluitAlleGatenOpWand(wand.Id);
+
+        Assert.True(gewijzigd);
+        var kleinNa = state.Kasten.Find(k => k.Id == klein.Id)!;
+        Assert.Equal(1915d, kleinNa.HoogteVanVloer);
+    }
+
+    [Fact]
+    public void SluitAlleGatenOpWand_doet_niets_als_er_geen_gaten_zijn()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand { Naam = "Testwand", Breedte = 3000, Hoogte = 2700 };
+        state.VoegWandToe(wand);
+
+        var groot = new Kast { Naam = "Groot", Type = KastType.Onderkast, Breedte = 600, Hoogte = 1915, Diepte = 560, Wanddikte = 18, GaatjesAfstand = 32, EersteGaatVanBoven = 19, HoogteVanVloer = 0 };
+        var klein = new Kast { Naam = "Klein", Type = KastType.Onderkast, Breedte = 600, Hoogte = 315, Diepte = 560, Wanddikte = 18, GaatjesAfstand = 32, EersteGaatVanBoven = 19, HoogteVanVloer = 1915 };
+
+        state.VoegKastToe(groot, wand.Id);
+        state.VoegKastToe(klein, wand.Id);
+
+        var notificaties = 0;
+        state.OnStateChanged += () => notificaties++;
+
+        var gewijzigd = state.SluitAlleGatenOpWand(wand.Id);
+
+        Assert.False(gewijzigd);
+        Assert.Equal(0, notificaties);
+    }
+
+    [Fact]
     public void VoegKastToe_zonder_bestaande_wand_voegt_niets_toe()
     {
         var state = new KeukenStateService();
