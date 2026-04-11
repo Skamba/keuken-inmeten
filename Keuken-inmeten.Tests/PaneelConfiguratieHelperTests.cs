@@ -247,4 +247,61 @@ public class PaneelConfiguratieHelperTests
                 Assert.Equal(300d, segment.Hoogte);
             });
     }
+
+    [Fact]
+    public void MaakStandaardOpdeelHoogtes_deelt_exact_deelbare_hoogte_in_gelijke_stukken()
+    {
+        var hoogtes = PaneelConfiguratieHelper.MaakStandaardOpdeelHoogtes(720, 3);
+
+        Assert.Equal([240d, 240d, 240d], hoogtes);
+    }
+
+    [Fact]
+    public void MaakStandaardOpdeelHoogtes_verspreidt_rest_zodat_verschil_maximaal_1_mm_is()
+    {
+        // 704 / 3 = 234 rest 2 → two panels 235, one panel 234
+        var hoogtes = PaneelConfiguratieHelper.MaakStandaardOpdeelHoogtes(704, 3);
+
+        Assert.Equal(3, hoogtes.Count);
+        Assert.Equal(704d, hoogtes.Sum());
+        Assert.Equal(1d, hoogtes.Max() - hoogtes.Min());
+    }
+
+    [Fact]
+    public void MaakStandaardOpdeelHoogtes_rest_1_geeft_zelfde_resultaat_als_vroeger()
+    {
+        // 700 / 3 = 233 rest 1: one panel 234 (at the end), two panels 233
+        var hoogtes = PaneelConfiguratieHelper.MaakStandaardOpdeelHoogtes(700, 3);
+
+        Assert.Equal([233d, 233d, 234d], hoogtes);
+    }
+
+    [Fact]
+    public void MaakStandaardOpdeelHoogtes_grote_rest_spreidt_over_meerdere_panelen()
+    {
+        // 703 / 4 = 175 rest 3 → three panels 176, one panel 175
+        var hoogtes = PaneelConfiguratieHelper.MaakStandaardOpdeelHoogtes(703, 4);
+
+        Assert.Equal(4, hoogtes.Count);
+        Assert.Equal(703d, hoogtes.Sum());
+        Assert.Equal(1d, hoogtes.Max() - hoogtes.Min());
+        Assert.Equal(3, hoogtes.Count(h => h == 176d));
+    }
+
+    [Fact]
+    public void MaakStandaardOpdeelHoogtes_geeft_lege_lijst_bij_nul_of_negatief_aantal()
+    {
+        Assert.Empty(PaneelConfiguratieHelper.MaakStandaardOpdeelHoogtes(720, 0));
+        Assert.Empty(PaneelConfiguratieHelper.MaakStandaardOpdeelHoogtes(720, -1));
+    }
+
+    [Fact]
+    public void MaakStandaardOpdeelHoogtes_niet_geheel_totaal_valt_terug_op_oud_gedrag()
+    {
+        // 700.5 is not an integer → fallback: floor per panel except last
+        var hoogtes = PaneelConfiguratieHelper.MaakStandaardOpdeelHoogtes(700.5, 3);
+
+        Assert.Equal(3, hoogtes.Count);
+        Assert.Equal(700.5, hoogtes.Sum(), precision: 1);
+    }
 }

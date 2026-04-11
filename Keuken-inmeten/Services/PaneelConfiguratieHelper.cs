@@ -243,6 +243,34 @@ public static class PaneelConfiguratieHelper
     public static string VrijSegmentLabel(int index, PaneelRechthoek segment)
         => $"Vak {index + 1} · {segment.Hoogte:0.#} hoog · onder {segment.HoogteVanVloer:0.#}";
 
+    /// <summary>
+    /// Verdeelt <paramref name="beschikbareHoogte"/> over <paramref name="aantal"/> panelen zodanig
+    /// dat het onderlinge verschil nooit meer dan 1 mm bedraagt. Wanneer de totale hoogte geen
+    /// heel getal is wordt de fractie aan het laatste paneel toegevoegd (terugval op oud gedrag).
+    /// </summary>
+    public static List<double> MaakStandaardOpdeelHoogtes(double beschikbareHoogte, int aantal)
+    {
+        if (aantal <= 0)
+            return [];
+
+        var totaalGerond = (int)Math.Round(beschikbareHoogte, 0, MidpointRounding.AwayFromZero);
+
+        // Fractional total: put remainder on last panel (can't round all to integers)
+        if (Math.Abs(beschikbareHoogte - totaalGerond) > 0.001)
+        {
+            var basis = Math.Floor(beschikbareHoogte / aantal);
+            var hoogtes = Enumerable.Repeat(basis, aantal).ToList();
+            hoogtes[^1] = Math.Round(beschikbareHoogte - basis * (aantal - 1), 1);
+            return hoogtes;
+        }
+
+        // Integer total: spread remainder across panels so max difference is 1 mm
+        var basisMm = totaalGerond / aantal;
+        var aantalGroter = totaalGerond % aantal;
+        return [.. Enumerable.Range(0, aantal)
+            .Select(i => (double)(i < aantal - aantalGroter ? basisMm : basisMm + 1))];
+    }
+
     public static string TypeBadgeClass(PaneelType type)
         => type switch
         {

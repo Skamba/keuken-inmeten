@@ -731,15 +731,7 @@ public partial class PaneelConfiguratie
     };
 
     private static List<double> MaakStandaardOpdeelHoogtes(double beschikbareHoogte, int aantal)
-    {
-        if (aantal <= 0)
-            return [];
-
-        var basisHoogte = Math.Floor(beschikbareHoogte / aantal);
-        var hoogtes = Enumerable.Repeat(basisHoogte, aantal).ToList();
-        hoogtes[^1] = Math.Round(beschikbareHoogte - (basisHoogte * (aantal - 1)), 1);
-        return hoogtes;
-    }
+        => PaneelConfiguratieHelper.MaakStandaardOpdeelHoogtes(beschikbareHoogte, aantal);
 
     private static PaneelToewijzing KopieerToewijzing(PaneelToewijzing bron)
         => IndelingFormulierHelper.KopieerToewijzing(bron);
