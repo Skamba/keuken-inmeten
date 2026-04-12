@@ -1,7 +1,16 @@
 const DRAG_THRESHOLD = 5; // px — less than this is treated as a click
 
 // Per-instance state stored per SVG element to support multiple instances on one page.
-const instances = new WeakMap();
+const instances = new Map();
+
+function resolveSvgElement(svgElementId) {
+    if (typeof svgElementId !== 'string' || svgElementId.length === 0) {
+        return null;
+    }
+
+    const candidate = document.getElementById(svgElementId);
+    return candidate instanceof SVGSVGElement ? candidate : null;
+}
 
 function createInstance(svgEl, dotNetRef, leesAlleen = false) {
     let dragging = null;
@@ -331,9 +340,15 @@ function createInstance(svgEl, dotNetRef, leesAlleen = false) {
     return { onPointerDown, onPointerMove, onPointerUp, onKeyDown, onClick };
 }
 
-export function init(svgEl, dotNetRef, leesAlleen = false) {
+export function init(svgElementId, dotNetRef, leesAlleen = false) {
+    const svgEl = resolveSvgElement(svgElementId);
+    if (!svgEl) {
+        return;
+    }
+
+    dispose(svgElementId);
     const handlers = createInstance(svgEl, dotNetRef, leesAlleen);
-    instances.set(svgEl, handlers);
+    instances.set(svgElementId, { svgEl, handlers });
     svgEl.addEventListener('pointerdown', handlers.onPointerDown);
     svgEl.addEventListener('pointermove', handlers.onPointerMove);
     svgEl.addEventListener('pointerup', handlers.onPointerUp);
@@ -341,13 +356,15 @@ export function init(svgEl, dotNetRef, leesAlleen = false) {
     svgEl.addEventListener('keydown', handlers.onKeyDown);
 }
 
-export function dispose(svgEl) {
-    const handlers = instances.get(svgEl);
-    if (!handlers) return;
+export function dispose(svgElementId) {
+    const instance = instances.get(svgElementId);
+    if (!instance) return;
+
+    const { svgEl, handlers } = instance;
     svgEl.removeEventListener('pointerdown', handlers.onPointerDown);
     svgEl.removeEventListener('pointermove', handlers.onPointerMove);
     svgEl.removeEventListener('pointerup', handlers.onPointerUp);
     svgEl.removeEventListener('click', handlers.onClick);
     svgEl.removeEventListener('keydown', handlers.onKeyDown);
-    instances.delete(svgEl);
+    instances.delete(svgElementId);
 }

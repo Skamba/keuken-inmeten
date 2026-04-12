@@ -27,11 +27,11 @@ public partial class WandOpstelling
     [Parameter] public EventCallback<WandPlankActie> OnPlankActie { get; set; }
     [Parameter] public IReadOnlyList<PaneelToewijzing>? Toewijzingen { get; set; }
 
-    private ElementReference svgRef;
     private Guid? _geselecteerdeePlankId;
     private Guid? _geselecteerdeePlankKastId;
     private DotNetObjectReference<WandOpstelling>? dotNetRef;
     private WandOpstellingJsInterop? jsInterop;
+    private string SvgElementId { get; } = $"wand-opstelling-{Guid.NewGuid():N}";
 
     private const double P = 50;
     private const double MaxVisueleHoogte = 500;
@@ -55,7 +55,7 @@ public partial class WandOpstelling
         {
             dotNetRef = DotNetObjectReference.Create(this);
             jsInterop = new WandOpstellingJsInterop(JS);
-            await jsInterop.InitAsync(svgRef, dotNetRef, LeesAlleen);
+            await jsInterop.InitAsync(SvgElementId, dotNetRef, LeesAlleen);
         }
     }
 
@@ -85,7 +85,7 @@ public partial class WandOpstelling
     {
         if (jsInterop is not null)
         {
-            await jsInterop.DisposeSvgAsync(svgRef);
+            await jsInterop.DisposeSvgAsync(SvgElementId);
             await jsInterop.DisposeAsync();
         }
         dotNetRef?.Dispose();
