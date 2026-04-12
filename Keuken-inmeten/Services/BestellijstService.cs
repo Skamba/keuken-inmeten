@@ -111,9 +111,11 @@ public static class BestellijstService
                     Resultaat = eerste.Resultaat
                 };
             })
-            .OrderBy(item => item.BasisNaam, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(item => item.Hoogte)
-            .ThenBy(item => item.Breedte)
+            .OrderByDescending(item => item.Boorgaten.Count > 0)
+            .ThenByDescending(item => item.Hoogte * item.Breedte)
+            .ThenByDescending(item => item.Hoogte)
+            .ThenByDescending(item => item.Breedte)
+            .ThenBy(item => item.BasisNaam, StringComparer.OrdinalIgnoreCase)
             .ThenBy(item => item.Naam, StringComparer.OrdinalIgnoreCase)
             .ToList();
 

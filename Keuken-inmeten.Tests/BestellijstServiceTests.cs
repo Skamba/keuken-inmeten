@@ -152,6 +152,70 @@ public class BestellijstServiceTests
     }
 
     [Fact]
+    public void Bestellijst_sorteert_eerst_op_boorbewerkingen_en_daarna_op_grootte()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Muur",
+            Breedte = 4000,
+            Hoogte = 2700,
+            PlintHoogte = 100
+        };
+
+        state.VoegWandToe(wand);
+        state.StelPaneelRandSpelingIn(0);
+
+        var hogeDeurKast = MaakHogeKast("Hoge kast deur", xPositie: 0);
+        var onderDeurKast = MaakOnderkast("Onderkast deur", xPositie: 700);
+        var grootBlindpaneelKast = MaakHogeKast("Hoge kast blind groot", xPositie: 1400);
+        grootBlindpaneelKast.Breedte = 800;
+        var kleinBlindpaneelKast = MaakHogeKast("Hoge kast blind klein", xPositie: 2300);
+        kleinBlindpaneelKast.Breedte = 700;
+        kleinBlindpaneelKast.Hoogte = 1600;
+
+        state.VoegKastToe(hogeDeurKast, wand.Id);
+        state.VoegKastToe(onderDeurKast, wand.Id);
+        state.VoegKastToe(grootBlindpaneelKast, wand.Id);
+        state.VoegKastToe(kleinBlindpaneelKast, wand.Id);
+
+        state.VoegToewijzingToe(MaakDeurToewijzing(hogeDeurKast.Id, breedte: 600, hoogte: 2200));
+        state.VoegToewijzingToe(MaakDeurToewijzing(onderDeurKast.Id, breedte: 600, hoogte: 720));
+        state.VoegToewijzingToe(MaakBlindpaneelToewijzing(grootBlindpaneelKast.Id, breedte: 800, hoogte: 2200));
+        state.VoegToewijzingToe(MaakBlindpaneelToewijzing(kleinBlindpaneelKast.Id, breedte: 700, hoogte: 1600));
+
+        var items = BestellijstService.BerekenItems(state);
+
+        Assert.Collection(
+            items,
+            eerste =>
+            {
+                Assert.NotEmpty(eerste.Boorgaten);
+                Assert.Equal(2200, eerste.Hoogte);
+                Assert.Equal(600, eerste.Breedte);
+            },
+            tweede =>
+            {
+                Assert.NotEmpty(tweede.Boorgaten);
+                Assert.Equal(720, tweede.Hoogte);
+                Assert.Equal(600, tweede.Breedte);
+            },
+            derde =>
+            {
+                Assert.Empty(derde.Boorgaten);
+                Assert.Equal(2200, derde.Hoogte);
+                Assert.Equal(800, derde.Breedte);
+            },
+            vierde =>
+            {
+                Assert.Empty(vierde.Boorgaten);
+                Assert.Equal(1600, vierde.Hoogte);
+                Assert.Equal(700, vierde.Breedte);
+            });
+    }
+
+    [Fact]
     public void Excel_export_bevat_boorgatkolommen_en_metadata()
     {
         var item = MaakBestellijstItem();
@@ -251,15 +315,22 @@ public class BestellijstServiceTests
         XPositie = xPositie
     };
 
-    private static PaneelToewijzing MaakDeurToewijzing(Guid kastId) => new()
-    {
-        Id = Guid.NewGuid(),
-        KastIds = [kastId],
-        Type = PaneelType.Deur,
-        ScharnierZijde = ScharnierZijde.Rechts,
-        Breedte = 600,
-        Hoogte = 2200
-    };
+    private static PaneelToewijzing MaakDeurToewijzing(Guid kastId)
+        => MaakDeurToewijzing(kastId, breedte: 600, hoogte: 2200);
+
+    private static PaneelToewijzing MaakDeurToewijzing(
+        Guid kastId,
+        double breedte,
+        double hoogte,
+        ScharnierZijde scharnierZijde = ScharnierZijde.Rechts) => new()
+        {
+            Id = Guid.NewGuid(),
+            KastIds = [kastId],
+            Type = PaneelType.Deur,
+            ScharnierZijde = scharnierZijde,
+            Breedte = breedte,
+            Hoogte = hoogte
+        };
 
     private static Kast MaakOnderkast(string naam, double xPositie) => new()
     {
@@ -284,6 +355,16 @@ public class BestellijstServiceTests
         ScharnierZijde = scharnierZijde,
         Breedte = 597,
         Hoogte = 200
+    };
+
+    private static PaneelToewijzing MaakBlindpaneelToewijzing(Guid kastId, double breedte, double hoogte) => new()
+    {
+        Id = Guid.NewGuid(),
+        KastIds = [kastId],
+        Type = PaneelType.BlindPaneel,
+        ScharnierZijde = ScharnierZijde.Links,
+        Breedte = breedte,
+        Hoogte = hoogte
     };
 
     private static BestellijstItem MaakBestellijstItem() => new()
