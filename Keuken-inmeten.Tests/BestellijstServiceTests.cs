@@ -211,7 +211,8 @@ public class BestellijstServiceTests
         Assert.Contains(System.Net.WebUtility.HtmlEncode("Scharnier rechts · 3 potscharniergaten"), html);
         Assert.Contains("<th>#</th><th>X (mm)</th><th>Y (mm)</th>", html);
         Assert.Contains("83 mm", html);
-        Assert.Contains("Bovenzijde · nulpunt linksboven", html);
+        Assert.Contains("Bovenzijde", html);
+        Assert.Contains("X links · Y boven", html);
         Assert.Contains("Hoge Deur 1", html);
         Assert.Contains("<svg", html);
         Assert.Contains("window.print()", html);

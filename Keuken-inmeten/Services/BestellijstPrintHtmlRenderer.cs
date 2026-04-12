@@ -54,7 +54,8 @@ public static class BestellijstPrintHtmlRenderer
         sb.AppendLine("    .drill-table th, .drill-table td { border: none; padding: 1px 0; }");
         sb.AppendLine("    .drill-table thead th { background: none; border-bottom: 1px solid #d9e1ea; font-size: 7.8px; text-transform: none; letter-spacing: 0; color: #475569; padding-bottom: 2px; }");
         sb.AppendLine("    .drill-table td:first-child, .drill-table th:first-child { width: 18px; }");
-        sb.AppendLine("    .visual { width: 180px; }");
+        sb.AppendLine("    .visual { width: 180px; text-align: center; }");
+        sb.AppendLine("    .visual svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }");
         sb.AppendLine("    .muted { color: #64748b; }");
         sb.AppendLine("    tr { page-break-inside: avoid; }");
         sb.AppendLine("  </style>");

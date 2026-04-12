@@ -122,8 +122,9 @@ public class BestellijstRenderersTests
 
         Assert.Contains("<svg", svg);
         Assert.Contains("R01", svg);
-        Assert.Contains("Bovenzijde · nulpunt linksboven", svg);
+        Assert.Contains("Bovenzijde", svg);
         Assert.Contains(System.Net.WebUtility.HtmlEncode(BestellijstExportFormatter.FormatZaagmaat(600, 2200)), svg);
+        Assert.Contains("X links · Y boven", svg);
         Assert.Contains("#1 · 83 mm", svg);
     }
 
