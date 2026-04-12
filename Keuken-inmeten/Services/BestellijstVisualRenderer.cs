@@ -7,19 +7,21 @@ public static class BestellijstVisualRenderer
 {
     public static string Render(BestellijstVisualDocument document)
     {
-        const double horizontalPadding = 20;
-        const double headerHeight = 20;
-        const double footerHeight = 38;
-        const double minCanvasWidth = 176;
+        const double svgWidth = 176;
+        const double svgHeight = 200;
+        const double panelAreaTop = 24;
+        const double panelAreaHeight = 126;
+        const double panelAreaWidth = 126;
         const double regelBadgeWidth = 36;
-        const double maxHoogte = 130;
-        var scale = maxHoogte / Math.Max(document.HoogteMm, 1);
+        const double footerSizeY = 187;
+        const double footerAxisY = 196;
+        var scale = Math.Min(
+            panelAreaWidth / Math.Max(document.BreedteMm, 1),
+            panelAreaHeight / Math.Max(document.HoogteMm, 1));
         var width = document.BreedteMm * scale;
         var height = document.HoogteMm * scale;
-        var svgWidth = Math.Max(width + horizontalPadding * 2, minCanvasWidth);
-        var svgHeight = height + headerHeight + footerHeight + 12;
         var paneelX = (svgWidth - width) / 2;
-        var paneelY = headerHeight;
+        var paneelY = panelAreaTop + ((panelAreaHeight - height) / 2);
         var sb = new StringBuilder();
 
         sb.Append($"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{Fmt(svgWidth)}\" height=\"{Fmt(svgHeight)}\" viewBox=\"0 0 {Fmt(svgWidth)} {Fmt(svgHeight)}\">");
@@ -33,10 +35,11 @@ public static class BestellijstVisualRenderer
 
         if (document.Boorgaten.Count > 0)
         {
+            var badgeY = panelAreaTop + panelAreaHeight + 6;
             var gewensteScharnierBadgeX = document.ScharnierZijde == ScharnierZijde.Links ? paneelX : paneelX + width - 58;
             var scharnierBadgeX = Math.Max(10, Math.Min(gewensteScharnierBadgeX, svgWidth - 68));
-            sb.Append($"<rect x=\"{Fmt(scharnierBadgeX)}\" y=\"{Fmt(paneelY + height + 6)}\" width=\"58\" height=\"12\" rx=\"6\" fill=\"#e2ecf7\" stroke=\"#9bb5cf\" />");
-            sb.Append($"<text x=\"{Fmt(scharnierBadgeX + 29)}\" y=\"{Fmt(paneelY + height + 14.2)}\" font-size=\"6.8\" fill=\"#23415b\" text-anchor=\"middle\" font-weight=\"600\">Scharnier {Encode(document.ScharnierZijde.ToString().ToLowerInvariant())}</text>");
+            sb.Append($"<rect x=\"{Fmt(scharnierBadgeX)}\" y=\"{Fmt(badgeY)}\" width=\"58\" height=\"12\" rx=\"6\" fill=\"#e2ecf7\" stroke=\"#9bb5cf\" />");
+            sb.Append($"<text x=\"{Fmt(scharnierBadgeX + 29)}\" y=\"{Fmt(badgeY + 8.2)}\" font-size=\"6.8\" fill=\"#23415b\" text-anchor=\"middle\" font-weight=\"600\">Scharnier {Encode(document.ScharnierZijde.ToString().ToLowerInvariant())}</text>");
         }
 
         for (var i = 0; i < document.Boorgaten.Count; i++)
@@ -55,8 +58,8 @@ public static class BestellijstVisualRenderer
             sb.Append($"<text x=\"{Fmt(labelX)}\" y=\"{Fmt(cy + 3)}\" font-size=\"7.2\" fill=\"#4b5563\" text-anchor=\"{anchor}\">#{i + 1} · {Encode(BestellijstExportFormatter.FormatMm(boorgat.YVanafBovenMm))}</text>");
         }
 
-        sb.Append($"<text x=\"{Fmt(svgWidth / 2)}\" y=\"{Fmt(svgHeight - 13)}\" font-size=\"7.6\" fill=\"#334155\" text-anchor=\"middle\">{Encode(BestellijstExportFormatter.FormatZaagmaat(document.BreedteMm, document.HoogteMm))}</text>");
-        sb.Append($"<text x=\"{Fmt(svgWidth / 2)}\" y=\"{Fmt(svgHeight - 4)}\" font-size=\"7\" fill=\"#64748b\" text-anchor=\"middle\">X links · Y boven</text>");
+        sb.Append($"<text x=\"{Fmt(svgWidth / 2)}\" y=\"{Fmt(footerSizeY)}\" font-size=\"7.6\" fill=\"#334155\" text-anchor=\"middle\">{Encode(BestellijstExportFormatter.FormatZaagmaat(document.BreedteMm, document.HoogteMm))}</text>");
+        sb.Append($"<text x=\"{Fmt(svgWidth / 2)}\" y=\"{Fmt(footerAxisY)}\" font-size=\"7\" fill=\"#64748b\" text-anchor=\"middle\">X links · Y boven</text>");
         sb.Append("</svg>");
 
         return sb.ToString();

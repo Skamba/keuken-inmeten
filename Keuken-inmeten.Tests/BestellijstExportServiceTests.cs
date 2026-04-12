@@ -128,6 +128,24 @@ public class BestellijstRenderersTests
         Assert.Contains("#1 · 83 mm", svg);
     }
 
+    [Fact]
+    public void Visual_renderer_houdt_brede_panelen_binnen_vaste_kaartbreedte()
+    {
+        var document = new BestellijstVisualDocument(
+            "R99",
+            1198,
+            168,
+            ScharnierZijde.Links,
+            []);
+
+        var svg = BestellijstVisualRenderer.Render(document);
+
+        Assert.Contains("width=\"176\"", svg);
+        Assert.Contains("height=\"200\"", svg);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode(BestellijstExportFormatter.FormatZaagmaat(1198, 168)), svg);
+        Assert.Contains("X links · Y boven", svg);
+    }
+
     private static BestellijstExportDocument MaakDocument()
         => BestellijstExportService.BouwDocument(
             [BestellijstExportTestData.MaakBestellijstItem()],
