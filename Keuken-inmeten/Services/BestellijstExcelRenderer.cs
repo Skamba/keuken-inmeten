@@ -57,6 +57,11 @@ public static class BestellijstExcelRenderer
         ]);
         AppendRow(sb,
         [
+            CellText("Totaal oppervlak (m²)", "Meta"),
+            CellNumber(document.TotaalOppervlakteM2)
+        ]);
+        AppendRow(sb,
+        [
             CellText("Gegenereerd op", "Meta"),
             CellText(BestellijstExportFormatter.FormatGeneratedAt(document.GeneratedAt))
         ]);
@@ -64,13 +69,19 @@ public static class BestellijstExcelRenderer
 
         var koppen = new List<string>
         {
+            CellText("Regel", "Kop"),
             CellText("Naam", "Kop"),
             CellText("Aantal", "Kop"),
             CellText("Paneelrol", "Kop"),
+            CellText("Scharnierzijde", "Kop"),
+            CellText("Zaagmaat B × H (mm)", "Kop"),
+            CellText("Oppervlakte per stuk (m²)", "Kop"),
+            CellText("Oppervlakte totaal (m²)", "Kop"),
             CellText("Hoogte (mm)", "Kop"),
             CellText("Breedte (mm)", "Kop"),
             CellText("Kantenband", "Kop"),
-            CellText("Context", "Kop")
+            CellText("Context", "Kop"),
+            CellText("Bronlocaties", "Kop")
         };
 
         for (var i = 0; i < document.MaxBoorgaten; i++)
@@ -86,13 +97,19 @@ public static class BestellijstExcelRenderer
         {
             var row = new List<string>
             {
+                CellText(regel.RegelCode),
                 CellText(regel.Naam),
                 CellNumber(regel.Aantal),
                 CellText(regel.PaneelRolLabel),
+                CellText(regel.ScharnierLabel),
+                CellText(BestellijstExportFormatter.FormatZaagmaat(regel.BreedteMm, regel.HoogteMm)),
+                CellNumber(regel.OppervlaktePerStukM2),
+                CellNumber(regel.TotaleOppervlakteM2),
                 CellNumber(regel.HoogteMm),
                 CellNumber(regel.BreedteMm),
                 CellText(regel.KantenbandLabel),
-                CellText(regel.ContextLabel)
+                CellText(regel.ContextLabel),
+                CellText(BestellijstExportFormatter.FormatBronLocaties(regel.BronLocaties))
             };
 
             for (var i = 0; i < document.MaxBoorgaten; i++)

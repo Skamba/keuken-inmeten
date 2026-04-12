@@ -11,6 +11,7 @@ public class BestellijstItem
     public string WandNaam { get; set; } = "";
     public string KastenLabel { get; set; } = "";
     public string ContextLabel { get; set; } = "";
+    public List<string> BronLocaties { get; set; } = [];
     public string ScharnierLabel { get; set; } = "";
     public double Hoogte { get; set; }
     public double Breedte { get; set; }

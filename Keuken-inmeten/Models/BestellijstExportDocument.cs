@@ -12,16 +12,23 @@ public sealed record BestellijstExportDocument(
     int TotaalAantal,
     int TotaalBoorgaten,
     int MaxBoorgaten,
+    double TotaalOppervlakteM2,
     IReadOnlyList<BestellijstExportRegel> Regels);
 
 public sealed record BestellijstExportRegel(
+    int RegelNummer,
+    string RegelCode,
     string Naam,
     int Aantal,
     string PaneelRolLabel,
+    string ScharnierLabel,
     double HoogteMm,
     double BreedteMm,
+    double OppervlaktePerStukM2,
+    double TotaleOppervlakteM2,
     string KantenbandLabel,
     string ContextLabel,
+    IReadOnlyList<string> BronLocaties,
     IReadOnlyList<BestellijstExportBoorgat> Boorgaten,
     BestellijstVisualDocument Visual);
 
@@ -31,6 +38,7 @@ public sealed record BestellijstExportBoorgat(
     double YCncMm);
 
 public sealed record BestellijstVisualDocument(
+    string RegelCode,
     double BreedteMm,
     double HoogteMm,
     ScharnierZijde ScharnierZijde,

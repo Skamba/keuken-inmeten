@@ -11,7 +11,7 @@ public static class BestellijstExportService
 
     public static BestellijstExportDocument BouwDocument(IReadOnlyList<BestellijstItem> items, string paneelType, string dikteMm, DateTime generatedAt)
     {
-        var regels = items.Select(BouwRegel).ToList();
+        var regels = items.Select((item, index) => BouwRegel(item, index + 1)).ToList();
         return new BestellijstExportDocument(
             Titel: "Bestellijst",
             PaneelType: paneelType,
@@ -24,6 +24,7 @@ public static class BestellijstExportService
             TotaalAantal: regels.Sum(regel => regel.Aantal),
             TotaalBoorgaten: regels.Sum(regel => regel.Boorgaten.Count * regel.Aantal),
             MaxBoorgaten: regels.Count == 0 ? 0 : regels.Max(regel => regel.Boorgaten.Count),
+            TotaalOppervlakteM2: Math.Round(regels.Sum(regel => regel.TotaleOppervlakteM2), 3),
             Regels: regels);
     }
 
@@ -33,16 +34,25 @@ public static class BestellijstExportService
     public static string BouwPdfHtml(IReadOnlyList<BestellijstItem> items, string paneelType, string dikteMm, DateTime generatedAt)
         => BestellijstPrintHtmlRenderer.Render(BouwDocument(items, paneelType, dikteMm, generatedAt));
 
-    private static BestellijstExportRegel BouwRegel(BestellijstItem item)
+    private static BestellijstExportRegel BouwRegel(BestellijstItem item, int regelNummer)
     {
+        var regelCode = BestellijstExportFormatter.FormatRegelCode(regelNummer);
         var boorgaten = item.Boorgaten
             .Select((boorgat, index) => new BestellijstExportBoorgat(
                 index + 1,
                 BerekenCncX(item, boorgat),
                 BerekenCncY(boorgat)))
             .ToList();
+        List<string> bronLocaties = item.BronLocaties.Count > 0
+            ? [.. item.BronLocaties]
+            : string.IsNullOrWhiteSpace(item.ContextLabel)
+                ? []
+                : [item.ContextLabel];
+        var oppervlaktePerStukM2 = BerekenOppervlakteM2(item.Breedte, item.Hoogte);
+        var totaleOppervlakteM2 = BerekenOppervlakteM2(item.Breedte, item.Hoogte, item.Aantal);
 
         var visual = new BestellijstVisualDocument(
+            regelCode,
             item.Resultaat.Breedte,
             item.Resultaat.Hoogte,
             item.Resultaat.ScharnierZijde,
@@ -51,13 +61,19 @@ public static class BestellijstExportService
                 .Select(boorgat => new BestellijstVisualBoorgat(boorgat.X, boorgat.Y, boorgat.Diameter))]);
 
         return new BestellijstExportRegel(
+            regelNummer,
+            regelCode,
             item.Naam,
             item.Aantal,
             item.PaneelRolLabel,
+            item.ScharnierLabel,
             item.Hoogte,
             item.Breedte,
+            oppervlaktePerStukM2,
+            totaleOppervlakteM2,
             item.KantenbandLabel,
             item.ContextLabel,
+            bronLocaties,
             boorgaten,
             visual);
     }
@@ -86,6 +102,12 @@ public static class BestellijstExportService
 
     public static string FormatMm(double value) => BestellijstExportFormatter.FormatMm(value);
 
+    public static string FormatZaagmaat(double breedteMm, double hoogteMm)
+        => BestellijstExportFormatter.FormatZaagmaat(breedteMm, hoogteMm);
+
+    public static string FormatVierkanteMeter(double value)
+        => BestellijstExportFormatter.FormatVierkanteMeter(value);
+
     private static string Slugify(string value)
     {
         var slug = new StringBuilder();
@@ -107,4 +129,7 @@ public static class BestellijstExportService
 
         return slug.ToString().Trim('-');
     }
+
+    private static double BerekenOppervlakteM2(double breedteMm, double hoogteMm, int aantal = 1)
+        => Math.Round((breedteMm * hoogteMm * Math.Max(aantal, 0)) / 1_000_000d, 3);
 }

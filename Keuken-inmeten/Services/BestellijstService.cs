@@ -93,6 +93,7 @@ public static class BestellijstService
                     WandNaam = eerste.WandNaam,
                     KastenLabel = eerste.KastenLabel,
                     ContextLabel = contextLabel,
+                    BronLocaties = [.. contexten],
                     ScharnierLabel = eerste.ScharnierLabel,
                     Hoogte = eerste.Resultaat.Hoogte,
                     Breedte = eerste.Resultaat.Breedte,

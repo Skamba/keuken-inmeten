@@ -24,15 +24,24 @@ public class BestellijstExportDocumentTests
         Assert.Equal(2, document.TotaalAantal);
         Assert.Equal(6, document.TotaalBoorgaten);
         Assert.Equal(3, document.MaxBoorgaten);
+        Assert.Equal(2.64, document.TotaalOppervlakteM2);
 
         var regel = Assert.Single(document.Regels);
+        Assert.Equal(1, regel.RegelNummer);
+        Assert.Equal("R01", regel.RegelCode);
         Assert.Equal("Hoge Deur 1", regel.Naam);
         Assert.Equal(2, regel.Aantal);
         Assert.Equal("Deur", regel.PaneelRolLabel);
+        Assert.Equal("Rechts", regel.ScharnierLabel);
         Assert.Equal(2200, regel.HoogteMm);
         Assert.Equal(600, regel.BreedteMm);
+        Assert.Equal(1.32, regel.OppervlaktePerStukM2);
+        Assert.Equal(2.64, regel.TotaleOppervlakteM2);
         Assert.Equal(BestellijstService.StandaardKantenbandLabel, regel.KantenbandLabel);
         Assert.Equal("Muur • Hoge kast links (+1 meer)", regel.ContextLabel);
+        Assert.Equal(
+            ["Muur • Hoge kast links", "Muur • Hoge kast rechts"],
+            regel.BronLocaties);
 
         Assert.Collection(
             regel.Boorgaten,
@@ -45,6 +54,7 @@ public class BestellijstExportDocumentTests
             _ => { },
             _ => { });
 
+        Assert.Equal("R01", regel.Visual.RegelCode);
         Assert.Equal(600, regel.Visual.BreedteMm);
         Assert.Equal(2200, regel.Visual.HoogteMm);
         Assert.Equal(ScharnierZijde.Rechts, regel.Visual.ScharnierZijde);
@@ -62,15 +72,23 @@ public class BestellijstRenderersTests
         var xml = BestellijstExcelRenderer.Render(document);
 
         Assert.Contains("Paneeltype", xml);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode("Totaal oppervlak (m²)"), xml);
+        Assert.Contains("Regel", xml);
         Assert.Contains("Kantenband", xml);
         Assert.Contains(BestellijstService.StandaardKantenbandLabel, xml);
         Assert.Contains(BestellijstExportService.CncNulpuntLabel, xml);
         Assert.Contains("Boortype", xml);
         Assert.Contains("35 mm potscharniergaten", xml);
+        Assert.Contains("Bronlocaties", xml);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode("Zaagmaat B × H (mm)"), xml);
         Assert.Contains("Potscharniergat 1 X (links, mm)", xml);
         Assert.Contains("Potscharniergat 1 Y (boven, mm)", xml);
         Assert.Contains("577.5", xml);
+        Assert.Contains("R01", xml);
+        Assert.Contains("2.64", xml);
         Assert.Contains("Hoge Deur 1", xml);
+        Assert.Contains("Hoge kast links", xml);
+        Assert.Contains("Hoge kast rechts", xml);
     }
 
     [Fact]
@@ -81,12 +99,15 @@ public class BestellijstRenderersTests
         var html = BestellijstPrintHtmlRenderer.Render(document);
 
         Assert.Contains("Bestellijst", html);
-        Assert.Contains("Kantenband", html);
-        Assert.Contains(BestellijstService.StandaardKantenbandLabel, html);
+        Assert.Contains("R01", html);
         Assert.Contains(BestellijstExportService.CncNulpuntLabel, html);
-        Assert.Contains("Potscharniergaten (35 mm)", html);
-        Assert.Contains("Potscharniergat 1 (35 mm): X", html);
-        Assert.Contains("Y 83 mm", html);
+        Assert.Contains("Bronlocaties", html);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode("Muur • Hoge kast rechts"), html);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode(BestellijstExportFormatter.FormatZaagmaat(600, 2200)), html);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode("2.64 m² totaal"), html);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode("Scharnier rechts · 3 potscharniergaten"), html);
+        Assert.Contains("<th>#</th><th>X (mm)</th><th>Y (mm)</th>", html);
+        Assert.Contains("83 mm", html);
         Assert.Contains("Hoge Deur 1", html);
         Assert.Contains("<svg", html);
         Assert.Contains("window.print()", html);
@@ -100,9 +121,10 @@ public class BestellijstRenderersTests
         var svg = BestellijstVisualRenderer.Render(document.Regels[0].Visual);
 
         Assert.Contains("<svg", svg);
-        Assert.Contains("600 mm breed", svg);
-        Assert.Contains("2200 mm hoog", svg);
-        Assert.Contains("83 mm", svg);
+        Assert.Contains("R01", svg);
+        Assert.Contains("Bovenzijde · nulpunt linksboven", svg);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode(BestellijstExportFormatter.FormatZaagmaat(600, 2200)), svg);
+        Assert.Contains("#1 · 83 mm", svg);
     }
 
     private static BestellijstExportDocument MaakDocument()
@@ -122,7 +144,7 @@ public class BestellijstExportFlowHelperTests
         var excel = BestellijstExportFlowHelper.Voor(BestellijstExportType.Excel);
 
         Assert.Equal("PDF met visualisaties", pdf.Label);
-        Assert.Contains("printen", pdf.WanneerKiezen, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("zaagbedrijf", pdf.WanneerKiezen, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("Open printweergave", pdf.BevestigLabel);
 
         Assert.Equal("Excel alleen lijst", excel.Label);
@@ -142,9 +164,10 @@ public class BestellijstExportFlowHelperTests
         var pdfPunten = BestellijstExportFlowHelper.MaakPreviewPunten(document, BestellijstExportType.Pdf);
         var excelPunten = BestellijstExportFlowHelper.MaakPreviewPunten(document, BestellijstExportType.Excel);
 
-        Assert.Contains(pdfPunten, punt => punt.Contains("visual", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(pdfPunten, punt => punt.Contains("bronlocaties", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(pdfPunten, punt => punt.Contains("2.64 m²", StringComparison.Ordinal));
         Assert.Contains(excelPunten, punt => punt.Contains("1 t/m 3", StringComparison.Ordinal));
-        Assert.Contains(excelPunten, punt => punt.Contains("sorteren", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(excelPunten, punt => punt.Contains("bronlocaties", StringComparison.OrdinalIgnoreCase));
     }
 }
 
@@ -160,6 +183,7 @@ internal static class BestellijstExportTestData
         WandNaam = "Muur",
         KastenLabel = "Hoge kast links",
         ContextLabel = "Muur • Hoge kast links (+1 meer)",
+        BronLocaties = ["Muur • Hoge kast links", "Muur • Hoge kast rechts"],
         ScharnierLabel = "Rechts",
         Hoogte = 2200,
         Breedte = 600,
