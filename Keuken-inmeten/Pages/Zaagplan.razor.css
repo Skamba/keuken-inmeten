@@ -1,0 +1,233 @@
+.zaagplan-geavanceerd summary:focus,
+.zaagplan-geavanceerd summary:focus-visible {
+    outline: 2px solid var(--app-focus-ring-color);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 0.12rem var(--app-focus-ring-inner), 0 0 0 0.32rem var(--app-focus-ring-soft);
+    border-radius: 0.9rem;
+}
+
+.zaagplan-toolbar {
+    background: var(--bs-body-bg, #fff);
+}
+
+.zaagplan-status-strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.zaagplan-kerncijfers {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.zaagplan-kerncijfer {
+    min-width: 9.5rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--bs-border-color, #d0d7de);
+    border-radius: 0.85rem;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+}
+
+.zaagplan-kerncijfer-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.zaagplan-toolbar-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    font-size: 0.86rem;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.zaagplan-weergave-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.zaagplan-weergave-toggle .btn {
+    flex: 1 1 12rem;
+}
+
+.zaagplan-geavanceerd {
+    border-top: 1px solid var(--bs-border-color, #d0d7de);
+    padding-top: 1rem;
+}
+
+.zaagplan-geavanceerd summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.zaagplan-platen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.zaagplan-platen--focus {
+    justify-content: center;
+}
+
+.zaagplan-plaat-card {
+    flex: 0 1 auto;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.zaagplan-plaat-card--focus {
+    width: min(100%, 48rem);
+}
+
+::deep .zaagplan-plaat-svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+}
+
+.zaagplan-focus-toolbar {
+    background: var(--bs-body-bg, #fff);
+}
+
+.zaagplan-plaat-meta {
+    font-size: 0.85rem;
+}
+
+.zaagplan-waarschuwing {
+    border: 1px solid var(--bs-warning-border-subtle, #ffe69c);
+    background: var(--bs-warning-bg-subtle, #fff3cd);
+}
+
+.zaagplan-waarschuwing-kicker {
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bs-warning-text-emphasis, #664d03);
+}
+
+.zaagplan-waarschuwing-kern {
+    min-width: min(20rem, 100%);
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--bs-border-color, #d0d7de);
+    border-radius: 0.9rem;
+    background: var(--bs-body-bg, #fff);
+}
+
+.zaagplan-waarschuwing-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+}
+
+.zaagplan-waarschuwing-strip span {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid rgba(146, 64, 14, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--bs-warning-text-emphasis, #664d03);
+    font-size: 0.82rem;
+}
+
+.zaagplan-waarschuwing-acties {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.zaagplan-waarschuwing-actie {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.85rem;
+    background: var(--bs-body-bg, #fff);
+}
+
+.zaagplan-waarschuwing-actie--aanbevolen {
+    border-color: color-mix(in srgb, var(--bs-warning-border-subtle, #ffe69c) 55%, var(--bs-border-color, #d0d7de));
+    box-shadow: 0 0.35rem 1rem rgba(146, 64, 14, 0.08);
+}
+
+.zaagplan-waarschuwing-actie-label {
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.zaagplan-waarschuwing-details {
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(146, 64, 14, 0.12);
+}
+
+.zaagplan-waarschuwing-details summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+}
+
+.zaagplan-waarschuwing-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.zaagplan-waarschuwing-details summary::marker {
+    content: "";
+}
+
+.zaagplan-waarschuwing-details summary::after {
+    content: "+";
+    color: var(--bs-secondary-color, #516173);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.zaagplan-waarschuwing-details[open] summary::after {
+    content: "−";
+}
+
+.zaagplan-waarschuwing-lijst {
+    display: grid;
+    gap: 0.45rem;
+    padding-left: 1rem;
+}
+
+@media (max-width: 767.98px) {
+    .zaagplan-status-strip {
+        justify-content: flex-start;
+    }
+
+    .zaagplan-kerncijfers {
+        justify-content: stretch;
+    }
+
+    .zaagplan-kerncijfer {
+        flex: 1 1 10rem;
+    }
+}

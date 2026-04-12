@@ -1,0 +1,378 @@
+@using Keuken_inmeten.Models
+@using Keuken_inmeten.Services
+
+<section class="paneel-editor-drawer-layer">
+    <div class="paneel-editor-drawer @(ToonCompacteEditorLeegstaat ? "paneel-editor-drawer--waiting" : null)"
+         data-testid="paneel-editor-drawer"
+         aria-labelledby="paneel-editor-drawer-title">
+        <div class="card border-0 h-100">
+            <div class="card-header bg-primary bg-opacity-10 paneel-editor-drawer-header">
+                <div class="d-flex justify-content-between align-items-center gap-3">
+                    <div>
+                        <div class="small fw-semibold text-uppercase text-primary-emphasis">Paneel-editor</div>
+                        <h5 id="paneel-editor-drawer-title" class="mb-0" style="font-size: 1rem;">
+                            @EditorDrawerTitel
+                        </h5>
+                        @if (EditorHeaderMeta is not null)
+                        {
+                            <div class="small text-muted paneel-editor-header-meta">@EditorHeaderMeta</div>
+                        }
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        @if (IsBewerkModus)
+                        {
+                            <button type="button" class="btn btn-sm btn-link text-secondary p-0" @onclick="OnAnnuleerBewerken">
+                                Annuleer
+                            </button>
+                        }
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                @onclick="OnSluiten"
+                                data-testid="close-paneel-editor-button">
+                            Sluiten
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body paneel-editor-drawer-body">
+                @if (ToonCompacteEditorLeegstaat)
+                {
+                    <div class="paneel-editor-empty-state border rounded p-2 p-sm-3 bg-body-tertiary">
+                        <h6 class="mb-1">Selecteer nu kast(en) in de tekening</h6>
+                        <p class="small text-muted mb-0">Tik de juiste kast(en) binnen <strong>@GeopendeWandNaam</strong>. Zodra u selecteert, verschijnen plaatsing, maat en opslaan hier.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="paneel-editor-focus border rounded p-3 mb-3 bg-body-tertiary">
+                        <div class="fw-semibold mb-1">@VolgendePaneelStapTekst</div>
+                        <div class="small text-muted">@KernHintTekst</div>
+                        <div class="stap-meta-list paneel-editor-focus-meta-list mt-2">
+                            <span>Selectie: @SelectieSamenvatting</span>
+                            <span>Opslaan: @OpslaanSamenvatting</span>
+                        </div>
+                    </div>
+
+                    @if (HeeftEnkeleKastSelectie)
+                    {
+                        <details class="paneel-editor-empty-details mb-3 paneel-editor-extra-details"
+                                 open="@(ToonKastOpdelenModal || KanKastOpdelen)">
+                            <summary class="small fw-semibold text-secondary">Kast opdelen</summary>
+                            <div class="d-grid gap-3 mt-2">
+                                <div class="small text-muted">
+                                    @if (OpdeelBereik is not null)
+                                    {
+                                        <span>
+                                            Verdeel deze opening in meerdere fronten. Breedte volgt automatisch <strong>@FormatMm(OpdeelBereik.Breedte)</strong> en beschikbare hoogte is <strong>@FormatMm(OpdeelBereik.Hoogte)</strong>.
+                                        </span>
+                                        <span class="d-block mt-1">Instellingen voor alle delen: @OpdeelInstellingenTekst</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Opdelen werkt alleen wanneer deze kast nog één duidelijke vrije opening heeft.</span>
+                                    }
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button"
+                                            class="btn btn-outline-primary"
+                                            @onclick="OnOpenKastOpdelenModal"
+                                            disabled="@(!KanKastOpdelen)"
+                                            data-testid="open-paneel-opdelen-modal-button">
+                                        Kast opdelen
+                                    </button>
+                                </div>
+                            </div>
+                        </details>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Type paneel</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            @foreach (var type in Enum.GetValues<PaneelType>())
+                            {
+                                <button type="button"
+                                        class="btn btn-sm @(GeselecteerdType == type ? "btn-primary" : "btn-outline-secondary")"
+                                        @onclick="@(() => OnTypeGewijzigd.InvokeAsync(type))"
+                                        data-testid="paneel-type-button-@type">
+                                    @TypeNaam(type)
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    @if (GeselecteerdType == PaneelType.Deur)
+                    {
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">Draairichting van de deur (scharnierzijde)</label>
+                                <HulpInfoKnop Titel="Draairichting van de deur"
+                                              Tekst="De scharnierzijde bepaalt aan welke kant de scharnieren komen en welke kant van het paneel de technische 35 mm potscharniergaten krijgt."
+                                              Voorbeeld="Kiest u links, dan scharniert de deur links en opent hij naar rechts."
+                                              WatNuDoen="Kies de kant waar de deur aan de kast wordt bevestigd." />
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button"
+                                        class="btn btn-sm @(GeselecteerdeScharnierZijde == ScharnierZijde.Links ? "btn-primary" : "btn-outline-secondary")"
+                                        @onclick="@(() => OnScharnierZijdeGewijzigd.InvokeAsync(ScharnierZijde.Links))"
+                                        data-testid="paneel-scharnier-links-button">
+                                    ◄ Links
+                                </button>
+                                <button type="button"
+                                        class="btn btn-sm @(GeselecteerdeScharnierZijde == ScharnierZijde.Rechts ? "btn-primary" : "btn-outline-secondary")"
+                                        @onclick="@(() => OnScharnierZijdeGewijzigd.InvokeAsync(ScharnierZijde.Rechts))"
+                                        data-testid="paneel-scharnier-rechts-button">
+                                    Rechts ►
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">Afstand hart scharnierpot tot rand (mm)</label>
+                                <HulpInfoKnop Titel="Afstand hart scharnierpot tot rand"
+                                              Tekst="Dit is de maat van het midden van het 35 mm potgat naar de scharnierkant van het paneel."
+                                              Voorbeeld="Een veelgebruikte standaard is 22,5 mm."
+                                              WatNuDoen="Gebruik de maat van uw beslag of laat de laatst gebruikte standaard staan als die al klopt." />
+                            </div>
+                            <input type="number"
+                                   class="form-control"
+                                   @bind="PotHartBinding"
+                                   min="@ScharnierBerekeningService.MinCupCenterVanRand"
+                                   step="0.5"
+                                   data-testid="paneel-pot-hart-input" />
+                            <div class="form-text hulp-hint">Technische term: pot-hart van rand. Deze maat wordt gebruikt voor alle 35 mm scharnierpotjes in dit deurpaneel en de laatst gebruikte waarde wordt onthouden.</div>
+                        </div>
+                    }
+
+                    <details class="paneel-editor-empty-details paneel-editor-handmatig-details mb-3"
+                             open="@IsBewerkModus">
+                        <summary class="small fw-semibold text-secondary">Handmatig maat en positie invullen</summary>
+                        <div class="small text-muted mt-2">Open dit alleen als u de maat of positie preciezer wilt intypen dan via slepen en hoekpunten zetten.</div>
+                        <div class="row g-2 mt-1">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Breedte (mm)</label>
+                                <input type="number" class="form-control" @bind="BreedteBinding" min="50" step="1" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Hoogte (mm)</label>
+                                <input type="number" class="form-control" @bind="HoogteBinding" min="50" step="1" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Links (mm)</label>
+                                <input type="number" class="form-control" @bind="LinksBinding" min="0" step="1" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Onderkant (mm)</label>
+                                <input type="number" class="form-control" @bind="OnderkantBinding" min="0" step="1" />
+                            </div>
+                        </div>
+
+                        @if (ConceptPaneel is not null)
+                        {
+                            <div class="paneel-editor-placement mt-3 small">
+                                <div class="fw-semibold mb-2">Plaatsing</div>
+                                <dl class="paneel-editor-placement-list mb-0">
+                                    <div><dt>Links</dt><dd><strong>@FormatMm(ConceptPaneel.XPositie)</strong></dd></div>
+                                    <div><dt>Onderkant</dt><dd><strong>@FormatMm(ConceptPaneel.HoogteVanVloer)</strong></dd></div>
+                                    <div><dt>Rechts</dt><dd><strong>@FormatMm(ConceptPaneel.Rechterkant)</strong></dd></div>
+                                    <div><dt>Bovenkant</dt><dd><strong>@FormatMm(ConceptPaneel.Bovenzijde)</strong></dd></div>
+                                </dl>
+                            </div>
+                        }
+                    </details>
+
+                    @if (ConceptMaatInfo is not null)
+                    {
+                        <HulpDetailsBlok Titel="Van maat in de opening naar maat om te bestellen"
+                                         Beschrijving="Open alleen als u de volledige aftrek per rand wilt nalopen."
+                                         CssClass="mb-3 small">
+                            <div class="mb-1">@PaneelMaatUitlegHelper.MaatInOpeningLabelMetTerm <strong>@FormatMm(ConceptMaatInfo.OpeningsRechthoek.Breedte)</strong> × <strong>@FormatMm(ConceptMaatInfo.OpeningsRechthoek.Hoogte)</strong></div>
+                            <div class="mb-2">@PaneelMaatUitlegHelper.MaatOmTeBestellenLabelMetTerm <strong>@FormatMm(ConceptMaatInfo.PaneelRechthoek.Breedte)</strong> × <strong>@FormatMm(ConceptMaatInfo.PaneelRechthoek.Hoogte)</strong></div>
+                            <div><strong>Breedteformule:</strong> @PaneelMaatUitlegHelper.BreedteFormule(ConceptMaatInfo)</div>
+                            <div class="mb-2">@PaneelMaatUitlegHelper.BreedteAftrekUitleg(ConceptMaatInfo)</div>
+                            <div><strong>Hoogteformule:</strong> @PaneelMaatUitlegHelper.HoogteFormule(ConceptMaatInfo)</div>
+                            <div>@PaneelMaatUitlegHelper.HoogteAftrekUitleg(ConceptMaatInfo)</div>
+                        </HulpDetailsBlok>
+                    }
+
+                    @if (VrijeSegmenten.Count > 0)
+                    {
+                        <details class="paneel-editor-empty-details paneel-editor-vrije-vakken mb-3"
+                                 open="@(VrijeSegmenten.Count == 1)">
+                            <summary class="small fw-semibold text-secondary">Gebruik een vrij vak (@VrijeSegmenten.Count beschikbaar)</summary>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                @for (var i = 0; i < VrijeSegmenten.Count; i++)
+                                {
+                                    var segment = VrijeSegmenten[i];
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-success"
+                                            @onclick="@(() => OnVrijSegmentGekozen.InvokeAsync(segment))">
+                                        @VrijSegmentLabel(i, segment)
+                                    </button>
+                                }
+                            </div>
+                        </details>
+                    }
+
+                    <HulpDetailsBlok Titel="Zo leest u de tekening"
+                                     Beschrijving="Open alleen als u maatlagen of sleepgedrag wilt nalopen."
+                                     CssClass="mb-3 small">
+                        <div class="text-muted mb-3">
+                            Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de totale voeg langs rakende randen is verwerkt.
+                        </div>
+                        <div class="row g-3 align-items-center">
+                            <div class="col-sm-5">
+                                <svg viewBox="0 0 180 110" class="w-100" role="img" aria-label="Verschil tussen maat in de opening en maat om te bestellen">
+                                    <rect x="20" y="16" width="120" height="72" fill="none" stroke="var(--bs-secondary-color)" stroke-width="2" stroke-dasharray="6 4" />
+                                    <rect x="32" y="28" width="96" height="48" fill="var(--bs-primary-bg-subtle)" stroke="var(--bs-primary)" stroke-width="2" />
+                                </svg>
+                            </div>
+                            <div class="col-sm-7">
+                                <div class="d-flex align-items-start gap-2 mb-2">
+                                    <span class="d-inline-block border border-2 border-secondary rounded flex-shrink-0" style="width: 1rem; height: 1rem; border-style: dashed;"></span>
+                                    <div><strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel</strong>: de vrije ruimte waar het paneel in moet passen.</div>
+                                </div>
+                                <div class="d-flex align-items-start gap-2">
+                                    <span class="d-inline-block border border-primary rounded bg-primary bg-opacity-10 flex-shrink-0" style="width: 1rem; height: 1rem;"></span>
+                                    <div><strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel</strong>: de maat die overblijft nadat de aftrek voor de totale voeg is toegepast.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </HulpDetailsBlok>
+
+                    <div class="paneel-editor-footer">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary flex-grow-1" @onclick="OnReset">
+                                @(IsBewerkModus ? "Reset naar origineel" : "Reset naar selectie")
+                            </button>
+                            <button type="button" class="btn btn-primary flex-grow-1" @onclick="OnOpslaan"
+                                    disabled="@(!KanOpslaan)"
+                                    data-testid="paneel-opslaan-button">
+                                @(IsBewerkModus ? "Paneel opslaan" : "+ Paneel toevoegen")
+                            </button>
+                        </div>
+                        @if (!KanOpslaan)
+                        {
+                            <div class="form-text mt-2 mb-0">@OpslaanStatusTekst</div>
+                        }
+                    </div>
+
+                    @if (ToonKastOpdelenModal && OpdeelBereik is { } modalOpdeelBereik && GeselecteerdeKast is not null)
+                    {
+                        <PaneelOpdeelModal GeselecteerdeKast="@GeselecteerdeKast"
+                                           OpdeelBereik="@modalOpdeelBereik"
+                                           OpdeelInstellingenTekst="@OpdeelInstellingenTekst"
+                                           OpdeelAantal="@OpdeelAantal"
+                                           OpdeelHoogtes="OpdeelHoogtes"
+                                           OpdeelAnalyse="@OpdeelAnalyse"
+                                           StatusClass="@OpdeelStatusClass"
+                                           StatusTekst="@OpdeelStatusTekst"
+                                           KanKastOpdelenIn="KanKastOpdelenIn"
+                                           OnSluiten="OnSluitKastOpdelenModal"
+                                           OnStelAantalIn="OnStelOpdeelAantalIn"
+                                           OnBevestigen="OnBevestigKastOpdelen"
+                                           OnHoogtesGewijzigd="OnOpdeelHoogtesGewijzigd" />
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string GeopendeWandNaam { get; set; } = string.Empty;
+    [Parameter] public string? EditorHeaderMeta { get; set; }
+    [Parameter, EditorRequired] public bool ToonCompacteEditorLeegstaat { get; set; }
+    [Parameter, EditorRequired] public bool IsBewerkModus { get; set; }
+    [Parameter, EditorRequired] public bool KanOpslaan { get; set; }
+    [Parameter, EditorRequired] public string VolgendePaneelStapTekst { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string KernHintTekst { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string SelectieSamenvatting { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string OpslaanSamenvatting { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string OpslaanStatusTekst { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public bool HeeftEnkeleKastSelectie { get; set; }
+    [Parameter] public PaneelRechthoek? OpdeelBereik { get; set; }
+    [Parameter, EditorRequired] public bool KanKastOpdelen { get; set; }
+    [Parameter, EditorRequired] public PaneelType GeselecteerdType { get; set; }
+    [Parameter, EditorRequired] public ScharnierZijde GeselecteerdeScharnierZijde { get; set; }
+    [Parameter, EditorRequired] public double PotHartInput { get; set; }
+    [Parameter, EditorRequired] public double BreedteInput { get; set; }
+    [Parameter, EditorRequired] public double HoogteInput { get; set; }
+    [Parameter, EditorRequired] public double LinksInput { get; set; }
+    [Parameter, EditorRequired] public double OnderkantInput { get; set; }
+    [Parameter] public PaneelRechthoek? ConceptPaneel { get; set; }
+    [Parameter] public PaneelMaatInfo? ConceptMaatInfo { get; set; }
+    [Parameter, EditorRequired] public IReadOnlyList<PaneelRechthoek> VrijeSegmenten { get; set; } = [];
+    [Parameter] public Kast? GeselecteerdeKast { get; set; }
+    [Parameter, EditorRequired] public bool ToonKastOpdelenModal { get; set; }
+    [Parameter, EditorRequired] public int OpdeelAantal { get; set; }
+    [Parameter, EditorRequired] public IList<double> OpdeelHoogtes { get; set; } = [];
+    [Parameter, EditorRequired] public PaneelOpdeelAnalyse OpdeelAnalyse { get; set; } = default!;
+    [Parameter, EditorRequired] public string OpdeelStatusClass { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string OpdeelStatusTekst { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public Func<int, bool> KanKastOpdelenIn { get; set; } = default!;
+    [Parameter, EditorRequired] public EventCallback<PaneelType> OnTypeGewijzigd { get; set; }
+    [Parameter, EditorRequired] public EventCallback<ScharnierZijde> OnScharnierZijdeGewijzigd { get; set; }
+    [Parameter, EditorRequired] public EventCallback<double> PotHartInputChanged { get; set; }
+    [Parameter, EditorRequired] public EventCallback<double> BreedteInputChanged { get; set; }
+    [Parameter, EditorRequired] public EventCallback<double> HoogteInputChanged { get; set; }
+    [Parameter, EditorRequired] public EventCallback<double> LinksInputChanged { get; set; }
+    [Parameter, EditorRequired] public EventCallback<double> OnderkantInputChanged { get; set; }
+    [Parameter, EditorRequired] public EventCallback<PaneelRechthoek> OnVrijSegmentGekozen { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnReset { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnOpslaan { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnOpenKastOpdelenModal { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnSluitKastOpdelenModal { get; set; }
+    [Parameter, EditorRequired] public EventCallback<int> OnStelOpdeelAantalIn { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnBevestigKastOpdelen { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnOpdeelHoogtesGewijzigd { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnAnnuleerBewerken { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnSluiten { get; set; }
+
+    private string EditorDrawerTitel => IsBewerkModus
+        ? $"Paneel bewerken — {GeopendeWandNaam}"
+        : ToonCompacteEditorLeegstaat
+            ? $"Kastselectie — {GeopendeWandNaam}"
+            : $"Paneel plaatsen — {GeopendeWandNaam}";
+
+    private string OpdeelInstellingenTekst => GeselecteerdType == PaneelType.Deur
+        ? $"{TypeNaam(GeselecteerdType)} · scharnier {GeselecteerdeScharnierZijde.ToString().ToLowerInvariant()} · pot-hart {FormatMm(PotHartInput)}"
+        : TypeNaam(GeselecteerdType);
+
+    private double PotHartBinding
+    {
+        get => PotHartInput;
+        set => _ = PotHartInputChanged.InvokeAsync(value);
+    }
+
+    private double BreedteBinding
+    {
+        get => BreedteInput;
+        set => _ = BreedteInputChanged.InvokeAsync(value);
+    }
+
+    private double HoogteBinding
+    {
+        get => HoogteInput;
+        set => _ = HoogteInputChanged.InvokeAsync(value);
+    }
+
+    private double LinksBinding
+    {
+        get => LinksInput;
+        set => _ = LinksInputChanged.InvokeAsync(value);
+    }
+
+    private double OnderkantBinding
+    {
+        get => OnderkantInput;
+        set => _ = OnderkantInputChanged.InvokeAsync(value);
+    }
+
+    private static string VrijSegmentLabel(int index, PaneelRechthoek segment)
+        => PaneelConfiguratieHelper.VrijSegmentLabel(index, segment);
+
+    private static string TypeNaam(PaneelType type) => VisualisatieHelper.PaneelTypeLabel(type);
+
+    private static string FormatMm(double waarde) => $"{waarde:0.#} mm";
+}

@@ -1,14 +1,12 @@
 namespace Keuken_inmeten.Models;
 
-using Keuken_inmeten.Services;
-
 public class PaneelToewijzing
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public List<Guid> KastIds { get; set; } = [];
-    public PaneelType Type { get; set; } = PaneelType.Deur;
-    public ScharnierZijde ScharnierZijde { get; set; } = ScharnierZijde.Links;
-    public double PotHartVanRand { get; set; } = ScharnierBerekeningService.CupCenterVanRand;
+    public PaneelType Type { get; set; } = KeukenDomeinDefaults.PaneelDefaults.Type;
+    public ScharnierZijde ScharnierZijde { get; set; } = KeukenDomeinDefaults.PaneelDefaults.ScharnierZijde;
+    public double PotHartVanRand { get; set; } = KeukenDomeinDefaults.PaneelDefaults.PotHartVanRand;
     public double Breedte { get; set; }
     public double Hoogte { get; set; }
     public double? XPositie { get; set; }

@@ -4,43 +4,29 @@
 <PageTitle>Keuken Inmeten</PageTitle>
 
 @{
-    var aantalWanden = State.Wanden.Count;
-    var aantalKasten = State.Kasten.Count;
-    var aantalPanelen = State.Toewijzingen.Count;
-    var aantalResultaten = State.BerekenResultaten().Count;
-    var bestellijstItems = BestellijstService.BerekenItems(State);
-    var aantalBestellijstItems = bestellijstItems.Count;
-    var totaalBoorgaten = bestellijstItems.Sum(item => item.Aantal * item.Boorgaten.Count);
-    var heeftProjectData = aantalWanden > 0 || aantalKasten > 0 || aantalPanelen > 0;
-    var flowStatus = StappenFlowHelper.BepaalStatus(State);
-    var vervolgStap = StappenFlowHelper.BepaalVervolgStap(flowStatus);
-    var stappen = BouwStappen(flowStatus, aantalWanden, aantalKasten, aantalPanelen, aantalResultaten, aantalBestellijstItems);
-    var dashboardLead = MaakDashboardLead(aantalWanden, aantalKasten, aantalPanelen, aantalBestellijstItems);
-    var aandachtBlok = MaakAandachtBlok(aantalPanelen, aantalBestellijstItems);
-    var boorgatBlok = MaakBoorgatBlok(totaalBoorgaten);
-    var outputSamenvatting = MaakOutputSamenvatting(aantalResultaten, aantalBestellijstItems, totaalBoorgaten);
+    var pagina = MaakPaginaModel();
 }
 
 <div class="container py-4 home-startflow">
-    <section class="card border-0 shadow-sm mb-5">
+    <section class="card border-0 shadow-sm mb-4 home-hero-card">
         <div class="card-body p-4 p-lg-5">
             <div class="row g-4 align-items-start">
                 <div class="col-lg-7">
-                    <span class="badge rounded-pill text-bg-primary mb-3">@(heeftProjectData ? "Project in uitvoering" : "Start hier")</span>
-                    <h1 class="@(heeftProjectData ? "display-6" : "display-5") fw-bold mb-3">
-                        @(heeftProjectData
+                    <span class="badge rounded-pill text-bg-primary mb-3">@(pagina.HeeftProjectData ? "Project in uitvoering" : "Start hier")</span>
+                    <h1 class="@(pagina.HeeftProjectData ? "display-6" : "display-5") fw-bold mb-3">
+                        @(pagina.HeeftProjectData
                             ? "Ga verder met uw keukenproject"
                             : "Van keukenmaat naar paneel, 35 mm potscharniergaten en zaagplan")
                     </h1>
                     <p class="lead text-muted mb-4">
-                        @(heeftProjectData
-                            ? dashboardLead
+                        @(pagina.HeeftProjectData
+                            ? pagina.DashboardLead
                             : "Begin met wanden en kasten. Panelen, controle en uitvoer volgen daarna stap voor stap.")
                     </p>
 
                     <div class="d-flex flex-wrap gap-2 align-items-center">
-                        <a href="@vervolgStap.Route" class="btn btn-primary btn-lg px-4">@StappenFlowHelper.MaakVolgendeLabel(vervolgStap.Id)</a>
-                        @if (heeftProjectData)
+                        <a href="@pagina.VervolgStap.Route" class="btn btn-primary btn-lg px-4">@StappenFlowHelper.MaakVolgendeLabel(pagina.VervolgStap.Id)</a>
+                        @if (pagina.HeeftProjectData)
                         {
                             <a href="#project-overzicht" class="btn btn-link px-0 home-secondary-link">Projectdetails</a>
                         }
@@ -52,33 +38,33 @@
                 </div>
 
                 <div class="col-lg-5">
-                    @if (heeftProjectData)
+                    @if (pagina.HeeftProjectData)
                     {
                         <div class="home-summary-card home-dashboard-card home-resume-card h-100" data-testid="home-project-dashboard">
                             <div class="small fw-semibold text-uppercase text-primary-emphasis mb-1">Volgende stap</div>
-                            <h2 class="h5 mb-1">@vervolgStap.Label</h2>
-                            <p class="text-muted small mb-3">@vervolgStap.Beschrijving</p>
+                            <h2 class="h5 mb-1">@pagina.VervolgStap.Label</h2>
+                            <p class="text-muted small mb-3">@pagina.VervolgStap.Beschrijving</p>
 
                             <div class="home-resume-priority">
-                                <div class="fw-semibold">@aandachtBlok.Titel</div>
-                                <div class="text-muted small">@aandachtBlok.Tekst</div>
+                                <div class="fw-semibold">@pagina.AandachtBlok.Titel</div>
+                                <div class="text-muted small">@pagina.AandachtBlok.Tekst</div>
                             </div>
 
                             <div class="stap-meta-list home-resume-meta mt-3">
-                                <span>@aantalWanden wanden</span>
-                                <span>@aantalKasten kasten</span>
-                                <span>@aantalPanelen panelen</span>
-                                @if (aantalBestellijstItems > 0)
+                                <span>@pagina.AantalWanden wanden</span>
+                                <span>@pagina.AantalKasten kasten</span>
+                                <span>@pagina.AantalPanelen panelen</span>
+                                @if (pagina.AantalBestellijstItems > 0)
                                 {
-                                    <span>@aantalBestellijstItems orderregels</span>
+                                    <span>@pagina.AantalBestellijstItems orderregels</span>
                                 }
-                                else if (totaalBoorgaten > 0)
+                                else if (pagina.TotaalBoorgaten > 0)
                                 {
-                                    <span>@FormatPotscharnierGatTelling(totaalBoorgaten)</span>
+                                    <span>@FormatPotscharnierGatTelling(pagina.TotaalBoorgaten)</span>
                                 }
                             </div>
 
-                            <div class="small text-muted mt-3">@boorgatBlok.Tekst</div>
+                            <div class="small text-muted mt-3">@pagina.BoorgatBlok.Tekst</div>
                         </div>
                     }
                     else
@@ -115,7 +101,7 @@
         </div>
     </section>
 
-    @if (heeftProjectData)
+    @if (pagina.HeeftProjectData)
     {
         <section class="mb-4" id="project-overzicht">
             <details class="home-section-details">
@@ -124,7 +110,7 @@
                         <h2 class="h3 mb-1">Projectoverzicht</h2>
                         <p class="text-muted mb-0">Open dit alleen als u totalen of uitvoer nog even wilt dubbelchecken.</p>
                     </div>
-                    <div class="home-section-summary-meta">@outputSamenvatting</div>
+                    <div class="home-section-summary-meta">@pagina.OutputSamenvatting</div>
                 </summary>
 
                 <div class="home-section-details-body">
@@ -132,29 +118,29 @@
                         <div class="col-sm-6 col-xl-3">
                             <div class="home-metric-card h-100">
                                 <div class="home-example-label">Wanden</div>
-                                <div class="home-metric-value">@aantalWanden</div>
+                                <div class="home-metric-value">@pagina.AantalWanden</div>
                                 <div class="text-muted small">Opstelling(en) die nu in het project staan.</div>
                             </div>
                         </div>
                         <div class="col-sm-6 col-xl-3">
                             <div class="home-metric-card h-100">
                                 <div class="home-example-label">Kasten</div>
-                                <div class="home-metric-value">@aantalKasten</div>
+                                <div class="home-metric-value">@pagina.AantalKasten</div>
                                 <div class="text-muted small">De basis voor panelen, openingen en scharnieren.</div>
                             </div>
                         </div>
                         <div class="col-sm-6 col-xl-3">
                             <div class="home-metric-card h-100">
                                 <div class="home-example-label">Panelen</div>
-                                <div class="home-metric-value">@aantalPanelen</div>
+                                <div class="home-metric-value">@pagina.AantalPanelen</div>
                                 <div class="text-muted small">Toegewezen deuren, ladefronten of blindpanelen.</div>
                             </div>
                         </div>
                         <div class="col-sm-6 col-xl-3">
                             <div class="home-metric-card h-100">
                                 <div class="home-example-label">Uitvoer klaar</div>
-                                <div class="home-metric-value">@(aantalBestellijstItems > 0 ? aantalBestellijstItems : totaalBoorgaten)</div>
-                                <div class="text-muted small">@(aantalBestellijstItems > 0 ? "Orderregel(s) klaar voor export of zaagplan." : totaalBoorgaten > 0 ? $"{FormatPotscharnierGatTelling(totaalBoorgaten)} al berekend voor controle en bestelling." : "Nog geen exportdata; rond eerst panelen af.")</div>
+                                <div class="home-metric-value">@(pagina.AantalBestellijstItems > 0 ? pagina.AantalBestellijstItems : pagina.TotaalBoorgaten)</div>
+                                <div class="text-muted small">@(pagina.AantalBestellijstItems > 0 ? "Orderregel(s) klaar voor export of zaagplan." : pagina.TotaalBoorgaten > 0 ? $"{FormatPotscharnierGatTelling(pagina.TotaalBoorgaten)} al berekend voor controle en bestelling." : "Nog geen exportdata; rond eerst panelen af.")</div>
                             </div>
                         </div>
                     </div>
@@ -164,7 +150,7 @@
     }
 
     <section class="mb-5" id="startflow-stappen">
-        @if (heeftProjectData)
+        @if (pagina.HeeftProjectData)
         {
             <details class="home-section-details">
                 <summary class="home-section-summary">
@@ -172,12 +158,12 @@
                         <h2 class="h3 mb-1">Andere projectroutes</h2>
                         <p class="text-muted mb-0">De hoofdactie hierboven is de snelste route. Open deze kaarten alleen als u bewust van stap wilt wisselen.</p>
                     </div>
-                    <div class="home-section-summary-meta">Aanbevolen: @vervolgStap.Label</div>
+                    <div class="home-section-summary-meta">Aanbevolen: @pagina.VervolgStap.Label</div>
                 </summary>
 
                 <div class="home-section-details-body">
                     <div class="row g-2">
-                        @foreach (var stap in stappen)
+                        @foreach (var stap in pagina.Stappen)
                         {
                             <div class="col-sm-6 col-xl" @key="stap.Href">
                                 <a href="@stap.Href" class="home-card-link text-decoration-none text-reset d-block h-100">
@@ -209,7 +195,7 @@
             </div>
 
             <div class="row g-3">
-                @foreach (var stap in stappen)
+                @foreach (var stap in pagina.Stappen)
                 {
                     <div class="col-md-6 col-xl">
                         <a href="@stap.Href" class="home-card-link text-decoration-none text-reset d-block h-100">
@@ -233,171 +219,42 @@
         }
     </section>
 
-    @if (!heeftProjectData)
+    @if (!pagina.HeeftProjectData)
     {
-        <section class="card border-0 shadow-sm" data-testid="home-extra-help">
-            <div class="card-body p-4">
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2">
+        <section class="home-optional-help" data-testid="home-extra-help">
+            <details class="home-help-panel">
+                <summary class="home-help-panel-summary">
                     <div>
-                        <h2 class="h4 mb-1">Meer uitleg (optioneel)</h2>
+                        <h2 class="h5 mb-1">Meer uitleg (optioneel)</h2>
                         <p class="text-muted mb-0">Open dit alleen als u drie korte aandachtspunten wilt checken voordat u begint.</p>
                     </div>
-                </div>
+                </summary>
 
-                <details class="home-help-details mt-3">
-                    <summary>Toon extra uitleg</summary>
-                    <ul class="home-help-list mt-3 mb-0">
-                        <li><strong>Apparaten:</strong> voeg een apparaat alleen toe als het echt wandruimte inneemt of de vrije opening voor een paneel verandert.</li>
-                        <li><strong>Planken:</strong> ze tellen vooral mee als referentie voor de gatenrij en de eerste gatpositie.</li>
-                        <li><strong>Zaagplan:</strong> de bestellijst maakt orderregels; het zaagplan verdeelt die panelen daarna over standaard platen.</li>
-                    </ul>
-                </details>
-            </div>
+                <ul class="home-help-list mt-3 mb-0">
+                    <li><strong>Apparaten:</strong> voeg een apparaat alleen toe als het echt wandruimte inneemt of de vrije opening voor een paneel verandert.</li>
+                    <li><strong>Planken:</strong> ze tellen vooral mee als referentie voor de gatenrij en de eerste gatpositie.</li>
+                    <li><strong>Zaagplan:</strong> de bestellijst maakt orderregels; het zaagplan verdeelt die panelen daarna over standaard platen.</li>
+                </ul>
+            </details>
         </section>
     }
     else
     {
-        <section class="card border-0 shadow-sm" data-testid="home-onboarding-help">
-            <div class="card-body p-4">
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2">
+        <section class="home-optional-help" data-testid="home-onboarding-help">
+            <details class="home-help-panel">
+                <summary class="home-help-panel-summary">
                     <div>
-                        <h2 class="h4 mb-1">Extra hulp (optioneel)</h2>
+                        <h2 class="h5 mb-1">Extra hulp (optioneel)</h2>
                         <p class="text-muted mb-0">Open dit alleen als u de basis of uitzonderingen nog even wilt nalopen.</p>
                     </div>
-                </div>
+                </summary>
 
-                <details class="home-help-details mt-3">
-                    <summary>Toon compacte hulp</summary>
-                    <ul class="home-help-list mt-3 mb-0">
-                        <li><strong>Eerst invoeren:</strong> wanden en kasten vormen altijd de basis; apparaten en planken voegt u alleen toe als ze de maatvoering echt beïnvloeden.</li>
-                        <li><strong>Uitvoer:</strong> daarna ziet u paneelmaten, 35 mm potscharniergaten, een bestellijst en een zaagplan terug.</li>
-                        <li><strong>Let extra op:</strong> gebruik apparaten alleen als ze echt wandruimte innemen en gebruik planken vooral als referentie voor de gatenrij.</li>
-                    </ul>
-                </details>
-            </div>
+                <ul class="home-help-list mt-3 mb-0">
+                    <li><strong>Eerst invoeren:</strong> wanden en kasten vormen altijd de basis; apparaten en planken voegt u alleen toe als ze de maatvoering echt beïnvloeden.</li>
+                    <li><strong>Uitvoer:</strong> daarna ziet u paneelmaten, 35 mm potscharniergaten, een bestellijst en een zaagplan terug.</li>
+                    <li><strong>Let extra op:</strong> gebruik apparaten alleen als ze echt wandruimte innemen en gebruik planken vooral als referentie voor de gatenrij.</li>
+                </ul>
+            </details>
         </section>
     }
 </div>
-
-@code {
-    private static StartStap[] BouwStappen(StappenFlowStatus flowStatus, int aantalWanden, int aantalKasten, int aantalPanelen, int aantalResultaten, int aantalBestellijstItems)
-    {
-        var aanbevolenStap = StappenFlowHelper.BepaalVervolgStap(flowStatus);
-
-        return StappenFlowHelper.AlleStappen
-            .Select(stap =>
-            {
-                var heeftData = stap.Id switch
-                {
-                    "kasten" => aantalWanden > 0 || aantalKasten > 0,
-                    "panelen" => aantalPanelen > 0,
-                    "verificatie" => aantalResultaten > 0,
-                    "bestellijst" => aantalBestellijstItems > 0,
-                    "zaagplan" => aantalBestellijstItems > 0,
-                    _ => false
-                };
-
-                var samenvatting = stap.Id switch
-                {
-                    "kasten" => aantalWanden > 0 ? $"{aantalWanden} wand(en) · {aantalKasten} kast(en)" : "Start met wanden en kasten",
-                    "panelen" => aantalPanelen > 0 ? $"{aantalPanelen} paneel/panelen toegewezen" : "Nog geen panelen toegewezen",
-                    "verificatie" => aantalResultaten > 0 ? $"{aantalResultaten} paneel/panelen klaar om te controleren" : "Beschikbaar zodra panelen zijn geplaatst",
-                    "bestellijst" => aantalBestellijstItems > 0 ? $"{aantalBestellijstItems} orderregel(s) beschikbaar" : "Verschijnt zodra er panelen klaarstaan",
-                    "zaagplan" => aantalBestellijstItems > 0 ? "Gebruik de orderregels om platen slim te vullen" : "Bouwt voort op de panelen uit uw bestellijst",
-                    _ => string.Empty
-                };
-
-                return MaakStap(
-                    stap,
-                    samenvatting,
-                    heeftData,
-                    stap.Id == aanbevolenStap.Id,
-                    StappenFlowHelper.BepaalRouteGate(stap.Id, flowStatus));
-            })
-            .ToArray();
-    }
-
-    private static StartStap MaakStap(
-        AppStap stap,
-        string samenvatting,
-        bool heeftData,
-        bool isAanbevolen,
-        StapRouteGate? routeGate)
-    {
-        var badgeLabel = isAanbevolen
-            ? "Volgende stap"
-            : routeGate is not null
-                ? $"Eerst {routeGate.VereisteStap.Label}"
-                : heeftData
-                    ? "Beschikbaar"
-                    : "Klaar om te starten";
-        var badgeClass = isAanbevolen
-            ? "bg-primary-subtle text-primary-emphasis border border-primary-subtle"
-            : routeGate is not null
-                ? "bg-body-tertiary text-body-secondary border"
-                : heeftData
-                    ? "bg-success-subtle text-success-emphasis border border-success-subtle"
-                    : "bg-body-tertiary text-body-secondary border";
-
-        return new StartStap(
-            routeGate?.VereisteStap.Route ?? stap.Route,
-            stap.Nummer,
-            stap.Label,
-            stap.Beschrijving,
-            routeGate?.Reden ?? samenvatting,
-            badgeLabel,
-            badgeClass,
-            routeGate is null);
-    }
-
-    private static string MaakDashboardLead(int aantalWanden, int aantalKasten, int aantalPanelen, int aantalBestellijstItems)
-        => aantalBestellijstItems > 0
-            ? $"{aantalWanden} wand(en), {aantalKasten} kast(en) en {aantalPanelen} paneel/panelen staan klaar. Hervat nu bij de volgende controle- of uitvoerstap."
-            : aantalPanelen > 0
-                ? "Uw indeling en paneeltoewijzing staan klaar. Rond nu verificatie af en werk daarna door naar bestellijst en zaagplan."
-                : $"{aantalWanden} wand(en) en {aantalKasten} kast(en) staan klaar. Ga nu verder met panelen toewijzen.";
-
-    private static InfoBlok MaakAandachtBlok(int aantalPanelen, int aantalBestellijstItems)
-        => aantalPanelen == 0
-            ? new(
-                "Wijs eerst panelen toe",
-                "Zonder paneeltoewijzing blijven verificatie, bestellijst en zaagplan gesloten.")
-            : aantalBestellijstItems == 0
-                ? new(
-                    "Rond verificatie af",
-                    "Controleer eerst maat, scharnierzijde en 35 mm potscharniergaten voordat u bestelt.")
-                : new(
-                    "Bestellijst en zaagplan zijn klaar",
-                    "U kunt nu exporteren, orderregels nalopen en het plaatformaat controleren.");
-
-    private static InfoBlok MaakBoorgatBlok(int totaalBoorgaten)
-        => totaalBoorgaten > 0
-            ? new(
-                $"{FormatPotscharnierGatTelling(totaalBoorgaten)} al berekend",
-                "U vindt deze terug in verificatie en bestellijst.")
-            : new(
-                "35 mm potscharniergaten verschijnen later",
-                "Zodra deuren of relevante fronten zijn toegewezen vult de app deze automatisch aan.");
-
-    private static string MaakOutputSamenvatting(int aantalResultaten, int aantalBestellijstItems, int totaalBoorgaten)
-        => aantalBestellijstItems > 0
-            ? $"{aantalBestellijstItems} orderregel(s) en {FormatPotscharnierGatTelling(totaalBoorgaten)} klaar voor uitvoer"
-            : aantalResultaten > 0
-                ? $"{aantalResultaten} paneel/panelen klaar voor controle"
-                : "Nog geen uitvoer; wijs eerst panelen toe";
-
-    private static string FormatPotscharnierGatTelling(int aantal)
-        => $"{aantal} {(aantal == 1 ? "35 mm potscharniergat" : "35 mm potscharniergaten")}";
-
-    private sealed record StartStap(
-        string Href,
-        int Nummer,
-        string Titel,
-        string Beschrijving,
-        string Samenvatting,
-        string BadgeLabel,
-        string BadgeClass,
-        bool IsBeschikbaar);
-
-    private sealed record InfoBlok(string Titel, string Tekst);
-}

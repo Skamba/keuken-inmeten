@@ -1,0 +1,74 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="card h-100 indeling-wand-samenvatting @(IsActief ? "actief" : null)"
+     data-testid="@DataTestId"
+     data-wand-id="@WandId"
+     data-wand-naam="@WandNaam">
+    <div class="card-body @BodyClass">
+        <div class="@InhoudClass">
+            <div class="@KopClass">
+                <h5 class="mb-0">@WandNaam</h5>
+                @foreach (var badge in Badges)
+                {
+                    <span class="@badge.CssClass">@badge.Label</span>
+                }
+            </div>
+
+            @if (MetaItems.Count > 0)
+            {
+                <div class="@MetaClass">
+                    @foreach (var item in MetaItems)
+                    {
+                        <span>@item</span>
+                    }
+                </div>
+            }
+            else if (!string.IsNullOrWhiteSpace(MetaTekst))
+            {
+                <div class="@MetaClass">
+                    @MetaTekst
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Beschrijving))
+            {
+                <div class="@BeschrijvingClass">
+                    @Beschrijving
+                </div>
+            }
+        </div>
+
+        <div class="@ActiesClass">
+            <button type="button"
+                    class="@KnopClass"
+                    @onclick="OnOpenen"
+                    disabled="@KnopUitgeschakeld"
+                    data-testid="@KnopDataTestId"
+                    data-wand-id="@WandId">
+                @KnopLabel
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Guid WandId { get; set; }
+    [Parameter, EditorRequired] public string WandNaam { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string DataTestId { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string KnopDataTestId { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string KnopLabel { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public EventCallback OnOpenen { get; set; }
+    [Parameter] public bool IsActief { get; set; }
+    [Parameter] public bool KnopUitgeschakeld { get; set; }
+    [Parameter] public string BodyClass { get; set; } = "d-flex flex-column gap-2";
+    [Parameter] public string InhoudClass { get; set; } = string.Empty;
+    [Parameter] public string KopClass { get; set; } = "d-flex flex-wrap align-items-center gap-2 mb-1";
+    [Parameter] public string MetaClass { get; set; } = "small text-muted";
+    [Parameter] public string BeschrijvingClass { get; set; } = "small text-muted";
+    [Parameter] public string ActiesClass { get; set; } = "mt-auto";
+    [Parameter] public string KnopClass { get; set; } = "btn btn-primary btn-sm";
+    [Parameter] public IReadOnlyList<IndelingBadge> Badges { get; set; } = [];
+    [Parameter] public IReadOnlyList<string> MetaItems { get; set; } = [];
+    [Parameter] public string? MetaTekst { get; set; }
+    [Parameter] public string? Beschrijving { get; set; }
+}

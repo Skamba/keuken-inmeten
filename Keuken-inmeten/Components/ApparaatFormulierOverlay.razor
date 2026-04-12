@@ -1,0 +1,178 @@
+@using Keuken_inmeten.Models
+@using Keuken_inmeten.Services
+
+<div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
+     style="z-index: 1050; background: rgba(0,0,0,0.4); overflow-y: auto; padding: 2rem 1rem;"
+     @onclick="OnSluiten">
+    <div class="card border-secondary shadow-lg"
+         style="max-width: 600px; width: 100%;"
+         data-testid="apparaat-form"
+         @onclick:stopPropagation="true">
+        <div class="card-header bg-secondary bg-opacity-10 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">@(IsBewerken ? "Apparaat bewerken" : "Apparaat toevoegen")</h5>
+            <button type="button" class="btn-close" @onclick="OnSluiten"></button>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                <div>
+                    <div class="small fw-semibold text-uppercase text-secondary-emphasis">Huidige stap</div>
+                    <div class="h6 mb-1" data-testid="apparaat-form-stap-label">Stap @Stap van @LaatsteStap: @StapLabel</div>
+                    <p class="text-muted small mb-0">@StapIntro</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge text-bg-light" data-testid="apparaat-form-progress">Stap @Stap/@LaatsteStap</span>
+                    <StapHulpDrawer StapId="kasten" KnopLabel="Meer hulp" />
+                </div>
+            </div>
+
+            @if (Stap == 1)
+            {
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Wand</label>
+                        <div class="form-control bg-body-tertiary">@ActieveWandNaam</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" value="@FormApparaat.Type" @onchange="OnApparaatTypeGewijzigd">
+                            @foreach (var type in Enum.GetValues<ApparaatType>())
+                            {
+                                <option value="@type">@ApparaatTypeLabel(type)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Naam</label>
+                        <input type="text" class="form-control" @bind="FormApparaat.Naam" @bind:event="oninput"
+                               data-testid="apparaat-naam-input" />
+                        <div class="form-text hulp-hint" data-testid="apparaat-naam-hint">Bijvoorbeeld Oven Bosch. Noem merk of functie zodat u het apparaat later in de wand en bestellijst herkent.</div>
+                    </div>
+                </div>
+            }
+            else if (Stap == 2)
+            {
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Breedte (mm)</label>
+                        <input type="number" class="form-control" @bind="FormApparaat.Breedte" min="100" step="10"
+                               data-testid="apparaat-breedte-input" />
+                        <div class="form-text hulp-hint" data-testid="apparaat-breedte-hint">Bijvoorbeeld 600. Gebruik de maat die echt wandruimte inneemt.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Hoogte (mm)</label>
+                        <input type="number" class="form-control" @bind="FormApparaat.Hoogte" min="10" step="10"
+                               data-testid="apparaat-hoogte-input" />
+                        <div class="form-text hulp-hint" data-testid="apparaat-hoogte-hint">Bijvoorbeeld 590 voor een inbouwoven of hoger voor een koelkastkastmodule.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Diepte (mm)</label>
+                        <input type="number" class="form-control" @bind="FormApparaat.Diepte" min="100" step="10"
+                               data-testid="apparaat-diepte-input" />
+                        <div class="form-text hulp-hint" data-testid="apparaat-diepte-hint">Bijvoorbeeld 560. Gebruik de werkelijke diepte van het apparaat of de nis die het vraagt.</div>
+                    </div>
+                </div>
+
+                <div class="small text-muted mb-0">
+                    U beslist hier alleen over de hoofdafmetingen. De controle met voorvertoning volgt in de laatste stap.
+                </div>
+            }
+            else
+            {
+                <div class="row g-4 align-items-start">
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-body-tertiary h-100">
+                            <div class="card-body">
+                                <h6 class="mb-3">Controle voor opslaan</h6>
+                                <dl class="row mb-0 small">
+                                    <dt class="col-sm-4">Wand</dt>
+                                    <dd class="col-sm-8">@ActieveWandNaam</dd>
+
+                                    <dt class="col-sm-4">Type</dt>
+                                    <dd class="col-sm-8">@ApparaatTypeLabel(FormApparaat.Type)</dd>
+
+                                    <dt class="col-sm-4">Naam</dt>
+                                    <dd class="col-sm-8">@FormApparaat.Naam</dd>
+
+                                    <dt class="col-sm-4">Maten</dt>
+                                    <dd class="col-sm-8">@FormApparaat.Breedte × @FormApparaat.Hoogte × @FormApparaat.Diepte mm</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-center mb-3">
+                            <svg width="120" height="80" viewBox="0 0 120 80" class="border rounded bg-light" aria-hidden="true">
+                                <rect x="0.5" y="0.5" width="119" height="79" rx="4" fill="white" stroke="#dee2e6" />
+                                <ApparaatPictogram Type="@FormApparaat.Type"
+                                                   X="18"
+                                                   Y="8"
+                                                   Width="84"
+                                                   Height="58"
+                                                   ReservedBottom="0"
+                                                   StrokeColor="#4b5563" />
+                            </svg>
+                            <div class="small text-muted mt-2">@ApparaatTypeLabel(FormApparaat.Type) · @FormApparaat.Breedte×@FormApparaat.Hoogte mm</div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        @onclick="OnVorige"
+                        disabled="@(Stap == 1)"
+                        data-testid="apparaat-form-terug-button">
+                    Terug
+                </button>
+                <div class="d-flex gap-2">
+                    @if (Stap < LaatsteStap)
+                    {
+                        <button type="button"
+                                class="btn btn-primary"
+                                @onclick="OnVolgende"
+                                disabled="@(!KanVolgendeStap)"
+                                data-testid="apparaat-form-volgende-button">
+                            Volgende stap
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-primary" @onclick="OnOpslaan"
+                                disabled="@string.IsNullOrWhiteSpace(FormApparaat.Naam)">
+                            @(IsBewerken ? "Opslaan" : "Apparaat toevoegen")
+                        </button>
+                    }
+                    <button type="button" class="btn btn-outline-secondary" @onclick="OnSluiten">
+                        Annuleren
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public bool IsBewerken { get; set; }
+    [Parameter, EditorRequired] public int Stap { get; set; }
+    [Parameter, EditorRequired] public int LaatsteStap { get; set; }
+    [Parameter, EditorRequired] public string StapLabel { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string StapIntro { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string ActieveWandNaam { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public Apparaat FormApparaat { get; set; } = default!;
+    [Parameter, EditorRequired] public EventCallback OnSluiten { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnVorige { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnVolgende { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnOpslaan { get; set; }
+    [Parameter, EditorRequired] public EventCallback<ChangeEventArgs> OnApparaatTypeGewijzigd { get; set; }
+
+    private bool KanVolgendeStap => Stap switch
+    {
+        1 => !string.IsNullOrWhiteSpace(FormApparaat.Naam),
+        2 => FormApparaat.Breedte > 0 && FormApparaat.Hoogte > 0 && FormApparaat.Diepte > 0,
+        _ => false
+    };
+
+    private static string ApparaatTypeLabel(ApparaatType type)
+        => IndelingFormulierHelper.ApparaatTypeLabel(type);
+}

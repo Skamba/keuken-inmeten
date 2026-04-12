@@ -9,33 +9,31 @@
 
 <StapIndicator HuidigeStap="bestellijst" />
 
-<h2 class="page-header">Stap 4: Bestellijst</h2>
-<div class="stap-ondersteuning mb-3" data-testid="bestellijst-stap-ondersteuning">
-    <StapHulpDrawer StapId="bestellijst" KnopLabel="Hulp bij stap" />
-    <TerminologieUitleg Compact="true"
-                        CompactLabel="Leg termen uit"
-                        Sleutels="kantenband,cnc,scharnierpot"
-                        Beschrijving="Deze woordenlijst helpt bij de technische termen in de bestellijst en export." />
-</div>
+<section class="stap-pagina-kop mb-4">
+    <div class="stap-pagina-kop__top">
+        <div class="stap-pagina-kop__intro">
+            <h2 class="page-header">Stap 4: Bestellijst</h2>
+            <p class="stap-pagina-kop__lead">Controleer eerst de lijst. Gebruik export pas als aantallen, maten en contextregels kloppen.</p>
+        </div>
+        <div class="stap-ondersteuning stap-pagina-kop__acties" data-testid="bestellijst-stap-ondersteuning">
+            <StapHulpDrawer StapId="bestellijst" KnopLabel="Hulp bij stap" />
+            <TerminologieUitleg Compact="true"
+                                CompactLabel="Leg termen uit"
+                                Sleutels="kantenband,cnc,scharnierpot"
+                                Beschrijving="Deze woordenlijst helpt bij de technische termen in de bestellijst en export." />
+        </div>
+    </div>
+</section>
 
 @{
-    var flowStatus = StappenFlowHelper.BepaalStatus(State);
-    var routeGate = StappenFlowHelper.BepaalRouteGate("bestellijst", flowStatus);
-    var items = BestellijstService.BerekenItems(State);
-    var paneelTypeTellingen = OverzichtGroeperingHelper.MaakTellingen(items, item => item.PaneelRolLabel, item => item.Aantal);
-    var maxBoorgaten = items.Count == 0 ? 0 : items.Max(item => item.Boorgaten.Count);
-    var totaalAantal = items.Sum(item => item.Aantal);
-    var totaalBoorgaten = items.Sum(item => item.Aantal * item.Boorgaten.Count);
-    var exportDocument = BestellijstExportService.BouwDocument(items, DisplayPaneelType(), _dikteMm, DateTime.Now);
-    var gekozenExport = BestellijstExportFlowHelper.Voor(_exportType);
-    var exportPreviewPunten = BestellijstExportFlowHelper.MaakPreviewPunten(exportDocument, _exportType);
+    var pagina = MaakPaginaModel();
 }
 
-@if (routeGate is not null)
+@if (pagina.RouteGate is not null)
 {
-    <StapRouteMelding Gate="@routeGate" />
+    <StapRouteMelding Gate="@pagina.RouteGate" />
 }
-else if (items.Count == 0)
+else if (pagina.Items.Count == 0)
 {
     <div class="alert alert-warning">
         Er is nog geen bestellijst beschikbaar. Controleer eerst of er in stap 2 panelen zijn toegewezen.
@@ -48,10 +46,11 @@ else
             <div class="bestellijst-primary-strip">
                 <div>
                     <div class="small fw-semibold text-uppercase text-muted mb-1">Volgende stap</div>
-                    <h5 class="mb-1">Controleer orderregels. Open daarna pas de export.</h5>
+                    <h5 class="mb-1">Controleer eerst de orderregels. Gebruik export pas als de lijst klopt.</h5>
                     <div class="stap-meta-list bestellijst-primary-meta">
-                        <span>@items.Count orderregels</span>
-                        <span>@totaalAantal panelen</span>
+                        <span>@pagina.Items.Count orderregels</span>
+                        <span>@pagina.TotaalAantal panelen</span>
+                        <span>@pagina.WandGroepen.Count wanden</span>
                     </div>
                 </div>
                 <div class="bestellijst-export-entry">
@@ -66,10 +65,10 @@ else
                      data-testid="bestellijst-techniek-details">
                 <summary data-testid="bestellijst-tech-details-summary">
                     <div>
-                        <div class="fw-semibold">Technische controle voor productie (optioneel)</div>
+                        <div class="fw-semibold">Technische productiecontrole (optioneel)</div>
                         <div class="small text-muted">@(_toonTechnischeDetails
-                            ? $"{FormatPotscharnierGatTelling(totaalBoorgaten)} zichtbaar."
-                            : "Open alleen voor CNC- of productiecontrole van 35 mm potscharniergaten.")</div>
+                            ? $"{FormatPotscharnierGatTelling(pagina.TotaalBoorgaten)} zichtbaar."
+                            : "Standaard uit. Open alleen voor CNC of controle van 35 mm potscharniergaten.")</div>
                     </div>
                 </summary>
                 <div class="d-flex flex-column gap-3 mt-3">
@@ -93,7 +92,7 @@ else
                     @if (_toonTechnischeDetails)
                     {
                         <div class="small text-muted bestellijst-toolbar-note">
-                            <strong>Technische weergave:</strong> @BestellijstExportFormatter.FormatCncAssenSamenvatting() · @FormatPotscharnierGatTelling(totaalBoorgaten) totaal
+                            <strong>Technische weergave:</strong> @BestellijstExportFormatter.FormatCncAssenSamenvatting() · @FormatPotscharnierGatTelling(pagina.TotaalBoorgaten) totaal
                         </div>
                     }
                 </div>
@@ -146,6 +145,7 @@ else
                                                 data-testid="@ExportTypeTestId(optie.Type)">
                                             <div class="d-flex justify-content-between align-items-start gap-3">
                                                 <div>
+                                                    <div class="bestellijst-export-keuze-kicker">@(optie.Type is BestellijstExportType.Pdf ? "Rustig document" : "Filterbare lijst")</div>
                                                     <div class="fw-semibold">@optie.Label</div>
                                                     <div class="small text-muted mt-1">@optie.KorteBeschrijving</div>
                                                 </div>
@@ -154,6 +154,11 @@ else
                                                     <span class="badge text-bg-primary">Gekozen</span>
                                                 }
                                             </div>
+                                            <div class="bestellijst-export-keuze-badges mt-3">
+                                                <span class="bestellijst-export-keuze-badge">@(optie.Type is BestellijstExportType.Pdf ? "Print / bespreek" : "Filter / sorteer")</span>
+                                                <span class="bestellijst-export-keuze-badge">@(optie.Type is BestellijstExportType.Pdf ? "Visualisaties" : "Spreadsheet")</span>
+                                            </div>
+                                            <div class="small text-muted mt-3">@optie.Voorbeeld</div>
                                         </button>
                                     </div>
                                 }
@@ -169,23 +174,23 @@ else
                                     <div class="border rounded p-3 h-100">
                                         <div class="small fw-semibold text-uppercase text-muted mb-1">Gekozen export</div>
                                         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
-                                            <h6 class="mb-0">@gekozenExport.Label</h6>
+                                            <h6 class="mb-0">@pagina.GekozenExport.Label</h6>
                                             <span class="badge text-bg-light border">Stap 2 van 3</span>
                                         </div>
-                                        <p class="text-muted small mb-3">@gekozenExport.KorteBeschrijving</p>
+                                        <p class="text-muted small mb-3">@pagina.GekozenExport.KorteBeschrijving</p>
                                         <div class="bestellijst-toolbar-meta">
                                             <span><strong>Materiaal:</strong> @DisplayPaneelType()</span>
                                             <span><strong>Dikte:</strong> @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</span>
-                                            <span><strong>Orderregels:</strong> @exportDocument.Orderregels</span>
-                                            <span><strong>Panelen:</strong> @exportDocument.TotaalAantal</span>
+                                            <span><strong>Orderregels:</strong> @pagina.ExportDocument.Orderregels</span>
+                                            <span><strong>Panelen:</strong> @pagina.ExportDocument.TotaalAantal</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-lg-5">
                                     <div class="border rounded p-3 h-100">
                                         <div class="small fw-semibold text-uppercase text-muted mb-1">Gebruik dit als</div>
-                                        <div class="small text-muted mb-3">@gekozenExport.WanneerKiezen</div>
-                                        <div class="small"><strong>Resultaat:</strong> @gekozenExport.ResultaatUitleg</div>
+                                        <div class="small text-muted mb-3">@pagina.GekozenExport.WanneerKiezen</div>
+                                        <div class="small"><strong>Resultaat:</strong> @pagina.GekozenExport.ResultaatUitleg</div>
                                         <div class="small text-muted mt-3">Materiaal: @DisplayPaneelType() · @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</div>
                                     </div>
                                 </div>
@@ -196,7 +201,7 @@ else
                                     <div class="border rounded p-3 h-100">
                                         <div class="small fw-semibold text-uppercase text-muted mb-2">Voorvertoning van het resultaat</div>
                                         <ul class="small mb-0 ps-3" data-testid="bestellijst-export-preview">
-                                            @foreach (var punt in exportPreviewPunten)
+                                            @foreach (var punt in pagina.ExportPreviewPunten)
                                             {
                                                 <li class="mb-1">@punt</li>
                                             }
@@ -253,10 +258,10 @@ else
                                     <div class="border rounded p-3 h-100">
                                         <div class="small fw-semibold text-uppercase text-muted mb-2">Uw keuzes</div>
                                         <ul class="list-unstyled small mb-0 d-grid gap-2">
-                                            <li><strong>Formaat:</strong> @gekozenExport.Label</li>
+                                            <li><strong>Formaat:</strong> @pagina.GekozenExport.Label</li>
                                             <li><strong>Materiaal:</strong> @DisplayPaneelType()</li>
                                             <li><strong>Dikte:</strong> @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</li>
-                                            <li><strong>Resultaat:</strong> @gekozenExport.ResultaatUitleg</li>
+                                            <li><strong>Resultaat:</strong> @pagina.GekozenExport.ResultaatUitleg</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -315,7 +320,7 @@ else
                                 class="btn btn-primary"
                                 @onclick="BevestigExport"
                                 data-testid="bestellijst-export-confirm-button">
-                            @gekozenExport.BevestigLabel
+                            @pagina.GekozenExport.BevestigLabel
                         </button>
                     }
                 </div>
@@ -325,16 +330,30 @@ else
 
     <details class="bestellijst-overzicht-details mb-4">
         <summary class="fw-semibold">
-            <span>Bekijk verdeling per paneeltype</span>
-            <span class="small text-muted">@paneelTypeTellingen.Count type(n)</span>
+            <span>Bekijk verdeling per wand en paneeltype</span>
+            <span class="small text-muted">@pagina.WandGroepen.Count wand(en) · @pagina.PaneelTypeTellingen.Count type(n)</span>
         </summary>
-        <div class="mt-2">
-            <div class="border rounded p-3">
-                <div class="d-flex flex-wrap gap-2">
-                    @foreach (var telling in paneelTypeTellingen)
-                    {
-                        <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
-                    }
+        <div class="row g-3 mt-2">
+            <div class="col-xl-6">
+                <div class="border rounded p-3 h-100">
+                    <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per wand</div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var groep in pagina.WandGroepen)
+                        {
+                            <span class="badge text-bg-light border">@groep.WandNaam · @groep.PanelenTotaal panelen</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="border rounded p-3 h-100">
+                    <div class="text-uppercase text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: .04em;">Per paneeltype</div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var telling in pagina.PaneelTypeTellingen)
+                        {
+                            <span class="badge text-bg-light border">@telling.Label @telling.Aantal</span>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
@@ -345,7 +364,7 @@ else
             <div class="table-responsive bestellijst-table-wrap">
                 <table class="table table-hover align-middle bestellijst-table @(_toonTechnischeDetails ? "bestellijst-table--technisch" : null)"
                        data-testid="bestellijst-tabel">
-                    <caption class="visually-hidden">Bestellijst — @items.Count orderregels en @totaalAantal panelen</caption>
+                    <caption class="visually-hidden">Bestellijst — @pagina.Items.Count orderregels en @pagina.TotaalAantal panelen</caption>
                     <thead class="table-light">
                         <tr>
                             <th>Orderregel</th>
@@ -360,7 +379,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in items)
+                        @foreach (var item in pagina.Items)
                         {
                             var technischeDetails = TechnischeDetailLijnen(item);
                             <tr>
@@ -373,7 +392,7 @@ else
                                     <div>@MaatLabel(item)</div>
                                 </td>
                                 <td>@item.KantenbandLabel</td>
-                                <td class="small text-muted">@item.ContextLabel</td>
+                                <td class="small text-muted">@ContextSamenvatting(item)</td>
                                 @if (_toonTechnischeDetails)
                                 {
                                     <td class="small">
@@ -397,197 +416,3 @@ else
 <StapNavigatie HuidigeStap="bestellijst"
                VorigeHref="verificatie"
                VolgendeHref="zaagplan" />
-
-@code {
-    private enum BestellijstExportFlowStap
-    {
-        Kiezen = 1,
-        Preview = 2,
-        Bevestigen = 3
-    }
-
-    private static readonly string[] PaneelTypeOpties =
-    [
-        "MDF gelakt",
-        "Melamine",
-        "Fenix",
-        "HPL",
-        "Fineer",
-        "Multiplex",
-        "Acrylaat"
-    ];
-
-    private BestellijstExportJsInterop? _exportInterop;
-    private BestellijstExportFlowStap _exportFlowStap = BestellijstExportFlowStap.Kiezen;
-    private BestellijstExportType _exportType = BestellijstExportType.Pdf;
-    private string _paneelType = "MDF gelakt";
-    private string _dikteMm = "19";
-    private bool _toonTechnischeDetails;
-    private bool _toonExportFlow;
-
-    private BestellijstExportJsInterop ExportInterop => _exportInterop ??= new(JS);
-
-    private void OpenExportFlow()
-    {
-        _toonExportFlow = true;
-        _exportFlowStap = BestellijstExportFlowStap.Kiezen;
-    }
-
-    private void SluitExportFlow()
-    {
-        _toonExportFlow = false;
-        _exportFlowStap = BestellijstExportFlowStap.Kiezen;
-    }
-
-    private void KiesExportType(BestellijstExportType type) => _exportType = type;
-
-    private void GaNaarExportPreview() => _exportFlowStap = BestellijstExportFlowStap.Preview;
-
-    private void GaNaarExportBevestiging() => _exportFlowStap = BestellijstExportFlowStap.Bevestigen;
-
-    private void GaTerugInExportFlow()
-    {
-        _exportFlowStap = _exportFlowStap switch
-        {
-            BestellijstExportFlowStap.Bevestigen => BestellijstExportFlowStap.Preview,
-            _ => BestellijstExportFlowStap.Kiezen
-        };
-    }
-
-    private void AnnuleerOfGaTerugInExportFlow()
-    {
-        if (_exportFlowStap is BestellijstExportFlowStap.Kiezen)
-        {
-            SluitExportFlow();
-            return;
-        }
-
-        GaTerugInExportFlow();
-    }
-
-    private async Task BevestigExport()
-    {
-        if (_exportType is BestellijstExportType.Excel)
-        {
-            await ExporteerExcel();
-            return;
-        }
-
-        await ExporteerPdf();
-    }
-
-    private string ExportStapClass(BestellijstExportFlowStap stap)
-    {
-        var huidigeStap = (int)_exportFlowStap;
-        var stapNummer = (int)stap;
-
-        return stapNummer == huidigeStap
-            ? "bestellijst-export-stap is-active"
-            : stapNummer < huidigeStap
-                ? "bestellijst-export-stap is-complete"
-                : "bestellijst-export-stap";
-    }
-
-    private static string ExportTypeTestId(BestellijstExportType type)
-        => type is BestellijstExportType.Pdf
-            ? "bestellijst-export-type-pdf"
-            : "bestellijst-export-type-excel";
-
-    private async Task ExporteerExcel()
-    {
-        try
-        {
-            var items = BestellijstService.BerekenItems(State);
-            var generatedAt = DateTime.Now;
-            var document = BestellijstExportService.BouwDocument(items, DisplayPaneelType(), _dikteMm, generatedAt);
-            var bestand = BestellijstExportService.MaakBestandsNaam("bestellijst", DisplayPaneelType(), "xls", generatedAt);
-            var xml = BestellijstExcelRenderer.Render(document);
-
-            await ExportInterop.DownloadTextFileAsync(
-                bestand,
-                xml,
-                "application/vnd.ms-excel;charset=utf-8");
-
-            SluitExportFlow();
-            Feedback.ToonSucces("Excel-bestand gedownload. Controleer nu de Downloads-map of open het bestand direct.");
-        }
-        catch
-        {
-            Feedback.ToonFout("Excel-export lukte niet. Probeer opnieuw; als er niets gebeurt, controleer of downloads in deze browser zijn toegestaan.");
-        }
-    }
-
-    private async Task ExporteerPdf()
-    {
-        try
-        {
-            var items = BestellijstService.BerekenItems(State);
-            var generatedAt = DateTime.Now;
-            var document = BestellijstExportService.BouwDocument(items, DisplayPaneelType(), _dikteMm, generatedAt);
-            var html = BestellijstPrintHtmlRenderer.Render(document);
-
-            await ExportInterop.OpenPrintDocumentAsync(html);
-
-            SluitExportFlow();
-            Feedback.ToonSucces("Printweergave geopend. Kies in de browser 'Opslaan als PDF' om het bestand te bewaren.");
-        }
-        catch
-        {
-            Feedback.ToonFout("PDF-export lukte niet. Controleer of pop-ups zijn toegestaan en probeer opnieuw.");
-        }
-    }
-
-    private string DisplayPaneelType()
-        => string.IsNullOrWhiteSpace(_paneelType) ? "Onbekend paneeltype" : _paneelType.Trim();
-
-    private static string MaatLabel(BestellijstItem item)
-        => $"{FormatNumber(item.Hoogte)} hoog × {FormatNumber(item.Breedte)} breed";
-
-    private static string ContextSamenvatting(BestellijstItem item)
-    {
-        var context = item.ContextLabel?.Trim() ?? string.Empty;
-        var prefix = string.IsNullOrWhiteSpace(item.WandNaam) ? string.Empty : $"{item.WandNaam} • ";
-
-        if (!string.IsNullOrWhiteSpace(prefix) && context.StartsWith(prefix, StringComparison.CurrentCultureIgnoreCase))
-            context = context[prefix.Length..];
-
-        if (string.IsNullOrWhiteSpace(context))
-            return string.IsNullOrWhiteSpace(item.WandNaam) ? "—" : item.WandNaam;
-
-        return context;
-    }
-
-    private static List<string> TechnischeDetailLijnen(BestellijstItem item)
-    {
-        var regels = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(item.ScharnierLabel) && item.ScharnierLabel != "—")
-            regels.Add($"Scharnier: {item.ScharnierLabel}");
-
-        if (item.Boorgaten.Count == 0)
-        {
-            regels.Add("Geen 35 mm potscharniergaten.");
-            return regels;
-        }
-
-        for (var i = 0; i < item.Boorgaten.Count; i++)
-        {
-            var boorgat = item.Boorgaten[i];
-            regels.Add(
-                $"Potscharniergat {i + 1} (35 mm): X {FormatNumber(BestellijstExportService.BerekenCncX(item, boorgat))} · Y {FormatNumber(BestellijstExportService.BerekenCncY(boorgat))}");
-        }
-
-        return regels;
-    }
-
-    private static string FormatPotscharnierGatTelling(int aantal)
-        => $"{aantal} {(aantal == 1 ? "35 mm potscharniergat" : "35 mm potscharniergaten")}";
-
-    private static string FormatNumber(double value) => value.ToString("0.#");
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_exportInterop is not null)
-            await _exportInterop.DisposeAsync();
-    }
-}

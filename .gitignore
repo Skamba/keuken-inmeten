@@ -30,6 +30,7 @@ screenshots_plank/
 .agent/screenshots/
 .agent/
 .tmp/ux-review/
+.ai-work/
 
 # OS files
 .DS_Store

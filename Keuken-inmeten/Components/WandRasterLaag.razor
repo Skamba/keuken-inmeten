@@ -1,0 +1,60 @@
+@using Keuken_inmeten.Services
+@using Microsoft.AspNetCore.Components
+
+<rect x="@Fmt(Padding)" y="@Fmt(Padding)" width="@Fmt(MuurBreedtePx)" height="@Fmt(MuurHoogtePx)"
+      fill="#f5f0e8" stroke="#bbb" stroke-width="1.5" />
+
+@foreach (var hoogte in HoogteMarkeringen())
+{
+    var y = VloerY - hoogte * Schaal;
+    <line x1="@Fmt(Padding)" y1="@Fmt(y)" x2="@Fmt(Padding + MuurBreedtePx)" y2="@Fmt(y)"
+          stroke="#e8e0d4" stroke-width="0.5" />
+    <line x1="@Fmt(Padding - 5)" y1="@Fmt(y)" x2="@Fmt(Padding)" y2="@Fmt(y)"
+          stroke="#999" stroke-width="1" />
+    @SvgText(Padding - 8, y + 3, hoogte.ToString(), "font-size=\"9\" fill=\"#999\" text-anchor=\"end\"")
+}
+
+@if (PlintHoogte > 0)
+{
+    var plintPx = PlintHoogte * Schaal;
+    <rect x="@Fmt(Padding)" y="@Fmt(VloerY - plintPx)" width="@Fmt(MuurBreedtePx)" height="@Fmt(plintPx)"
+          fill="#c8a87c" opacity="0.5" pointer-events="none" />
+    @SvgText(Padding + 4, VloerY - plintPx / 2 + 3, $"plint {PlintHoogte:F0}mm", "font-size=\"8\" fill=\"#7a5c2e\" pointer-events=\"none\"")
+}
+
+<line x1="@Fmt(Padding)" y1="@Fmt(VloerY)" x2="@Fmt(Padding + MuurBreedtePx)" y2="@Fmt(VloerY)"
+      stroke="#8b7355" stroke-width="2" />
+@SvgText(Padding - 8, VloerY + 4, "0", "font-size=\"9\" fill=\"#8b7355\" text-anchor=\"end\"")
+
+@foreach (var breedte in BreedteMarkeringen())
+{
+    var x = Padding + breedte * Schaal;
+    <line x1="@Fmt(x)" y1="@Fmt(VloerY)" x2="@Fmt(x)" y2="@Fmt(VloerY + 5)"
+          stroke="#999" stroke-width="1" />
+    @SvgText(x, VloerY + 16, breedte.ToString(), "font-size=\"9\" fill=\"#999\" text-anchor=\"middle\"")
+}
+
+@SvgText(Padding + MuurBreedtePx / 2, Padding - 8, $"{WandBreedte:F0} mm", "font-size=\"11\" fill=\"#666\" text-anchor=\"middle\" font-weight=\"bold\"")
+@SvgText(Padding + MuurBreedtePx + 12, Padding + MuurHoogtePx / 2, $"{WandHoogte:F0} mm", $"font-size=\"11\" fill=\"#666\" text-anchor=\"start\" transform=\"rotate(90, {Fmt(Padding + MuurBreedtePx + 12)}, {Fmt(Padding + MuurHoogtePx / 2)})\"")
+
+@code {
+    [Parameter, EditorRequired] public double Padding { get; set; }
+    [Parameter, EditorRequired] public double WandHoogte { get; set; }
+    [Parameter, EditorRequired] public double WandBreedte { get; set; }
+    [Parameter, EditorRequired] public double PlintHoogte { get; set; }
+    [Parameter, EditorRequired] public double Schaal { get; set; }
+    [Parameter, EditorRequired] public double MuurBreedtePx { get; set; }
+    [Parameter, EditorRequired] public double MuurHoogtePx { get; set; }
+    [Parameter, EditorRequired] public double VloerY { get; set; }
+
+    private IReadOnlyList<int> HoogteMarkeringen()
+        => WandOpstellingHelper.BepaalHoogteMarkeringen(WandHoogte);
+
+    private IReadOnlyList<int> BreedteMarkeringen()
+        => WandOpstellingHelper.BepaalBreedteMarkeringen(WandBreedte);
+
+    private static string Fmt(double value) => VisualisatieHelper.Fmt(value);
+    private static string Encode(string value) => System.Net.WebUtility.HtmlEncode(value);
+    private static MarkupString SvgText(double x, double y, string text, string extraAttributes = "")
+        => (MarkupString)$"<text x=\"{Fmt(x)}\" y=\"{Fmt(y)}\" {extraAttributes}>{Encode(text)}</text>";
+}

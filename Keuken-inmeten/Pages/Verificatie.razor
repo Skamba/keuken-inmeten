@@ -9,32 +9,41 @@
 
 <StapIndicator HuidigeStap="verificatie" />
 
-<h2 class="page-header">Stap 3: Verificatie</h2>
-@if (_fase == VerificatieFase.Overzicht)
-{
-    <p class="text-muted mb-3">Controleer per paneel eerst de maat in de opening. Controleer systeemgaten alleen bij deuren.</p>
-    <div class="stap-ondersteuning mb-3" data-testid="verificatie-stap-ondersteuning">
-        <StapHulpDrawer StapId="verificatie" KnopLabel="Hulp bij stap" />
-        <TerminologieUitleg Compact="true"
-                            CompactLabel="Leg termen uit"
-                            Sleutels="openingsmaat,werkmaat,gaatjesrij,montageplaat,pothart"
-                            Beschrijving="Deze woordenlijst helpt bij de controletermen die u in de verificatiestap ziet." />
+<section class="stap-pagina-kop mb-4">
+    <div class="stap-pagina-kop__top">
+        <div class="stap-pagina-kop__intro">
+            <h2 class="page-header">Stap 3: Verificatie</h2>
+            @if (_fase == VerificatieFase.Overzicht)
+            {
+                <p class="stap-pagina-kop__lead">Controleer per paneel eerst de maat in de opening. Controleer systeemgaten alleen bij deuren.</p>
+            }
+        </div>
+        @if (_fase == VerificatieFase.Overzicht)
+        {
+            <div class="stap-ondersteuning stap-pagina-kop__acties" data-testid="verificatie-stap-ondersteuning">
+                <StapHulpDrawer StapId="verificatie" KnopLabel="Hulp bij stap" />
+                <TerminologieUitleg Compact="true"
+                                    CompactLabel="Leg termen uit"
+                                    Sleutels="openingsmaat,werkmaat,gaatjesrij,montageplaat,pothart"
+                                    Beschrijving="Deze woordenlijst helpt bij de controletermen die u in de verificatiestap ziet." />
+            </div>
+        }
     </div>
-}
+</section>
 
 @{
-    var flowStatus = StappenFlowHelper.BepaalStatus(State);
-    var routeGate = StappenFlowHelper.BepaalRouteGate("verificatie", flowStatus);
-    var resultaten = State.BerekenResultaten();
+    var pagina = MaakPaginaModel();
     var uitlijnWaarschuwingen = WandUitlijnControleService.BepaalWaarschuwingen(State.Wanden, State.Kasten);
 }
 
-@if (routeGate is not null)
+@if (pagina.RouteGate is not null)
 {
-    <StapRouteMelding Gate="@routeGate" />
+    <StapRouteMelding Gate="@pagina.RouteGate" />
 }
-else if (_fase == VerificatieFase.Overzicht)
+else if (_fase == VerificatieFase.Overzicht && pagina.Overzicht is not null)
 {
+    var overzicht = pagina.Overzicht;
+
     @if (uitlijnWaarschuwingen.Count > 0)
     {
         <section class="alert alert-warning shadow-sm mb-4"
@@ -67,42 +76,6 @@ else if (_fase == VerificatieFase.Overzicht)
 
     <div class="card border-0 shadow-sm mb-4 verificatie-overzicht-card">
         <div class="card-body">
-            @{
-                var verificatieTaken = resultaten
-                    .Select((r, index) => new
-                    {
-                        Index = index,
-                        Resultaat = r,
-                        WandId = r.KastIds
-                            .Select(State.WandVoorKast)
-                            .FirstOrDefault(kandidaat => kandidaat is not null)?.Id,
-                        WandNaam = State.WandNaamVoorKasten(r.KastIds),
-                        Geverifieerd = AlleChecksVoorPaneel(index, r),
-                        OpenChecks = OpenChecksVoorPaneel(index, r),
-                        VolgendeControle = VolgendeControleTitel(index, r),
-                        OpeningB = r.MaatInfo?.OpeningsRechthoek.Breedte ?? r.Breedte,
-                        OpeningH = r.MaatInfo?.OpeningsRechthoek.Hoogte ?? r.Hoogte
-                    })
-                    .ToList();
-                var taakGroepen = State.Wanden
-                    .Select(wand => new
-                    {
-                        Wand = wand,
-                        Taken = verificatieTaken
-                            .Where(taak => taak.WandId == wand.Id)
-                            .ToList()
-                    })
-                    .Where(groep => groep.Taken.Count > 0)
-                    .ToList();
-                var aantalAfgerond = Enumerable.Range(0, resultaten.Count).Count(i => AlleChecksVoorPaneel(i, resultaten[i]));
-                var eersteOngecontroleerd = Enumerable.Range(0, resultaten.Count)
-                    .FirstOrDefault(i => !AlleChecksVoorPaneel(i, resultaten[i]), 0);
-                var alGestart = aantalAfgerond > 0;
-                var totaalOpenChecks = Enumerable.Range(0, resultaten.Count).Sum(i => OpenChecksVoorPaneel(i, resultaten[i]));
-                var samenvattingPaneelIndex = aantalAfgerond == resultaten.Count ? Math.Max(0, resultaten.Count - 1) : eersteOngecontroleerd;
-                var volgendePaneel = resultaten[samenvattingPaneelIndex];
-            }
-
             <div class="verificatie-overview-header mb-3">
                 <div>
                     <h5 class="mb-1">Taken per wand</h5>
@@ -110,35 +83,33 @@ else if (_fase == VerificatieFase.Overzicht)
                 </div>
                 <div class="verificatie-overview-action">
                     <div class="verificatie-samenvatting-label">Volgende taak</div>
-                    <div class="fw-semibold">@(aantalAfgerond == resultaten.Count ? "Alle controles zijn klaar" : VolgendeControleTitel(samenvattingPaneelIndex, volgendePaneel))</div>
-                    <div class="small text-muted mb-3">@((aantalAfgerond == resultaten.Count) ? "U kunt afronden of een taak opnieuw openen." : $"Paneel {samenvattingPaneelIndex + 1} · {volgendePaneel.KastNaam}")</div>
+                    <div class="fw-semibold">@(overzicht.AantalAfgerond == pagina.Resultaten.Count ? "Alle controles zijn klaar" : overzicht.SamenvattingTaak.VolgendeControle)</div>
+                    <div class="small text-muted mb-3">@((overzicht.AantalAfgerond == pagina.Resultaten.Count) ? "U kunt afronden of een taak opnieuw openen." : $"Paneel {overzicht.SamenvattingTaak.Index + 1} · {overzicht.SamenvattingTaak.Resultaat.KastNaam}")</div>
                     <button class="btn btn-success btn-lg"
-                            @onclick="() => GaNaarPaneel(eersteOngecontroleerd)"
+                            @onclick="() => GaNaarPaneel(overzicht.EersteOngecontroleerdIndex)"
                             data-testid="verificatie-start-button">
-                        @(alGestart ? "Open volgende taak" : "Start taaklijst") &#8594;
+                        @(overzicht.AlGestart ? "Open volgende taak" : "Start taaklijst") &#8594;
                     </button>
                 </div>
             </div>
 
             <div class="verificatie-overview-strip mb-3">
-                <span>@aantalAfgerond van @resultaten.Count taken klaar</span>
-                <span>@totaalOpenChecks open controles</span>
-                <span>@taakGroepen.Count wand(en)</span>
+                <span>@overzicht.AantalAfgerond van @pagina.Resultaten.Count taken klaar</span>
+                <span>@overzicht.TotaalOpenChecks open controles</span>
+                <span>@overzicht.TaakGroepen.Count wand(en)</span>
             </div>
 
             <div class="verificatie-taaklijst mb-3" data-testid="verificatie-taaklijst">
-                @foreach (var groep in taakGroepen)
+                @foreach (var groep in overzicht.TaakGroepen)
                 {
-                    var openTaken = groep.Taken.Count(taak => !taak.Geverifieerd);
-
                     <div class="card shadow-sm mb-3"
-                         data-testid="verificatie-taakgroep"
-                         data-wand-id="@groep.Wand.Id"
-                         data-wand-naam="@groep.Wand.Naam">
+                          data-testid="verificatie-taakgroep"
+                         data-wand-id="@groep.WandId"
+                         data-wand-naam="@groep.WandNaam">
                         <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-start gap-3 flex-wrap">
                             <div>
-                                <h6 class="mb-1">@groep.Wand.Naam</h6>
-                                <div class="small text-muted">@groep.Taken.Count panelen · @groep.Taken.Count(taak => taak.Geverifieerd) klaar · @openTaken open</div>
+                                <h6 class="mb-1">@groep.WandNaam</h6>
+                                <div class="small text-muted">@groep.Taken.Count panelen · @groep.AfgerondeTaken klaar · @groep.OpenTaken open</div>
                             </div>
                         </div>
                         <div class="list-group list-group-flush">
@@ -146,7 +117,7 @@ else if (_fase == VerificatieFase.Overzicht)
                             {
                                 <div class="list-group-item"
                                      data-testid="verificatie-taak-item"
-                                     data-wand-naam="@groep.Wand.Naam"
+                                     data-wand-naam="@groep.WandNaam"
                                      data-paneel-index="@taak.Index">
                                     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                                         <div class="verificatie-taak-meta">
@@ -162,7 +133,7 @@ else if (_fase == VerificatieFase.Overzicht)
                                             <div class="small mt-1">@taak.VolgendeControle</div>
                                         </div>
                                         <div class="verificatie-taak-acties">
-                                            <div class="small text-muted text-sm-end">@OpenChecksLabel(taak.Index, taak.Resultaat)</div>
+                                            <div class="small text-muted text-sm-end">@($"{taak.OpenChecks} {(taak.OpenChecks == 1 ? "open controle" : "open controles")}")</div>
                                             <button class="btn btn-outline-primary btn-sm"
                                                     @onclick="() => GaNaarPaneel(taak.Index)"
                                                     data-testid="verificatie-open-controle-button">
@@ -179,22 +150,11 @@ else if (_fase == VerificatieFase.Overzicht)
         </div>
     </div>
 }
-else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten.Count)
+else if (_fase == VerificatieFase.PaneelVerificatie && pagina.ActiefPaneel is not null)
 {
-    var r = resultaten[_paneelIndex];
-    var toewijzing = State.Toewijzingen.FirstOrDefault(t => t.Id == r.ToewijzingId);
-    var potHartVanRand = r.Boorgaten.FirstOrDefault()?.X
-        ?? toewijzing?.PotHartVanRand
-        ?? State.LaatstGebruiktePotHartVanRand;
-    var paneelKasten = State.ZoekKasten(r.KastIds);
-    var checks = GetChecks(r);
-    var isDeur = r.Type == PaneelType.Deur && r.Boorgaten.Count > 0;
-    var openingB = r.MaatInfo?.OpeningsRechthoek.Breedte ?? r.Breedte;
-    var openingH = r.MaatInfo?.OpeningsRechthoek.Hoogte ?? r.Hoogte;
-    var aantalAfgevinkt = AantalAfgevinktVoorPaneel(_paneelIndex, r);
-    var totaalChecks = isDeur ? 2 : 1;
-    var afgerondePanelen = Enumerable.Range(0, resultaten.Count).Count(i => AlleChecksVoorPaneel(i, resultaten[i]));
-    var openPaneelControles = Enumerable.Range(0, resultaten.Count).Sum(i => OpenChecksVoorPaneel(i, resultaten[i]));
+    var paneel = pagina.ActiefPaneel;
+    var r = paneel.Resultaat;
+    var checks = paneel.Checks;
 
     <div class="verificatie-focus-strip mb-3">
         <div>
@@ -203,11 +163,11 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                 <span class="badge @TypeBadgeClass(r.Type)">@TypeNaam(r.Type)</span>
                 <span class="fw-semibold">@r.KastNaam</span>
             </div>
-            <div class="small text-muted">Paneel @(_paneelIndex + 1) van @resultaten.Count · @State.WandNaamVoorKasten(r.KastIds)</div>
+            <div class="small text-muted">Paneel @(_paneelIndex + 1) van @pagina.Resultaten.Count · @paneel.WandNaam</div>
         </div>
         <div class="text-sm-end">
-            <div class="fw-semibold">@afgerondePanelen van @resultaten.Count panelen klaar</div>
-            <div class="small text-muted">@openPaneelControles open controles in deze stap</div>
+            <div class="fw-semibold">@paneel.AfgerondePanelen van @pagina.Resultaten.Count panelen klaar</div>
+            <div class="small text-muted">@paneel.OpenPaneelControles open controles in deze stap</div>
         </div>
     </div>
 
@@ -215,8 +175,8 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
         <div class="verificatie-detail-strip mb-4">
             <div class="verificatie-detail-strip-main">
                 <div class="verificatie-samenvatting-label">Nu controleren</div>
-                <div class="fw-semibold">@VolgendeControleTitel(_paneelIndex, r)</div>
-                <div class="small text-muted">@HuidigeControleHint(_paneelIndex, r)</div>
+                <div class="fw-semibold">@paneel.VolgendeControle</div>
+                <div class="small text-muted">@paneel.HuidigeControleHint</div>
             </div>
             <div class="verificatie-detail-strip-meta">
                 <div>
@@ -226,8 +186,8 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                 </div>
                 <div>
                     <div class="verificatie-samenvatting-label">Status</div>
-                    <div class="fw-semibold">@aantalAfgevinkt van @totaalChecks controles afgevinkt</div>
-                    <div class="small text-muted">@OpenChecksLabel(_paneelIndex, r)</div>
+                    <div class="fw-semibold">@paneel.AantalAfgevinkt van @paneel.TotaalChecks controles afgevinkt</div>
+                    <div class="small text-muted">@paneel.OpenChecksLabel</div>
                 </div>
             </div>
         </div>
@@ -252,12 +212,12 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
 
                         <div class="verificatie-maten mb-3 ps-5">
                             <div class="verificatie-maat">
-                                <div class="verificatie-maat-waarde">@FormatMm(openingB)</div>
+                                <div class="verificatie-maat-waarde">@FormatMm(paneel.OpeningB)</div>
                                 <div class="verificatie-maat-label">breedte in opening</div>
                             </div>
                             <div class="verificatie-maat-keer">&#215;</div>
                             <div class="verificatie-maat">
-                                <div class="verificatie-maat-waarde">@FormatMm(openingH)</div>
+                                <div class="verificatie-maat-waarde">@FormatMm(paneel.OpeningH)</div>
                                 <div class="verificatie-maat-label">hoogte in opening</div>
                             </div>
                         </div>
@@ -284,7 +244,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                         }
                     </div>
 
-                    @if (isDeur)
+                    @if (paneel.IsDeur)
                     {
                         @* ── Controle 2: Controleer de gaatjesrij ── *@
                         <div class="verificatie-check @(checks.ScharnierPositiesOk ? "verificatie-check-ok" : "") mb-4">
@@ -331,12 +291,12 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                                              CssClass="verificatie-techniek ps-5">
                                 <div class="mt-3">
                                     <ScharnierOverzichtVisueel Resultaat="@r"
-                                                               Toewijzing="@toewijzing"
-                                                               Kasten="@paneelKasten"
+                                                               Toewijzing="@paneel.Toewijzing"
+                                                               Kasten="@paneel.PaneelKasten"
                                                                MaxHoogte="480" />
                                     <div class="small text-muted mt-2">
                                         <span>Scharnierzijde: <strong>@(r.ScharnierZijde == ScharnierZijde.Links ? "links" : "rechts")</strong></span>
-                                        <span class="ms-3">Afstand scharnierpot tot rand: <strong>@FormatMm(potHartVanRand)</strong></span>
+                                        <span class="ms-3">Afstand scharnierpot tot rand: <strong>@FormatMm(paneel.PotHartVanRand)</strong></span>
                                     </div>
                                 </div>
                             </HulpDetailsBlok>
@@ -352,8 +312,8 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                     </div>
                         <div class="verificatie-zijkader small text-muted">
                             <div class="fw-semibold text-body mb-1">Paneelbeeld</div>
-                            <div>@FormatMm(r.Breedte) &#215; @FormatMm(r.Hoogte) · @OpenChecksLabel(_paneelIndex, r)</div>
-                            @if (isDeur)
+                            <div>@FormatMm(r.Breedte) &#215; @FormatMm(r.Hoogte) · @paneel.OpenChecksLabel</div>
+                            @if (paneel.IsDeur)
                             {
                                 <div>@r.Boorgaten.Count @(r.Boorgaten.Count == 1 ? "potscharniergat" : "potscharniergaten") &#216;@(r.Boorgaten.FirstOrDefault()?.Diameter ?? 35) mm</div>
                             }
@@ -362,7 +322,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
             </div>
         </div>
 
-        @if (resultaten.Count > 1)
+        @if (pagina.Resultaten.Count > 1)
         {
             <details class="verificatie-paneelselectie mt-4"
                      data-testid="verificatie-paneelselectie-details">
@@ -372,12 +332,12 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                         <div class="fw-semibold">Andere panelen</div>
                         <div class="small text-muted">Open dit alleen als u bewust naar een ander paneel wilt wisselen.</div>
                     </div>
-                    <span class="small text-muted">@resultaten.Count panelen</span>
+                    <span class="small text-muted">@pagina.Resultaten.Count panelen</span>
                 </summary>
                 <div class="verificatie-paneelselectie-lijst">
-                    @for (int i = 0; i < resultaten.Count; i++)
+                    @for (int i = 0; i < pagina.Resultaten.Count; i++)
                     {
-                        var ri = resultaten[i];
+                        var ri = pagina.Resultaten[i];
                         var idx = i;
                         var isActief = idx == _paneelIndex;
                         var isOk = AlleChecksVoorPaneel(idx, ri);
@@ -406,11 +366,11 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
                 }
                 else
                 {
-                    <span>@aantalAfgevinkt van @totaalChecks controles afgevinkt</span>
+                    <span>@paneel.AantalAfgevinkt van @paneel.TotaalChecks controles afgevinkt</span>
                 }
             </div>
             <button class="btn btn-success" @onclick="VolgendPaneel">
-                @if (_paneelIndex < resultaten.Count - 1)
+                @if (_paneelIndex < pagina.Resultaten.Count - 1)
                 {
                     <span>Paneel @(_paneelIndex + 2) &#8594;</span>
                 }
@@ -422,23 +382,22 @@ else if (_fase == VerificatieFase.PaneelVerificatie && _paneelIndex < resultaten
         </div>
     </div>
 }
-else if (_fase == VerificatieFase.Afronding)
+else if (_fase == VerificatieFase.Afronding && pagina.Afronding is not null)
 {
-    var aantalGeverifieerd = Enumerable.Range(0, resultaten.Count).Count(i => AlleChecksVoorPaneel(i, resultaten[i]));
-    var alleGeverifieerd = aantalGeverifieerd == resultaten.Count;
+    var afronding = pagina.Afronding;
 
     <div class="card mb-4" data-testid="verificatie-completion-card">
         <div class="card-body text-center py-5">
-            @if (alleGeverifieerd)
+            @if (afronding.AlleGeverifieerd)
             {
                 <div class="verificatie-resultaat-icoon succes">&#10003;</div>
-                <h4 class="text-success">Alle @resultaten.Count kastmetingen gecontroleerd</h4>
+                <h4 class="text-success">Alle @pagina.Resultaten.Count kastmetingen gecontroleerd</h4>
                 <p class="text-muted">Alle controles op openingen en rijen systeemgaten zijn afgevinkt. Ga nu verder naar de bestellijst; delen en afdrukken blijven hieronder beschikbaar.</p>
             }
             else
             {
                 <div class="verificatie-resultaat-icoon waarschuwing">&#9888;</div>
-                <h4>@aantalGeverifieerd van @resultaten.Count panelen afgevinkt</h4>
+                <h4>@afronding.AantalGeverifieerd van @pagina.Resultaten.Count panelen afgevinkt</h4>
                 <p class="text-muted">Niet alle controles zijn afgevinkt. Werk de ontbrekende controles af, of ga toch door naar de bestellijst als dat nu nodig is.</p>
             }
 
@@ -446,7 +405,7 @@ else if (_fase == VerificatieFase.Afronding)
                 <a class="btn btn-success btn-lg px-4"
                    href="bestellijst"
                    data-testid="verificatie-completion-primary-button">
-                    @(alleGeverifieerd ? "Ga naar bestellijst →" : "Toch naar bestellijst →")
+                    @(afronding.AlleGeverifieerd ? "Ga naar bestellijst →" : "Toch naar bestellijst →")
                 </a>
 
                 <div class="d-flex justify-content-center gap-3 flex-wrap"
@@ -464,149 +423,3 @@ else if (_fase == VerificatieFase.Afronding)
 <StapNavigatie HuidigeStap="verificatie"
                VorigeHref="panelen"
                VolgendeHref="bestellijst" />
-
-@code {
-    private enum VerificatieFase { Overzicht, PaneelVerificatie, Afronding }
-
-    private VerificatieFase _fase = VerificatieFase.Overzicht;
-    private int _paneelIndex;
-
-    protected override void OnInitialized()
-        => State.OnStateChanged += HandleStateChanged;
-
-    private void HandleStateChanged()
-        => _ = InvokeAsync(StateHasChanged);
-
-    private PaneelVerificatieStatus GetChecks(PaneelResultaat resultaat)
-        => State.LeesVerificatieStatus(resultaat.ToewijzingId);
-
-    private void ToggleMatenCheck(PaneelResultaat resultaat)
-    {
-        var checks = GetChecks(resultaat);
-        State.WerkVerificatieStatusBij(resultaat.ToewijzingId, !checks.MatenOk, checks.ScharnierPositiesOk);
-    }
-
-    private void ToggleScharnierCheck(PaneelResultaat resultaat)
-    {
-        var checks = GetChecks(resultaat);
-        State.WerkVerificatieStatusBij(resultaat.ToewijzingId, checks.MatenOk, !checks.ScharnierPositiesOk);
-    }
-
-    private static bool HeeftScharnierCheck(PaneelResultaat r)
-        => r.Type == PaneelType.Deur && r.Boorgaten.Count > 0;
-
-    private bool AlleChecksVoorPaneel(int index, PaneelResultaat r)
-    {
-        var checks = GetChecks(r);
-        if (!checks.MatenOk) return false;
-        if (HeeftScharnierCheck(r))
-            return checks.ScharnierPositiesOk;
-        return true;
-    }
-
-    private int AantalAfgevinktVoorPaneel(int index, PaneelResultaat r)
-    {
-        var checks = GetChecks(r);
-        var count = checks.MatenOk ? 1 : 0;
-        if (HeeftScharnierCheck(r) && checks.ScharnierPositiesOk)
-            count++;
-        return count;
-    }
-
-    private static int TotaalChecksVoorPaneel(PaneelResultaat r)
-        => HeeftScharnierCheck(r) ? 2 : 1;
-
-    private int OpenChecksVoorPaneel(int index, PaneelResultaat r)
-        => TotaalChecksVoorPaneel(r) - AantalAfgevinktVoorPaneel(index, r);
-
-    private string OpenChecksLabel(int index, PaneelResultaat r)
-    {
-        var open = OpenChecksVoorPaneel(index, r);
-        return open == 0 ? "Alles klaar" : $"{open} open";
-    }
-
-    private string VolgendeControleTitel(int index, PaneelResultaat r)
-    {
-        var checks = GetChecks(r);
-
-        if (!checks.MatenOk)
-            return "Meet de maat in de opening na";
-
-        if (HeeftScharnierCheck(r) && !checks.ScharnierPositiesOk)
-            return "Controleer de systeemgaten";
-
-        return "Alle controles voor dit paneel zijn klaar";
-    }
-
-    private string HuidigeControleHint(int index, PaneelResultaat r)
-        => VolgendeControleTitel(index, r) switch
-        {
-            "Meet de maat in de opening na" => "Vergelijk de echte opening met de maat hieronder voordat u verdergaat.",
-            "Controleer de systeemgaten" => "Bevestig nu of de scharnierplaatposities in de gaatjesrij kloppen.",
-            _ => "Alle checkliststappen voor dit paneel zijn afgevinkt."
-        };
-
-    private string PaneelTabStatusTekst(int index, PaneelResultaat r)
-        => AlleChecksVoorPaneel(index, r)
-            ? "Klaar"
-            : $"{AantalAfgevinktVoorPaneel(index, r)}/{TotaalChecksVoorPaneel(r)} controles";
-
-    private void GaNaarPaneel(int index)
-    {
-        _paneelIndex = index;
-        _fase = VerificatieFase.PaneelVerificatie;
-    }
-
-    private void VorigePaneel()
-    {
-        if (_paneelIndex > 0)
-            _paneelIndex--;
-        else
-            _fase = VerificatieFase.Overzicht;
-    }
-
-    private void VolgendPaneel()
-    {
-        var resultaten = State.BerekenResultaten();
-        if (_paneelIndex < resultaten.Count - 1)
-            _paneelIndex++;
-        else
-            _fase = VerificatieFase.Afronding;
-    }
-
-    private void TerugNaarOverzicht() => _fase = VerificatieFase.Overzicht;
-
-    private static string TypeNaam(PaneelType type) => VisualisatieHelper.PaneelTypeLabel(type);
-
-    private static string TypeBadgeClass(PaneelType type) => type switch
-    {
-        PaneelType.Deur => "bg-primary",
-        PaneelType.LadeFront => "bg-warning text-dark",
-        _ => "bg-secondary"
-    };
-
-    private static string FormatMm(double waarde)
-        => $"{waarde:0.#} mm";
-
-    private static string FormatUitlijnAfwijkingen(IReadOnlyList<UitlijnAfwijking> afwijkingen)
-        => string.Join(", ", afwijkingen.Select(afwijking => $"{afwijking.Label} {FormatMm(afwijking.AfwijkingMm)}"));
-
-    private BrowserWindowJsInterop? _browserWindowInterop;
-
-    private BrowserWindowJsInterop BrowserWindowInterop => _browserWindowInterop ??= new(JS);
-
-    private async Task PrintResultaat()
-    {
-        await BrowserWindowInterop.PrintCurrentPageAsync();
-    }
-
-    private Task DeelResultaat()
-        => Delen.DeelKeukenAsync("verificatie");
-
-    public async ValueTask DisposeAsync()
-    {
-        State.OnStateChanged -= HandleStateChanged;
-        if (_browserWindowInterop is not null)
-            await _browserWindowInterop.DisposeAsync();
-    }
-}

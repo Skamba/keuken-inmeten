@@ -12,18 +12,24 @@
     var actieveWand = State.Wanden.Find(wand => wand.Id == actieveWandId);
 }
 
-<h2 class="page-header mb-0">Stap 1: Indeling</h2>
-@if (actieveWand is null)
-{
-    <p class="text-muted mb-3">Maak wandindelingen aan en open daarna steeds één wand om maten, kasten en objecten rustig per werkruimte uit te werken.</p>
-}
-<div class="stap-ondersteuning mb-3" data-testid="kasten-stap-ondersteuning">
-    <StapHulpDrawer StapId="kasten" KnopLabel="Hulp bij stap" />
-    <TerminologieUitleg Compact="true"
-                        CompactLabel="Leg termen uit"
-                        Sleutels="plinthoogte,wanddikte,gaatjesrij,eerstegat"
-                        Beschrijving="Open alleen bij twijfel over de technische maten die u in stap 1 invult." />
-</div>
+<section class="stap-pagina-kop mb-4">
+    <div class="stap-pagina-kop__top">
+        <div class="stap-pagina-kop__intro">
+            <h2 class="page-header">Stap 1: Indeling</h2>
+            @if (actieveWand is null)
+            {
+                <p class="stap-pagina-kop__lead">Maak wandindelingen aan en open daarna steeds één wand om maten, kasten en objecten rustig per werkruimte uit te werken.</p>
+            }
+        </div>
+        <div class="stap-ondersteuning stap-pagina-kop__acties" data-testid="kasten-stap-ondersteuning">
+            <StapHulpDrawer StapId="kasten" KnopLabel="Hulp bij stap" />
+            <TerminologieUitleg Compact="true"
+                                CompactLabel="Leg termen uit"
+                                Sleutels="plinthoogte,wanddikte,gaatjesrij,eerstegat"
+                                Beschrijving="Open alleen bij twijfel over de technische maten die u in stap 1 invult." />
+        </div>
+    </div>
+</section>
 
 @* ──── Wand toevoegen ──── *@
 @if (State.Wanden.Count == 0)
@@ -93,42 +99,32 @@ else
                 var wandApparaten = State.ApparatenVoorWand(wand.Id);
                 var gevuldeBreedte = wand.TotaleBreedte(State.Kasten);
                 var vrijeBreedte = Math.Max(0, wand.Breedte - gevuldeBreedte);
+                var overzichtBadges = new List<IndelingBadge>();
+                if (wandKasten.Count > 0)
+                {
+                    overzichtBadges.Add(new($"{wandKasten.Count} kast(en)"));
+                }
+                if (wandApparaten.Count > 0)
+                {
+                    overzichtBadges.Add(new($"{wandApparaten.Count} apparaat(en)"));
+                }
+                overzichtBadges.Add(new($"{wand.Breedte} mm"));
 
                 <div class="col-xl-6"
                      @key="wand.Id">
-                    <div class="card h-100 indeling-wand-samenvatting"
-                         data-testid="indeling-wand-card"
-                         data-wand-id="@wand.Id"
-                         data-wand-naam="@wand.Naam">
-                        <div class="card-body indeling-wand-samenvatting-body">
-                            <div class="indeling-wand-samenvatting-inhoud">
-                                <div class="d-flex flex-wrap align-items-center gap-2 indeling-wand-samenvatting-kop">
-                                    <h5 class="mb-0">@wand.Naam</h5>
-                                    @if (wandKasten.Count > 0)
-                                    {
-                                        <span class="badge text-bg-light">@wandKasten.Count kast(en)</span>
-                                    }
-                                    @if (wandApparaten.Count > 0)
-                                    {
-                                        <span class="badge text-bg-light">@wandApparaten.Count apparaat(en)</span>
-                                    }
-                                    <span class="badge text-bg-light">@wand.Breedte mm</span>
-                                </div>
-                                <div class="small text-muted">
-                                    @gevuldeBreedte mm ingevuld · @vrijeBreedte mm vrije wandruimte
-                                </div>
-                            </div>
-
-                            <div class="indeling-wand-samenvatting-acties">
-                                <button class="btn btn-primary btn-sm"
-                                        @onclick="() => OpenWandWerkruimte(wand.Id)"
-                                        data-testid="open-wand-workspace-button"
-                                        data-wand-id="@wand.Id">
-                                    Open wand
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <IndelingWandKaart WandId="wand.Id"
+                                       WandNaam="@wand.Naam"
+                                       DataTestId="indeling-wand-card"
+                                       KnopDataTestId="open-wand-workspace-button"
+                                       KnopLabel="Open wand"
+                                       BodyClass="indeling-wand-samenvatting-body"
+                                       InhoudClass="indeling-wand-samenvatting-inhoud"
+                                       KopClass="d-flex flex-wrap align-items-center gap-2 indeling-wand-samenvatting-kop"
+                                       ActiesClass="indeling-wand-samenvatting-acties"
+                                       Badges="overzichtBadges"
+                                       MetaTekst="@($"{gevuldeBreedte} mm ingevuld · {vrijeBreedte} mm vrije wandruimte")"
+                                       OnOpenen="@(() => OpenWandWerkruimte(wand.Id))">
+                    </IndelingWandKaart>
                 </div>
             }
         </div>
@@ -202,27 +198,53 @@ else
 
                 @if (toonPrimaireActies)
                 {
-                    <div class="indeling-werkstap mb-4">
-                        <div>
-                            <div class="small fw-semibold text-uppercase text-muted mb-1">Nu doen</div>
-                            <div class="fw-semibold">@(wandKasten.Count == 0 ? "Voeg eerst de eerste kast toe." : "Werk alleen bij wat op deze wand nu nog ontbreekt.")</div>
-                            <div class="small text-muted">@(wandKasten.Count == 0 ? "Gebruik een apparaat pas zodra het echt wandruimte of de vrije opening verandert." : "Laat secundaire acties dicht en open alleen het formulier dat u nu nodig hebt.")</div>
+                    @if (wandKasten.Count == 0)
+                    {
+                        <div class="indeling-werkstap mb-4">
+                            <div>
+                                <div class="small fw-semibold text-uppercase text-muted mb-1">Nu doen</div>
+                                <div class="fw-semibold">Voeg eerst de eerste kast toe.</div>
+                                <div class="small text-muted">Gebruik een apparaat pas zodra het echt wandruimte of de vrije opening verandert.</div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-primary"
+                                        @onclick="() => OpenKastFormulier(actieveWand.Id)"
+                                        data-testid="open-kast-form-button"
+                                        data-wand-id="@actieveWand.Id">
+                                    Kast toevoegen
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        @onclick="() => OpenApparaatFormulier(actieveWand.Id)"
+                                        data-testid="open-apparaat-form-button"
+                                        data-wand-id="@actieveWand.Id">
+                                    Apparaat toevoegen
+                                </button>
+                            </div>
                         </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button class="btn btn-primary"
-                                    @onclick="() => OpenKastFormulier(actieveWand.Id)"
-                                    data-testid="open-kast-form-button"
-                                    data-wand-id="@actieveWand.Id">
-                                Kast toevoegen
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm"
-                                    @onclick="() => OpenApparaatFormulier(actieveWand.Id)"
-                                    data-testid="open-apparaat-form-button"
-                                    data-wand-id="@actieveWand.Id">
-                                Apparaat toevoegen
-                            </button>
+                    }
+                    else
+                    {
+                        <div class="indeling-werkstap indeling-werkstap--compact mb-4">
+                            <div>
+                                <div class="small fw-semibold text-uppercase text-muted mb-1">Volgende stap</div>
+                                <div class="small text-muted mb-0">Werk alleen bij wat op deze wand nog ontbreekt. Apparaten blijven optioneel zolang ze geen ruimte of vrije opening veranderen.</div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-primary"
+                                        @onclick="() => OpenKastFormulier(actieveWand.Id)"
+                                        data-testid="open-kast-form-button"
+                                        data-wand-id="@actieveWand.Id">
+                                    Kast toevoegen
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        @onclick="() => OpenApparaatFormulier(actieveWand.Id)"
+                                        data-testid="open-apparaat-form-button"
+                                        data-wand-id="@actieveWand.Id">
+                                    Apparaat toevoegen
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    }
                 }
 
                 <div class="indeling-workspace-grid mb-4">
@@ -461,105 +483,84 @@ else
         <div class="indeling-workspace-secondary">
             @if (overzichtWanden.Count > 0)
             {
-                <details class="indeling-overige-wanden mb-4"
-                         data-testid="indeling-overige-wanden-details">
-                    <summary class="indeling-overige-wanden-summary"
-                             data-testid="indeling-overige-wanden-summary">
-                        <div>
-                            <h5 class="mb-0">Andere wanden</h5>
-                            <div class="small text-muted">Open alleen als u bewust naar een andere wand wilt wisselen.</div>
-                        </div>
-                        <span class="badge text-bg-light indeling-workspace-hint">@overzichtWanden.Count wand(en) beschikbaar</span>
-                    </summary>
-                    <div class="indeling-overige-wanden-body">
-                        <div class="indeling-overige-wanden-lijst">
-                            @foreach (var wand in overzichtWanden)
+                <IndelingDetailsBlok Titel="Andere wanden"
+                                     Beschrijving="Open alleen als u bewust naar een andere wand wilt wisselen."
+                                     BadgeText="@($"{overzichtWanden.Count} wand(en) beschikbaar")"
+                                     DetailsClass="indeling-overige-wanden mb-4"
+                                     DetailsDataTestId="indeling-overige-wanden-details"
+                                     SummaryDataTestId="indeling-overige-wanden-summary">
+                    <div class="indeling-overige-wanden-lijst">
+                        @foreach (var wand in overzichtWanden)
+                        {
+                            var overigeWandKasten = State.KastenVoorWand(wand.Id);
+                            var overigeWandApparaten = State.ApparatenVoorWand(wand.Id);
+                            var overigeGevuldeBreedte = wand.TotaleBreedte(State.Kasten);
+                            var overigeVrijeBreedte = Math.Max(0, wand.Breedte - overigeGevuldeBreedte);
+                            var overigeBadges = new List<IndelingBadge>
                             {
-                                var overigeWandKasten = State.KastenVoorWand(wand.Id);
-                                var overigeWandApparaten = State.ApparatenVoorWand(wand.Id);
-                                var overigeGevuldeBreedte = wand.TotaleBreedte(State.Kasten);
-                                var overigeVrijeBreedte = Math.Max(0, wand.Breedte - overigeGevuldeBreedte);
-
-                                <div class="indeling-overige-wand-schakelaar"
-                                     data-testid="indeling-wand-card"
-                                     data-wand-id="@wand.Id"
-                                     data-wand-naam="@wand.Naam"
-                                     @key="wand.Id">
-                                    <div class="indeling-overige-wand-inhoud">
-                                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                            <h6 class="mb-0">@wand.Naam</h6>
-                                            <span class="badge text-bg-light">@overigeWandKasten.Count kast(en)</span>
-                                            @if (overigeWandApparaten.Count > 0)
-                                            {
-                                                <span class="badge text-bg-light">@overigeWandApparaten.Count apparaat(en)</span>
-                                            }
-                                        </div>
-                                        <div class="small text-muted">
-                                            @overigeGevuldeBreedte mm ingevuld · @overigeVrijeBreedte mm vrij · @wand.Breedte mm wandbreedte
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-outline-primary btn-sm"
-                                            @onclick="() => OpenWandWerkruimte(wand.Id)"
-                                            data-testid="open-wand-workspace-button"
-                                            data-wand-id="@wand.Id">
-                                        Open wand
-                                    </button>
-                                </div>
+                                new($"{overigeWandKasten.Count} kast(en)")
+                            };
+                            if (overigeWandApparaten.Count > 0)
+                            {
+                                overigeBadges.Add(new($"{overigeWandApparaten.Count} apparaat(en)"));
                             }
-                        </div>
+
+                            <IndelingWandSchakelaar WandId="wand.Id"
+                                                    WandNaam="@wand.Naam"
+                                                    DataTestId="indeling-wand-card"
+                                                    KnopDataTestId="open-wand-workspace-button"
+                                                    KnopLabel="Open wand"
+                                                    Badges="overigeBadges"
+                                                    MetaTekst="@($"{overigeGevuldeBreedte} mm ingevuld · {overigeVrijeBreedte} mm vrij · {wand.Breedte} mm wandbreedte")"
+                                                    OnOpenen="@(() => OpenWandWerkruimte(wand.Id))"
+                                                    @key="wand.Id">
+                            </IndelingWandSchakelaar>
+                        }
                     </div>
-                </details>
+                </IndelingDetailsBlok>
             }
 
-            <details class="indeling-overige-wanden mb-4" data-testid="indeling-extra-wand-details">
-                <summary class="indeling-overige-wanden-summary" data-testid="indeling-extra-wand-summary">
-                    <div>
-                        <h5 class="mb-0">Nog een wand toevoegen</h5>
-                        <div class="small text-muted">Open dit pas als deze werkruimte voorlopig klopt.</div>
-                    </div>
-                </summary>
-                <div class="indeling-overige-wanden-body">
-                    <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-                        <div class="small text-muted">Gebruik de pop-up om een extra wandnaam toe te voegen zonder de werkruimte onrustig te maken.</div>
-                        <div class="d-flex justify-content-xl-end">
-                            <button type="button"
-                                    class="btn btn-primary"
-                                    @onclick="OpenWandToevoegenModal"
-                                    data-testid="open-wand-toevoegen-modal-button">
-                                Wand toevoegen
-                            </button>
-                        </div>
+            <IndelingDetailsBlok Titel="Nog een wand toevoegen"
+                                 Beschrijving="Open dit pas als deze werkruimte voorlopig klopt."
+                                 DetailsClass="indeling-overige-wanden mb-4"
+                                 DetailsDataTestId="indeling-extra-wand-details"
+                                 SummaryDataTestId="indeling-extra-wand-summary">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+                    <div class="small text-muted">Gebruik de pop-up om een extra wandnaam toe te voegen zonder de werkruimte onrustig te maken.</div>
+                    <div class="d-flex justify-content-xl-end">
+                        <button type="button"
+                                class="btn btn-primary"
+                                @onclick="OpenWandToevoegenModal"
+                                data-testid="open-wand-toevoegen-modal-button">
+                            Wand toevoegen
+                        </button>
                     </div>
                 </div>
-            </details>
+            </IndelingDetailsBlok>
 
-            <details class="indeling-overige-wanden mb-4" data-testid="indeling-project-acties-details">
-                <summary class="indeling-overige-wanden-summary" data-testid="indeling-project-acties-summary">
-                    <div>
-                        <h5 class="mb-0">Projectacties</h5>
-                        <div class="small text-muted">Open dit alleen voor zeldzame of destructieve acties buiten deze wand.</div>
+            <IndelingDetailsBlok Titel="Projectacties"
+                                 Beschrijving="Open dit alleen voor zeldzame of destructieve acties buiten deze wand."
+                                 DetailsClass="indeling-overige-wanden mb-4"
+                                 DetailsDataTestId="indeling-project-acties-details"
+                                 SummaryDataTestId="indeling-project-acties-summary">
+                @if (bevestigWisAlles)
+                {
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="text-danger small fw-semibold">Hele keuken wissen? Alle wanden, kasten, panelen en apparaten worden teruggezet.</span>
+                        <button class="btn btn-sm btn-danger" @onclick="WisAllesAsync">Ja, wis alles</button>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigWisAlles = false">Annuleren</button>
                     </div>
-                </summary>
-                <div class="indeling-overige-wanden-body">
-                    @if (bevestigWisAlles)
-                    {
-                        <div class="d-flex flex-wrap align-items-center gap-2">
-                            <span class="text-danger small fw-semibold">Hele keuken wissen? Alle wanden, kasten, panelen en apparaten worden teruggezet.</span>
-                            <button class="btn btn-sm btn-danger" @onclick="WisAllesAsync">Ja, wis alles</button>
-                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigWisAlles = false">Annuleren</button>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                            <p class="small text-muted mb-0">Gebruik dit alleen als u de hele keuken opnieuw wilt beginnen.</p>
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigWisAlles = true">
-                                Wis hele keuken
-                            </button>
-                        </div>
-                    }
-                </div>
-            </details>
+                }
+                else
+                {
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <p class="small text-muted mb-0">Gebruik dit alleen als u de hele keuken opnieuw wilt beginnen.</p>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigWisAlles = true">
+                            Wis hele keuken
+                        </button>
+                    </div>
+                }
+            </IndelingDetailsBlok>
         </div>
     }
 }
@@ -619,411 +620,47 @@ else
 @* ──── Kast formulier (overlay) ──── *@
 @if (toonKastFormulier && actieveWandId is not null)
 {
-    <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
-         style="z-index: 1050; background: rgba(0,0,0,0.4); overflow-y: auto; padding: 2rem 1rem;"
-         @onclick="SluitKastFormulier" @onclick:stopPropagation="false">
-        <div class="card border-success shadow-lg"
-             style="max-width: 900px; width: 100%;"
-             data-testid="kast-form"
-             @onclick:stopPropagation="true">
-            <div class="card-header bg-success bg-opacity-10 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">@(isBewerken ? "Kast bewerken" : "Kast toevoegen")</h5>
-                <button type="button" class="btn-close" @onclick="SluitKastFormulier"></button>
-            </div>
-            <div class="card-body">
-                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
-                    <div>
-                        <div class="small fw-semibold text-uppercase text-success-emphasis">Huidige stap</div>
-                        <div class="h6 mb-1" data-testid="kast-form-stap-label">Stap @kastFormStap van @LaatsteKastFormStap: @KastFormStapLabel(kastFormStap)</div>
-                        <p class="text-muted small mb-0">@KastFormStapIntro(kastFormStap)</p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge text-bg-light" data-testid="kast-form-progress">Stap @kastFormStap/@LaatsteKastFormStap</span>
-                        <StapHulpDrawer StapId="kasten" KnopLabel="Meer hulp" />
-                    </div>
-                </div>
-
-                @if (kastFormStap == 1)
-                {
-                    @if (!isBewerken && State.KastTemplates.Count > 0)
-                    {
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-muted small">Eerder gebruikte kasten</label>
-                            <div class="d-flex flex-wrap gap-2">
-                                @foreach (var template in State.KastTemplates.OrderByDescending(t => t.LaatstGebruikt))
-                                {
-                                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                                            @onclick="() => VulFormulierVanTemplate(template)"
-                                            title="@template.Naam · @template.Breedte×@template.Hoogte×@template.Diepte mm">
-                                        <span class="badge @TypeBadge(template.Type) me-1">@template.Type</span>
-                                        @template.Naam
-                                        <small class="text-muted ms-1">@template.Breedte×@template.Hoogte</small>
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                        <hr class="my-2" />
-                    }
-
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Wand</label>
-                            <select class="form-select"
-                                    value="@actieveWandId"
-                                    @onchange="OnWandGewijzigd"
-                                    data-testid="kast-wand-select">
-                                @foreach (var w in State.Wanden)
-                                {
-                                    <option value="@w.Id">@w.Naam</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label">Naam</label>
-                            <input type="text" class="form-control" @bind="formKast.Naam" @bind:event="oninput"
-                                   data-testid="kast-naam-input" />
-                            <div class="form-text hulp-hint" data-testid="kast-naam-hint">Bijvoorbeeld Onderkast spoelbak. Kies een naam die u later in panelen en bestellijst snel herkent.</div>
-                        </div>
-                    </div>
-                }
-                else if (kastFormStap == 2)
-                {
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Breedte (mm)</label>
-                            <input type="number" class="form-control" @bind="formKast.Breedte" min="100" step="10"
-                                    data-testid="kast-breedte-input" />
-                            <div class="form-text hulp-hint" data-testid="kast-breedte-hint">Bijvoorbeeld 600. Gebruik de buitenmaat van de kastbreedte.</div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Hoogte (mm)</label>
-                            <input type="number" class="form-control" @bind="formKast.Hoogte" @bind:after="AutoBerekenPosities" min="100" step="10"
-                                    data-testid="kast-hoogte-input" />
-                            <div class="form-text hulp-hint" data-testid="kast-hoogte-hint">Bijvoorbeeld 720 voor een onderkast of rond 2000 voor een hoge kast.</div>
-                            <div class="form-text">Type: <span class="badge @TypeBadge(InferKastType(formKast.Hoogte))">@InferKastType(formKast.Hoogte)</span></div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Diepte (mm)</label>
-                            <input type="number" class="form-control" @bind="formKast.Diepte" min="100" step="10"
-                                    data-testid="kast-diepte-input" />
-                            <div class="form-text hulp-hint" data-testid="kast-diepte-hint">Bijvoorbeeld 560. Gebruik de buitendiepte van de kastromp.</div>
-                        </div>
-                    </div>
-
-                    <div class="small text-muted mb-0">
-                        U vult hier alleen de hoofdmaten in. In de volgende stap controleert u bewust de gaatjesrij en kastdetails, ook als de standaard blijft staan.
-                    </div>
-                }
-                else if (kastFormStap == 3)
-                {
-                    <div class="card border-0 bg-body-tertiary mb-3">
-                        <div class="card-body">
-                            <button type="button"
-                                    class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center gap-3"
-                                    @onclick="ToggleTechnischeInstellingen">
-                                <span class="text-start">
-                                    <span class="d-block fw-semibold">Controleer gaatjesrij en kastdetails</span>
-                                    <span class="small text-muted">Kritieke controle voor passende panelen en correcte boringen. Open om waarden te controleren of aan te passen.</span>
-                                </span>
-                                <span class="fs-5" aria-hidden="true">@(toonTechnischeInstellingen ? "−" : "+")</span>
-                            </button>
-
-                            @if (toonTechnischeInstellingen)
-                            {
-                                <div class="mt-3">
-                                    <div class="alert alert-warning small mb-3" role="alert">
-                                        Controleer deze waarden bewust. Ze bepalen of panelen passen en of de gaatjesrij goed aansluit.
-                                    </div>
-                                    <div class="row g-3 mb-3">
-                                        <div class="col-md-4">
-                                            <div class="d-flex align-items-center gap-2 mb-1">
-                                                <label class="form-label mb-0">Dikte van de kastwand (mm)</label>
-                                                <HulpInfoKnop Titel="Dikte van de kastwand"
-                                                              Tekst="Gebruik hier de werkelijke dikte van de zijplaten van deze kast. Die maat heeft invloed op systeemgaten en scharnieronderdelen."
-                                                              Voorbeeld="Standaard is dit meestal 18 mm."
-                                                              WatNuDoen="Controleer of deze standaard klopt; pas hem alleen aan als deze kast met een andere plaatdikte wordt gebouwd." />
-                                            </div>
-                                            <input type="number" class="form-control" @bind="formKast.Wanddikte" @bind:after="() => { AutoBerekenPosities(); MarkeerTechnischeControleOnbevestigd(); }" min="1" step="1" />
-                                            <div class="form-text hulp-hint">Controleer deze maat bewust, ook als u 18 mm laat staan.</div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="d-flex align-items-center gap-2 mb-1">
-                                                <label class="form-label mb-0">Afstand tussen systeemgaten (mm)</label>
-                                                <HulpInfoKnop Titel="Rij systeemgaten"
-                                                              Tekst="Dit is de vaste steek van de gatenrij in de kastzijwand. Die bepaalt waar de montageplaat en andere boringen uitkomen."
-                                                              Voorbeeld="Voor veel keukenkasten is 32 mm de standaard."
-                                                              WatNuDoen="Controleer of 32 mm klopt; pas dit aan als deze kast een andere gatensteek gebruikt dan de standaard." />
-                                            </div>
-                                            <input type="number" class="form-control" @bind="formKast.GaatjesAfstand" @bind:after="() => { AutoBerekenPosities(); MarkeerTechnischeControleOnbevestigd(); }" min="1" step="1" />
-                                            <div class="form-text hulp-hint">De standaard gatensteek is vaak 32 mm, maar controle blijft nodig.</div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="d-flex align-items-center gap-2 mb-1">
-                                                <label class="form-label mb-0">Afstand onderkant bovenplank tot eerste gat (mm)</label>
-                                                <HulpInfoKnop Titel="Eerste gat vanaf de bovenste plank"
-                                                              Tekst="Deze maat bepaalt waar de eerste positie van de systeemgaten start ten opzichte van de bovenkant van de kastromp."
-                                                              Voorbeeld="Bij veel kasten is dit 19 mm vanaf de onderkant van de bovenste plank."
-                                                              WatNuDoen="Controleer of deze maat klopt voor deze kast; pas alleen aan als leverancier of kasttype van de standaard afwijkt." />
-                                            </div>
-                                            <input type="number" class="form-control" @bind="formKast.EersteGaatVanBoven" @bind:after="() => { AutoBerekenPosities(); MarkeerTechnischeControleOnbevestigd(); }" min="1" step="1" />
-                                            <div class="form-text hulp-hint">Meet vanaf de onderkant van de bovenste plank naar het eerste gat.</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-check mb-3">
-                                        <input class="form-check-input"
-                                               type="checkbox"
-                                               id="kast-technische-controle-checkbox"
-                                               @bind="technischeControleBevestigd"
-                                               data-testid="kast-technische-controle-checkbox" />
-                                        <label class="form-check-label" for="kast-technische-controle-checkbox">
-                                            @TechnischeControleCheckboxLabel()
-                                        </label>
-                                    </div>
-
-                                    <p class="text-muted small mb-0"><em>Tip: dubbelklik in de wandopstelling om een plank toe te voegen. Sleep planken of gebruik de pijltjestoetsen. Selecteer een plank en druk Delete om hem te verwijderen.</em></p>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="alert alert-warning mt-3 mb-0" role="alert">
-                                    <div class="fw-semibold mb-1">Kritieke controle</div>
-                                    <div class="small mb-2">Deze waarden bepalen of panelen passen en of de gaatjesrij aansluit. Controleer bewust of de standaard klopt voor deze kast.</div>
-                                    <div class="small text-body-secondary mb-3">@TechnischeControleSamenvatting()</div>
-                                    <div class="form-check">
-                                        <input class="form-check-input"
-                                               type="checkbox"
-                                               id="kast-technische-controle-checkbox"
-                                               @bind="technischeControleBevestigd"
-                                               data-testid="kast-technische-controle-checkbox" />
-                                        <label class="form-check-label" for="kast-technische-controle-checkbox">
-                                            @TechnischeControleCheckboxLabel()
-                                        </label>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div class="row g-4 align-items-start">
-                        <div class="col-lg-6">
-                            <div class="card border-0 bg-body-tertiary h-100">
-                                <div class="card-body">
-                                    <h6 class="mb-3">Controle voor opslaan</h6>
-                                    <dl class="row mb-0 small">
-                                        <dt class="col-sm-4">Wand</dt>
-                                        <dd class="col-sm-8">@ActieveWandNaam()</dd>
-
-                                        <dt class="col-sm-4">Naam</dt>
-                                        <dd class="col-sm-8">@formKast.Naam</dd>
-
-                                        <dt class="col-sm-4">Type</dt>
-                                        <dd class="col-sm-8"><span class="badge @TypeBadge(InferKastType(formKast.Hoogte))">@InferKastType(formKast.Hoogte)</span></dd>
-
-                                        <dt class="col-sm-4">Maten</dt>
-                                        <dd class="col-sm-8">@formKast.Breedte × @formKast.Hoogte × @formKast.Diepte mm</dd>
-
-                                        <dt class="col-sm-4">Techniek</dt>
-                                        <dd class="col-sm-8">
-                                            <span>@TechnischeControleSamenvatting()</span>
-                                        </dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="text-center">
-                                <KastVisueel Kast="@formKast" MaxHoogte="180" />
-                            </div>
-                        </div>
-                    </div>
-                }
-
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4">
-                    <button type="button"
-                            class="btn btn-outline-secondary"
-                            @onclick="VorigeKastFormStap"
-                            disabled="@(kastFormStap == 1)"
-                            data-testid="kast-form-terug-button">
-                        Terug
-                    </button>
-                    <div class="d-flex gap-2">
-                        @if (kastFormStap < LaatsteKastFormStap)
-                        {
-                            <button type="button"
-                                    class="btn btn-primary"
-                                    @onclick="VolgendeKastFormStap"
-                                    disabled="@(!KanNaarVolgendeKastStap())"
-                                    data-testid="kast-form-volgende-button">
-                                Volgende stap
-                            </button>
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-primary" @onclick="KastOpslaan"
-                                    disabled="@string.IsNullOrWhiteSpace(formKast.Naam)"
-                                    data-testid="kast-opslaan-button">
-                                @(isBewerken ? "Opslaan" : "Kast toevoegen")
-                            </button>
-                        }
-                        <button type="button" class="btn btn-outline-secondary" @onclick="SluitKastFormulier">
-                            Annuleren
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <KastFormulierOverlay IsBewerken="@isBewerken"
+                          Stap="@kastFormStap"
+                          LaatsteStap="@LaatsteKastFormStap"
+                          ActieveWandId="@actieveWandId"
+                          Wanden="State.Wanden"
+                          Templates="State.KastTemplates"
+                          FormKast="@formKast"
+                          ToonTechnischeInstellingen="@toonTechnischeInstellingen"
+                          ToonTechnischeInstellingenChanged="@(value => toonTechnischeInstellingen = value)"
+                          TechnischeControleBevestigd="@technischeControleBevestigd"
+                          TechnischeControleBevestigdChanged="@(value => technischeControleBevestigd = value)"
+                          ActieveWandNaam="@ActieveWandNaam()"
+                          StapLabel="@KastFormStapLabel(kastFormStap)"
+                          StapIntro="@KastFormStapIntro(kastFormStap)"
+                          TechnischeControleCheckboxLabel="@TechnischeControleCheckboxLabel()"
+                          TechnischeControleSamenvatting="@TechnischeControleSamenvatting()"
+                          OnSluiten="SluitKastFormulier"
+                          OnVorige="VorigeKastFormStap"
+                          OnVolgende="VolgendeKastFormStap"
+                          OnOpslaan="KastOpslaan"
+                          OnWandGewijzigd="OnWandGewijzigd"
+                          OnTemplateGekozen="VulFormulierVanTemplate"
+                          OnHoogteGewijzigd="AutoBerekenPosities"
+                          OnTechnischeInstellingGewijzigd="@(() => { AutoBerekenPosities(); MarkeerTechnischeControleOnbevestigd(); })" />
 }
 
 @* ──── Apparaat formulier (overlay) ──── *@
 @if (toonApparaatFormulier && actieveWandId is not null)
 {
-    <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
-         style="z-index: 1050; background: rgba(0,0,0,0.4); overflow-y: auto; padding: 2rem 1rem;"
-         @onclick="SluitApparaatFormulier" @onclick:stopPropagation="false">
-        <div class="card border-secondary shadow-lg" style="max-width: 600px; width: 100%;"
-             data-testid="apparaat-form"
-             @onclick:stopPropagation="true">
-            <div class="card-header bg-secondary bg-opacity-10 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">@(isApparaatBewerken ? "Apparaat bewerken" : "Apparaat toevoegen")</h5>
-                <button type="button" class="btn-close" @onclick="SluitApparaatFormulier"></button>
-            </div>
-            <div class="card-body">
-                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
-                    <div>
-                        <div class="small fw-semibold text-uppercase text-secondary-emphasis">Huidige stap</div>
-                        <div class="h6 mb-1" data-testid="apparaat-form-stap-label">Stap @apparaatFormStap van @LaatsteApparaatFormStap: @ApparaatFormStapLabel(apparaatFormStap)</div>
-                        <p class="text-muted small mb-0">@ApparaatFormStapIntro(apparaatFormStap)</p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge text-bg-light" data-testid="apparaat-form-progress">Stap @apparaatFormStap/@LaatsteApparaatFormStap</span>
-                        <StapHulpDrawer StapId="kasten" KnopLabel="Meer hulp" />
-                    </div>
-                </div>
-
-                @if (apparaatFormStap == 1)
-                {
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Wand</label>
-                            <div class="form-control bg-body-tertiary">@ActieveWandNaam()</div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Type</label>
-                            <select class="form-select" value="@formApparaat.Type" @onchange="OnApparaatTypeGewijzigd">
-                                @foreach (var t in Enum.GetValues<ApparaatType>())
-                                {
-                                    <option value="@t">@ApparaatTypeLabel(t)</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Naam</label>
-                            <input type="text" class="form-control" @bind="formApparaat.Naam" @bind:event="oninput"
-                                   data-testid="apparaat-naam-input" />
-                            <div class="form-text hulp-hint" data-testid="apparaat-naam-hint">Bijvoorbeeld Oven Bosch. Noem merk of functie zodat u het apparaat later in de wand en bestellijst herkent.</div>
-                        </div>
-                    </div>
-                }
-                else if (apparaatFormStap == 2)
-                {
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Breedte (mm)</label>
-                            <input type="number" class="form-control" @bind="formApparaat.Breedte" min="100" step="10"
-                                   data-testid="apparaat-breedte-input" />
-                            <div class="form-text hulp-hint" data-testid="apparaat-breedte-hint">Bijvoorbeeld 600. Gebruik de maat die echt wandruimte inneemt.</div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Hoogte (mm)</label>
-                            <input type="number" class="form-control" @bind="formApparaat.Hoogte" min="10" step="10"
-                                   data-testid="apparaat-hoogte-input" />
-                            <div class="form-text hulp-hint" data-testid="apparaat-hoogte-hint">Bijvoorbeeld 590 voor een inbouwoven of hoger voor een koelkastkastmodule.</div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Diepte (mm)</label>
-                            <input type="number" class="form-control" @bind="formApparaat.Diepte" min="100" step="10"
-                                   data-testid="apparaat-diepte-input" />
-                            <div class="form-text hulp-hint" data-testid="apparaat-diepte-hint">Bijvoorbeeld 560. Gebruik de werkelijke diepte van het apparaat of de nis die het vraagt.</div>
-                        </div>
-                    </div>
-
-                    <div class="small text-muted mb-0">
-                        U beslist hier alleen over de hoofdafmetingen. De controle met voorvertoning volgt in de laatste stap.
-                    </div>
-                }
-                else
-                {
-                    <div class="row g-4 align-items-start">
-                        <div class="col-md-6">
-                            <div class="card border-0 bg-body-tertiary h-100">
-                                <div class="card-body">
-                                    <h6 class="mb-3">Controle voor opslaan</h6>
-                                    <dl class="row mb-0 small">
-                                        <dt class="col-sm-4">Wand</dt>
-                                        <dd class="col-sm-8">@ActieveWandNaam()</dd>
-
-                                        <dt class="col-sm-4">Type</dt>
-                                        <dd class="col-sm-8">@ApparaatTypeLabel(formApparaat.Type)</dd>
-
-                                        <dt class="col-sm-4">Naam</dt>
-                                        <dd class="col-sm-8">@formApparaat.Naam</dd>
-
-                                        <dt class="col-sm-4">Maten</dt>
-                                        <dd class="col-sm-8">@formApparaat.Breedte × @formApparaat.Hoogte × @formApparaat.Diepte mm</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="text-center mb-3">
-                                <svg width="120" height="80" class="border rounded bg-light">
-                                    <text x="60" y="20" font-size="24" text-anchor="middle">@ApparaatIcoon(formApparaat.Type)</text>
-                                    <text x="60" y="45" font-size="10" text-anchor="middle" fill="#333">@ApparaatTypeLabel(formApparaat.Type)</text>
-                                    <text x="60" y="60" font-size="9" text-anchor="middle" fill="#888">@formApparaat.Breedte×@formApparaat.Hoogte mm</text>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                }
-
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4">
-                    <button type="button"
-                            class="btn btn-outline-secondary"
-                            @onclick="VorigeApparaatFormStap"
-                            disabled="@(apparaatFormStap == 1)"
-                            data-testid="apparaat-form-terug-button">
-                        Terug
-                    </button>
-                    <div class="d-flex gap-2">
-                        @if (apparaatFormStap < LaatsteApparaatFormStap)
-                        {
-                            <button type="button"
-                                    class="btn btn-primary"
-                                    @onclick="VolgendeApparaatFormStap"
-                                    disabled="@(!KanNaarVolgendeApparaatStap())"
-                                    data-testid="apparaat-form-volgende-button">
-                                Volgende stap
-                            </button>
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-primary" @onclick="ApparaatOpslaan"
-                                    disabled="@string.IsNullOrWhiteSpace(formApparaat.Naam)">
-                                @(isApparaatBewerken ? "Opslaan" : "Apparaat toevoegen")
-                            </button>
-                        }
-                        <button type="button" class="btn btn-outline-secondary" @onclick="SluitApparaatFormulier">
-                            Annuleren
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <ApparaatFormulierOverlay IsBewerken="@isApparaatBewerken"
+                              Stap="@apparaatFormStap"
+                              LaatsteStap="@LaatsteApparaatFormStap"
+                              StapLabel="@ApparaatFormStapLabel(apparaatFormStap)"
+                              StapIntro="@ApparaatFormStapIntro(apparaatFormStap)"
+                              ActieveWandNaam="@ActieveWandNaam()"
+                              FormApparaat="@formApparaat"
+                              OnSluiten="SluitApparaatFormulier"
+                              OnVorige="VorigeApparaatFormStap"
+                              OnVolgende="VolgendeApparaatFormStap"
+                              OnOpslaan="ApparaatOpslaan"
+                              OnApparaatTypeGewijzigd="OnApparaatTypeGewijzigd" />
 }
 
 <StapNavigatie HuidigeStap="kasten"

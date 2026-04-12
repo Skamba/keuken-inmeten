@@ -31,9 +31,9 @@ html, body {
 
 .home-summary-card {
     height: 100%;
-    padding: 1.25rem;
+    padding: 1.1rem;
     border: 1px solid var(--bs-border-color);
-    border-radius: 0.85rem;
+    border-radius: 0.9rem;
     background: var(--bs-body-bg);
 }
 
@@ -102,7 +102,7 @@ html, body {
 }
 
 .home-resume-priority {
-    padding: 0.9rem 1rem;
+    padding: 0.75rem 0.9rem;
     border: 1px solid var(--bs-border-color);
     border-radius: 0.85rem;
     background: var(--bs-body-bg);
@@ -233,6 +233,44 @@ html, body {
 
 .home-help-list strong {
     color: var(--bs-body-color);
+}
+
+.home-optional-help {
+    margin-top: 0.5rem;
+}
+
+.home-help-panel {
+    border-top: 1px solid var(--bs-border-color);
+    padding-top: 1rem;
+}
+
+.home-help-panel-summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.home-help-panel-summary::-webkit-details-marker {
+    display: none;
+}
+
+.home-help-panel-summary::marker {
+    content: "";
+}
+
+.home-help-panel-summary::after {
+    content: "+";
+    color: var(--bs-secondary-color);
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.home-help-panel[open] .home-help-panel-summary::after {
+    content: "−";
 }
 
 .home-section-details {
@@ -494,18 +532,19 @@ html, body {
 .stap-ondersteuning {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.35rem 0.5rem;
     align-items: center;
 }
 
 .stap-ondersteuning .btn,
 .terminologie-inline > .btn {
-    padding: 0.35rem 0.7rem;
+    padding: 0.3rem 0.65rem;
     border-radius: 999px;
     border-color: transparent;
-    background: transparent;
+    background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 78%, transparent);
     color: var(--bs-secondary-color);
     box-shadow: none;
+    font-size: 0.82rem;
 }
 
 .stap-ondersteuning .btn:hover,
@@ -519,6 +558,46 @@ html, body {
 .terminologie-inline > .btn:focus-visible {
     border-color: color-mix(in srgb, var(--app-focus-ring-color) 40%, var(--bs-border-color));
     background: var(--bs-body-bg);
+}
+
+.stap-pagina-kop {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.stap-pagina-kop__top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem 1rem;
+}
+
+.stap-pagina-kop__intro {
+    min-width: min(24rem, 100%);
+    max-width: 48rem;
+}
+
+.stap-pagina-kop__lead {
+    margin: 0;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.stap-pagina-kop__compact {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.stap-pagina-kop__kicker {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.stap-pagina-kop__acties {
+    justify-content: flex-end;
 }
 
 .paneel-stap-intro--compact {
@@ -755,16 +834,10 @@ a, .btn-link {
 .home-card-link:focus .home-flow-step,
 .home-card-link:focus-visible .home-route-card,
 .home-card-link:focus-visible .home-flow-step,
-.bestellijst-export-keuze:focus,
-.bestellijst-export-keuze:focus-visible,
 .scharnier-overzicht-trigger:focus,
 .scharnier-overzicht-trigger:focus-visible,
-.verificatie-check-cirkel:focus,
-.verificatie-check-cirkel:focus-visible,
 .paneel-weergave-tabs .nav-link:focus,
-.paneel-weergave-tabs .nav-link:focus-visible,
-.verificatie-tabs .nav-link:focus,
-.verificatie-tabs .nav-link:focus-visible {
+.paneel-weergave-tabs .nav-link:focus-visible {
     border-color: color-mix(in srgb, var(--app-focus-ring-color) 45%, var(--bs-border-color, #d0d7de));
     box-shadow: 0 0 0 0.12rem var(--app-focus-ring-inner), 0 0 0 0.32rem var(--app-focus-ring-soft);
     outline: 2px solid transparent;
@@ -792,12 +865,6 @@ a, .btn-link {
 .indeling-row-details summary:focus-visible,
 .paneel-editor-empty-details summary:focus,
 .paneel-editor-empty-details summary:focus-visible,
-.bestellijst-overzicht-details summary:focus,
-.bestellijst-overzicht-details summary:focus-visible,
-.zaagplan-geavanceerd summary:focus,
-.zaagplan-geavanceerd summary:focus-visible,
-.verificatie-techniek summary:focus,
-.verificatie-techniek summary:focus-visible,
 .stap-navigatie-stappen a:focus,
 .stap-navigatie-stappen a:focus-visible,
 .stap-label-link:focus,
@@ -822,13 +889,7 @@ a, .btn-link {
 .indeling-overige-wanden-summary:focus,
 .indeling-overige-wanden-summary:focus-visible,
 .indeling-row-details summary:focus,
-.indeling-row-details summary:focus-visible,
-.bestellijst-overzicht-details summary:focus,
-.bestellijst-overzicht-details summary:focus-visible,
-.zaagplan-geavanceerd summary:focus,
-.zaagplan-geavanceerd summary:focus-visible,
-.verificatie-techniek summary:focus,
-.verificatie-techniek summary:focus-visible {
+.indeling-row-details summary:focus-visible {
     border-radius: 0.9rem;
 }
 
@@ -1114,6 +1175,7 @@ code {
     border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 82%, transparent);
     border-radius: 1rem;
     background: color-mix(in srgb, var(--bs-tertiary-bg) 75%, var(--bs-body-bg, #fff));
+    padding: 0.9rem 1rem !important;
 }
 
 .paneel-weergave-meta-list {
@@ -1146,6 +1208,10 @@ code {
     box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.18);
 }
 
+.paneel-editor-drawer-header {
+    padding-block: 0.85rem;
+}
+
 .paneel-editor-drawer .card {
     background: transparent;
 }
@@ -1163,8 +1229,21 @@ code {
     text-align: left;
 }
 
+.paneel-weergave-tabs .nav {
+    gap: 0.45rem;
+}
+
+.paneel-weergave-tabs .nav-item {
+    flex: 1 1 12rem;
+}
+
 .paneel-weergave-tabs--compact .nav-link {
     min-height: 0;
+}
+
+.paneel-projectinstellingen-badge {
+    align-self: flex-start;
+    white-space: nowrap;
 }
 
 .paneel-overige-wanden-strip {
@@ -1263,6 +1342,10 @@ code {
     background: var(--bs-tertiary-bg);
 }
 
+.paneel-editor-extra-details {
+    background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 78%, var(--bs-body-bg, #fff));
+}
+
 .paneel-editor-focus {
     background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 82%, var(--bs-body-bg, #fff));
 }
@@ -1287,6 +1370,15 @@ code {
     border: 1px solid var(--bs-border-color, #d0d7de);
     border-radius: 0.95rem;
     background: var(--bs-body-bg, #fff);
+}
+
+.paneel-editor-footer {
+    position: sticky;
+    bottom: 0;
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 76%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--bs-body-bg, #fff) 20%, transparent), var(--bs-body-bg, #fff) 24%);
 }
 
 .paneel-editor-placement-list {
@@ -1399,7 +1491,7 @@ code {
     color: var(--bs-body-color, #1a1a2e);
     padding-bottom: 0;
     border-bottom: 0;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
 }
 
 /* ── Empty state alerts ── */
@@ -1544,6 +1636,11 @@ code {
     border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 78%, transparent);
     border-radius: 0.95rem;
     background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 78%, var(--bs-body-bg, #fff));
+}
+
+.indeling-werkstap--compact {
+    align-items: center;
+    padding-block: 0.75rem;
 }
 
 .indeling-workspace-secondary {
@@ -1730,6 +1827,10 @@ code {
     margin-bottom: 0.85rem !important;
 }
 
+.stap-indicator-current {
+    display: none;
+}
+
 .stap-indicator-list {
     display: flex;
     align-items: flex-start;
@@ -1748,6 +1849,7 @@ code {
     align-items: center;
     position: relative;
     flex: 1;
+    min-width: 0;
 }
 
 .stap-connector {
@@ -1962,9 +2064,10 @@ code {
 .actie-feedback-container {
     position: fixed;
     right: 1rem;
-    bottom: 1rem;
+    top: 1rem;
     z-index: 1085;
     width: min(28rem, calc(100vw - 2rem));
+    pointer-events: none;
 }
 
 .actie-feedback-toast {
@@ -1975,6 +2078,7 @@ code {
     color: var(--bs-body-color, #212529);
     display: grid;
     gap: 0.75rem;
+    pointer-events: auto;
 }
 
 .actie-feedback-toast--info {
@@ -2019,6 +2123,50 @@ code {
 }
 
 @media (max-width: 640px) {
+    .stap-pagina-kop__acties {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .stap-indicator-current {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.45rem;
+        font-size: 0.82rem;
+        color: var(--bs-secondary-color, #516173);
+    }
+
+    .stap-indicator-current-index {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .stap-indicator-current-label {
+        font-weight: 600;
+        color: var(--bs-body-color, #1a1a2e);
+        text-align: right;
+    }
+
+    .stap-indicator-list {
+        padding: 0.55rem 0.65rem;
+    }
+
+    .stap-cirkel {
+        width: 28px;
+        height: 28px;
+        font-size: 0.74rem;
+    }
+
+    .stap-connector {
+        top: 13px;
+    }
+
+    .stap-label {
+        display: none;
+    }
+
     .stap-navigatie {
         padding: 0.6rem 0.75rem;
         flex-wrap: wrap;
@@ -2036,7 +2184,9 @@ code {
     }
 
     .actie-feedback-container {
-        left: 1rem;
+        left: 0.75rem;
+        right: 0.75rem;
+        top: 0.75rem;
         width: auto;
     }
 
@@ -2238,529 +2388,6 @@ code {
     }
 }
 
-/* ── Bestellijst ── */
-.bestellijst-toolbar {
-    background: var(--bs-body-bg, #fff);
-}
-
-.bestellijst-primary-strip {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem 1.5rem;
-}
-
-.bestellijst-primary-meta {
-    margin-top: 0.5rem;
-}
-
-.bestellijst-toolbar-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.85rem 1.5rem;
-    font-size: 0.86rem;
-    color: var(--bs-secondary-color, #516173);
-}
-
-.bestellijst-toolbar-meta span {
-    white-space: nowrap;
-}
-
-.bestellijst-toolbar-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.45rem 0.7rem;
-    border: 1px solid var(--bs-border-color, #d0d7de);
-    border-radius: 999px;
-    background: var(--bs-body-bg, #fff);
-    color: var(--bs-body-color, #212529);
-}
-
-.bestellijst-toolbar-note {
-    max-width: 28rem;
-}
-
-.bestellijst-export-entry {
-    text-align: left;
-}
-
-.bestellijst-techniek-details {
-    background: var(--bs-tertiary-bg, #f8f9fa);
-}
-
-.bestellijst-overzicht-details {
-    padding: 0.9rem 1rem;
-    border: 1px solid var(--bs-border-color, #d0d7de);
-    border-radius: 0.95rem;
-    background: var(--bs-body-bg, #fff);
-}
-
-.bestellijst-overzicht-details summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    cursor: pointer;
-    list-style: none;
-}
-
-.bestellijst-overzicht-details summary::-webkit-details-marker {
-    display: none;
-}
-
-.bestellijst-overzicht-details summary::marker {
-    content: "";
-}
-
-.bestellijst-overzicht-details summary::after {
-    content: "+";
-    color: var(--bs-secondary-color, #516173);
-    font-size: 1.1rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.bestellijst-overzicht-details[open] summary::after {
-    content: "−";
-}
-
-.bestellijst-export-acties {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    justify-content: flex-start;
-}
-
-.bestellijst-export-samenvatting {
-    padding: 1rem;
-    border: 1px dashed var(--bs-border-color, #d0d7de);
-    border-radius: 0.95rem;
-    background: var(--bs-body-bg, #fff);
-}
-
-.bestellijst-export-status {
-    margin-top: 0.8rem;
-    font-size: 0.85rem;
-    color: #1f7a45;
-}
-
-.bestellijst-export-status.fout {
-    color: #b42318;
-}
-
-.bestellijst-export-overlay {
-    justify-content: flex-end;
-    align-items: stretch;
-    background: color-mix(in srgb, #0f172a 52%, transparent);
-    backdrop-filter: blur(8px);
-}
-
-.bestellijst-export-drawer {
-    width: min(36rem, 100%);
-    max-width: 100%;
-    max-height: 100%;
-    height: min(100%, calc(100vh - 2rem));
-    overflow: hidden;
-    border-radius: 1rem 0 0 1rem;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 1.25rem 3rem rgba(15, 23, 42, 0.28);
-}
-
-.bestellijst-export-drawer .card-footer {
-    position: sticky;
-    bottom: 0;
-    z-index: 1;
-    background: var(--bs-body-bg, #fff);
-}
-
-.bestellijst-export-drawer-body {
-    overflow-y: auto;
-    padding-block: 1.25rem;
-    flex: 1 1 auto;
-    min-height: 0;
-    overscroll-behavior: contain;
-}
-
-.bestellijst-export-stappen {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-}
-
-.bestellijst-export-stap {
-    border: 1px solid var(--bs-border-color, #d0d7de);
-    border-radius: 0.95rem;
-    padding: 0.8rem 0.95rem;
-    background: var(--bs-body-bg, #fff);
-    color: var(--bs-secondary-color, #516173);
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.bestellijst-export-stap.is-active {
-    border-color: #0d6efd;
-    color: #0d6efd;
-    background: color-mix(in srgb, #0d6efd 8%, var(--bs-body-bg, #fff));
-}
-
-.bestellijst-export-stap.is-complete {
-    border-color: color-mix(in srgb, #0d6efd 45%, var(--bs-border-color, #d0d7de));
-    color: var(--bs-body-color, #212529);
-}
-
-@media (max-width: 575.98px) {
-    .bestellijst-export-stappen {
-        gap: 0.45rem;
-    }
-
-    .bestellijst-export-stap {
-        padding: 0.6rem 0.45rem;
-        font-size: 0.78rem;
-        text-align: center;
-    }
-
-    .bestellijst-export-keuze {
-        padding: 0.85rem 0.9rem;
-    }
-
-    .bestellijst-export-keuze-samenvatting {
-        padding: 0.85rem 0.9rem;
-    }
-}
-
-.bestellijst-export-keuze {
-    display: block;
-    width: 100%;
-    padding: 1rem;
-    border: 1px solid var(--bs-border-color, #d0d7de);
-    border-radius: 1rem;
-    background: var(--bs-body-bg, #fff);
-    color: inherit;
-    text-align: left;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
-}
-
-.bestellijst-export-keuze:hover {
-    border-color: color-mix(in srgb, #0d6efd 35%, var(--bs-border-color, #d0d7de));
-    box-shadow: 0 6px 18px rgba(13,110,253,0.08);
-    transform: translateY(-1px);
-}
-
-.bestellijst-export-keuze.is-selected {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 1px rgba(13,110,253,0.18);
-    background: color-mix(in srgb, #0d6efd 6%, var(--bs-body-bg, #fff));
-}
-
-.bestellijst-export-keuze.is-selected:focus,
-.bestellijst-export-keuze.is-selected:focus-visible {
-    border-color: color-mix(in srgb, var(--app-focus-ring-color) 45%, #0d6efd);
-    box-shadow: 0 0 0 1px rgba(13,110,253,0.18), 0 0 0 0.12rem var(--app-focus-ring-inner), 0 0 0 0.32rem var(--app-focus-ring-soft);
-}
-
-.bestellijst-export-keuze-samenvatting {
-    padding: 0.95rem 1rem;
-    border: 1px solid var(--bs-border-color, #d0d7de);
-    border-radius: 0.95rem;
-    background: var(--bs-tertiary-bg, #f8f9fa);
-}
-
-.bestellijst-export-instellingen {
-    background: var(--bs-tertiary-bg, #f8f9fa);
-}
-
-.bestellijst-table-wrap {
-    border: 1px solid var(--bs-border-color, #e3e8ef);
-    border-radius: 0.9rem;
-    overflow: hidden;
-    background: var(--bs-body-bg, #fff);
-    position: relative;
-}
-
-.bestellijst-table-wrap::after {
-    content: "← scroll →";
-    display: none;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    padding: 0.35rem;
-    text-align: center;
-    font-size: 0.72rem;
-    color: var(--bs-secondary-color, #6c757d);
-    background: linear-gradient(180deg, transparent, var(--bs-body-bg, rgba(255,255,255,0.95)));
-    pointer-events: none;
-}
-
-@media (max-width: 1024px) {
-    .bestellijst-table-wrap::after {
-        display: block;
-    }
-}
-
-@media (max-width: 1199.98px) {
-    .bestellijst-export-overlay {
-        padding: 0;
-    }
-
-    .bestellijst-export-drawer {
-        width: 100%;
-        height: 100vh;
-        height: 100dvh;
-        max-height: 100vh;
-        max-height: 100dvh;
-        border-radius: 0;
-    }
-
-    .bestellijst-export-drawer-body {
-        padding-block: 1rem;
-    }
-}
-
-.bestellijst-table {
-    min-width: 720px;
-    margin-bottom: 0;
-}
-
-.bestellijst-table--technisch {
-    min-width: 980px;
-}
-
-.bestellijst-table thead th {
-    white-space: nowrap;
-    font-size: 0.76rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--bs-secondary-color, #5c6b7a);
-}
-
-.bestellijst-table td {
-    font-size: 0.88rem;
-}
-
-.bestellijst-name {
-    min-width: 260px;
-    text-align: left;
-    font-weight: 400;
-}
-
-.bestellijst-groep-meta {
-    max-width: 46rem;
-}
-
-/* ── Zaagplan ── */
-.zaagplan-toolbar {
-    background: var(--bs-body-bg, #fff);
-}
-
-.zaagplan-status-strip {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.75rem 1.5rem;
-    font-size: 0.9rem;
-    color: var(--bs-secondary-color, #516173);
-}
-
-.zaagplan-kerncijfers {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.75rem;
-}
-
-.zaagplan-kerncijfer {
-    min-width: 9.5rem;
-    padding: 0.75rem 0.9rem;
-    border: 1px solid var(--bs-border-color, #d0d7de);
-    border-radius: 0.85rem;
-    background: var(--bs-tertiary-bg, #f8f9fa);
-}
-
-.zaagplan-kerncijfer-label {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--bs-secondary-color, #516173);
-}
-
-.zaagplan-toolbar-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1.5rem;
-    font-size: 0.86rem;
-    color: var(--bs-secondary-color, #516173);
-}
-
-.zaagplan-weergave-toggle {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-.zaagplan-weergave-toggle .btn {
-    flex: 1 1 12rem;
-}
-
-.zaagplan-geavanceerd {
-    border-top: 1px solid var(--bs-border-color, #d0d7de);
-    padding-top: 1rem;
-}
-
-.zaagplan-geavanceerd summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.zaagplan-platen {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.zaagplan-platen--focus {
-    justify-content: center;
-}
-
-.zaagplan-plaat-card {
-    flex: 0 1 auto;
-    max-width: 100%;
-    overflow-x: auto;
-}
-
-.zaagplan-plaat-card--focus {
-    width: min(100%, 48rem);
-}
-
-.zaagplan-plaat-svg {
-    display: block;
-    margin: 0 auto;
-    max-width: 100%;
-    height: auto;
-}
-
-.zaagplan-focus-toolbar {
-    background: var(--bs-body-bg, #fff);
-}
-
-.zaagplan-plaat-meta {
-    font-size: 0.85rem;
-}
-
-.zaagplan-waarschuwing {
-    border: 1px solid var(--bs-warning-border-subtle, #ffe69c);
-    background: var(--bs-warning-bg-subtle, #fff3cd);
-}
-
-.zaagplan-waarschuwing-kicker {
-    margin-bottom: 0.35rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--bs-warning-text-emphasis, #664d03);
-}
-
-.zaagplan-waarschuwing-kern {
-    min-width: min(20rem, 100%);
-    padding: 0.95rem 1rem;
-    border: 1px solid var(--bs-border-color, #d0d7de);
-    border-radius: 0.9rem;
-    background: var(--bs-body-bg, #fff);
-}
-
-.zaagplan-waarschuwing-acties {
-    display: grid;
-    gap: 0.75rem;
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-}
-
-.zaagplan-waarschuwing-actie {
-    padding: 0.9rem 1rem;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 0.85rem;
-    background: var(--bs-body-bg, #fff);
-}
-
-.zaagplan-waarschuwing-actie--aanbevolen {
-    border-color: color-mix(in srgb, var(--bs-warning-border-subtle, #ffe69c) 55%, var(--bs-border-color, #d0d7de));
-    box-shadow: 0 0.35rem 1rem rgba(146, 64, 14, 0.08);
-}
-
-.zaagplan-waarschuwing-actie-label {
-    margin-bottom: 0.35rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--bs-secondary-color, #516173);
-}
-
-.zaagplan-waarschuwing-details {
-    padding-top: 0.9rem;
-    border-top: 1px solid rgba(146, 64, 14, 0.12);
-}
-
-.zaagplan-waarschuwing-details summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    cursor: pointer;
-    list-style: none;
-    font-weight: 600;
-}
-
-.zaagplan-waarschuwing-details summary::-webkit-details-marker {
-    display: none;
-}
-
-.zaagplan-waarschuwing-details summary::marker {
-    content: "";
-}
-
-.zaagplan-waarschuwing-details summary::after {
-    content: "+";
-    color: var(--bs-secondary-color, #516173);
-    font-size: 1.1rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.zaagplan-waarschuwing-details[open] summary::after {
-    content: "−";
-}
-
-.zaagplan-waarschuwing-lijst {
-    display: grid;
-    gap: 0.45rem;
-    padding-left: 1rem;
-}
-
-@media (max-width: 767.98px) {
-    .zaagplan-status-strip {
-        justify-content: flex-start;
-    }
-
-    .zaagplan-kerncijfers {
-        justify-content: stretch;
-    }
-
-    .zaagplan-kerncijfer {
-        flex: 1 1 10rem;
-    }
-}
-
 /* ── Dark mode overrides ── */
 [data-bs-theme="dark"] {
     --bs-body-color: #dee2e6;
@@ -2784,14 +2411,6 @@ code {
 }
 
 [data-bs-theme="dark"] .deel-status.fout {
-    color: #f87171;
-}
-
-[data-bs-theme="dark"] .bestellijst-export-status {
-    color: #6dd698;
-}
-
-[data-bs-theme="dark"] .bestellijst-export-status.fout {
     color: #f87171;
 }
 
@@ -2971,270 +2590,4 @@ code {
 /* SVG measurement text in dark mode */
 [data-bs-theme="dark"] svg text[fill="#888"] {
     fill: #aaa;
-}
-
-/* ── Verificatie ── */
-.verificatie-samenvatting {
-    display: grid;
-    gap: 0.75rem;
-}
-
-.verificatie-samenvatting-item {
-    padding: 0.95rem 1rem;
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 0.85rem;
-    background: var(--bs-tertiary-bg, #f8f9fa);
-}
-
-.verificatie-samenvatting-label {
-    margin-bottom: 0.35rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--bs-secondary-color, #516173);
-}
-
-.verificatie-focus-strip {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 0.85rem 1rem;
-    padding: 0.95rem 1rem;
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 0.95rem;
-    background: var(--bs-tertiary-bg, #f8f9fa);
-}
-
-.verificatie-overview-header {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem 1.5rem;
-}
-
-.verificatie-overview-action {
-    min-width: min(19rem, 100%);
-    padding: 1rem;
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 0.95rem;
-    background: var(--bs-tertiary-bg, #f8f9fa);
-}
-
-.verificatie-overview-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-    padding: 0.85rem 1rem;
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 0.95rem;
-    background: var(--bs-body-bg, #fff);
-    color: var(--bs-secondary-color, #516173);
-    font-size: 0.9rem;
-}
-
-.verificatie-detail-strip {
-    display: grid;
-    gap: 0.85rem;
-    padding: 1rem;
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 0.95rem;
-    background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 76%, var(--bs-body-bg, #fff));
-}
-
-.verificatie-detail-strip-meta {
-    display: grid;
-    gap: 0.75rem;
-}
-
-.verificatie-zijkader {
-    display: grid;
-    gap: 0.25rem;
-    padding: 0;
-    border: 0;
-    background: none;
-}
-
-.verificatie-paneelselectie {
-    padding: 0.95rem 1rem;
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 0.95rem;
-    background: var(--bs-body-bg, #fff);
-}
-
-.verificatie-paneelselectie-summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    cursor: pointer;
-    list-style: none;
-}
-
-.verificatie-paneelselectie-summary::-webkit-details-marker {
-    display: none;
-}
-
-.verificatie-paneelselectie-summary::marker {
-    content: "";
-}
-
-.verificatie-paneelselectie-summary::after {
-    content: "+";
-    color: var(--bs-secondary-color, #516173);
-    font-size: 1.1rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.verificatie-paneelselectie[open] .verificatie-paneelselectie-summary::after {
-    content: "−";
-}
-
-.verificatie-paneelselectie-lijst {
-    display: grid;
-    gap: 0.75rem;
-    margin-top: 0.9rem;
-}
-
-.verificatie-paneelselectie-knop {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.2rem;
-    text-align: left;
-}
-
-@media (min-width: 768px) {
-    .verificatie-paneelselectie-lijst {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .verificatie-detail-strip {
-        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-        align-items: start;
-    }
-
-    .verificatie-detail-strip-meta {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-.verificatie-taak-meta {
-    min-width: min(22rem, 100%);
-}
-
-.verificatie-taak-acties {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.75rem;
-}
-
-.verificatie-tabs .nav-link {
-    font-size: 0.85rem;
-    padding: 0.35rem 0.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.2rem;
-    min-height: 3.5rem;
-}
-.verificatie-tab-ok { color: var(--bs-success) !important; }
-.verificatie-tab-check { font-size: 0.7rem; margin-right: 0.2rem; }
-
-.verificatie-check {
-    border-left: 3px solid var(--bs-border-color, #dee2e6);
-    padding-left: 1rem;
-    transition: border-color 0.2s;
-}
-.verificatie-check-ok { border-left-color: var(--bs-success); }
-
-.verificatie-check-cirkel {
-    width: 36px; height: 36px; flex-shrink: 0;
-    border-radius: 50%;
-    border: 2px solid var(--bs-border-color, #adb5bd);
-    background: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    font-weight: 700; font-size: 0.85rem;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s;
-}
-.verificatie-check-cirkel.ok {
-    background: var(--bs-success);
-    border-color: var(--bs-success);
-    color: #fff;
-}
-.verificatie-check-cirkel:hover:not(.ok) {
-    border-color: var(--bs-primary);
-    color: var(--bs-primary);
-}
-
-.verificatie-maten {
-    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-}
-.verificatie-maat { text-align: center; }
-.verificatie-maat-waarde {
-    font-size: 1.8rem; font-weight: 700;
-    color: var(--bs-emphasis-color);
-    line-height: 1.1;
-}
-.verificatie-maat-label {
-    font-size: 0.72rem; text-transform: uppercase; letter-spacing: .04em;
-    color: var(--bs-secondary-color);
-}
-.verificatie-maat-keer {
-    font-size: 1.4rem; color: var(--bs-secondary-color); margin-top: 0.5rem;
-}
-
-.verificatie-afleiding {
-    border-top: 1px dashed var(--bs-border-color, #dee2e6);
-    padding-top: 0.75rem;
-}
-
-.verificatie-techniek {
-    border-top: 1px dashed var(--bs-border-color, #dee2e6);
-    padding-top: 0.75rem;
-}
-
-.verificatie-techniek summary {
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--bs-secondary-color);
-}
-
-.verificatie-techniek[open] summary {
-    margin-bottom: 0.5rem;
-}
-
-.verificatie-instructies { display: flex; flex-direction: column; gap: 0.5rem; }
-.verificatie-instructie { display: flex; gap: 0.75rem; align-items: flex-start; }
-.verificatie-instructie-nr {
-    width: 24px; height: 24px; flex-shrink: 0;
-    background: var(--bs-primary); color: #fff;
-    border-radius: 50%;
-    font-size: 0.75rem; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-}
-
-.verificatie-resultaat-icoon { font-size: 4rem; line-height: 1; margin-bottom: 1rem; }
-.verificatie-resultaat-icoon.succes { color: var(--bs-success); }
-.verificatie-resultaat-icoon.waarschuwing { color: var(--bs-warning); }
-
-@media (min-width: 768px) {
-    .verificatie-samenvatting {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 767.98px) {
-    .verificatie-taak-acties {
-        width: 100%;
-        justify-content: space-between;
-    }
 }

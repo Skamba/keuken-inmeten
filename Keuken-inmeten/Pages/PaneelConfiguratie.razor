@@ -14,32 +14,32 @@
     var isReviewWeergaveActief = IsReviewWeergaveActief;
     var toonCompacteStapIntro = routeGate is null && geopendeWand is not null && !isReviewWeergaveActief;
     var toonCompacteWeergaveTabs = toonEditorDrawer && !isReviewWeergaveActief && geopendeWand is not null;
+    var toonUitgeklapteProjectinstellingen = Math.Abs(State.PaneelRandSpeling - 3) > 0.001;
 }
 
-<h2 class="page-header">Stap 2: Panelen</h2>
-
-@if (routeGate is null && isReviewWeergaveActief)
-{
-    <div class="paneel-stap-intro paneel-stap-intro--compact mb-3" data-testid="paneel-stap-intro-review">
-        <div>
-            <div class="paneel-stap-intro-kicker text-muted fw-semibold text-uppercase">Overzicht</div>
-            <div class="fw-semibold">Loop aantallen, maten en acties per wand rustig na.</div>
+<section class="stap-pagina-kop mb-4">
+    <div class="stap-pagina-kop__top">
+        <div class="stap-pagina-kop__intro">
+            <h2 class="page-header">Stap 2: Panelen</h2>
+            @if (routeGate is null && isReviewWeergaveActief)
+            {
+                <p class="stap-pagina-kop__lead">Loop aantallen, maten en acties per wand rustig na. Ga alleen terug naar de editor als u opnieuw wilt plaatsen of bewerken.</p>
+            }
+            else if (toonCompacteStapIntro)
+            {
+                <div class="stap-pagina-kop__compact" data-testid="paneel-stap-intro-compact">
+                    <span class="stap-pagina-kop__kicker">Actieve wand</span>
+                    <span class="fw-semibold">@(geopendeWand?.Naam ?? "Paneel-editor")</span>
+                    <span class="small text-muted">Rond selectie, maat en opslaan af zonder extra schermwissels.</span>
+                </div>
+            }
+            else
+            {
+                <p class="stap-pagina-kop__lead">Open één wand en plaats daarna panelen in de editor. Het overzicht wordt pas nuttig zodra er panelen zijn.</p>
+            }
         </div>
     </div>
-}
-else if (toonCompacteStapIntro)
-{
-    <div class="paneel-stap-intro paneel-stap-intro--compact mb-3" data-testid="paneel-stap-intro-compact">
-        <div>
-            <div class="paneel-stap-intro-kicker text-muted fw-semibold text-uppercase">Actieve wand</div>
-            <div class="fw-semibold">@(geopendeWand?.Naam ?? "Paneel-editor")</div>
-        </div>
-    </div>
-}
-else
-{
-    <p class="text-muted mb-3">Open één wand en plaats daarna panelen in de editor. Het overzicht wordt pas nuttig zodra er panelen zijn.</p>
-}
+</section>
 
 @if (routeGate is not null)
 {
@@ -140,31 +140,43 @@ else
             </ul>
         </div>
 
-        <div class="border rounded p-3 mb-4 bg-body-tertiary" data-testid="paneel-projectinstellingen">
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+        <details class="indeling-overige-wanden paneel-projectinstellingen mb-4"
+                 data-testid="paneel-projectinstellingen"
+                 open="@toonUitgeklapteProjectinstellingen">
+            <summary class="indeling-overige-wanden-summary">
                 <div>
                     <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Projectinstelling</div>
                     <div class="fw-semibold">@PaneelMaatUitlegHelper.RandSpelingLabel</div>
-                    <div class="small text-muted">Deze waarde geldt voor het hele project. Raakt een paneel een apparaat, dan krijgt die zijde de volledige voeg. Tussen twee panelen wordt die totale voeg verdeeld, bijvoorbeeld 1 mm en 2 mm, zodat zaagmaten hele millimeters blijven. Vrije buitenranden en gewone kastvlakken houden geen aftrek.</div>
+                    <div class="small text-muted">Nu @($"{ProjectRandSpelingInput:0.#} mm") totaal. Open dit alleen als het hele project bewust meer of minder voeg nodig heeft.</div>
                 </div>
-                <div class="w-100" style="max-width: 22rem;">
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">@PaneelMaatUitlegHelper.RandSpelingLabel (mm)</label>
-                        <HulpInfoKnop Titel="Totale voeg tussen rakende delen"
-                                      Tekst="Deze projectinstelling bepaalt de totale vrije ruimte tussen een paneel en een apparaat of buurpaneel."
-                                      Voorbeeld="Bij een totale voeg van 3 mm tussen twee panelen krijgt het ene paneel bijvoorbeeld 1 mm aftrek en het andere 2 mm."
-                                      WatNuDoen="Laat de standaard staan tenzij uw beslag, afwerking of montage bewust om meer of minder totale voeg vraagt." />
+                <span class="badge text-bg-light border paneel-projectinstellingen-badge">@($"{ProjectRandSpelingInput:0.#} mm")</span>
+            </summary>
+            <div class="indeling-overige-wanden-body">
+                <div class="row g-3 align-items-start">
+                    <div class="col-lg-7">
+                        <div class="small text-muted">
+                            Deze waarde geldt voor het hele project. Tussen twee panelen verdeelt de app de totale voeg automatisch zodat zaagmaten hele millimeters blijven. Vrije buitenranden blijven ongewijzigd.
+                        </div>
                     </div>
-                    <input type="number"
-                           class="form-control"
-                           @bind="ProjectRandSpelingInput"
-                           min="0"
-                           step="1"
-                           data-testid="project-randspeling-input" />
-                    <div class="form-text hulp-hint">Standaard 3 mm totaal voor het hele project. De app verdeelt een oneven voeg automatisch over twee rakende panelen; vrije buitenranden blijven ongewijzigd.</div>
+                    <div class="col-lg-5">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">@PaneelMaatUitlegHelper.RandSpelingLabel (mm)</label>
+                            <HulpInfoKnop Titel="Totale voeg tussen rakende delen"
+                                          Tekst="Deze projectinstelling bepaalt de totale vrije ruimte tussen een paneel en een apparaat of buurpaneel."
+                                          Voorbeeld="Bij een totale voeg van 3 mm tussen twee panelen krijgt het ene paneel bijvoorbeeld 1 mm aftrek en het andere 2 mm."
+                                          WatNuDoen="Laat de standaard staan tenzij uw beslag, afwerking of montage bewust om meer of minder totale voeg vraagt." />
+                        </div>
+                        <input type="number"
+                               class="form-control"
+                               @bind="ProjectRandSpelingInput"
+                               min="0"
+                               step="1"
+                               data-testid="project-randspeling-input" />
+                        <div class="form-text hulp-hint">Standaard 3 mm totaal voor het hele project.</div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </details>
 
         @if (!isReviewWeergaveActief)
         {
@@ -184,114 +196,91 @@ else
                             var wandKasten = State.KastenVoorWand(wand.Id);
                             var wandPanelen = ToewijzingenVoorWand(wand);
                             var isActieveWerkruimte = geopendeWand?.Id == wand.Id;
+                            var overzichtBadges = isActieveWerkruimte
+                                ? new List<IndelingBadge> { new("Nu open", "badge text-bg-primary") }
+                                : [];
+                            var overzichtMeta = new List<string>();
+                            if (wandKasten.Count > 0)
+                            {
+                                overzichtMeta.Add($"{wandKasten.Count} kast(en)");
+                            }
+                            if (wandPanelen.Count > 0)
+                            {
+                                overzichtMeta.Add($"{wandPanelen.Count} paneel/panelen");
+                            }
+                            overzichtMeta.Add($"{wand.Breedte} mm wand");
+                            var knopLabel = wandKasten.Count == 0
+                                ? "Eerst stap 1"
+                                : isActieveWerkruimte
+                                    ? "Werkruimte geopend"
+                                    : "Open wand";
+                            var knopClass = wandKasten.Count == 0 ? "btn btn-outline-secondary" : "btn btn-primary";
+                            var beschrijving = wandKasten.Count == 0
+                                ? "Voeg eerst een kast toe in stap 1."
+                                : wandPanelen.Count > 0
+                                    ? "Open deze wand om panelen te bekijken of te bewerken."
+                                    : "Open deze wand om uw eerste paneel te plaatsen.";
 
                             <div class="col-xl-6"
                                  @key="wand.Id">
-                                <div class="card h-100 indeling-wand-samenvatting @(isActieveWerkruimte ? "actief" : "")"
-                                     data-testid="paneel-wand-card"
-                                     data-wand-id="@wand.Id"
-                                     data-wand-naam="@wand.Naam">
-                                    <div class="card-body d-flex flex-column gap-2">
-                                        <div class="d-flex flex-wrap align-items-start gap-2">
-                                            <div>
-                                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                                    <h5 class="mb-0">@wand.Naam</h5>
-                                                    @if (isActieveWerkruimte)
-                                                    {
-                                                        <span class="badge text-bg-primary">Nu open</span>
-                                                    }
-                                                </div>
-                                                <div class="stap-meta-list">
-                                                    @if (wandKasten.Count > 0)
-                                                    {
-                                                        <span>@wandKasten.Count kast(en)</span>
-                                                    }
-                                                    @if (wandPanelen.Count > 0)
-                                                    {
-                                                        <span>@wandPanelen.Count paneel/panelen</span>
-                                                    }
-                                                    <span>@wand.Breedte mm wand</span>
-                                                </div>
-                                                <div class="small text-muted">
-                                                    @(wandKasten.Count == 0
-                                                        ? "Voeg eerst een kast toe in stap 1."
-                                                        : wandPanelen.Count > 0
-                                                            ? "Open deze wand om panelen te bekijken of te bewerken."
-                                                            : "Open deze wand om uw eerste paneel te plaatsen.")
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="mt-auto">
-                                            <button class="btn @(wandKasten.Count == 0 ? "btn-outline-secondary" : "btn-primary")"
-                                                    @onclick="() => ToggleWandWerkruimte(wand.Id)"
-                                                    disabled="@(isActieveWerkruimte || wandKasten.Count == 0)"
-                                                    data-testid="open-paneel-wand-button"
-                                                    data-wand-id="@wand.Id">
-                                                @(wandKasten.Count == 0 ? "Eerst stap 1" : isActieveWerkruimte ? "Werkruimte geopend" : "Open wand")
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <IndelingWandKaart WandId="wand.Id"
+                                                   WandNaam="@wand.Naam"
+                                                   DataTestId="paneel-wand-card"
+                                                   KnopDataTestId="open-paneel-wand-button"
+                                                   KnopLabel="@knopLabel"
+                                                   KnopClass="@knopClass"
+                                                   KnopUitgeschakeld="@(isActieveWerkruimte || wandKasten.Count == 0)"
+                                                   MetaClass="stap-meta-list"
+                                                   IsActief="isActieveWerkruimte"
+                                                   Badges="overzichtBadges"
+                                                   MetaItems="overzichtMeta"
+                                                   Beschrijving="@beschrijving"
+                                                   OnOpenen="@(() => ToggleWandWerkruimte(wand.Id))">
+                                </IndelingWandKaart>
                             </div>
                         }
                     </div>
                 }
                 else if (overzichtWanden.Count > 0)
                 {
-                    <details class="indeling-overige-wanden paneel-overige-wanden-details mb-4"
-                             data-testid="paneel-overige-wanden-details">
-                        <summary class="indeling-overige-wanden-summary"
-                                 data-testid="paneel-overige-wanden-summary">
-                            <div>
-                                <h5 class="mb-0">Andere wanden</h5>
-                                <div class="small text-muted">Verborgen zodat de actieve werkruimte rustiger blijft.</div>
-                            </div>
-                            <span class="badge text-bg-light indeling-workspace-hint">@overzichtWanden.Count wand(en) direct beschikbaar</span>
-                        </summary>
-                        <div class="indeling-overige-wanden-body">
-                            <div class="indeling-overige-wanden-lijst">
-                                @foreach (var wand in overzichtWanden)
+                    <IndelingDetailsBlok Titel="Andere wanden"
+                                         Beschrijving="Verborgen zodat de actieve werkruimte rustiger blijft."
+                                         BadgeText="@($"{overzichtWanden.Count} wand(en) direct beschikbaar")"
+                                         DetailsClass="indeling-overige-wanden paneel-overige-wanden-details mb-4"
+                                         DetailsDataTestId="paneel-overige-wanden-details"
+                                         SummaryDataTestId="paneel-overige-wanden-summary">
+                        <div class="indeling-overige-wanden-lijst">
+                            @foreach (var wand in overzichtWanden)
+                            {
+                                var wandKasten = State.KastenVoorWand(wand.Id);
+                                var wandApparaten = State.ApparatenVoorWand(wand.Id);
+                                var wandPanelen = ToewijzingenVoorWand(wand);
+                                var overzichtMeta = new List<string> { $"{wandKasten.Count} kast(en)" };
+                                if (wandPanelen.Count > 0)
                                 {
-                                    var wandKasten = State.KastenVoorWand(wand.Id);
-                                    var wandApparaten = State.ApparatenVoorWand(wand.Id);
-                                    var wandPanelen = ToewijzingenVoorWand(wand);
-
-                                    <div class="indeling-overige-wand-schakelaar"
-                                         data-testid="paneel-wand-card"
-                                         data-wand-id="@wand.Id"
-                                         data-wand-naam="@wand.Naam"
-                                         @key="wand.Id">
-                                        <div class="indeling-overige-wand-inhoud">
-                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                                <h6 class="mb-0">@wand.Naam</h6>
-                                            </div>
-                                            <div class="stap-meta-list">
-                                                <span>@wandKasten.Count kast(en)</span>
-                                                @if (wandPanelen.Count > 0)
-                                                {
-                                                    <span>@wandPanelen.Count paneel/panelen</span>
-                                                }
-                                                <span>@wand.Breedte mm wand</span>
-                                            </div>
-                                            <div class="small text-muted">
-                                                @(wandKasten.Count == 0
-                                                    ? "Nog geen kasten op deze wand. Voeg die eerst in stap 1 toe."
-                                                    : $"{wandPanelen.Count} paneel/panelen · {wandApparaten.Count} apparaat(en) · {wand.Breedte} mm wandbreedte")
-                                            </div>
-                                        </div>
-                                        <button class="btn btn-outline-primary btn-sm"
-                                                @onclick="() => ToggleWandWerkruimte(wand.Id)"
-                                                disabled="@(wandKasten.Count == 0)"
-                                                data-testid="open-paneel-wand-button"
-                                                data-wand-id="@wand.Id">
-                                            @(wandKasten.Count == 0 ? "Eerst kast toevoegen" : "Open wand")
-                                        </button>
-                                    </div>
+                                    overzichtMeta.Add($"{wandPanelen.Count} paneel/panelen");
                                 }
-                            </div>
+                                overzichtMeta.Add($"{wand.Breedte} mm wand");
+                                var beschrijving = wandKasten.Count == 0
+                                    ? "Nog geen kasten op deze wand. Voeg die eerst in stap 1 toe."
+                                    : $"{wandPanelen.Count} paneel/panelen · {wandApparaten.Count} apparaat(en) · {wand.Breedte} mm wandbreedte";
+                                var knopLabel = wandKasten.Count == 0 ? "Eerst kast toevoegen" : "Open wand";
+
+                                <IndelingWandSchakelaar WandId="wand.Id"
+                                                        WandNaam="@wand.Naam"
+                                                        DataTestId="paneel-wand-card"
+                                                        KnopDataTestId="open-paneel-wand-button"
+                                                        KnopLabel="@knopLabel"
+                                                        KnopUitgeschakeld="@(wandKasten.Count == 0)"
+                                                        MetaClass="stap-meta-list"
+                                                        MetaItems="overzichtMeta"
+                                                        Beschrijving="@beschrijving"
+                                                        OnOpenen="@(() => ToggleWandWerkruimte(wand.Id))"
+                                                        @key="wand.Id">
+                                </IndelingWandSchakelaar>
+                            }
                         </div>
-                    </details>
+                    </IndelingDetailsBlok>
                 }
 
                 @if (geopendeWand is not null)
@@ -406,139 +395,15 @@ else
         }
         else
         {
-            <div class="mt-4 paneel-review-weergave" data-testid="paneel-review-weergave">
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3 paneel-review-header">
-                    <div>
-                        <h5 class="mb-1">Overzicht van toegewezen panelen</h5>
-                        <p class="text-muted mb-0 small">Gebruik dit scherm voor aantallen, status en acties per wand. Ga alleen terug naar de editor als u opnieuw wilt plaatsen of bewerken.</p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        @if (geopendeWand is not null)
-                        {
-                            <span class="small text-muted">Editor klaar voor @geopendeWand.Naam</span>
-                        }
-                        <button type="button"
-                                class="btn btn-outline-primary btn-sm"
-                                @onclick="ActiveerEditorWeergave"
-                                data-testid="back-to-paneel-editor-button">
-                            Terug naar editor
-                        </button>
-                    </div>
-                </div>
-
-                <div>
-                    @if (State.Toewijzingen.Count == 0)
-                    {
-                        <p class="text-muted small">Nog geen panelen. Open de editorweergave, kies een wand en voeg daarna een paneel toe.</p>
-                    }
-                    else
-                    {
-                        <div class="border rounded p-3 mb-3 paneel-review-samenvatting">
-                            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-                                <div>
-                                    <div class="fw-semibold">@State.Toewijzingen.Count paneeltoewijzingen in @paneelReviewGroepen.Count wand(en)</div>
-                                    <div class="small text-muted">
-                                        @(paneelTypeTellingen.Count == 0
-                                            ? "Nog geen verdeling per paneeltype."
-                                            : OverzichtGroeperingHelper.FormatteerTellingen(paneelTypeTellingen))
-                                    </div>
-                                </div>
-                                <details class="paneel-review-samenvatting-details">
-                                    <summary class="small fw-semibold text-secondary">Bekijk verdeling per wand</summary>
-                                    <div class="small text-muted mt-2 d-grid gap-1">
-                                        @foreach (var groep in gerangschiktePaneelReviewGroepen)
-                                        {
-                                            <div>@groep.WandNaam · @groep.AantalPanelen paneel/panelen</div>
-                                        }
-                                    </div>
-                                </details>
-                            </div>
-                        </div>
-
-                        @foreach (var groep in gerangschiktePaneelReviewGroepen)
-                        {
-                            var isActieveGroep = geopendeWand is not null && groep.WandId == geopendeWand.Id;
-
-                            <div class="card border-0 mb-3 paneel-review-groep @(isActieveGroep ? "paneel-review-groep--actief" : null)"
-                                 data-testid="paneel-review-groep"
-                                 data-wand-id="@groep.WandId"
-                                 data-wand-naam="@groep.WandNaam">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                                        <div>
-                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                                <h6 class="mb-0">@groep.WandNaam</h6>
-                                                @if (isActieveGroep)
-                                                {
-                                                    <span class="paneel-review-status">Nu actief in editor</span>
-                                                }
-                                            </div>
-                                            <div class="small text-muted">
-                                                @groep.AantalPanelen paneel/panelen op deze wand
-                                                @if (groep.TypeTellingen.Count > 0)
-                                                {
-                                                    <span> · @OverzichtGroeperingHelper.FormatteerTellingen(groep.TypeTellingen)</span>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="list-group list-group-flush mt-3">
-                                        @foreach (var item in groep.Items)
-                                        {
-                                            var isOpen = bewerkToewijzingId == item.Id;
-
-                                            <div class="list-group-item px-0 paneel-review-item" @key="item.Id">
-                                                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                                                    <div class="paneel-review-item-main">
-                                                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                                            <span class="badge @TypeBadgeClass(item.Type)">@item.TypeLabel</span>
-                                                            <span class="fw-semibold">Paneel @item.Volgnummer</span>
-                                                            <span class="text-muted">@FormatMm(item.Breedte) × @FormatMm(item.Hoogte)</span>
-                                                            @if (isOpen)
-                                                            {
-                                                                <span class="paneel-review-status">Open in editor</span>
-                                                            }
-                                                        </div>
-                                                        <div class="small text-muted">Kast(en): @item.KastenLabel</div>
-                                                    </div>
-                                                    <div class="d-flex gap-2">
-                                                        <button type="button"
-                                                                class="btn btn-outline-primary btn-sm"
-                                                                @onclick="() => BewerkPaneel(item.Id)">
-                                                            @(isOpen ? "Open" : "Bewerk")
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                <details class="mt-2 small paneel-review-item-details">
-                                                    <summary class="text-secondary">Plaatsing en verwijderen</summary>
-                                                    <div class="mt-2 d-flex flex-column gap-3">
-                                                        <div class="d-flex flex-wrap gap-3">
-                                                            <span><strong>Plaatsing:</strong> @item.PlaatsingLabel</span>
-                                                            @if (item.Type == PaneelType.Deur)
-                                                            {
-                                                                <span><strong>Scharnier:</strong> @item.ScharnierLabel</span>
-                                                            }
-                                                        </div>
-                                                        <div>
-                                                            <button type="button"
-                                                                    class="btn btn-outline-danger btn-sm"
-                                                                    @onclick="() => VerwijderPaneel(item.Id)">
-                                                                Verwijder paneel
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </details>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    }
-                </div>
-            </div>
+            <PaneelReviewOverzicht ToewijzingenAantal="@State.Toewijzingen.Count"
+                                   Groepen="@gerangschiktePaneelReviewGroepen"
+                                   PaneelTypeTellingen="@paneelTypeTellingen"
+                                   ActieveWandId="@geopendeWand?.Id"
+                                   BewerkToewijzingId="@bewerkToewijzingId"
+                                   GeopendeWandNaam="@geopendeWand?.Naam"
+                                   OnTerugNaarEditor="ActiveerEditorWeergave"
+                                   OnBewerkPaneel="BewerkPaneel"
+                                   OnVerwijderPaneel="VerwijderPaneel" />
         }
     </div>
 
@@ -553,365 +418,54 @@ else
                 ? $"{geselecteerdeKastIds.Count} kast(en) geselecteerd"
                 : null;
 
-        <section class="paneel-editor-drawer-layer">
-            <div class="paneel-editor-drawer @(ToonCompacteEditorLeegstaat ? "paneel-editor-drawer--waiting" : null)"
-                 data-testid="paneel-editor-drawer"
-                 aria-labelledby="paneel-editor-drawer-title">
-                <div class="card border-0 h-100">
-                    <div class="card-header bg-primary bg-opacity-10">
-                        <div class="d-flex justify-content-between align-items-center gap-3">
-                            <div>
-                                <div class="small fw-semibold text-uppercase text-primary-emphasis">Paneel-editor</div>
-                                <h5 id="paneel-editor-drawer-title" class="mb-0" style="font-size: 1rem;">
-                                    @EditorDrawerTitel()
-                                </h5>
-                                @if (editorHeaderMeta is not null)
-                                {
-                                    <div class="small text-muted paneel-editor-header-meta">@editorHeaderMeta</div>
-                                }
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                @if (IsBewerkModus)
-                                {
-                                    <button type="button" class="btn btn-sm btn-link text-secondary p-0" @onclick="AnnuleerBewerken">
-                                        Annuleer
-                                    </button>
-                                }
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        @onclick="SluitEditorDrawer"
-                                        data-testid="close-paneel-editor-button">
-                                    Sluiten
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body paneel-editor-drawer-body">
-                        @if (ToonCompacteEditorLeegstaat)
-                        {
-                            <div class="paneel-editor-empty-state border rounded p-2 p-sm-3 bg-body-tertiary">
-                                <h6 class="mb-1">Selecteer nu kast(en) in de tekening</h6>
-                                <p class="small text-muted mb-0">Tik de juiste kast(en) binnen <strong>@geopendeWand.Naam</strong>. Zodra u selecteert, verschijnen plaatsing, maat en opslaan hier.</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="paneel-editor-focus border rounded p-3 mb-3 bg-body-tertiary">
-                                <div class="fw-semibold mb-1">@VolgendePaneelStapTekst()</div>
-                                <div class="small text-muted">@PaneelEditorKernHintTekst(kanOpslaan)</div>
-                                <div class="stap-meta-list paneel-editor-focus-meta-list mt-2">
-                                    <span>Selectie: @PaneelEditorSelectieSamenvatting()</span>
-                                    <span>Opslaan: @PaneelEditorOpslaanSamenvatting(kanOpslaan)</span>
-                                </div>
-                            </div>
-
-                            @if (HeeftEnkeleKastSelectie)
-                            {
-                                var opdeelBereik = OpdeelBereik;
-
-                                <div class="border rounded p-3 mb-3 bg-body-tertiary">
-                                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                                        <div>
-                                            <div class="fw-semibold mb-1">Kast opdelen</div>
-                                            @if (opdeelBereik is not null)
-                                            {
-                                                <div class="small text-muted">
-                                                    Verdeel deze opening in meerdere fronten. Breedte volgt automatisch <strong>@FormatMm(opdeelBereik.Breedte)</strong> en beschikbare hoogte is <strong>@FormatMm(opdeelBereik.Hoogte)</strong>.
-                                                </div>
-                                                <div class="small text-muted mt-1">Instellingen voor alle delen: @OpdeelInstellingenTekst()</div>
-                                            }
-                                            else
-                                            {
-                                                <div class="small text-muted">Opdelen werkt alleen wanneer deze kast nog één duidelijke vrije opening heeft.</div>
-                                            }
-                                        </div>
-                                        <button type="button"
-                                                class="btn btn-outline-primary"
-                                                @onclick="OpenKastOpdelenModal"
-                                                disabled="@(!KanKastOpdelen)"
-                                                data-testid="open-paneel-opdelen-modal-button">
-                                            Kast opdelen
-                                        </button>
-                                    </div>
-                                </div>
-                            }
-
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Type paneel</label>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    @foreach (var type in Enum.GetValues<PaneelType>())
-                                    {
-                                        <button type="button"
-                                                class="btn btn-sm @(formToewijzing.Type == type ? "btn-primary" : "btn-outline-secondary")"
-                                                @onclick="() => formToewijzing.Type = type"
-                                                data-testid="paneel-type-button-@type">
-                                            @TypeNaam(type)
-                                        </button>
-                                    }
-                                </div>
-                            </div>
-
-                            @if (formToewijzing.Type == PaneelType.Deur)
-                            {
-                                <div class="mb-3">
-                                    <div class="d-flex align-items-center gap-2 mb-1">
-                                        <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">Draairichting van de deur (scharnierzijde)</label>
-                                        <HulpInfoKnop Titel="Draairichting van de deur"
-                                                      Tekst="De scharnierzijde bepaalt aan welke kant de scharnieren komen en welke kant van het paneel de technische 35 mm potscharniergaten krijgt."
-                                                      Voorbeeld="Kiest u links, dan scharniert de deur links en opent hij naar rechts."
-                                                      WatNuDoen="Kies de kant waar de deur aan de kast wordt bevestigd." />
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        <button type="button"
-                                                class="btn btn-sm @(formToewijzing.ScharnierZijde == ScharnierZijde.Links ? "btn-primary" : "btn-outline-secondary")"
-                                                @onclick="() => formToewijzing.ScharnierZijde = ScharnierZijde.Links"
-                                                data-testid="paneel-scharnier-links-button">
-                                            ◄ Links
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-sm @(formToewijzing.ScharnierZijde == ScharnierZijde.Rechts ? "btn-primary" : "btn-outline-secondary")"
-                                                @onclick="() => formToewijzing.ScharnierZijde = ScharnierZijde.Rechts"
-                                                data-testid="paneel-scharnier-rechts-button">
-                                            Rechts ►
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <div class="d-flex align-items-center gap-2 mb-1">
-                                        <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">Afstand hart scharnierpot tot rand (mm)</label>
-                                        <HulpInfoKnop Titel="Afstand hart scharnierpot tot rand"
-                                                      Tekst="Dit is de maat van het midden van het 35 mm potgat naar de scharnierkant van het paneel."
-                                                      Voorbeeld="Een veelgebruikte standaard is 22,5 mm."
-                                                      WatNuDoen="Gebruik de maat van uw beslag of laat de laatst gebruikte standaard staan als die al klopt." />
-                                    </div>
-                                    <input type="number"
-                                           class="form-control"
-                                           @bind="PotHartInput"
-                                           min="@ScharnierBerekeningService.MinCupCenterVanRand"
-                                           step="0.5"
-                                           data-testid="paneel-pot-hart-input" />
-                                    <div class="form-text hulp-hint">Technische term: pot-hart van rand. Deze maat wordt gebruikt voor alle 35 mm scharnierpotjes in dit deurpaneel en de laatst gebruikte waarde wordt onthouden.</div>
-                                </div>
-                            }
-
-                            <details class="paneel-editor-empty-details paneel-editor-handmatig-details mb-3"
-                                     open="@IsBewerkModus">
-                                <summary class="small fw-semibold text-secondary">Handmatig maat en positie invullen</summary>
-                                <div class="small text-muted mt-2">Open dit alleen als u de maat of positie preciezer wilt intypen dan via slepen en hoekpunten zetten.</div>
-                                <div class="row g-2 mt-1">
-                                    <div class="col-6">
-                                        <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Breedte (mm)</label>
-                                        <input type="number" class="form-control" @bind="BreedteInput" min="50" step="1" />
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Hoogte (mm)</label>
-                                        <input type="number" class="form-control" @bind="HoogteInput" min="50" step="1" />
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Links (mm)</label>
-                                        <input type="number" class="form-control" @bind="LinksInput" min="0" step="1" />
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Onderkant (mm)</label>
-                                        <input type="number" class="form-control" @bind="OnderkantInput" min="0" step="1" />
-                                    </div>
-                                </div>
-
-                                @if (conceptPaneel is not null)
-                                {
-                                    <div class="paneel-editor-placement mt-3 small">
-                                        <div class="fw-semibold mb-2">Plaatsing</div>
-                                        <dl class="paneel-editor-placement-list mb-0">
-                                            <div><dt>Links</dt><dd><strong>@FormatMm(conceptPaneel.XPositie)</strong></dd></div>
-                                            <div><dt>Onderkant</dt><dd><strong>@FormatMm(conceptPaneel.HoogteVanVloer)</strong></dd></div>
-                                            <div><dt>Rechts</dt><dd><strong>@FormatMm(conceptPaneel.Rechterkant)</strong></dd></div>
-                                            <div><dt>Bovenkant</dt><dd><strong>@FormatMm(conceptPaneel.Bovenzijde)</strong></dd></div>
-                                        </dl>
-                                    </div>
-                                }
-                            </details>
-
-                            @if (conceptMaatInfo is not null)
-                            {
-                                <HulpDetailsBlok Titel="Van maat in de opening naar maat om te bestellen"
-                                                 Beschrijving="Open alleen als u de volledige aftrek per rand wilt nalopen."
-                                                 CssClass="mb-3 small">
-                                    <div class="mb-1">@PaneelMaatUitlegHelper.MaatInOpeningLabelMetTerm <strong>@FormatMm(conceptMaatInfo.OpeningsRechthoek.Breedte)</strong> × <strong>@FormatMm(conceptMaatInfo.OpeningsRechthoek.Hoogte)</strong></div>
-                                    <div class="mb-2">@PaneelMaatUitlegHelper.MaatOmTeBestellenLabelMetTerm <strong>@FormatMm(conceptMaatInfo.PaneelRechthoek.Breedte)</strong> × <strong>@FormatMm(conceptMaatInfo.PaneelRechthoek.Hoogte)</strong></div>
-                                    <div><strong>Breedteformule:</strong> @PaneelMaatUitlegHelper.BreedteFormule(conceptMaatInfo)</div>
-                                    <div class="mb-2">@PaneelMaatUitlegHelper.BreedteAftrekUitleg(conceptMaatInfo)</div>
-                                    <div><strong>Hoogteformule:</strong> @PaneelMaatUitlegHelper.HoogteFormule(conceptMaatInfo)</div>
-                                    <div>@PaneelMaatUitlegHelper.HoogteAftrekUitleg(conceptMaatInfo)</div>
-                                </HulpDetailsBlok>
-                            }
-
-                            @if (vrijeSegmenten.Count > 0)
-                            {
-                                <details class="paneel-editor-empty-details paneel-editor-vrije-vakken mb-3"
-                                         open="@(vrijeSegmenten.Count == 1)">
-                                    <summary class="small fw-semibold text-secondary">Gebruik een vrij vak (@vrijeSegmenten.Count beschikbaar)</summary>
-                                    <div class="d-flex flex-wrap gap-2 mt-2">
-                                        @for (int i = 0; i < vrijeSegmenten.Count; i++)
-                                        {
-                                            var segment = vrijeSegmenten[i];
-                                            <button type="button"
-                                                    class="btn btn-sm btn-outline-success"
-                                                    @onclick="() => GebruikVrijSegment(segment)">
-                                                @VrijSegmentLabel(i, segment)
-                                            </button>
-                                        }
-                                    </div>
-                                </details>
-                            }
-
-                            <HulpDetailsBlok Titel="Zo leest u de tekening"
-                                             Beschrijving="Open alleen als u maatlagen of sleepgedrag wilt nalopen."
-                                             CssClass="mb-3 small">
-                                <div class="text-muted mb-3">
-                                    Sleep het blauwe paneel in de tekening en trek aan de hoekpunten om het korter of langer te maken. De gestreepte buitenrand laat de <strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel.ToLower()</strong> zien; de volle binnenvorm laat direct de <strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel.ToLower()</strong> zien nadat de totale voeg langs rakende randen is verwerkt.
-                                </div>
-                                <div class="row g-3 align-items-center">
-                                    <div class="col-sm-5">
-                                        <svg viewBox="0 0 180 110" class="w-100" role="img" aria-label="Verschil tussen maat in de opening en maat om te bestellen">
-                                            <rect x="20" y="16" width="120" height="72" fill="none" stroke="var(--bs-secondary-color)" stroke-width="2" stroke-dasharray="6 4" />
-                                            <rect x="32" y="28" width="96" height="48" fill="var(--bs-primary-bg-subtle)" stroke="var(--bs-primary)" stroke-width="2" />
-                                        </svg>
-                                    </div>
-                                    <div class="col-sm-7">
-                                        <div class="d-flex align-items-start gap-2 mb-2">
-                                            <span class="d-inline-block border border-2 border-secondary rounded flex-shrink-0" style="width: 1rem; height: 1rem; border-style: dashed;"></span>
-                                            <div><strong>@PaneelMaatUitlegHelper.MaatInOpeningLabel</strong>: de vrije ruimte waar het paneel in moet passen.</div>
-                                        </div>
-                                        <div class="d-flex align-items-start gap-2">
-                                            <span class="d-inline-block border border-primary rounded bg-primary bg-opacity-10 flex-shrink-0" style="width: 1rem; height: 1rem;"></span>
-                                            <div><strong>@PaneelMaatUitlegHelper.MaatOmTeBestellenLabel</strong>: de maat die overblijft nadat de aftrek voor de totale voeg is toegepast.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </HulpDetailsBlok>
-
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-outline-secondary flex-grow-1" @onclick="ResetConceptPaneel">
-                                    @(IsBewerkModus ? "Reset naar origineel" : "Reset naar selectie")
-                                </button>
-                                <button type="button" class="btn btn-primary flex-grow-1" @onclick="PaneelOpslaan"
-                                        disabled="@(!kanOpslaan)"
-                                        data-testid="paneel-opslaan-button">
-                                    @(IsBewerkModus ? "Paneel opslaan" : "+ Paneel toevoegen")
-                                </button>
-                            </div>
-                            @if (!kanOpslaan)
-                            {
-                                <div class="form-text mt-2">@OpslaanStatusTekst()</div>
-                            }
-
-                            @if (toonKastOpdelenModal && OpdeelBereik is { } modalOpdeelBereik && geselecteerdeKasten.Count == 1)
-                            {
-                                var geselecteerdeKast = geselecteerdeKasten[0];
-                                var opdeelAnalyse = OpdeelAnalyse;
-
-                                <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
-                                     style="z-index: 1055; background: rgba(0,0,0,0.4); overflow-y: auto; padding: 2rem 1rem;"
-                                     @onclick="SluitKastOpdelenModal"
-                                     data-testid="paneel-opdelen-modal-overlay">
-                                    <div class="card border-0 shadow-lg"
-                                         style="max-width: 680px; width: 100%;"
-                                         role="dialog"
-                                         aria-modal="true"
-                                         aria-labelledby="paneel-opdelen-modal-title"
-                                         @onclick:stopPropagation="true"
-                                         data-testid="paneel-opdelen-modal">
-                                        <div class="card-header bg-primary bg-opacity-10 border-bottom">
-                                            <div class="d-flex justify-content-between align-items-start gap-3">
-                                                <div>
-                                                    <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Meerdere fronten</div>
-                                                    <h5 class="mb-1" id="paneel-opdelen-modal-title">Kast opdelen</h5>
-                                                    <p class="text-muted mb-0">
-                                                        U verdeelt <strong>@geselecteerdeKast.Naam</strong> over <strong>@FormatMm(modalOpdeelBereik.Breedte)</strong> breed en <strong>@FormatMm(modalOpdeelBereik.Hoogte)</strong> hoog.
-                                                    </p>
-                                                </div>
-                                                <button type="button" class="btn-close" @onclick="SluitKastOpdelenModal" aria-label="Sluit kast opdelen"></button>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="small text-muted mb-3">
-                                                Type en technische instellingen voor alle delen: <strong>@OpdeelInstellingenTekst()</strong>.
-                                            </div>
-
-                                            <div class="mb-3">
-                                                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Aantal delen</label>
-                                                <div class="d-flex gap-2 flex-wrap">
-                                                    @foreach (var aantal in Enumerable.Range(2, 3))
-                                                    {
-                                                        var deelAantal = aantal;
-                                                        <button type="button"
-                                                                class="btn btn-sm @(opdeelAantal == deelAantal ? "btn-primary" : "btn-outline-secondary")"
-                                                                @onclick="() => StelOpdeelAantalIn(deelAantal)"
-                                                                disabled="@(!KanKastOpdelenIn(deelAantal))"
-                                                                data-testid="paneel-opdelen-aantal-button-@deelAantal">
-                                                            @deelAantal delen
-                                                        </button>
-                                                    }
-                                                </div>
-                                                <div class="form-text">Deel 1 staat onderaan. Het laatste deel komt bovenaan in de opening.</div>
-                                            </div>
-
-                                            <div class="row g-2">
-                                                @for (var i = 0; i < opdeelHoogtes.Count; i++)
-                                                {
-                                                    var deelIndex = i;
-                                                    var deelLabel = i == 0
-                                                        ? $"Deel {i + 1} (onderaan)"
-                                                        : i == opdeelHoogtes.Count - 1
-                                                            ? $"Deel {i + 1} (bovenaan)"
-                                                            : $"Deel {i + 1}";
-
-                                                    <div class="col-sm-6">
-                                                        <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">@deelLabel</label>
-                                                        <input type="number"
-                                                               class="form-control"
-                                                               @bind="opdeelHoogtes[deelIndex]"
-                                                               @bind:event="oninput"
-                                                               min="@PaneelLayoutService.MinPaneelMaat"
-                                                               step="1"
-                                                               data-testid="paneel-opdelen-hoogte-input-@deelIndex" />
-                                                    </div>
-                                                }
-                                            </div>
-
-                                            <div class="alert @OpdeelStatusClass() mt-3 mb-0" role="status" data-testid="paneel-opdelen-status">
-                                                <div class="d-flex flex-wrap gap-3 small">
-                                                    <span><strong>Beschikbaar:</strong> @FormatMm(opdeelAnalyse.BeschikbareHoogte)</span>
-                                                    <span><strong>Ingevuld:</strong> @FormatMm(opdeelAnalyse.TotaalHoogte)</span>
-                                                    <span><strong>Restant:</strong> @FormatMm(opdeelAnalyse.RestantHoogte)</span>
-                                                </div>
-                                                <div class="small mt-2">@OpdeelStatusTekst()</div>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer bg-body d-flex justify-content-end gap-2">
-                                            <button type="button"
-                                                    class="btn btn-outline-secondary"
-                                                    @onclick="SluitKastOpdelenModal"
-                                                    data-testid="paneel-opdelen-annuleren-button">
-                                                Annuleren
-                                            </button>
-                                            <button type="button"
-                                                    class="btn btn-primary"
-                                                    @onclick="BevestigKastOpdelen"
-                                                    disabled="@(!opdeelAnalyse.KanBevestigen)"
-                                                    data-testid="paneel-opdelen-bevestigen-button">
-                                                Fronten aanmaken
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        }
-                    </div>
-                </div>
-            </div>
-        </section>
+        <PaneelEditorDrawer GeopendeWandNaam="@geopendeWand.Naam"
+                            EditorHeaderMeta="@editorHeaderMeta"
+                            ToonCompacteEditorLeegstaat="@ToonCompacteEditorLeegstaat"
+                            IsBewerkModus="@IsBewerkModus"
+                            KanOpslaan="@kanOpslaan"
+                            VolgendePaneelStapTekst="@VolgendePaneelStapTekst()"
+                            KernHintTekst="@PaneelEditorKernHintTekst(kanOpslaan)"
+                            SelectieSamenvatting="@PaneelEditorSelectieSamenvatting()"
+                            OpslaanSamenvatting="@PaneelEditorOpslaanSamenvatting(kanOpslaan)"
+                            OpslaanStatusTekst="@OpslaanStatusTekst()"
+                            HeeftEnkeleKastSelectie="@HeeftEnkeleKastSelectie"
+                            OpdeelBereik="@OpdeelBereik"
+                            KanKastOpdelen="@KanKastOpdelen"
+                            GeselecteerdType="@formToewijzing.Type"
+                            GeselecteerdeScharnierZijde="@formToewijzing.ScharnierZijde"
+                            PotHartInput="@PotHartInput"
+                            PotHartInputChanged="@(EventCallback.Factory.Create<double>(this, value => PotHartInput = value))"
+                            BreedteInput="@BreedteInput"
+                            BreedteInputChanged="@(EventCallback.Factory.Create<double>(this, value => BreedteInput = value))"
+                            HoogteInput="@HoogteInput"
+                            HoogteInputChanged="@(EventCallback.Factory.Create<double>(this, value => HoogteInput = value))"
+                            LinksInput="@LinksInput"
+                            LinksInputChanged="@(EventCallback.Factory.Create<double>(this, value => LinksInput = value))"
+                            OnderkantInput="@OnderkantInput"
+                            OnderkantInputChanged="@(EventCallback.Factory.Create<double>(this, value => OnderkantInput = value))"
+                            ConceptPaneel="@conceptPaneel"
+                            ConceptMaatInfo="@conceptMaatInfo"
+                            VrijeSegmenten="@vrijeSegmenten"
+                            GeselecteerdeKast="@(geselecteerdeKasten.Count == 1 ? geselecteerdeKasten[0] : null)"
+                            ToonKastOpdelenModal="@toonKastOpdelenModal"
+                            OpdeelAantal="@opdeelAantal"
+                            OpdeelHoogtes="opdeelHoogtes"
+                            OpdeelAnalyse="@OpdeelAnalyse"
+                            OpdeelStatusClass="@OpdeelStatusClass()"
+                            OpdeelStatusTekst="@OpdeelStatusTekst()"
+                            KanKastOpdelenIn="KanKastOpdelenIn"
+                            OnTypeGewijzigd="@(EventCallback.Factory.Create<PaneelType>(this, value => formToewijzing.Type = value))"
+                            OnScharnierZijdeGewijzigd="@(EventCallback.Factory.Create<ScharnierZijde>(this, value => formToewijzing.ScharnierZijde = value))"
+                            OnVrijSegmentGekozen="@(EventCallback.Factory.Create<PaneelRechthoek>(this, GebruikVrijSegment))"
+                            OnReset="ResetConceptPaneel"
+                            OnOpslaan="PaneelOpslaan"
+                            OnOpenKastOpdelenModal="OpenKastOpdelenModal"
+                            OnSluitKastOpdelenModal="SluitKastOpdelenModal"
+                            OnStelOpdeelAantalIn="StelOpdeelAantalIn"
+                            OnBevestigKastOpdelen="BevestigKastOpdelen"
+                            OnOpdeelHoogtesGewijzigd="@(EventCallback.Factory.Create(this, StateHasChanged))"
+                            OnAnnuleerBewerken="AnnuleerBewerken"
+                            OnSluiten="SluitEditorDrawer" />
     }
 }
 

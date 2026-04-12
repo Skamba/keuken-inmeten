@@ -3,9 +3,18 @@
 @{
     var stappen = StappenFlowHelper.AlleStappen;
     var huidigeIndex = stappen.ToList().FindIndex(stap => stap.Id == HuidigeStap);
+    var huidigeStapInfo = huidigeIndex >= 0 ? stappen[huidigeIndex] : null;
 }
 
-<nav aria-label="Stappen" class="stap-indicator mb-4">
+<nav aria-label="Stappen" class="stap-indicator mb-3">
+    @if (huidigeStapInfo is not null)
+    {
+        <div class="stap-indicator-current">
+            <span class="stap-indicator-current-index">Stap @(huidigeIndex + 1) van @stappen.Count</span>
+            <span class="stap-indicator-current-label">@huidigeStapInfo.Label</span>
+        </div>
+    }
+
     <ol class="stap-indicator-list">
         @for (int i = 0; i < stappen.Count; i++)
         {
@@ -14,7 +23,8 @@
             var isKlaar = i < huidigeIndex;
             var isActief = i == huidigeIndex;
             var stateClass = isKlaar ? "klaar" : isActief ? "actief" : "nog-niet";
-            <li class="stap-indicator-item @stateClass">
+            <li class="stap-indicator-item @stateClass"
+                aria-current="@(isActief ? "step" : null)">
                 @if (i > 0)
                 {
                     <div class="stap-connector"></div>

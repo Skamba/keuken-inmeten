@@ -1,0 +1,153 @@
+@using Keuken_inmeten.Models
+@using Keuken_inmeten.Services
+
+<div class="mt-4 paneel-review-weergave" data-testid="paneel-review-weergave">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3 paneel-review-header">
+        <div>
+            <h5 class="mb-1">Overzicht van toegewezen panelen</h5>
+            <p class="text-muted mb-0 small">Gebruik dit scherm voor aantallen, status en acties per wand. Ga alleen terug naar de editor als u opnieuw wilt plaatsen of bewerken.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            @if (!string.IsNullOrWhiteSpace(GeopendeWandNaam))
+            {
+                <span class="small text-muted">Editor klaar voor @GeopendeWandNaam</span>
+            }
+            <button type="button"
+                    class="btn btn-outline-primary btn-sm"
+                    @onclick="OnTerugNaarEditor"
+                    data-testid="back-to-paneel-editor-button">
+                Terug naar editor
+            </button>
+        </div>
+    </div>
+
+    <div>
+        @if (ToewijzingenAantal == 0)
+        {
+            <p class="text-muted small">Nog geen panelen. Open de editorweergave, kies een wand en voeg daarna een paneel toe.</p>
+        }
+        else
+        {
+            <div class="border rounded p-3 mb-3 paneel-review-samenvatting">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                    <div>
+                        <div class="fw-semibold">@ToewijzingenAantal paneeltoewijzingen in @Groepen.Count wand(en)</div>
+                        <div class="small text-muted">
+                            @(PaneelTypeTellingen.Count == 0
+                                ? "Nog geen verdeling per paneeltype."
+                                : OverzichtGroeperingHelper.FormatteerTellingen(PaneelTypeTellingen))
+                        </div>
+                    </div>
+                    <details class="paneel-review-samenvatting-details">
+                        <summary class="small fw-semibold text-secondary">Bekijk verdeling per wand</summary>
+                        <div class="small text-muted mt-2 d-grid gap-1">
+                            @foreach (var groep in Groepen)
+                            {
+                                <div>@groep.WandNaam · @groep.AantalPanelen paneel/panelen</div>
+                            }
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            @foreach (var groep in Groepen)
+            {
+                var isActieveGroep = ActieveWandId is not null && groep.WandId == ActieveWandId;
+
+                <div class="card border-0 mb-3 paneel-review-groep @(isActieveGroep ? "paneel-review-groep--actief" : null)"
+                     data-testid="paneel-review-groep"
+                     data-wand-id="@groep.WandId"
+                     data-wand-naam="@groep.WandNaam">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                            <div>
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                    <h6 class="mb-0">@groep.WandNaam</h6>
+                                    @if (isActieveGroep)
+                                    {
+                                        <span class="paneel-review-status">Nu actief in editor</span>
+                                    }
+                                </div>
+                                <div class="small text-muted">
+                                    @groep.AantalPanelen paneel/panelen op deze wand
+                                    @if (groep.TypeTellingen.Count > 0)
+                                    {
+                                        <span> · @OverzichtGroeperingHelper.FormatteerTellingen(groep.TypeTellingen)</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="list-group list-group-flush mt-3">
+                            @foreach (var item in groep.Items)
+                            {
+                                var isOpen = BewerkToewijzingId == item.Id;
+
+                                <div class="list-group-item px-0 paneel-review-item" @key="item.Id">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                        <div class="paneel-review-item-main">
+                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                <span class="badge @TypeBadgeClass(item.Type)">@item.TypeLabel</span>
+                                                <span class="fw-semibold">Paneel @item.Volgnummer</span>
+                                                <span class="text-muted">@FormatMm(item.Breedte) × @FormatMm(item.Hoogte)</span>
+                                                @if (isOpen)
+                                                {
+                                                    <span class="paneel-review-status">Open in editor</span>
+                                                }
+                                            </div>
+                                            <div class="small text-muted">Kast(en): @item.KastenLabel</div>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button"
+                                                    class="btn btn-outline-primary btn-sm"
+                                                    @onclick="@(() => OnBewerkPaneel.InvokeAsync(item.Id))">
+                                                @(isOpen ? "Open" : "Bewerk")
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <details class="mt-2 small paneel-review-item-details">
+                                        <summary class="text-secondary">Plaatsing en verwijderen</summary>
+                                        <div class="mt-2 d-flex flex-column gap-3">
+                                            <div class="d-flex flex-wrap gap-3">
+                                                <span><strong>Plaatsing:</strong> @item.PlaatsingLabel</span>
+                                                @if (item.Type == PaneelType.Deur)
+                                                {
+                                                    <span><strong>Scharnier:</strong> @item.ScharnierLabel</span>
+                                                }
+                                            </div>
+                                            <div>
+                                                <button type="button"
+                                                        class="btn btn-outline-danger btn-sm"
+                                                        @onclick="@(() => OnVerwijderPaneel.InvokeAsync(item.Id))">
+                                                    Verwijder paneel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public int ToewijzingenAantal { get; set; }
+    [Parameter, EditorRequired] public IReadOnlyList<OverzichtGroeperingHelper.PaneelReviewGroep> Groepen { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<OverzichtGroeperingHelper.Telling> PaneelTypeTellingen { get; set; } = [];
+    [Parameter] public Guid? ActieveWandId { get; set; }
+    [Parameter] public Guid? BewerkToewijzingId { get; set; }
+    [Parameter] public string? GeopendeWandNaam { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnTerugNaarEditor { get; set; }
+    [Parameter, EditorRequired] public EventCallback<Guid> OnBewerkPaneel { get; set; }
+    [Parameter, EditorRequired] public EventCallback<Guid> OnVerwijderPaneel { get; set; }
+
+    private static string TypeBadgeClass(PaneelType type)
+        => PaneelConfiguratieHelper.TypeBadgeClass(type);
+
+    private static string FormatMm(double waarde) => $"{waarde:0.#} mm";
+}

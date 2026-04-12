@@ -1,0 +1,120 @@
+@using Keuken_inmeten.Models
+@using Keuken_inmeten.Services
+
+<div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
+     style="z-index: 1055; background: rgba(0,0,0,0.4); overflow-y: auto; padding: 2rem 1rem;"
+     @onclick="OnSluiten"
+     data-testid="paneel-opdelen-modal-overlay">
+    <div class="card border-0 shadow-lg"
+         style="max-width: 680px; width: 100%;"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="paneel-opdelen-modal-title"
+         @onclick:stopPropagation="true"
+         data-testid="paneel-opdelen-modal">
+        <div class="card-header bg-primary bg-opacity-10 border-bottom">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                    <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Meerdere fronten</div>
+                    <h5 class="mb-1" id="paneel-opdelen-modal-title">Kast opdelen</h5>
+                    <p class="text-muted mb-0">
+                        U verdeelt <strong>@GeselecteerdeKast.Naam</strong> over <strong>@FormatMm(OpdeelBereik.Breedte)</strong> breed en <strong>@FormatMm(OpdeelBereik.Hoogte)</strong> hoog.
+                    </p>
+                </div>
+                <button type="button" class="btn-close" @onclick="OnSluiten" aria-label="Sluit kast opdelen"></button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="small text-muted mb-3">
+                Type en technische instellingen voor alle delen: <strong>@OpdeelInstellingenTekst</strong>.
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">Aantal delen</label>
+                <div class="d-flex gap-2 flex-wrap">
+                    @foreach (var aantal in Enumerable.Range(2, 3))
+                    {
+                        var deelAantal = aantal;
+                        <button type="button"
+                                class="btn btn-sm @(OpdeelAantal == deelAantal ? "btn-primary" : "btn-outline-secondary")"
+                                @onclick="@(() => OnStelAantalIn.InvokeAsync(deelAantal))"
+                                disabled="@(!KanKastOpdelenIn(deelAantal))"
+                                data-testid="paneel-opdelen-aantal-button-@deelAantal">
+                            @deelAantal delen
+                        </button>
+                    }
+                </div>
+                <div class="form-text">Deel 1 staat onderaan. Het laatste deel komt bovenaan in de opening.</div>
+            </div>
+
+            <div class="row g-2">
+                @for (var i = 0; i < OpdeelHoogtes.Count; i++)
+                {
+                    var deelIndex = i;
+                    var deelLabel = i == 0
+                        ? $"Deel {i + 1} (onderaan)"
+                        : i == OpdeelHoogtes.Count - 1
+                            ? $"Deel {i + 1} (bovenaan)"
+                            : $"Deel {i + 1}";
+
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold small text-uppercase" style="font-size: 0.72rem; letter-spacing: .04em;">@deelLabel</label>
+                        <input type="number"
+                               class="form-control"
+                               @bind="OpdeelHoogtes[deelIndex]"
+                               @bind:event="oninput"
+                               @bind:after="HandleHoogtesGewijzigd"
+                               min="@PaneelLayoutService.MinPaneelMaat"
+                               step="1"
+                               data-testid="paneel-opdelen-hoogte-input-@deelIndex" />
+                    </div>
+                }
+            </div>
+
+            <div class="alert @StatusClass mt-3 mb-0" role="status" data-testid="paneel-opdelen-status">
+                <div class="d-flex flex-wrap gap-3 small">
+                    <span><strong>Beschikbaar:</strong> @FormatMm(OpdeelAnalyse.BeschikbareHoogte)</span>
+                    <span><strong>Ingevuld:</strong> @FormatMm(OpdeelAnalyse.TotaalHoogte)</span>
+                    <span><strong>Restant:</strong> @FormatMm(OpdeelAnalyse.RestantHoogte)</span>
+                </div>
+                <div class="small mt-2">@StatusTekst</div>
+            </div>
+        </div>
+        <div class="card-footer bg-body d-flex justify-content-end gap-2">
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    @onclick="OnSluiten"
+                    data-testid="paneel-opdelen-annuleren-button">
+                Annuleren
+            </button>
+            <button type="button"
+                    class="btn btn-primary"
+                    @onclick="OnBevestigen"
+                    disabled="@(!OpdeelAnalyse.KanBevestigen)"
+                    data-testid="paneel-opdelen-bevestigen-button">
+                Fronten aanmaken
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Kast GeselecteerdeKast { get; set; } = default!;
+    [Parameter, EditorRequired] public PaneelRechthoek OpdeelBereik { get; set; } = default!;
+    [Parameter, EditorRequired] public string OpdeelInstellingenTekst { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public int OpdeelAantal { get; set; }
+    [Parameter, EditorRequired] public IList<double> OpdeelHoogtes { get; set; } = [];
+    [Parameter, EditorRequired] public PaneelOpdeelAnalyse OpdeelAnalyse { get; set; } = default!;
+    [Parameter, EditorRequired] public string StatusClass { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string StatusTekst { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public Func<int, bool> KanKastOpdelenIn { get; set; } = default!;
+    [Parameter, EditorRequired] public EventCallback OnSluiten { get; set; }
+    [Parameter, EditorRequired] public EventCallback<int> OnStelAantalIn { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnBevestigen { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnHoogtesGewijzigd { get; set; }
+
+    private Task HandleHoogtesGewijzigd()
+        => OnHoogtesGewijzigd.InvokeAsync();
+
+    private static string FormatMm(double waarde) => $"{waarde:0.#} mm";
+}

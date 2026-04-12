@@ -145,7 +145,7 @@
     private double H => Resultaat.Hoogte * Scale;
     private double DoorHScale => 1.5;
     private double DeurW => Math.Min(Resultaat.Breedte, MaxDoorVisibleMm) * DoorHScale;
-    private double CupOffset => (Resultaat.Boorgaten.FirstOrDefault()?.X ?? ScharnierBerekeningService.CupCenterVanRand) * DoorHScale;
+    private double CupOffset => (Resultaat.Boorgaten.FirstOrDefault()?.X ?? KeukenDomeinDefaults.PaneelDefaults.PotHartVanRand) * DoorHScale;
     private double CupR => Math.Max((ScharnierBerekeningService.CupDiameter / 2.0) * Scale, 8.0);
     private double ScharnierRandX => Resultaat.ScharnierZijde == ScharnierZijde.Links ? DeurX : DeurX + DeurW;
     private double SeparatorX => DeurX + DeurW + 100;

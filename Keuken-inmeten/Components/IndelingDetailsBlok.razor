@@ -1,0 +1,50 @@
+<details class="@DetailsClass" open="@Open" data-testid="@DetailsDataTestId">
+    <summary class="@SummaryClass" data-testid="@SummaryDataTestId">
+        <div>
+            <h5 class="mb-0">@Titel</h5>
+            @if (!string.IsNullOrWhiteSpace(Beschrijving))
+            {
+                <div class="small text-muted">@Beschrijving</div>
+            }
+        </div>
+        @if (!string.IsNullOrWhiteSpace(BadgeText))
+        {
+            <span class="badge text-bg-light indeling-workspace-hint">@BadgeText</span>
+        }
+    </summary>
+    <div class="@BodyClass">
+        @ChildContent
+    </div>
+</details>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Titel { get; set; } = "";
+
+    [Parameter]
+    public string? Beschrijving { get; set; }
+
+    [Parameter]
+    public string? BadgeText { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public string DetailsClass { get; set; } = "indeling-overige-wanden";
+
+    [Parameter]
+    public string SummaryClass { get; set; } = "indeling-overige-wanden-summary";
+
+    [Parameter]
+    public string BodyClass { get; set; } = "indeling-overige-wanden-body";
+
+    [Parameter]
+    public string? DetailsDataTestId { get; set; }
+
+    [Parameter]
+    public string? SummaryDataTestId { get; set; }
+
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent { get; set; } = default!;
+}

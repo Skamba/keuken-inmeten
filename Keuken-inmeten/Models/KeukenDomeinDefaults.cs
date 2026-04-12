@@ -20,6 +20,19 @@ public static class KeukenDomeinDefaults
         public const double EersteGaatVanBoven = 19;
     }
 
+    public static class PaneelDefaults
+    {
+        public const PaneelType Type = PaneelType.Deur;
+        public const ScharnierZijde ScharnierZijde = ScharnierZijde.Links;
+        public const double PotHartVanRand = 22.5;
+    }
+
+    public static class ProjectDefaults
+    {
+        public const double LaatstGebruiktePotHartVanRand = PaneelDefaults.PotHartVanRand;
+        public const double PaneelRandSpeling = 3.0;
+    }
+
     public static KeukenWand NieuweWand() => new();
 
     public static Kast NieuweKast() => new();

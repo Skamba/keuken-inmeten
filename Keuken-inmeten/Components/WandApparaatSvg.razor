@@ -1,0 +1,59 @@
+@using Keuken_inmeten.Models
+@using Microsoft.AspNetCore.Components
+
+@{
+    const double apparaatStroke = 1.5;
+    var apparaatBreedte = Apparaat.Breedte * Schaal;
+    var apparaatHoogte = Apparaat.Hoogte * Schaal;
+    var apparaatX = Padding + Apparaat.XPositie * Schaal;
+    var apparaatY = VloerY - (Apparaat.HoogteVanVloer + Apparaat.Hoogte) * Schaal;
+    var labelBandHoogte = Math.Min(18.0, Math.Max(12.0, apparaatHoogte * 0.22));
+    var naamY = apparaatY + apparaatHoogte - Math.Min(8.0, Math.Max(5.0, apparaatHoogte * 0.12));
+    var naamFontSize = Math.Min(NaamFontMax, Math.Max(NaamFontMin, Math.Min(apparaatBreedte * NaamBreedteFactor, apparaatHoogte * NaamHoogteFactor)));
+}
+
+<rect x="@Fmt(apparaatX + apparaatStroke / 2)" y="@Fmt(apparaatY + apparaatStroke / 2)"
+      width="@Fmt(Math.Max(0, apparaatBreedte - apparaatStroke))" height="@Fmt(Math.Max(0, apparaatHoogte - apparaatStroke))"
+      fill="@ApparaatKleur(Apparaat.Type)" stroke="#555" stroke-width="@Fmt(apparaatStroke)" rx="4" opacity="0.9" />
+
+<ApparaatPictogram Type="Apparaat.Type"
+                   X="apparaatX"
+                   Y="apparaatY"
+                   Width="apparaatBreedte"
+                   Height="apparaatHoogte"
+                   ReservedBottom="labelBandHoogte"
+                   StrokeColor="#4b5563" />
+
+@SvgText(apparaatX + apparaatBreedte / 2, naamY, Apparaat.Naam, $"font-size=\"{Fmt(naamFontSize)}\" fill=\"#333\" text-anchor=\"middle\" font-weight=\"bold\" pointer-events=\"none\"")
+
+@if (ToonMaatLabel && apparaatBreedte > 20 && apparaatHoogte > 25)
+{
+    @SvgText(apparaatX + apparaatBreedte / 2, apparaatY - 3, $"{Apparaat.Breedte:F0}×{Apparaat.Hoogte:F0}mm", "font-size=\"7\" fill=\"#888\" text-anchor=\"middle\" pointer-events=\"none\"")
+}
+
+@if (ToonHoogteVanVloer && Apparaat.HoogteVanVloer > 0)
+{
+    <line x1="@Fmt(apparaatX + apparaatBreedte / 2)" y1="@Fmt(apparaatY + apparaatHoogte)" x2="@Fmt(apparaatX + apparaatBreedte / 2)" y2="@Fmt(VloerY)"
+          stroke="#999" stroke-width="1" stroke-dasharray="3,3" pointer-events="none" />
+    @SvgText(apparaatX + apparaatBreedte / 2 + 10, apparaatY + apparaatHoogte + (VloerY - apparaatY - apparaatHoogte) / 2 + 3, $"↕{Apparaat.HoogteVanVloer:F0}", "font-size=\"8\" fill=\"#999\" text-anchor=\"start\" pointer-events=\"none\"")
+}
+
+@code {
+    [Parameter, EditorRequired] public Apparaat Apparaat { get; set; } = default!;
+    [Parameter, EditorRequired] public double Padding { get; set; }
+    [Parameter, EditorRequired] public double Schaal { get; set; }
+    [Parameter, EditorRequired] public double VloerY { get; set; }
+    [Parameter] public bool ToonMaatLabel { get; set; }
+    [Parameter] public bool ToonHoogteVanVloer { get; set; }
+    [Parameter] public double NaamBreedteFactor { get; set; } = 0.16;
+    [Parameter] public double NaamHoogteFactor { get; set; } = 0.18;
+    [Parameter] public double NaamFontMin { get; set; } = 7;
+    [Parameter] public double NaamFontMax { get; set; } = 11;
+
+    private static string ApparaatKleur(ApparaatType type) => VisualisatieHelper.ApparaatKleur(type);
+
+    private static string Fmt(double value) => VisualisatieHelper.Fmt(value);
+    private static string Encode(string value) => System.Net.WebUtility.HtmlEncode(value);
+    private static MarkupString SvgText(double x, double y, string text, string extraAttributes = "")
+        => (MarkupString)$"<text x=\"{Fmt(x)}\" y=\"{Fmt(y)}\" {extraAttributes}>{Encode(text)}</text>";
+}

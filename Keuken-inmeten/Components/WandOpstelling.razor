@@ -11,47 +11,14 @@
          style="max-height: @(SvgMaxHoogte ?? "65vh"); width: auto; max-width: @(BeperkTotContainerBreedte ? "100%" : "none"); display: block; cursor: default; outline: none; margin: 0 auto;"
          tabindex="0">
 
-        @* Muur achtergrond *@
-        <rect x="@Fmt(P)" y="@Fmt(P)" width="@Fmt(MuurBreedtePx)" height="@Fmt(MuurHoogtePx)"
-              fill="#f5f0e8" stroke="#bbb" stroke-width="1.5" />
-
-        @* Rasterlijnen horizontaal *@
-        @foreach (var h in HoogteMarkeringen())
-        {
-            var y = VloerY - h * Schaal;
-            <line x1="@Fmt(P)" y1="@Fmt(y)" x2="@Fmt(P + MuurBreedtePx)" y2="@Fmt(y)"
-                  stroke="#e8e0d4" stroke-width="0.5" />
-            <line x1="@Fmt(P - 5)" y1="@Fmt(y)" x2="@Fmt(P)" y2="@Fmt(y)"
-                  stroke="#999" stroke-width="1" />
-            @((MarkupString)$"<text x=\"{Fmt(P - 8)}\" y=\"{Fmt(y + 3)}\" font-size=\"9\" fill=\"#999\" text-anchor=\"end\">{h}</text>")
-        }
-
-        @* Plint *@
-        @if (PlintHoogte > 0)
-        {
-            var plintPx = PlintHoogte * Schaal;
-            <rect x="@Fmt(P)" y="@Fmt(VloerY - plintPx)" width="@Fmt(MuurBreedtePx)" height="@Fmt(plintPx)"
-                  fill="#c8a87c" opacity="0.5" pointer-events="none" />
-            @((MarkupString)$"<text x=\"{Fmt(P + 4)}\" y=\"{Fmt(VloerY - plintPx / 2 + 3)}\" font-size=\"8\" fill=\"#7a5c2e\" pointer-events=\"none\">plint {PlintHoogte:F0}mm</text>")
-        }
-
-        @* Vloerlijn *@
-        <line x1="@Fmt(P)" y1="@Fmt(VloerY)" x2="@Fmt(P + MuurBreedtePx)" y2="@Fmt(VloerY)"
-              stroke="#8b7355" stroke-width="2" />
-        @((MarkupString)$"<text x=\"{Fmt(P - 8)}\" y=\"{Fmt(VloerY + 4)}\" font-size=\"9\" fill=\"#8b7355\" text-anchor=\"end\">0</text>")
-
-        @* Breedte markeringen *@
-        @foreach (var b in BreedteMarkeringen())
-        {
-            var x = P + b * Schaal;
-            <line x1="@Fmt(x)" y1="@Fmt(VloerY)" x2="@Fmt(x)" y2="@Fmt(VloerY + 5)"
-                  stroke="#999" stroke-width="1" />
-            @((MarkupString)$"<text x=\"{Fmt(x)}\" y=\"{Fmt(VloerY + 16)}\" font-size=\"9\" fill=\"#999\" text-anchor=\"middle\">{b}</text>")
-        }
-
-        @* Muurafmetingen labels *@
-        @((MarkupString)$"<text x=\"{Fmt(P + MuurBreedtePx / 2)}\" y=\"{Fmt(P - 8)}\" font-size=\"11\" fill=\"#666\" text-anchor=\"middle\" font-weight=\"bold\">{WandBreedte:F0} mm</text>")
-        @((MarkupString)$"<text x=\"{Fmt(P + MuurBreedtePx + 12)}\" y=\"{Fmt(P + MuurHoogtePx / 2)}\" font-size=\"11\" fill=\"#666\" text-anchor=\"start\" transform=\"rotate(90, {Fmt(P + MuurBreedtePx + 12)}, {Fmt(P + MuurHoogtePx / 2)})\">{WandHoogte:F0} mm</text>")
+        <WandRasterLaag Padding="P"
+                        WandHoogte="WandHoogte"
+                        WandBreedte="WandBreedte"
+                        PlintHoogte="PlintHoogte"
+                        Schaal="Schaal"
+                        MuurBreedtePx="MuurBreedtePx"
+                        MuurHoogtePx="MuurHoogtePx"
+                        VloerY="VloerY" />
 
         @* Aansluitingslijnen *@
         @foreach (var (x1mm, y1mm, x2mm, y2mm) in WandOpstellingHelper.BepaalAansluitingen(Kasten))
@@ -224,50 +191,21 @@
         @* Apparaten *@
         @foreach (var apparaat in Apparaten)
         {
-            const double apparaatStroke = 1.5;
-            var aw = apparaat.Breedte * Schaal;
-            var ah = apparaat.Hoogte * Schaal;
-            var ax = P + apparaat.XPositie * Schaal;
-            var ay = VloerY - (apparaat.HoogteVanVloer + apparaat.Hoogte) * Schaal;
-            var labelBandHoogte = Math.Min(18.0, Math.Max(12.0, ah * 0.22));
-            var naamY = ay + ah - Math.Min(8.0, Math.Max(5.0, ah * 0.12));
-            var naamFontSize = Math.Min(11.0, Math.Max(7.0, Math.Min(aw * 0.16, ah * 0.18)));
+            var apparaatBotY = VloerY - apparaat.HoogteVanVloer * Schaal;
 
             <g class="wand-kast-sleepbaar"
                data-kast-id="apparaat-@apparaat.Id"
-               data-bot-y="@Fmt(ay + ah)"
+               data-bot-y="@Fmt(apparaatBotY)"
                data-wd-px="0"
                data-schaal="@Fmt(Schaal)"
                style="cursor: @(LeesAlleen ? "default" : "grab");">
 
-                <rect x="@Fmt(ax + apparaatStroke / 2)" y="@Fmt(ay + apparaatStroke / 2)"
-                      width="@Fmt(Math.Max(0, aw - apparaatStroke))" height="@Fmt(Math.Max(0, ah - apparaatStroke))"
-                      fill="@ApparaatKleur(apparaat.Type)" stroke="#555" stroke-width="@Fmt(apparaatStroke)" rx="4" opacity="0.9" />
-
-                <ApparaatPictogram Type="apparaat.Type"
-                                   X="ax"
-                                   Y="ay"
-                                   Width="aw"
-                                   Height="ah"
-                                   ReservedBottom="labelBandHoogte"
-                                   StrokeColor="#4b5563" />
-
-                @* Label *@
-                @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2)}\" y=\"{Fmt(naamY)}\" font-size=\"{Fmt(naamFontSize)}\" fill=\"#333\" text-anchor=\"middle\" font-weight=\"bold\" pointer-events=\"none\">{apparaat.Naam}</text>")
-
-                @* Afmetingen *@
-                @if (aw > 20 && ah > 25)
-                {
-                    @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2)}\" y=\"{Fmt(ay - 3)}\" font-size=\"7\" fill=\"#888\" text-anchor=\"middle\" pointer-events=\"none\">{apparaat.Breedte:F0}×{apparaat.Hoogte:F0}mm</text>")
-                }
-
-                @* Hoogte van vloer stippellijn *@
-                @if (apparaat.HoogteVanVloer > 0)
-                {
-                    <line x1="@Fmt(ax + aw / 2)" y1="@Fmt(ay + ah)" x2="@Fmt(ax + aw / 2)" y2="@Fmt(VloerY)"
-                          stroke="#999" stroke-width="1" stroke-dasharray="3,3" pointer-events="none" />
-                    @((MarkupString)$"<text x=\"{Fmt(ax + aw / 2 + 10)}\" y=\"{Fmt(ay + ah + (VloerY - ay - ah) / 2 + 3)}\" font-size=\"8\" fill=\"#999\" text-anchor=\"start\" pointer-events=\"none\">↕{apparaat.HoogteVanVloer:F0}</text>")
-                }
+                <WandApparaatSvg Apparaat="apparaat"
+                                 Padding="P"
+                                 Schaal="Schaal"
+                                 VloerY="VloerY"
+                                 ToonMaatLabel="true"
+                                 ToonHoogteVanVloer="true" />
             </g>
         }
 

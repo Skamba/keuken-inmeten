@@ -1,0 +1,66 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="indeling-overige-wand-schakelaar"
+     data-testid="@DataTestId"
+     data-wand-id="@WandId"
+     data-wand-naam="@WandNaam">
+    <div class="indeling-overige-wand-inhoud">
+        <div class="@KopClass">
+            <h6 class="mb-0">@WandNaam</h6>
+            @foreach (var badge in Badges)
+            {
+                <span class="@badge.CssClass">@badge.Label</span>
+            }
+        </div>
+
+        @if (MetaItems.Count > 0)
+        {
+            <div class="@MetaClass">
+                @foreach (var item in MetaItems)
+                {
+                    <span>@item</span>
+                }
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(MetaTekst))
+        {
+            <div class="@MetaClass">
+                @MetaTekst
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Beschrijving))
+        {
+            <div class="@BeschrijvingClass">
+                @Beschrijving
+            </div>
+        }
+    </div>
+
+    <button type="button"
+            class="@KnopClass"
+            @onclick="OnOpenen"
+            disabled="@KnopUitgeschakeld"
+            data-testid="@KnopDataTestId"
+            data-wand-id="@WandId">
+        @KnopLabel
+    </button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Guid WandId { get; set; }
+    [Parameter, EditorRequired] public string WandNaam { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string DataTestId { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string KnopDataTestId { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string KnopLabel { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public EventCallback OnOpenen { get; set; }
+    [Parameter] public bool KnopUitgeschakeld { get; set; }
+    [Parameter] public string KopClass { get; set; } = "d-flex flex-wrap align-items-center gap-2 mb-1";
+    [Parameter] public string MetaClass { get; set; } = "small text-muted";
+    [Parameter] public string BeschrijvingClass { get; set; } = "small text-muted";
+    [Parameter] public string KnopClass { get; set; } = "btn btn-outline-primary btn-sm";
+    [Parameter] public IReadOnlyList<IndelingBadge> Badges { get; set; } = [];
+    [Parameter] public IReadOnlyList<string> MetaItems { get; set; } = [];
+    [Parameter] public string? MetaTekst { get; set; }
+    [Parameter] public string? Beschrijving { get; set; }
+}

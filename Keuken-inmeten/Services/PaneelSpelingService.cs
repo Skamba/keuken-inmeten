@@ -4,7 +4,7 @@ using Keuken_inmeten.Models;
 
 public static class PaneelSpelingService
 {
-    public const double DefaultRandSpeling = 3.0;
+    public const double DefaultRandSpeling = KeukenDomeinDefaults.ProjectDefaults.PaneelRandSpeling;
     public const double LegacyDefaultRandSpeling = 2.0;
     private const double Tolerantie = 0.6;
 
