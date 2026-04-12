@@ -1,5 +1,6 @@
 using Keuken_inmeten.Models;
 using Keuken_inmeten.Services;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Xunit;
 
@@ -138,6 +139,8 @@ public class BestellijstRenderersTests
         Assert.Contains("Bovenzijde", svg);
         Assert.Contains(System.Net.WebUtility.HtmlEncode(BestellijstExportFormatter.FormatZaagmaat(600, 2200)), svg);
         Assert.Contains("X links · Y boven", svg);
+        Assert.Contains("text-anchor=\"middle\">0,0</text>", svg);
+        Assert.DoesNotContain("text-anchor=\"start\">0,0</text>", svg);
         Assert.Contains(System.Net.WebUtility.HtmlEncode("#1 · 83 mm"), svg);
     }
 
@@ -176,10 +179,24 @@ public class BestellijstRenderersTests
             ]);
 
         var svg = BestellijstVisualRenderer.Render(document);
+        var paneelMatch = Regex.Match(
+            svg,
+            "<rect x=\\\"(?<x>[0-9.]+)\\\" y=\\\"(?<y>[0-9.]+)\\\" width=\\\"(?<width>[0-9.]+)\\\" height=\\\"(?<height>[0-9.]+)\\\" fill=\\\"#dce6f0\\\" stroke=\\\"#5b7ea1\\\"");
+        var labelMatch = Regex.Match(
+            svg,
+            "<rect x=\\\"(?<x>[0-9.]+)\\\" y=\\\"(?<y>[0-9.]+)\\\" width=\\\"(?<width>[0-9.]+)\\\" height=\\\"11\\\" rx=\\\"5.5\\\" fill=\\\"#ffffff\\\" stroke=\\\"#cbd5e1\\\"");
 
         Assert.Contains(System.Net.WebUtility.HtmlEncode("#1 · 92 mm"), svg);
         Assert.Contains("fill=\"#ffffff\" stroke=\"#cbd5e1\"", svg);
         Assert.Equal(5, Regex.Matches(svg, "fill=\\\"#ffffff\\\" stroke=\\\"#cbd5e1\\\"").Count);
+        Assert.True(paneelMatch.Success);
+        Assert.True(labelMatch.Success);
+
+        var paneelX = double.Parse(paneelMatch.Groups["x"].Value, CultureInfo.InvariantCulture);
+        var labelX = double.Parse(labelMatch.Groups["x"].Value, CultureInfo.InvariantCulture);
+        var labelWidth = double.Parse(labelMatch.Groups["width"].Value, CultureInfo.InvariantCulture);
+
+        Assert.True(labelX + labelWidth <= paneelX, "Verwacht dat de labelbox volledig links buiten het paneel valt.");
     }
 
     private static BestellijstExportDocument MaakDocument()

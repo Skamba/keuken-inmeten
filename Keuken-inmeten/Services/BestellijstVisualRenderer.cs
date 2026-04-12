@@ -18,6 +18,8 @@ public static class BestellijstVisualRenderer
         const double drillLabelPaddingX = 3.5;
         const double drillLabelHeight = 11;
         const double drillLabelGap = 8;
+        const double panelInnerLabelMargin = 3;
+        const double panelOuterLabelGap = 8;
         var scale = Math.Min(
             panelAreaWidth / Math.Max(document.BreedteMm, 1),
             panelAreaHeight / Math.Max(document.HoogteMm, 1));
@@ -25,6 +27,7 @@ public static class BestellijstVisualRenderer
         var height = document.HoogteMm * scale;
         var paneelX = (svgWidth - width) / 2;
         var paneelY = panelAreaTop + ((panelAreaHeight - height) / 2);
+        var oorsprongLabelY = Math.Max(9, paneelY - 4);
         var sb = new StringBuilder();
 
         sb.Append($"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{Fmt(svgWidth)}\" height=\"{Fmt(svgHeight)}\" viewBox=\"0 0 {Fmt(svgWidth)} {Fmt(svgHeight)}\">");
@@ -34,7 +37,7 @@ public static class BestellijstVisualRenderer
         sb.Append($"<text x=\"{Fmt(svgWidth - regelBadgeWidth / 2 - 6)}\" y=\"{Fmt(13.5)}\" font-size=\"7\" fill=\"#fff\" text-anchor=\"middle\" font-weight=\"700\">{Encode(document.RegelCode)}</text>");
         sb.Append($"<rect x=\"{Fmt(paneelX)}\" y=\"{Fmt(paneelY)}\" width=\"{Fmt(width)}\" height=\"{Fmt(height)}\" fill=\"#dce6f0\" stroke=\"#5b7ea1\" stroke-width=\"2\" rx=\"4\" />");
         sb.Append($"<circle cx=\"{Fmt(paneelX)}\" cy=\"{Fmt(paneelY)}\" r=\"2.6\" fill=\"#0f4c81\" />");
-        sb.Append($"<text x=\"{Fmt(paneelX + 7)}\" y=\"{Fmt(paneelY + 3)}\" font-size=\"6.8\" fill=\"#0f4c81\" text-anchor=\"start\">0,0</text>");
+        sb.Append($"<text x=\"{Fmt(paneelX)}\" y=\"{Fmt(oorsprongLabelY)}\" font-size=\"6.8\" fill=\"#0f4c81\" text-anchor=\"middle\">0,0</text>");
 
         if (document.Boorgaten.Count > 0)
         {
@@ -56,9 +59,16 @@ public static class BestellijstVisualRenderer
             var labelText = $"#{i + 1} · {BestellijstExportFormatter.FormatMm(boorgat.YVanafBovenMm)}";
             var anchor = document.ScharnierZijde == ScharnierZijde.Links ? "start" : "end";
             var labelWidth = EstimateDrillLabelWidth(labelText, drillLabelPaddingX);
-            var labelRectX = document.ScharnierZijde == ScharnierZijde.Links
+            var gewensteLabelRectX = document.ScharnierZijde == ScharnierZijde.Links
                 ? cx + radius + drillLabelGap
                 : cx - radius - drillLabelGap - labelWidth;
+            var pastBinnenPaneel = gewensteLabelRectX >= paneelX + panelInnerLabelMargin
+                && gewensteLabelRectX + labelWidth <= paneelX + width - panelInnerLabelMargin;
+            var labelRectX = pastBinnenPaneel
+                ? gewensteLabelRectX
+                : document.ScharnierZijde == ScharnierZijde.Links
+                    ? paneelX + width + panelOuterLabelGap
+                    : paneelX - panelOuterLabelGap - labelWidth;
             var labelRectY = cy - (drillLabelHeight / 2.0);
 
             labelRectX = Math.Max(6, Math.Min(labelRectX, svgWidth - labelWidth - 6));
