@@ -1,5 +1,6 @@
 using Keuken_inmeten.Models;
 using Keuken_inmeten.Services;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace Keuken_inmeten.Tests;
@@ -100,7 +101,6 @@ public class BestellijstRenderersTests
         var regel = Assert.Single(payload.Regels);
 
         Assert.Equal("Bestellijst", payload.Titel);
-        Assert.Contains("Werkplaatsversie", payload.Subtitel, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("MDF gelakt", payload.PaneelType);
         Assert.Equal("19 mm", payload.DikteLabel);
         Assert.Equal(BestellijstExportFormatter.FormatCncAssenSamenvatting(), payload.CncReferentieLabel);
@@ -138,7 +138,7 @@ public class BestellijstRenderersTests
         Assert.Contains("Bovenzijde", svg);
         Assert.Contains(System.Net.WebUtility.HtmlEncode(BestellijstExportFormatter.FormatZaagmaat(600, 2200)), svg);
         Assert.Contains("X links · Y boven", svg);
-        Assert.Contains("#1 · 83 mm", svg);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode("#1 · 83 mm"), svg);
     }
 
     [Fact]
@@ -157,6 +157,29 @@ public class BestellijstRenderersTests
         Assert.Contains("height=\"200\"", svg);
         Assert.Contains(System.Net.WebUtility.HtmlEncode(BestellijstExportFormatter.FormatZaagmaat(1198, 168)), svg);
         Assert.Contains("X links · Y boven", svg);
+    }
+
+    [Fact]
+    public void Visual_renderer_geeft_boorgatlabels_een_goed_leesbare_achtergrond_op_smalle_panelen()
+    {
+        var document = new BestellijstVisualDocument(
+            "R03",
+            598,
+            2228,
+            ScharnierZijde.Rechts,
+            [
+                new BestellijstVisualBoorgat(22.5, 92, 35),
+                new BestellijstVisualBoorgat(22.5, 601, 35),
+                new BestellijstVisualBoorgat(22.5, 1113, 35),
+                new BestellijstVisualBoorgat(22.5, 1657, 35),
+                new BestellijstVisualBoorgat(22.5, 2137, 35)
+            ]);
+
+        var svg = BestellijstVisualRenderer.Render(document);
+
+        Assert.Contains(System.Net.WebUtility.HtmlEncode("#1 · 92 mm"), svg);
+        Assert.Contains("fill=\"#ffffff\" stroke=\"#cbd5e1\"", svg);
+        Assert.Equal(5, Regex.Matches(svg, "fill=\\\"#ffffff\\\" stroke=\\\"#cbd5e1\\\"").Count);
     }
 
     private static BestellijstExportDocument MaakDocument()

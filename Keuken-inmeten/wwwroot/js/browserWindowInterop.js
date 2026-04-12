@@ -62,7 +62,6 @@ function normalizeRegelPayload(regel) {
 function normalizePdfPayload(payload) {
     return {
         titel: getValue(payload, "titel"),
-        subtitel: getValue(payload, "subtitel"),
         generatedAtLabel: getValue(payload, "generatedAtLabel"),
         paneelType: getValue(payload, "paneelType"),
         dikteLabel: getValue(payload, "dikteLabel"),
@@ -191,10 +190,8 @@ function createBestellijstPdfDefinition(payload) {
                 columns: [
                     {
                         width: "*",
-                        stack: [
-                            { text: payload.titel, style: "title" },
-                            { text: payload.subtitel, style: "subtitle" },
-                        ],
+                        text: payload.titel,
+                        style: "title",
                     },
                     {
                         width: 160,
@@ -261,11 +258,6 @@ function createBestellijstPdfDefinition(payload) {
                 fontSize: 18,
                 bold: true,
                 color: "#0f172a",
-            },
-            subtitle: {
-                fontSize: 9,
-                color: "#475569",
-                margin: [0, 4, 0, 0],
             },
             generatedLabel: {
                 fontSize: 7.5,

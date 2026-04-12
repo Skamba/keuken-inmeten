@@ -15,6 +15,9 @@ public static class BestellijstVisualRenderer
         const double regelBadgeWidth = 36;
         const double footerSizeY = 187;
         const double footerAxisY = 196;
+        const double drillLabelPaddingX = 3.5;
+        const double drillLabelHeight = 11;
+        const double drillLabelGap = 8;
         var scale = Math.Min(
             panelAreaWidth / Math.Max(document.BreedteMm, 1),
             panelAreaHeight / Math.Max(document.HoogteMm, 1));
@@ -50,12 +53,26 @@ public static class BestellijstVisualRenderer
                 : paneelX + width - boorgat.XVanScharnierzijdeMm * scale;
             var cy = paneelY + boorgat.YVanafBovenMm * scale;
             var radius = Math.Max((boorgat.DiameterMm / 2.0) * scale, 4);
-            var labelX = document.ScharnierZijde == ScharnierZijde.Links ? cx + radius + 6 : cx - radius - 6;
+            var labelText = $"#{i + 1} · {BestellijstExportFormatter.FormatMm(boorgat.YVanafBovenMm)}";
             var anchor = document.ScharnierZijde == ScharnierZijde.Links ? "start" : "end";
+            var labelWidth = EstimateDrillLabelWidth(labelText, drillLabelPaddingX);
+            var labelRectX = document.ScharnierZijde == ScharnierZijde.Links
+                ? cx + radius + drillLabelGap
+                : cx - radius - drillLabelGap - labelWidth;
+            var labelRectY = cy - (drillLabelHeight / 2.0);
+
+            labelRectX = Math.Max(6, Math.Min(labelRectX, svgWidth - labelWidth - 6));
+            labelRectY = Math.Max(6, Math.Min(labelRectY, svgHeight - drillLabelHeight - 6));
+
+            var labelTextX = anchor == "start"
+                ? labelRectX + drillLabelPaddingX
+                : labelRectX + labelWidth - drillLabelPaddingX;
+            var labelTextY = labelRectY + (drillLabelHeight / 2.0) + 0.5;
 
             sb.Append($"<circle cx=\"{Fmt(cx)}\" cy=\"{Fmt(cy)}\" r=\"{Fmt(radius)}\" fill=\"#243746\" opacity=\"0.82\" />");
             sb.Append($"<text x=\"{Fmt(cx)}\" y=\"{Fmt(cy + 2.4)}\" font-size=\"6.5\" fill=\"#fff\" text-anchor=\"middle\" font-weight=\"700\">{i + 1}</text>");
-            sb.Append($"<text x=\"{Fmt(labelX)}\" y=\"{Fmt(cy + 3)}\" font-size=\"7.2\" fill=\"#4b5563\" text-anchor=\"{anchor}\">#{i + 1} · {Encode(BestellijstExportFormatter.FormatMm(boorgat.YVanafBovenMm))}</text>");
+            sb.Append($"<rect x=\"{Fmt(labelRectX)}\" y=\"{Fmt(labelRectY)}\" width=\"{Fmt(labelWidth)}\" height=\"{Fmt(drillLabelHeight)}\" rx=\"5.5\" fill=\"#ffffff\" stroke=\"#cbd5e1\" stroke-width=\"0.75\" />");
+            sb.Append($"<text x=\"{Fmt(labelTextX)}\" y=\"{Fmt(labelTextY)}\" font-size=\"7.2\" fill=\"#334155\" text-anchor=\"{anchor}\" dominant-baseline=\"middle\" font-weight=\"600\">{Encode(labelText)}</text>");
         }
 
         sb.Append($"<text x=\"{Fmt(svgWidth / 2)}\" y=\"{Fmt(footerSizeY)}\" font-size=\"7.6\" fill=\"#334155\" text-anchor=\"middle\">{Encode(BestellijstExportFormatter.FormatZaagmaat(document.BreedteMm, document.HoogteMm))}</text>");
@@ -66,6 +83,9 @@ public static class BestellijstVisualRenderer
     }
 
     private static string Fmt(double value) => VisualisatieHelper.FmtData(value);
+
+    private static double EstimateDrillLabelWidth(string labelText, double paddingX)
+        => Math.Max(32, (labelText.Length * 4.1) + (paddingX * 2));
 
     private static string Encode(string value) => System.Net.WebUtility.HtmlEncode(value);
 }

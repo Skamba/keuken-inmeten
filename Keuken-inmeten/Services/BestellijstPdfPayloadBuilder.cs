@@ -10,7 +10,6 @@ public static class BestellijstPdfPayloadBuilder
 
         return new BestellijstPdfPayload(
             Titel: document.Titel,
-            Subtitel: "Werkplaatsversie voor zaagbedrijf of CNC-voorbereiding. Elke orderregel bundelt code, bronlocaties, zaagmaat, boorbeeld en visualisatie.",
             GeneratedAtLabel: BestellijstExportFormatter.FormatGeneratedAt(document.GeneratedAt),
             PaneelType: document.PaneelType,
             DikteLabel: BestellijstExportFormatter.FormatDikteLabel(document.DikteMm),

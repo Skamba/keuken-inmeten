@@ -2,7 +2,6 @@ namespace Keuken_inmeten.Models;
 
 public sealed record BestellijstPdfPayload(
     string Titel,
-    string Subtitel,
     string GeneratedAtLabel,
     string PaneelType,
     string DikteLabel,
