@@ -31,8 +31,8 @@ public static class BestellijstExportService
     public static string BouwExcelXml(IReadOnlyList<BestellijstItem> items, string paneelType, string dikteMm, DateTime generatedAt)
         => BestellijstExcelRenderer.Render(BouwDocument(items, paneelType, dikteMm, generatedAt));
 
-    public static string BouwPdfHtml(IReadOnlyList<BestellijstItem> items, string paneelType, string dikteMm, DateTime generatedAt)
-        => BestellijstPrintHtmlRenderer.Render(BouwDocument(items, paneelType, dikteMm, generatedAt));
+    public static BestellijstPdfPayload BouwPdfPayload(IReadOnlyList<BestellijstItem> items, string paneelType, string dikteMm, DateTime generatedAt)
+        => BestellijstPdfPayloadBuilder.Bouw(BouwDocument(items, paneelType, dikteMm, generatedAt));
 
     private static BestellijstExportRegel BouwRegel(BestellijstItem item, int regelNummer)
     {

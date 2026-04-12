@@ -2,6 +2,7 @@ using Keuken_inmeten.Models;
 using Keuken_inmeten.Services;
 using Keuken_inmeten.Services.Interop;
 using Microsoft.JSInterop;
+using System.Text.Json;
 
 namespace Keuken_inmeten.Pages;
 
@@ -24,6 +25,7 @@ public partial class Bestellijst
         "Multiplex",
         "Acrylaat"
     ];
+    private static readonly JsonSerializerOptions ExportJsonOptions = new(JsonSerializerDefaults.Web);
 
     private BestellijstExportJsInterop? _exportInterop;
     private BestellijstExportFlowStap _exportFlowStap = BestellijstExportFlowStap.Kiezen;
@@ -150,21 +152,23 @@ public partial class Bestellijst
     private async Task ExporteerPdf()
     {
         var items = BestellijstService.BerekenItems(State);
-        var document = MaakExportDocument(items, DateTime.Now);
-        var html = BestellijstPrintHtmlRenderer.Render(document);
+        var generatedAt = DateTime.Now;
+        var document = MaakExportDocument(items, generatedAt);
+        var bestand = BestellijstExportService.MaakBestandsNaam("bestellijst", DisplayPaneelType(), "pdf", generatedAt);
+        var payloadJson = JsonSerializer.Serialize(BestellijstPdfPayloadBuilder.Bouw(document), ExportJsonOptions);
 
         try
         {
-            await ExportInterop.OpenPrintDocumentAsync(html);
+            await ExportInterop.DownloadPdfDocumentAsync(bestand, payloadJson);
         }
         catch (JSException)
         {
-            Feedback.ToonFout("PDF-export lukte niet. Controleer of pop-ups zijn toegestaan en probeer opnieuw.");
+            Feedback.ToonFout("PDF-export lukte niet. Probeer opnieuw; als er niets gebeurt, controleer of downloads in deze browser zijn toegestaan.");
             return;
         }
 
         SluitExportFlow();
-        Feedback.ToonSucces("Printweergave geopend. Kies in de browser 'Opslaan als PDF' om het bestand te bewaren.");
+        Feedback.ToonSucces("PDF-bestand gedownload. Controleer nu de Downloads-map of open het bestand direct.");
     }
 
     private string DisplayPaneelType()

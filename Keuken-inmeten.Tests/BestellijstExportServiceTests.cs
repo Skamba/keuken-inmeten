@@ -92,25 +92,38 @@ public class BestellijstRenderersTests
     }
 
     [Fact]
-    public void Print_html_renderer_gebruikt_documentmodel_en_visual_renderer()
+    public void Pdf_payload_builder_gebruikt_documentmodel_en_visual_renderer()
     {
         var document = MaakDocument();
 
-        var html = BestellijstPrintHtmlRenderer.Render(document);
+        var payload = BestellijstPdfPayloadBuilder.Bouw(document);
+        var regel = Assert.Single(payload.Regels);
 
-        Assert.Contains("Bestellijst", html);
-        Assert.Contains("R01", html);
-        Assert.Contains(BestellijstExportService.CncNulpuntLabel, html);
-        Assert.Contains("Bronlocaties", html);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode("Muur • Hoge kast rechts"), html);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode(BestellijstExportFormatter.FormatZaagmaat(600, 2200)), html);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode("2.64 m² totaal"), html);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode("Scharnier rechts · 3 potscharniergaten"), html);
-        Assert.Contains("<th>#</th><th>X (mm)</th><th>Y (mm)</th>", html);
-        Assert.Contains("83 mm", html);
-        Assert.Contains("Hoge Deur 1", html);
-        Assert.Contains("<svg", html);
-        Assert.Contains("window.print()", html);
+        Assert.Equal("Bestellijst", payload.Titel);
+        Assert.Contains("Werkplaatsversie", payload.Subtitel, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("MDF gelakt", payload.PaneelType);
+        Assert.Equal("19 mm", payload.DikteLabel);
+        Assert.Equal(BestellijstExportFormatter.FormatCncAssenSamenvatting(), payload.CncReferentieLabel);
+        Assert.Equal(BestellijstExportFormatter.FormatVierkanteMeter(2.64), payload.TotaalOppervlakteLabel);
+        Assert.Equal("R01", regel.RegelCode);
+        Assert.Equal("Hoge Deur 1", regel.Naam);
+        Assert.Contains("scharnier rechts", regel.PaneelMeta, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Muur • Hoge kast rechts", regel.BronLocaties);
+        Assert.Equal(BestellijstExportFormatter.FormatZaagmaat(600, 2200), regel.ZaagmaatLabel);
+        Assert.Equal(BestellijstExportFormatter.FormatVierkanteMeter(1.32), regel.OppervlaktePerStukLabel);
+        Assert.Equal(BestellijstExportFormatter.FormatVierkanteMeter(2.64), regel.TotaleOppervlakteLabel);
+        Assert.Equal("Scharnier rechts · 3 potscharniergaten", regel.BoorbeeldSamenvatting);
+        Assert.Collection(
+            regel.Boorgaten,
+            eerste =>
+            {
+                Assert.Equal(1, eerste.Nummer);
+                Assert.Equal(BestellijstExportFormatter.FormatMm(577.5), eerste.XCncLabel);
+                Assert.Equal(BestellijstExportFormatter.FormatMm(83), eerste.YCncLabel);
+            },
+            _ => { },
+            _ => { });
+        Assert.Contains("<svg", regel.VisualSvg);
     }
 
     [Fact]
@@ -164,7 +177,7 @@ public class BestellijstExportFlowHelperTests
 
         Assert.Equal("PDF met visualisaties", pdf.Label);
         Assert.Contains("zaagbedrijf", pdf.WanneerKiezen, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal("Open printweergave", pdf.BevestigLabel);
+        Assert.Equal("Download PDF", pdf.BevestigLabel);
 
         Assert.Equal("Excel alleen lijst", excel.Label);
         Assert.Contains("sorteren", excel.WanneerKiezen, StringComparison.OrdinalIgnoreCase);
@@ -184,7 +197,7 @@ public class BestellijstExportFlowHelperTests
         var excelPunten = BestellijstExportFlowHelper.MaakPreviewPunten(document, BestellijstExportType.Excel);
 
         Assert.Contains(pdfPunten, punt => punt.Contains("bronlocaties", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(pdfPunten, punt => punt.Contains("2.64 m²", StringComparison.Ordinal));
+        Assert.Contains(pdfPunten, punt => punt.Contains(BestellijstExportFormatter.FormatVierkanteMeter(2.64), StringComparison.Ordinal));
         Assert.Contains(excelPunten, punt => punt.Contains("1 t/m 3", StringComparison.Ordinal));
         Assert.Contains(excelPunten, punt => punt.Contains("bronlocaties", StringComparison.OrdinalIgnoreCase));
     }

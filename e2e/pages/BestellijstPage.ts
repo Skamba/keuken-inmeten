@@ -5,6 +5,16 @@ type ExportType = 'pdf' | 'excel';
 export class BestellijstPage {
   constructor(private readonly page: Page) {}
 
+  private async sluitFeedbackToastAlsNodig() {
+    const toast = this.page.getByTestId('actie-feedback-toast');
+    if (!(await toast.isVisible())) {
+      return;
+    }
+
+    await toast.getByRole('button', { name: 'Sluiten' }).click();
+    await expect(toast).toBeHidden();
+  }
+
   async expectLoaded() {
     await expect(this.page.getByRole('heading', { name: 'Stap 4: Bestellijst' })).toBeVisible();
     await expect(this.page.getByTestId('bestellijst-tabel').first()).toBeVisible();
@@ -12,6 +22,7 @@ export class BestellijstPage {
   }
 
   async openExportFlow() {
+    await this.sluitFeedbackToastAlsNodig();
     await this.page.getByTestId('bestellijst-open-exportflow-button').click();
     await expect(this.page.getByTestId('bestellijst-export-drawer')).toBeVisible();
     await expect(this.page.getByTestId('bestellijst-export-step-kies')).toBeVisible();
@@ -67,7 +78,29 @@ export class BestellijstPage {
       knop.click(),
     ]);
 
-    await expect(this.page.getByTestId('actie-feedback-toast')).toContainText('Excel-bestand gedownload');
+    const toast = this.page.getByTestId('actie-feedback-toast');
+    await expect(toast).toContainText('Excel-bestand gedownload');
+    await this.sluitFeedbackToastAlsNodig();
+    return download;
+  }
+
+  async exporteerPdf(): Promise<Download> {
+    await this.openExportFlow();
+    await this.selecteerExportType('pdf');
+    await this.gaNaarExportPreview();
+    await this.gaNaarExportBevestiging();
+
+    const knop = this.page.getByTestId('bestellijst-export-confirm-button');
+    await knop.scrollIntoViewIfNeeded();
+
+    const [download] = await Promise.all([
+      this.page.waitForEvent('download'),
+      knop.click(),
+    ]);
+
+    const toast = this.page.getByTestId('actie-feedback-toast');
+    await expect(toast).toContainText('PDF-bestand gedownload');
+    await this.sluitFeedbackToastAlsNodig();
     return download;
   }
 

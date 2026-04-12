@@ -9,9 +9,6 @@ public sealed class BrowserWindowJsInterop(IJSRuntime js) : JsModuleInterop(js, 
     public ValueTask DownloadTextFileAsync(string filename, string content, string mimeType)
         => InvokeVoidAsync("downloadTextFile", filename, content, mimeType);
 
-    public ValueTask OpenPrintDocumentAsync(string html)
-        => InvokeVoidAsync("openPrintDocument", html);
-
     public ValueTask<string> ShareUrlAsync(string url, string title, string text)
         => InvokeAsync<string>("shareUrl", url, title, text);
 }

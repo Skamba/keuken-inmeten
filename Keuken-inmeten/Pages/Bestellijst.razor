@@ -155,7 +155,7 @@ else
                                                 }
                                             </div>
                                             <div class="bestellijst-export-keuze-badges mt-3">
-                                                <span class="bestellijst-export-keuze-badge">@(optie.Type is BestellijstExportType.Pdf ? "Print / bespreek" : "Filter / sorteer")</span>
+                                                <span class="bestellijst-export-keuze-badge">@(optie.Type is BestellijstExportType.Pdf ? "Download / bespreek" : "Filter / sorteer")</span>
                                                 <span class="bestellijst-export-keuze-badge">@(optie.Type is BestellijstExportType.Pdf ? "Visualisaties" : "Spreadsheet")</span>
                                             </div>
                                             <div class="small text-muted mt-3">@optie.Voorbeeld</div>
@@ -276,8 +276,8 @@ else
                                             }
                                             else
                                             {
-                                                <li class="mb-1">Uw browser opent een printweergave die u kunt bewaren als PDF.</li>
-                                                <li class="mb-1">Controleer of pop-ups of printweergave in deze browser zijn toegestaan.</li>
+                                                <li class="mb-1">Uw browser downloadt direct een PDF-bestand met visualisaties en boorbeeld.</li>
+                                                <li class="mb-1">Controleer daarna de Downloads-map of open het bestand meteen.</li>
                                             }
                                             <li class="mb-1">De ordercontrole op de pagina blijft daarna beschikbaar.</li>
                                         </ul>

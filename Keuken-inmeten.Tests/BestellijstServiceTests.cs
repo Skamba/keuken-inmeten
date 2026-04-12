@@ -187,35 +187,41 @@ public class BestellijstServiceTests
     }
 
     [Fact]
-    public void Pdf_html_bevat_inline_visuals()
+    public void Pdf_payload_bevat_visuals_en_cnc_details()
     {
         var item = MaakBestellijstItem();
 
-        var html = BestellijstExportService.BouwPdfHtml(
+        var payload = BestellijstExportService.BouwPdfPayload(
             [item],
             "MDF gelakt",
             "19",
             new DateTime(2026, 4, 6, 14, 0, 0));
+        var regel = Assert.Single(payload.Regels);
 
-        Assert.Contains("Bestellijst", html);
-        Assert.Contains("R01", html);
-        Assert.Contains("Bronlocaties", html);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode("Muur • Hoge kast links"), html);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode("Muur • Hoge kast rechts"), html);
-        Assert.Contains(BestellijstExportService.CncNulpuntLabel, html);
-        Assert.DoesNotContain(">X: ", html);
-        Assert.DoesNotContain(">Y: ", html);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode(BestellijstExportFormatter.FormatZaagmaat(600, 2200)), html);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode("1.32 m² per stuk"), html);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode("2.64 m² totaal"), html);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode("Scharnier rechts · 3 potscharniergaten"), html);
-        Assert.Contains("<th>#</th><th>X (mm)</th><th>Y (mm)</th>", html);
-        Assert.Contains("83 mm", html);
-        Assert.Contains("Bovenzijde", html);
-        Assert.Contains("X links · Y boven", html);
-        Assert.Contains("Hoge Deur 1", html);
-        Assert.Contains("<svg", html);
-        Assert.Contains("window.print()", html);
+        Assert.Equal("Bestellijst", payload.Titel);
+        Assert.Equal("MDF gelakt", payload.PaneelType);
+        Assert.Equal("19 mm", payload.DikteLabel);
+        Assert.Equal("R01", regel.RegelCode);
+        Assert.Contains("Muur • Hoge kast links", regel.BronLocaties);
+        Assert.Contains("Muur • Hoge kast rechts", regel.BronLocaties);
+        Assert.Equal(BestellijstExportFormatter.FormatCncAssenSamenvatting(), regel.CncReferentieLabel);
+        Assert.Equal(BestellijstExportFormatter.FormatZaagmaat(600, 2200), regel.ZaagmaatLabel);
+        Assert.Equal(BestellijstExportFormatter.FormatVierkanteMeter(1.32), regel.OppervlaktePerStukLabel);
+        Assert.Equal(BestellijstExportFormatter.FormatVierkanteMeter(2.64), regel.TotaleOppervlakteLabel);
+        Assert.Equal("Scharnier rechts · 3 potscharniergaten", regel.BoorbeeldSamenvatting);
+        Assert.Collection(
+            regel.Boorgaten,
+            eerste =>
+            {
+                Assert.Equal(BestellijstExportFormatter.FormatMm(577.5), eerste.XCncLabel);
+                Assert.Equal(BestellijstExportFormatter.FormatMm(83), eerste.YCncLabel);
+            },
+            _ => { },
+            _ => { });
+        Assert.Contains("Bovenzijde", regel.VisualSvg);
+        Assert.Contains("X links · Y boven", regel.VisualSvg);
+        Assert.Contains("Hoge Deur 1", regel.Naam);
+        Assert.Contains("<svg", regel.VisualSvg);
     }
 
     [Fact]

@@ -301,7 +301,7 @@ test('zaagplan-waarschuwing noemt directe vervolgstappen bij te kleine plaat', a
   await expect(waarschuwing).toContainText('Terug naar bestellijst');
 });
 
-test('hoofdflow van indeling tot export blijft werken', async ({ page }) => {
+test('hoofdflow van indeling tot excel- en pdf-export blijft werken', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
   const verificatie = new VerificatiePage(page);
@@ -327,6 +327,11 @@ test('hoofdflow van indeling tot export blijft werken', async ({ page }) => {
   await verificatie.gaNaarBestellijst();
 
   await bestellijst.expectLoaded();
-  const download = await bestellijst.exporteerExcel();
-  expect(download.suggestedFilename()).toContain('bestellijst');
+  const excelDownload = await bestellijst.exporteerExcel();
+  expect(excelDownload.suggestedFilename()).toContain('bestellijst');
+  expect(excelDownload.suggestedFilename()).toContain('.xls');
+
+  const pdfDownload = await bestellijst.exporteerPdf();
+  expect(pdfDownload.suggestedFilename()).toContain('bestellijst');
+  expect(pdfDownload.suggestedFilename()).toContain('.pdf');
 });

@@ -7,6 +7,6 @@ public sealed class BestellijstExportJsInterop(IJSRuntime js) : JsModuleInterop(
     public ValueTask DownloadTextFileAsync(string filename, string content, string mimeType)
         => InvokeVoidAsync("downloadTextFile", filename, content, mimeType);
 
-    public ValueTask OpenPrintDocumentAsync(string html)
-        => InvokeVoidAsync("openPrintDocument", html);
+    public ValueTask DownloadPdfDocumentAsync(string filename, string payloadJson)
+        => InvokeVoidAsync("downloadPdfDocument", filename, payloadJson);
 }

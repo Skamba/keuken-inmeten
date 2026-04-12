@@ -26,9 +26,9 @@ public static class BestellijstExportFlowHelper
             "PDF met visualisaties",
             "Een werkplaatsvriendelijk document met regelcodes, bronlocaties, zaagmaten, boorbeeld en paneelvisualisaties.",
             "Kies PDF als u het resultaat wilt bespreken, printen of rechtstreeks wilt doorgeven aan een zaagbedrijf of werkplaats.",
-            "De browser opent eerst een printweergave; van daaruit kiest u 'Opslaan als PDF'.",
+            "De browser downloadt direct een PDF-document met visualisaties, boorbeeld en materiaalinformatie.",
             "Handig voor overdracht aan de werkplaats of een zaagbedrijf waarin traceerbaarheid en boorbeeld belangrijk zijn.",
-            "Open printweergave"),
+            "Download PDF"),
         new(
             BestellijstExportType.Excel,
             "Excel alleen lijst",
