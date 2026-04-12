@@ -169,6 +169,31 @@ public class KeukenShareCodecTests
         Assert.Equal(4, decoded.PaneelRandSpeling);
     }
 
+    [Fact]
+    public void V4_json_roundtript_alle_projectvariabelen_voor_deellinks()
+    {
+        var data = ProjectRoundtripTestHelper.MaakVolledigProjectSnapshot();
+
+        var json = KeukenShareCodec.EncodeV4Json(data);
+        var decodedOk = KeukenShareCodec.TryDecodeV4Json(json, out var decoded);
+
+        Assert.True(decodedOk);
+        ProjectRoundtripTestHelper.AssertZelfdeProject(data, decoded);
+    }
+
+    [Fact]
+    public void V4_json_decoder_blijft_compatibel_met_bestaande_compacte_payloads()
+    {
+        var data = MaakVoorbeeldData();
+        var compactJson = KeukenShareCodec.EncodeCompactJson(data);
+
+        var decodedOk = KeukenShareCodec.TryDecodeV4Json(compactJson, out var decoded);
+
+        Assert.True(decodedOk);
+        Assert.Equal("Muur", Assert.Single(decoded.Wanden).Naam);
+        Assert.Empty(decoded.KastTemplates);
+    }
+
     private static KeukenData MaakVoorbeeldData()
     {
         var wandId = Guid.Parse("11111111-1111-1111-1111-111111111111");

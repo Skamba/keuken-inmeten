@@ -53,7 +53,7 @@ public static class BestellijstService
                 wand?.Id,
                 wandNaam,
                 kastenLabel,
-                TypeLabel(resultaat.Type),
+                BepaalPaneelRolLabel(resultaat.Type),
                 scharnierLabel,
                 BepaalSignatuur(resultaat, basisNaam, toewijzing, wand?.Id),
                 resultaat));
@@ -126,18 +126,8 @@ public static class BestellijstService
         => resultaat.Type switch
         {
             PaneelType.Deur => BepaalDeurNaam(resultaat, kasten),
-            PaneelType.LadeFront => resultaat.Hoogte switch
-            {
-                >= 320 => "Hoog Ladefront",
-                <= 180 => "Laag Ladefront",
-                _ => "Ladefront"
-            },
-            PaneelType.BlindPaneel => resultaat.Hoogte switch
-            {
-                >= 1200 => "Hoog Blindpaneel",
-                <= 500 => "Laag Blindpaneel",
-                _ => "Blindpaneel"
-            },
+            PaneelType.LadeFront => "Paneel",
+            PaneelType.BlindPaneel => "Paneel",
             _ => "Paneel"
         };
 
@@ -160,20 +150,25 @@ public static class BestellijstService
 
     private static string BepaalSignatuur(PaneelResultaat resultaat, string basisNaam, PaneelToewijzing? toewijzing, Guid? wandId)
     {
+        var genormaliseerdType = BepaalGroeperingsType(resultaat.Type);
         var scharnierSignatuur = resultaat.Type == PaneelType.Deur
             ? resultaat.ScharnierZijde.ToString()
             : string.Empty;
 
         return string.Join("|",
             basisNaam,
-            resultaat.Type,
+            genormaliseerdType,
             Fmt(resultaat.Breedte),
             Fmt(resultaat.Hoogte),
             scharnierSignatuur,
-            toewijzing?.Type.ToString() ?? "");
+            toewijzing is null ? string.Empty : BepaalGroeperingsType(toewijzing.Type));
     }
 
-    private static string TypeLabel(PaneelType type) => VisualisatieHelper.PaneelTypeLabel(type);
+    private static string BepaalPaneelRolLabel(PaneelType type)
+        => type == PaneelType.Deur ? VisualisatieHelper.PaneelTypeLabel(type) : "Paneel";
+
+    private static string BepaalGroeperingsType(PaneelType type)
+        => type == PaneelType.Deur ? type.ToString() : "Paneel";
 
     private static string Fmt(double value) => VisualisatieHelper.FmtData(value);
 }

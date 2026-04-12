@@ -147,8 +147,43 @@ public class BestellijstServiceTests
 
         var item = Assert.Single(BestellijstService.BerekenItems(state));
         Assert.Equal(2, item.Aantal);
-        Assert.Equal("Ladefront", item.PaneelRolLabel);
+        Assert.Equal("Paneel", item.PaneelRolLabel);
         Assert.Equal("Muur", item.WandNaam);
+    }
+
+    [Fact]
+    public void Blindpanelen_en_ladefronten_van_dezelfde_maat_worden_samengevoegd_tot_paneel()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Muur",
+            Breedte = 2400,
+            Hoogte = 2700,
+            PlintHoogte = 100
+        };
+
+        state.VoegWandToe(wand);
+        state.StelPaneelRandSpelingIn(0);
+
+        var kastBlind = MaakOnderkast("Onderkast blind", xPositie: 0);
+        var kastLade = MaakOnderkast("Onderkast lade", xPositie: 600);
+        state.VoegKastToe(kastBlind, wand.Id);
+        state.VoegKastToe(kastLade, wand.Id);
+
+        state.VoegToewijzingToe(MaakBlindpaneelToewijzing(kastBlind.Id, breedte: 600, hoogte: 200));
+        state.VoegToewijzingToe(MaakLadefrontToewijzing(kastLade.Id, breedte: 600, hoogte: 200));
+
+        var item = Assert.Single(BestellijstService.BerekenItems(state));
+
+        Assert.Equal("Paneel 1", item.Naam);
+        Assert.Equal("Paneel", item.BasisNaam);
+        Assert.Equal("Paneel", item.PaneelRolLabel);
+        Assert.Equal(2, item.Aantal);
+        Assert.Empty(item.Boorgaten);
+        Assert.Contains("Onderkast blind", item.BronLocaties[0]);
+        Assert.Contains("Onderkast lade", item.BronLocaties[1]);
     }
 
     [Fact]
@@ -347,15 +382,22 @@ public class BestellijstServiceTests
         XPositie = xPositie
     };
 
-    private static PaneelToewijzing MaakLadefrontToewijzing(Guid kastId, ScharnierZijde scharnierZijde = ScharnierZijde.Links) => new()
-    {
-        Id = Guid.NewGuid(),
-        KastIds = [kastId],
-        Type = PaneelType.LadeFront,
-        ScharnierZijde = scharnierZijde,
-        Breedte = 597,
-        Hoogte = 200
-    };
+    private static PaneelToewijzing MaakLadefrontToewijzing(Guid kastId, ScharnierZijde scharnierZijde = ScharnierZijde.Links)
+        => MaakLadefrontToewijzing(kastId, breedte: 597, hoogte: 200, scharnierZijde);
+
+    private static PaneelToewijzing MaakLadefrontToewijzing(
+        Guid kastId,
+        double breedte,
+        double hoogte,
+        ScharnierZijde scharnierZijde = ScharnierZijde.Links) => new()
+        {
+            Id = Guid.NewGuid(),
+            KastIds = [kastId],
+            Type = PaneelType.LadeFront,
+            ScharnierZijde = scharnierZijde,
+            Breedte = breedte,
+            Hoogte = hoogte
+        };
 
     private static PaneelToewijzing MaakBlindpaneelToewijzing(Guid kastId, double breedte, double hoogte) => new()
     {

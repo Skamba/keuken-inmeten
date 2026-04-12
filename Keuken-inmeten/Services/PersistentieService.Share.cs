@@ -7,8 +7,8 @@ public partial class PersistentieService
 {
     public async Task<string> MaakDeelUrlAsync(string route = "verificatie")
     {
-        var compactJson = KeukenShareCodec.EncodeCompactJson(_state.Exporteren());
-        var compressedPayload = await ShareCompressionInterop.CompressSharePayloadAsync(compactJson);
+        var shareJson = KeukenShareCodec.EncodeV4Json(_state.Exporteren());
+        var compressedPayload = await ShareCompressionInterop.CompressSharePayloadAsync(shareJson);
         var token = KeukenShareCodec.MaakV4Token(compressedPayload);
         var basis = new Uri(_navigation.BaseUri);
         var routePad = string.IsNullOrWhiteSpace(route) ? "." : route.TrimStart('/');
@@ -48,8 +48,8 @@ public partial class PersistentieService
         {
             try
             {
-                var compactJson = await ShareCompressionInterop.DecompressSharePayloadAsync(KeukenShareCodec.LeesV4Payload(token));
-                return (true, KeukenShareCodec.TryDecodeCompactJson(compactJson, out var v4Data) ? v4Data : null);
+                var shareJson = await ShareCompressionInterop.DecompressSharePayloadAsync(KeukenShareCodec.LeesV4Payload(token));
+                return (true, KeukenShareCodec.TryDecodeV4Json(shareJson, out var v4Data) ? v4Data : null);
             }
             catch (JSException)
             {

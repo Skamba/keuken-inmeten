@@ -35,6 +35,9 @@ public static partial class KeukenShareCodec
     public static string EncodeCompactJson(KeukenData data)
         => JsonSerializer.Serialize(MaakCompacteDataVoorShare(data), CompactJsonOpties);
 
+    public static string EncodeV4Json(KeukenData data)
+        => KeukenPersistedStateCodec.Encode(data);
+
     public static bool TryDecodeCompactJson(string? json, out KeukenData data)
     {
         data = new KeukenData();
@@ -46,6 +49,30 @@ public static partial class KeukenShareCodec
         {
             var decoded = JsonSerializer.Deserialize<CompactShareData>(json, CompactJsonOpties);
             return TryDecodeCompactData(decoded, out data);
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    public static bool TryDecodeV4Json(string? json, out KeukenData data)
+    {
+        data = new KeukenData();
+
+        if (string.IsNullOrWhiteSpace(json))
+            return false;
+
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+            var isPersistedStateDocument = root.ValueKind == JsonValueKind.Object &&
+                (root.TryGetProperty("schemaVersion", out _) || root.TryGetProperty("data", out _));
+
+            return isPersistedStateDocument
+                ? KeukenPersistedStateCodec.TryDecode(json, out data)
+                : TryDecodeCompactJson(json, out data);
         }
         catch (JsonException)
         {

@@ -71,6 +71,18 @@ public class KeukenPersistedStateCodecTests
         Assert.Empty(decoded.Kasten);
     }
 
+    [Fact]
+    public void Encode_roundtript_alle_projectvariabelen_voor_lokale_opslag()
+    {
+        var data = ProjectRoundtripTestHelper.MaakVolledigProjectSnapshot();
+
+        var json = KeukenPersistedStateCodec.Encode(data);
+        var decodedOk = KeukenPersistedStateCodec.TryDecode(json, out var decoded);
+
+        Assert.True(decodedOk);
+        ProjectRoundtripTestHelper.AssertZelfdeProject(data, decoded);
+    }
+
     private static KeukenData MaakVoorbeeldData()
     {
         var wandId = Guid.Parse("11111111-1111-1111-1111-111111111111");
