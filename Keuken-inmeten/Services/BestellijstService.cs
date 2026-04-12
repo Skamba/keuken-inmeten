@@ -5,7 +5,7 @@ using Keuken_inmeten.Models;
 
 public static class BestellijstService
 {
-    public const string StandaardKantenbandLabel = "1 mm kantenband rondom";
+    public const string StandaardKantenbandLabel = "kantenband rondom";
 
     private sealed record BestellijstBron(
         string BasisNaam,

@@ -118,7 +118,7 @@ function buildPdfRows(payload) {
             { text: "Regel", style: "tableHeader" },
             { text: "Paneel en bronlocaties", style: "tableHeader" },
             { text: "Aantal", style: "tableHeader", alignment: "center" },
-            { text: "Zaagmaat en materiaal", style: "tableHeader" },
+            { text: "Eindmaat na kantenband", style: "tableHeader" },
             { text: "Boorbeeld / CNC", style: "tableHeader" },
             { text: "Visual", style: "tableHeader", alignment: "center" },
         ],

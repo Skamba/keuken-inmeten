@@ -36,7 +36,7 @@
                   x2="@Fmt(labelX)" y2="@Fmt(labelY - 2)"
                   stroke="#bbb" stroke-width="0.5" stroke-dasharray="2,2" />
         }
-        @((MarkupString)$"<text x=\"{Fmt(labelX)}\" y=\"{Fmt(labelY + 4)}\" font-size=\"9\" fill=\"#555\" text-anchor=\"{anchor}\">{gat.Y} mm</text>")
+        @((MarkupString)$"<text x=\"{Fmt(labelX)}\" y=\"{Fmt(labelY + 4)}\" font-size=\"9\" fill=\"#555\" text-anchor=\"{anchor}\">{FormatMm(gat.Y)} op paneel</text>")
     }
 
     @((MarkupString)$"<text x=\"{Fmt(P + W / 2)}\" y=\"{Fmt(P - 8)}\" font-size=\"11\" fill=\"#333\" text-anchor=\"middle\">{Resultaat.Breedte} mm</text>")
@@ -55,4 +55,5 @@
     private double SvgHeight => H + P * 2;
 
     private static string Fmt(double v) => VisualisatieHelper.Fmt(v);
+    private static string FormatMm(double v) => v.ToString("0.#", CultureInfo.InvariantCulture) + " mm";
 }

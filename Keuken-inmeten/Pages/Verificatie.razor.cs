@@ -134,6 +134,27 @@ public partial class Verificatie
     private static string FormatMm(double waarde)
         => $"{waarde:0.#} mm";
 
+    private static string? PaneelbeeldSpelingToelichting(PaneelResultaat resultaat)
+    {
+        var maatInfo = resultaat.MaatInfo;
+        if (maatInfo is null)
+            return null;
+
+        var boven = maatInfo.InkortingBoven;
+        var onder = maatInfo.InkortingOnder;
+
+        if (boven > 0.001 && onder > 0.001)
+            return $"Paneel is {FormatMm(boven)} ingekort aan de bovenzijde en {FormatMm(onder)} aan de onderzijde.";
+
+        if (boven > 0.001)
+            return $"Paneel is {FormatMm(boven)} ingekort aan de bovenzijde.";
+
+        if (onder > 0.001)
+            return $"Paneel is {FormatMm(onder)} ingekort aan de onderzijde.";
+
+        return null;
+    }
+
     private static string FormatUitlijnAfwijkingen(IReadOnlyList<UitlijnAfwijking> afwijkingen)
         => string.Join(", ", afwijkingen.Select(afwijking => $"{afwijking.Label} {FormatMm(afwijking.AfwijkingMm)}"));
 

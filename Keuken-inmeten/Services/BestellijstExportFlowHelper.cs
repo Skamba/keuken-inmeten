@@ -24,7 +24,7 @@ public static class BestellijstExportFlowHelper
         new(
             BestellijstExportType.Pdf,
             "PDF met visualisaties",
-            "Een werkplaatsvriendelijk document met regelcodes, bronlocaties, zaagmaten, boorbeeld en paneelvisualisaties.",
+            "Een werkplaatsvriendelijk document met regelcodes, bronlocaties, eindmaten na kantenband, boorbeeld en paneelvisualisaties.",
             "Kies PDF als u het resultaat wilt bespreken, printen of rechtstreeks wilt doorgeven aan een zaagbedrijf of werkplaats.",
             "De browser downloadt direct een PDF-document met visualisaties, boorbeeld en materiaalinformatie.",
             "Handig voor overdracht aan de werkplaats of een zaagbedrijf waarin traceerbaarheid en boorbeeld belangrijk zijn.",
@@ -54,7 +54,7 @@ public static class BestellijstExportFlowHelper
             [
                 $"{document.Orderregels} orderregels voor {document.TotaalAantal} panelen en {BestellijstExportFormatter.FormatVierkanteMeter(document.TotaalOppervlakteM2)} totaal oppervlak.",
                 $"Materiaal {document.PaneelType} met dikte {BestellijstExportFormatter.FormatDikteLabel(document.DikteMm)}.",
-                "PDF zet per orderregel code, bronlocaties, zaagmaat, boorbeeld en visualisatie bij elkaar voor overdracht aan werkplaats of zaagbedrijf.",
+                "PDF zet per orderregel code, bronlocaties, eindmaat na kantenband, boorbeeld en visualisatie bij elkaar voor overdracht aan werkplaats of zaagbedrijf.",
                 "De tabelkop herhaalt materiaal, dikte en CNC-referentie zodat meerbladige prints zelfstandig leesbaar blijven."
             ],
             BestellijstExportType.Excel =>

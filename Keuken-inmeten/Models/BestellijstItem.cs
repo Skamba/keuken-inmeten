@@ -5,7 +5,7 @@ public class BestellijstItem
     public string BasisNaam { get; set; } = "";
     public string Naam { get; set; } = "";
     public int Aantal { get; set; }
-    public string KantenbandLabel { get; set; } = "1 mm kantenband rondom";
+    public string KantenbandLabel { get; set; } = "kantenband rondom";
     public string PaneelRolLabel { get; set; } = "";
     public Guid? WandId { get; set; }
     public string WandNaam { get; set; } = "";

@@ -270,7 +270,7 @@ public class BestellijstServiceTests
         Assert.Contains(BestellijstExportService.CncNulpuntLabel, xml);
         Assert.Contains("Boortype", xml);
         Assert.Contains("35 mm potscharniergaten", xml);
-        Assert.Contains(System.Net.WebUtility.HtmlEncode("Zaagmaat B × H (mm)"), xml);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode("Eindmaat na kantenband B × H (mm)"), xml);
         Assert.Contains("Bronlocaties", xml);
         Assert.Contains("Potscharniergat 1 X (links, mm)", xml);
         Assert.Contains("Potscharniergat 1 Y (boven, mm)", xml);

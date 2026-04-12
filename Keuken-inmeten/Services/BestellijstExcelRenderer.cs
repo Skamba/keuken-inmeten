@@ -74,7 +74,7 @@ public static class BestellijstExcelRenderer
             CellText("Aantal", "Kop"),
             CellText("Paneelrol", "Kop"),
             CellText("Scharnierzijde", "Kop"),
-            CellText("Zaagmaat B × H (mm)", "Kop"),
+            CellText("Eindmaat na kantenband B × H (mm)", "Kop"),
             CellText("Oppervlakte per stuk (m²)", "Kop"),
             CellText("Oppervlakte totaal (m²)", "Kop"),
             CellText("Hoogte (mm)", "Kop"),
