@@ -2,6 +2,18 @@ import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { IndelingPage } from '../pages/IndelingPage';
 
+test('home toont een compactere start zonder extra uitlegblokken', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: 'Stappen' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Voor u start' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Meer uitleg (optioneel)' })).toHaveCount(0);
+  await expect(page.getByText('De volgorde en labels hieronder zijn gelijk aan de rest van de applicatie.')).toHaveCount(0);
+  await expect(page.getByText('Bouw uw keuken op per wand en voeg kasten toe.')).toHaveCount(0);
+  await expect(page.getByText('Wijs panelen toe en bepaal maat, plaatsing en scharnierzijde.')).toHaveCount(0);
+  await expect(page.locator('#startflow-stappen').getByRole('heading', { name: 'Indeling' })).toBeVisible();
+});
+
 test('home toont een hervatdashboard zodra er projectdata bestaat', async ({ page }) => {
   const indeling = new IndelingPage(page);
 
@@ -19,7 +31,7 @@ test('home toont een hervatdashboard zodra er projectdata bestaat', async ({ pag
   await expect(page.getByRole('heading', { name: 'Ga verder met uw keukenproject' })).toBeVisible();
   await expect(page.getByTestId('home-project-dashboard')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Projectoverzicht' })).toBeVisible();
-  await expect(page.getByTestId('home-onboarding-help')).toBeVisible();
+  await expect(page.getByTestId('home-onboarding-help')).toHaveCount(0);
 });
 
 test('navbar deelt een v4-link naar de huidige stap die in een schone sessie opnieuw laadt', async ({ page, context, browser }) => {

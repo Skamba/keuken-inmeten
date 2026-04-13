@@ -11,7 +11,7 @@
     <section class="card border-0 shadow-sm mb-4 home-hero-card">
         <div class="card-body p-4 p-lg-5">
             <div class="row g-4 align-items-start">
-                <div class="col-lg-7">
+                <div class="@(pagina.HeeftProjectData ? "col-lg-7" : "col-12")">
                     <span class="badge rounded-pill text-bg-primary mb-3">@(pagina.HeeftProjectData ? "Project in uitvoering" : "Start hier")</span>
                     <h1 class="@(pagina.HeeftProjectData ? "display-6" : "display-5") fw-bold mb-3">
                         @(pagina.HeeftProjectData
@@ -37,9 +37,9 @@
                     </div>
                 </div>
 
-                <div class="col-lg-5">
-                    @if (pagina.HeeftProjectData)
-                    {
+                @if (pagina.HeeftProjectData)
+                {
+                    <div class="col-lg-5">
                         <div class="home-summary-card home-dashboard-card home-resume-card h-100" data-testid="home-project-dashboard">
                             <div class="small fw-semibold text-uppercase text-primary-emphasis mb-1">Volgende stap</div>
                             <h2 class="h5 mb-1">@pagina.VervolgStap.Label</h2>
@@ -66,37 +66,8 @@
 
                             <div class="small text-muted mt-3">@pagina.BoorgatBlok.Tekst</div>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="home-summary-card h-100">
-                            <h2 class="h5 mb-3">Voor u start</h2>
-                            <ul class="home-summary-list home-summary-list--compact">
-                                <li class="home-summary-item">
-                                    <span class="home-summary-icon">📐</span>
-                                    <div>
-                                        <strong>Meet wanden en kasten per wand</strong>
-                                        <div class="text-muted small">Breedte, hoogte en positie vormen de basis van alle volgende stappen.</div>
-                                    </div>
-                                </li>
-                                <li class="home-summary-item">
-                                    <span class="home-summary-icon">🧩</span>
-                                    <div>
-                                        <strong>Voeg apparaten of planken alleen toe als ze echt iets veranderen</strong>
-                                        <div class="text-muted small">Gebruik ze alleen als ze wandruimte, vrije opening of gatenrij beïnvloeden.</div>
-                                    </div>
-                                </li>
-                                <li class="home-summary-item">
-                                    <span class="home-summary-icon">🧾</span>
-                                    <div>
-                                        <strong>Daarna volgen controle en uitvoer</strong>
-                                        <div class="text-muted small">Na paneeltoewijzing ziet u maten, 35 mm potscharniergaten, orderregels en plaatindeling terug.</div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    }
-                </div>
+                    </div>
+                }
             </div>
         </div>
     </section>
@@ -186,12 +157,8 @@
         }
         else
         {
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2 mb-3">
-                <div>
-                    <h2 class="h3 mb-1">Zo verloopt de start</h2>
-                    <p class="text-muted mb-0">De volgorde en labels hieronder zijn gelijk aan de rest van de applicatie.</p>
-                </div>
-                <div class="text-muted small">Vaste volgorde: @string.Join(" → ", StappenFlowHelper.AlleStappen.Select(stap => stap.Label))</div>
+            <div class="mb-3">
+                <h2 class="h4 mb-0">Stappen</h2>
             </div>
 
             <div class="row g-3">
@@ -200,16 +167,12 @@
                     <div class="col-md-6 col-xl">
                         <a href="@stap.Href" class="home-card-link text-decoration-none text-reset d-block h-100">
                             <article class="card h-100 border-0 shadow-sm home-stap-card home-flow-step @(stap.IsBeschikbaar ? null : "home-flow-step--vergrendeld")">
-                                <div class="card-body d-flex flex-column gap-3">
-                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                    <div class="d-flex align-items-center gap-3">
                                         <span class="home-step-number">@stap.Nummer</span>
-                                        <span class="badge rounded-pill @stap.BadgeClass">@stap.BadgeLabel</span>
+                                        <h3 class="h5 mb-0">@stap.Titel</h3>
                                     </div>
-                                    <div>
-                                        <h3 class="h5 mb-1">@stap.Titel</h3>
-                                        <p class="text-muted mb-0">@stap.Beschrijving</p>
-                                    </div>
-                                    <div class="small text-muted mt-auto">@stap.Samenvatting</div>
+                                    <span class="badge rounded-pill @stap.BadgeClass">@stap.BadgeLabel</span>
                                 </div>
                             </article>
                         </a>
@@ -218,43 +181,4 @@
             </div>
         }
     </section>
-
-    @if (!pagina.HeeftProjectData)
-    {
-        <section class="home-optional-help" data-testid="home-extra-help">
-            <details class="home-help-panel">
-                <summary class="home-help-panel-summary">
-                    <div>
-                        <h2 class="h5 mb-1">Meer uitleg (optioneel)</h2>
-                        <p class="text-muted mb-0">Open dit alleen als u drie korte aandachtspunten wilt checken voordat u begint.</p>
-                    </div>
-                </summary>
-
-                <ul class="home-help-list mt-3 mb-0">
-                    <li><strong>Apparaten:</strong> voeg een apparaat alleen toe als het echt wandruimte inneemt of de vrije opening voor een paneel verandert.</li>
-                    <li><strong>Planken:</strong> ze tellen vooral mee als referentie voor de gatenrij en de eerste gatpositie.</li>
-                    <li><strong>Zaagplan:</strong> de bestellijst maakt orderregels; het zaagplan verdeelt die panelen daarna over standaard platen.</li>
-                </ul>
-            </details>
-        </section>
-    }
-    else
-    {
-        <section class="home-optional-help" data-testid="home-onboarding-help">
-            <details class="home-help-panel">
-                <summary class="home-help-panel-summary">
-                    <div>
-                        <h2 class="h5 mb-1">Extra hulp (optioneel)</h2>
-                        <p class="text-muted mb-0">Open dit alleen als u de basis of uitzonderingen nog even wilt nalopen.</p>
-                    </div>
-                </summary>
-
-                <ul class="home-help-list mt-3 mb-0">
-                    <li><strong>Eerst invoeren:</strong> wanden en kasten vormen altijd de basis; apparaten en planken voegt u alleen toe als ze de maatvoering echt beïnvloeden.</li>
-                    <li><strong>Uitvoer:</strong> daarna ziet u paneelmaten, 35 mm potscharniergaten, een bestellijst en een zaagplan terug.</li>
-                    <li><strong>Let extra op:</strong> gebruik apparaten alleen als ze echt wandruimte innemen en gebruik planken vooral als referentie voor de gatenrij.</li>
-                </ul>
-            </details>
-        </section>
-    }
 </div>
