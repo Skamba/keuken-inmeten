@@ -11,17 +11,7 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
   const verificatie = new VerificatiePage(page);
 
   async function openIndelingWand(wandId: string) {
-    const kaart = page.locator(`[data-testid="indeling-wand-card"][data-wand-id="${wandId}"]`);
-    const knop = kaart.getByTestId('open-wand-workspace-button');
-    if (!(await knop.isVisible())) {
-      const samenvatting = page.getByTestId('indeling-overige-wanden-summary');
-      if (await samenvatting.isVisible()) {
-        await samenvatting.click();
-        await expect(knop).toBeVisible();
-      }
-    }
-
-    await knop.click();
+    await page.locator(`[data-testid="nav-indeling-wand-link"][data-wand-id="${wandId}"]`).click();
     await expect(page.locator(`[data-testid="actieve-wand-werkruimte"][data-wand-id="${wandId}"]`)).toBeVisible();
   }
 
@@ -51,10 +41,10 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
   await page.getByTestId('wand-toevoegen-button').click();
   await expect(page.getByTestId('wand-toevoegen-modal')).toBeHidden();
 
-  const wandKaarten = page.locator('[data-testid="indeling-wand-card"][data-wand-naam="Muur"]');
-  await expect(wandKaarten).toHaveCount(2);
-  const eersteWandId = await wandKaarten.nth(0).getAttribute('data-wand-id');
-  const tweedeWandId = await wandKaarten.nth(1).getAttribute('data-wand-id');
+  const wandLinks = page.locator('[data-testid="nav-indeling-wand-link"][data-wand-naam="Muur"]');
+  await expect(wandLinks).toHaveCount(2);
+  const eersteWandId = await wandLinks.nth(0).getAttribute('data-wand-id');
+  const tweedeWandId = await wandLinks.nth(1).getAttribute('data-wand-id');
 
   expect(eersteWandId).toBeTruthy();
   expect(tweedeWandId).toBeTruthy();

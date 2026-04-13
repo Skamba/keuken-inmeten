@@ -19,7 +19,7 @@
             <h2 class="page-header">Stap 1: Indeling</h2>
             @if (actieveWerkruimte is null)
             {
-                <p class="stap-pagina-kop__lead">Maak wandindelingen aan en open daarna steeds één wand om maten, kasten en objecten rustig per werkruimte uit te werken.</p>
+                <p class="stap-pagina-kop__lead">Maak wandindelingen aan en open daarna via de navigatie onder 1. Indeling steeds één wand om maten, kasten en objecten rustig per werkruimte uit te werken.</p>
             }
         </div>
         <div class="stap-ondersteuning stap-pagina-kop__acties" data-testid="kasten-stap-ondersteuning">
@@ -81,40 +81,8 @@ else
 }
 else
 {
-    var overzichtWanden = pagina.OverzichtWanden;
-
     @if (actieveWerkruimte is null)
     {
-        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
-            <div>
-                <h5 class="mb-1">Wandenoverzicht</h5>
-            </div>
-        </div>
-
-        <div class="row g-3 mb-4">
-            @foreach (var overzicht in overzichtWanden)
-            {
-                var wand = overzicht.Wand;
-
-                <div class="col-xl-6"
-                      @key="wand.Id">
-                    <IndelingWandKaart WandId="wand.Id"
-                                       WandNaam="@wand.Naam"
-                                       DataTestId="indeling-wand-card"
-                                       KnopDataTestId="open-wand-workspace-button"
-                                       KnopLabel="Open wand"
-                                       BodyClass="indeling-wand-samenvatting-body"
-                                       InhoudClass="indeling-wand-samenvatting-inhoud"
-                                       KopClass="d-flex flex-wrap align-items-center gap-2 indeling-wand-samenvatting-kop"
-                                       ActiesClass="indeling-wand-samenvatting-acties"
-                                       Badges="overzicht.OverzichtBadges"
-                                       MetaTekst="@overzicht.OverzichtMetaTekst"
-                                       OnOpenen="@(() => OpenWandWerkruimte(wand.Id))">
-                    </IndelingWandKaart>
-                </div>
-            }
-        </div>
-
         @if (State.HeeftProjectInhoud())
         {
             <details class="indeling-overige-wanden mb-4" data-testid="indeling-project-acties-details">
@@ -447,34 +415,6 @@ else
         </div>
 
         <div class="indeling-workspace-secondary">
-            @if (overzichtWanden.Count > 0)
-            {
-                <IndelingDetailsBlok Titel="Andere wanden"
-                                     Beschrijving="Open alleen als u bewust naar een andere wand wilt wisselen."
-                                     BadgeText="@($"{overzichtWanden.Count} wand(en) beschikbaar")"
-                                     DetailsClass="indeling-overige-wanden mb-4"
-                                     DetailsDataTestId="indeling-overige-wanden-details"
-                                     SummaryDataTestId="indeling-overige-wanden-summary">
-                    <div class="indeling-overige-wanden-lijst">
-                        @foreach (var overigeWand in overzichtWanden)
-                        {
-                            var wand = overigeWand.Wand;
-
-                            <IndelingWandSchakelaar WandId="wand.Id"
-                                                    WandNaam="@wand.Naam"
-                                                    DataTestId="indeling-wand-card"
-                                                    KnopDataTestId="open-wand-workspace-button"
-                                                    KnopLabel="Open wand"
-                                                    Badges="overigeWand.SchakelaarBadges"
-                                                    MetaTekst="@overigeWand.SchakelaarMetaTekst"
-                                                    OnOpenen="@(() => OpenWandWerkruimte(wand.Id))"
-                                                    @key="wand.Id">
-                            </IndelingWandSchakelaar>
-                        }
-                    </div>
-                </IndelingDetailsBlok>
-            }
-
             <IndelingDetailsBlok Titel="Nog een wand toevoegen"
                                  Beschrijving="Open dit pas als deze werkruimte voorlopig klopt."
                                  DetailsClass="indeling-overige-wanden mb-4"

@@ -7,6 +7,11 @@ namespace Keuken_inmeten.Pages;
 
 public partial class KastenInvoer
 {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    [SupplyParameterFromQuery(Name = "wand")]
+    public Guid? Wand { get; set; }
+
     private string nieuweWandNaam = "";
     private Guid? bewerkWandId;
     private string bewerkWandNaam = "";
@@ -35,13 +40,25 @@ public partial class KastenInvoer
     protected override void OnInitialized()
         => State.OnStateChanged += HandleStateChanged;
 
+    protected override void OnParametersSet()
+    {
+        Guid? gewensteWandId = Wand is Guid wandId && State.Wanden.Exists(wand => wand.Id == wandId)
+            ? wandId
+            : null;
+        if (actieveWandId != gewensteWandId)
+            StelActieveWandContextIn(gewensteWandId);
+    }
+
     public void Dispose()
         => State.OnStateChanged -= HandleStateChanged;
 
     private void HandleStateChanged()
     {
         if (actieveWandId.HasValue && !State.Wanden.Exists(wand => wand.Id == actieveWandId.Value))
+        {
+            NavigeerNaarWand(null, replaceHistoryEntry: true);
             StelActieveWandContextIn(null);
+        }
 
         _ = InvokeAsync(StateHasChanged);
     }

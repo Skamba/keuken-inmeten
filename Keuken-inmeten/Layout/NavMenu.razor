@@ -64,6 +64,24 @@
                         </span>
                     }
                 </div>
+                @if (stap.Id == "kasten" && State.Wanden.Count > 0)
+                {
+                    <div class="nav-submenu px-3" data-testid="nav-indeling-wanden">
+                        @foreach (var wand in State.Wanden)
+                        {
+                            <div class="nav-subitem">
+                                <NavLink class="nav-sublink"
+                                         href="@MaakWandRoute(wand.Id)"
+                                         Match="NavLinkMatch.All"
+                                         data-testid="nav-indeling-wand-link"
+                                         data-wand-id="@wand.Id"
+                                         data-wand-naam="@wand.Naam">
+                                    @wand.Naam
+                                </NavLink>
+                            </div>
+                        }
+                    </div>
+                }
             }
         </div>
 

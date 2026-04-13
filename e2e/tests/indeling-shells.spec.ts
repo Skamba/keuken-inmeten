@@ -41,72 +41,42 @@ test('stap 1 toont maar één actieve wandwerkruimte tegelijk', async ({ page })
   await indeling.voegWandToe('Achterwand');
   await indeling.voegWandToe('Linkerwand');
 
+  await expect(page.getByTestId('nav-indeling-wand-link')).toHaveCount(2);
+  await expect(page.getByRole('heading', { name: 'Wandenoverzicht' })).toHaveCount(0);
+
   await indeling.openWandWerkruimte('Achterwand');
   await indeling.expectActieveWerkruimte('Achterwand');
+  await expect(page.getByTestId('indeling-overige-wanden-summary')).toHaveCount(0);
 
   await indeling.openWandWerkruimte('Linkerwand');
   await indeling.expectActieveWerkruimte('Linkerwand');
 });
 
-test('wandenoverzicht toont geen extra toelichting onder de titel', async ({ page }) => {
+test('stap 1 verplaatst wandnavigatie naar de navbar onder indeling', async ({ page }) => {
   const indeling = new IndelingPage(page);
 
   await indeling.goto();
   await indeling.voegWandToe('Achterwand');
   await indeling.voegWandToe('Linkerwand');
 
-  await expect(page.getByRole('heading', { name: 'Wandenoverzicht' })).toBeVisible();
-  await expect(
-    page.getByText(
-      'Kies daarna precies één wand om maten, kasten, objecten en de visualisatie per werkruimte te bewerken.',
-    ),
-  ).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Wandenoverzicht' })).toHaveCount(0);
+  await expect(page.getByTestId('nav-indeling-wanden')).toBeVisible();
+  await expect(page.getByTestId('nav-indeling-wand-link')).toHaveCount(2);
+  await expect(page.locator('[data-testid="nav-indeling-wand-link"][data-wand-naam="Achterwand"]')).toBeVisible();
+  await expect(page.locator('[data-testid="nav-indeling-wand-link"][data-wand-naam="Linkerwand"]')).toBeVisible();
 });
 
-test('wandenoverzicht kaarten gebruiken compactere spacing', async ({ page }) => {
+test('stap 1 toont geen aparte andere-wanden schakelaar meer in de werkruimtekolom', async ({ page }) => {
   const indeling = new IndelingPage(page);
 
   await indeling.goto();
   await indeling.voegWandToe('Achterwand');
   await indeling.voegWandToe('Linkerwand');
 
-  const compacteStijlen = await page.getByTestId('indeling-wand-card').first().evaluate((kaart) => {
-    const body = kaart.querySelector('.indeling-wand-samenvatting-body');
-    const button = kaart.querySelector('[data-testid="open-wand-workspace-button"]');
-
-    if (!(body instanceof HTMLElement) || !(button instanceof HTMLElement)) {
-      throw new Error('Expected compact wall card structure');
-    }
-
-    const bodyStyle = getComputedStyle(body);
-    const buttonStyle = getComputedStyle(button);
-
-    return {
-      bodyPaddingTop: parseFloat(bodyStyle.paddingTop),
-      bodyPaddingBottom: parseFloat(bodyStyle.paddingBottom),
-      bodyRowGap: parseFloat(bodyStyle.rowGap),
-      buttonPaddingTop: parseFloat(buttonStyle.paddingTop),
-      buttonPaddingBottom: parseFloat(buttonStyle.paddingBottom),
-    };
-  });
-
-  expect(compacteStijlen.bodyPaddingTop).toBeLessThan(14);
-  expect(compacteStijlen.bodyPaddingBottom).toBeLessThan(14);
-  expect(compacteStijlen.bodyRowGap).toBeLessThanOrEqual(6);
-  expect(compacteStijlen.buttonPaddingTop).toBeLessThanOrEqual(4);
-  expect(compacteStijlen.buttonPaddingBottom).toBeLessThanOrEqual(4);
-});
-
-test('wandenkaarten tonen geen extra toelichting onder de samenvatting', async ({ page }) => {
-  const indeling = new IndelingPage(page);
-
-  await indeling.goto();
-  await indeling.voegWandToe('Achterwand');
-  await indeling.voegWandToe('Linkerwand');
-
-  await expect(page.getByTestId('indeling-wand-card')).toHaveCount(2);
-  await expect(page.getByTestId('indeling-wand-card-description')).toHaveCount(0);
-  await expect(page.getByTestId('open-wand-workspace-button')).toHaveCount(2);
+  await indeling.openWandWerkruimte('Achterwand');
+  await expect(page.getByTestId('indeling-overige-wanden-summary')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Andere wanden' })).toHaveCount(0);
+  await expect(page.locator('[data-testid="nav-indeling-wand-link"][data-wand-naam="Linkerwand"]')).toBeVisible();
 });
 
 test('kastpopup werkt als een korte ministepper', async ({ page }) => {

@@ -10,8 +10,16 @@ export type KastGegevens = {
 export class IndelingPage {
   constructor(private readonly page: Page) {}
 
-  private wandCard(wandNaam: string): Locator {
-    return this.page.locator(`[data-testid="indeling-wand-card"][data-wand-naam="${wandNaam}"]`);
+  private mobieleNavKnop(): Locator {
+    return this.page.getByRole('button', { name: 'Navigatiemenu openen of sluiten' });
+  }
+
+  private navWandLinkByName(wandNaam: string): Locator {
+    return this.page.locator(`[data-testid="nav-indeling-wand-link"][data-wand-naam="${wandNaam}"]`);
+  }
+
+  private navWandLinkById(wandId: string): Locator {
+    return this.page.locator(`[data-testid="nav-indeling-wand-link"][data-wand-id="${wandId}"]`);
   }
 
   private actieveWerkruimte(wandNaam: string): Locator {
@@ -82,15 +90,11 @@ export class IndelingPage {
     await this.page.getByTestId('nieuwe-wand-naam-input').fill(naam);
     await this.page.getByTestId('wand-toevoegen-button').click();
     await expect(this.page.getByTestId('wand-toevoegen-modal')).toBeHidden();
-    const resultaat = this.wandCard(naam).or(this.actieveWerkruimte(naam));
-    if (!(await resultaat.isVisible())) {
-      const overigeWandenSamenvatting = this.page.getByTestId('indeling-overige-wanden-summary');
-      if (await overigeWandenSamenvatting.isVisible()) {
-        await overigeWandenSamenvatting.click();
-      }
+    if (await this.actieveWerkruimte(naam).isVisible()) {
+      return;
     }
 
-    await expect(resultaat).toBeVisible();
+    await expect(this.navWandLinkByName(naam).last()).toBeAttached();
   }
 
   async openWandWerkruimte(wandNaam: string) {
@@ -99,20 +103,29 @@ export class IndelingPage {
       return;
     }
 
-    const wand = this.wandCard(wandNaam);
-    const openKnop = wand.getByTestId('open-wand-workspace-button');
+    const link = this.navWandLinkByName(wandNaam).first();
+    await this.openMobieleNavigatieVoorLink(link);
+    await link.click();
+    await this.expectActieveWerkruimte(wandNaam);
+  }
 
-    if (!(await openKnop.isVisible())) {
-      const overigeWandenSamenvatting = this.page.getByTestId('indeling-overige-wanden-summary');
-      if (await overigeWandenSamenvatting.isVisible()) {
-        await overigeWandenSamenvatting.click();
-        await expect(openKnop).toBeVisible();
-      }
+  async openWandWerkruimteMetId(wandId: string) {
+    const link = this.navWandLinkById(wandId);
+    await this.openMobieleNavigatieVoorLink(link);
+    await link.click();
+    await expect(this.page.locator(`[data-testid="actieve-wand-werkruimte"][data-wand-id="${wandId}"]`)).toBeVisible();
+  }
+
+  private async openMobieleNavigatieVoorLink(link: Locator) {
+    if (await link.isVisible()) {
+      return;
     }
 
-    await openKnop.click();
-
-    await this.expectActieveWerkruimte(wandNaam);
+    const navKnop = this.mobieleNavKnop();
+    if (await navKnop.isVisible()) {
+      await navKnop.click();
+      await expect(link).toBeVisible();
+    }
   }
 
   async expectActieveWerkruimte(wandNaam: string) {

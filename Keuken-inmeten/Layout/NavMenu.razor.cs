@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using Keuken_inmeten.Services.Interop;
 using Microsoft.AspNetCore.Components.Forms;
 
@@ -5,6 +7,8 @@ namespace Keuken_inmeten.Layout;
 
 public partial class NavMenu
 {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
     private bool collapseNavMenu = true;
     private bool toonImportModal;
     private bool isDarkTheme;
@@ -20,7 +24,10 @@ public partial class NavMenu
     private string ThemeLabel => isDarkTheme ? "Licht uiterlijk" : "Donker uiterlijk";
 
     protected override void OnInitialized()
-        => State.OnStateChanged += HandleStateChanged;
+    {
+        State.OnStateChanged += HandleStateChanged;
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -80,6 +87,12 @@ public partial class NavMenu
 
     private void HandleStateChanged() => _ = InvokeAsync(StateHasChanged);
 
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
+        => _ = InvokeAsync(StateHasChanged);
+
+    private static string MaakWandRoute(Guid wandId)
+        => $"kasten?wand={wandId:D}";
+
     private void ResetImportSelectie(bool vernieuwInput)
     {
         gekozenImportBestand = null;
@@ -92,6 +105,7 @@ public partial class NavMenu
     public async ValueTask DisposeAsync()
     {
         State.OnStateChanged -= HandleStateChanged;
+        Navigation.LocationChanged -= HandleLocationChanged;
 
         if (themeInterop is not null)
             await themeInterop.DisposeAsync();

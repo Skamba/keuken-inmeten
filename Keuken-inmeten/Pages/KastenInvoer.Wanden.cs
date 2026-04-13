@@ -62,15 +62,18 @@ public partial class KastenInvoer
     }
 
     private void OpenWandWerkruimte(Guid wandId)
-        => StelActieveWandContextIn(wandId);
+        => NavigeerNaarWand(wandId);
 
     private void SluitWandWerkruimte()
-        => StelActieveWandContextIn(null);
+        => NavigeerNaarWand(null);
 
     private void OnWandGewijzigd(ChangeEventArgs e)
     {
-        if (Guid.TryParse(e.Value?.ToString(), out var id))
+        if (Guid.TryParse(e.Value?.ToString(), out var id) && actieveWandId != id)
+        {
             actieveWandId = id;
+            NavigeerNaarWand(id, replaceHistoryEntry: true);
+        }
     }
 
     private string ActieveWandNaam()
@@ -116,5 +119,13 @@ public partial class KastenInvoer
         }
 
         Feedback.ToonInfo($"Wand '{wandNaam}' verwijderd.");
+    }
+
+    private void NavigeerNaarWand(Guid? wandId, bool replaceHistoryEntry = false)
+    {
+        var doel = wandId is Guid id
+            ? $"kasten?wand={id:D}"
+            : "kasten";
+        Navigation.NavigateTo(doel, replace: replaceHistoryEntry);
     }
 }
