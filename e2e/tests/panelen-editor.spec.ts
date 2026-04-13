@@ -325,7 +325,7 @@ test('focuskaart toont alleen het compacte wandenoverzicht', async ({ page }) =>
   await expect(page.getByText('Begin met één wand. Het overzicht wordt pas nuttig zodra er panelen zijn.')).toHaveCount(0);
 });
 
-test('stap 2 kan de paneelwerkbank fullscreen openen en weer sluiten', async ({ page }) => {
+test('stap 2 kan de paneelwerkbank fullscreen openen en weer sluiten', async ({ page }, testInfo) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
 
@@ -341,17 +341,30 @@ test('stap 2 kan de paneelwerkbank fullscreen openen en weer sluiten', async ({ 
 
   await panelen.expectLoaded();
   await panelen.openWandWerkruimte('Achterwand');
+  const previewSvg = page.getByTestId('paneel-werkbank-visualisatie').locator('svg.wand-opstelling-svg');
+  const previewSvgBox = await previewSvg.boundingBox();
+  expect(previewSvgBox).not.toBeNull();
   await expect(page.getByTestId('paneel-werkbank-visualisatie-fullscreen-toggle')).toBeVisible();
   await page.getByTestId('paneel-werkbank-visualisatie-fullscreen-toggle').click();
 
   const shell = page.getByTestId('paneel-werkbank-visualisatie-fullscreen-shell');
   await expect(shell).toBeVisible();
   await expect(shell.getByTestId('paneel-plaats-editor')).toBeVisible();
+  const screenshotPath = testInfo.outputPath('paneel-werkbank-fullscreen.png');
+  await shell.screenshot({ path: screenshotPath });
+  await testInfo.attach('paneel-werkbank-fullscreen', {
+    path: screenshotPath,
+    contentType: 'image/png',
+  });
+  const fullscreenStage = shell.locator('.fullscreen-visualisatie-stage');
   const fullscreenSvg = shell.locator('svg.wand-opstelling-svg');
   const fullscreenSvgBox = await fullscreenSvg.boundingBox();
+  const fullscreenStageBox = await fullscreenStage.boundingBox();
   expect(fullscreenSvgBox).not.toBeNull();
-  expect(fullscreenSvgBox!.width).toBeGreaterThan(300);
-  expect(fullscreenSvgBox!.height).toBeGreaterThan(200);
+  expect(fullscreenStageBox).not.toBeNull();
+  expect(fullscreenSvgBox!.width).toBeGreaterThan(previewSvgBox!.width + 100);
+  expect(fullscreenSvgBox!.height).toBeGreaterThan(previewSvgBox!.height + 80);
+  expect(fullscreenSvgBox!.height).toBeGreaterThan(fullscreenStageBox!.height * 0.78);
 
   await shell.getByTestId('paneel-werkbank-visualisatie-fullscreen-toggle').click();
   await expect(shell).toHaveCount(0);

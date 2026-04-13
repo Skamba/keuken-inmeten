@@ -18,6 +18,7 @@ public partial class PaneelPlaatsEditor
     [Parameter] public double PlintHoogte { get; set; }
     [Parameter] public double TotaleRandSpeling { get; set; } = KeukenDomeinDefaults.ProjectDefaults.PaneelRandSpeling;
     [Parameter] public string? SvgMaxHoogte { get; set; }
+    [Parameter] public double MaxVisueleHoogtePx { get; set; } = 500;
     [Parameter] public bool BeperkTotContainerBreedte { get; set; }
     [Parameter] public IReadOnlySet<Guid>? GeselecteerdeKastIds { get; set; }
     [Parameter] public IReadOnlyList<PaneelToewijzing>? Toewijzingen { get; set; }
@@ -33,14 +34,14 @@ public partial class PaneelPlaatsEditor
     private PaneelPlaatsEditorJsInterop? jsInterop;
 
     private const double P = 50;
-    private const double MaxVisueleHoogte = 500;
 
-    private double Schaal => MaxVisueleHoogte / Math.Max(WandHoogte, 1);
+    private double VisueleHoogtePx => Math.Max(MaxVisueleHoogtePx, 1);
+    private double Schaal => VisueleHoogtePx / Math.Max(WandHoogte, 1);
     private double MuurHoogtePx => WandHoogte * Schaal;
     private double MuurBreedtePx => WandBreedte * Schaal;
     private double VloerY => P + MuurHoogtePx;
     private double SvgWidth => MuurBreedtePx + P * 2 + 30;
-    private double SvgHeight => MuurHoogtePx + P + 30;
+    private double SvgHeight => VisueleHoogtePx + P + 30;
 
     private IEnumerable<int> HoogteMarkeringen()
     {
