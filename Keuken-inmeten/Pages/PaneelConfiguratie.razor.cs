@@ -15,7 +15,6 @@ public partial class PaneelConfiguratie
     private bool toonKastOpdelenModal;
     private int opdeelAantal = 2;
     private List<double> opdeelHoogtes = [];
-    private bool reviewWeergaveActief;
 
     protected override void OnInitialized()
     {
@@ -37,9 +36,6 @@ public partial class PaneelConfiguratie
             conceptPaneel = null;
         }
 
-        if (reviewWeergaveActief && State.Toewijzingen.Count == 0)
-            reviewWeergaveActief = false;
-
         if (toonKastOpdelenModal && !KanKastOpdelen)
             toonKastOpdelenModal = false;
 
@@ -47,7 +43,6 @@ public partial class PaneelConfiguratie
     }
 
     private bool IsBewerkModus => bewerkToewijzingId is not null;
-    private bool IsReviewWeergaveActief => reviewWeergaveActief && State.Toewijzingen.Count > 0;
     private PaneelSelectieContext HuidigeSelectieContext => BouwSelectieContext();
     private bool ToonCompacteEditorLeegstaat => !IsBewerkModus && !HuidigeSelectieContext.HeeftSelectie;
     private bool HeeftEnkeleKastSelectie => !IsBewerkModus && HuidigeSelectieContext.HeeftEnkeleKastSelectie;

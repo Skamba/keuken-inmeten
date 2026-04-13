@@ -84,10 +84,14 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
   await page.locator('[data-testid="paneel-kast"]').first().click();
   await page.getByTestId('paneel-opslaan-button').click();
 
-  await panelen.openReviewWeergave();
-  await expect(page.getByTestId('paneel-review-groep')).toHaveCount(2);
-  await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${eersteWandId}"]`)).toBeVisible();
+  await expect(page.getByTestId('paneel-review-groep')).toHaveCount(1);
   await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${tweedeWandId}"]`)).toBeVisible();
+  await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${eersteWandId}"]`)).toHaveCount(0);
+
+  await openPaneelWand(eersteWandId!);
+  await expect(page.getByTestId('paneel-review-groep')).toHaveCount(1);
+  await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${eersteWandId}"]`)).toBeVisible();
+  await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${tweedeWandId}"]`)).toHaveCount(0);
 
   await panelen.gaNaarVerificatie();
   await verificatie.expectLoaded();

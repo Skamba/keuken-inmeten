@@ -110,11 +110,11 @@ test('paneel-editor deelt een geselecteerde kast op in meerdere fronten', async 
   await page.getByTestId('paneel-type-button-LadeFront').click();
   await panelen.deelGeselecteerdeKastOp([200, 220, 300]);
 
-  await panelen.openReviewWeergave();
+  await panelen.expectOverzichtVoorWand('Achterwand');
   const groep = page.locator('[data-testid="paneel-review-groep"][data-wand-naam="Achterwand"]');
   await expect(groep.locator('.paneel-review-item')).toHaveCount(3);
 
-  await groep.getByRole('button', { name: 'Bewerk' }).first().click();
+  await panelen.bewerkEerstePaneelInOverzicht('Achterwand');
   await expect(page.getByTestId('paneel-editor-drawer')).toBeVisible();
   await expect(page.getByTestId('paneel-type-button-LadeFront')).toHaveClass(/btn-primary/);
 });
@@ -169,7 +169,7 @@ test('stap 2 sluit de actieve wand bij een tweede klik op dezelfde wand', async 
   await expect(page.getByText('Open eerst één wand')).toBeVisible();
 });
 
-test('stap 2 scheidt editor en review expliciet', async ({ page }) => {
+test('stap 2 combineert editor en overzicht zonder viewtoggle', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
 
@@ -186,12 +186,14 @@ test('stap 2 scheidt editor en review expliciet', async ({ page }) => {
   await panelen.expectLoaded();
   await panelen.selecteerEersteKastOpWand('Achterwand');
   await panelen.voegPaneelToe();
-  await panelen.openReviewWeergave();
-  await panelen.bewerkEerstePaneelInReview();
+  await expect(page.getByTestId('paneel-editor-weergave-tab')).toHaveCount(0);
+  await expect(page.getByTestId('paneel-review-weergave-tab')).toHaveCount(0);
+  await panelen.expectOverzichtVoorWand('Achterwand');
+  await panelen.bewerkEerstePaneelInOverzicht('Achterwand');
   await panelen.expectActieveWerkruimte('Achterwand');
 });
 
-test('stap 2 gebruikt de reviewtab zonder extra review-banner', async ({ page }) => {
+test('stap 2 toont het wandoverzicht direct in dezelfde werklaag', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
 
@@ -208,8 +210,9 @@ test('stap 2 gebruikt de reviewtab zonder extra review-banner', async ({ page })
   await panelen.expectLoaded();
   await panelen.selecteerEersteKastOpWand('Achterwand');
   await panelen.voegPaneelToe();
-  await expect(page.getByTestId('paneel-review-teaser')).toHaveCount(0);
-  await panelen.openReviewWeergave();
+  await expect(page.getByTestId('paneel-editor-weergave-tab')).toHaveCount(0);
+  await expect(page.getByTestId('paneel-review-weergave-tab')).toHaveCount(0);
+  await panelen.expectOverzichtVoorWand('Achterwand');
 });
 
 test('stap 2 toont geen staphulp- of begrippenknoppen meer', async ({ page }) => {
@@ -239,7 +242,7 @@ test('stap 2 toont geen staphulp- of begrippenknoppen meer', async ({ page }) =>
 
   await panelen.selecteerEersteKastOpWand('Achterwand');
   await panelen.voegPaneelToe();
-  await panelen.openReviewWeergave();
+  await panelen.expectOverzichtVoorWand('Achterwand');
   await expect(staphulpKnop).toHaveCount(0);
   await expect(begrippenKnop).toHaveCount(0);
 });
@@ -286,7 +289,7 @@ test.describe('mobiele paneel-editor', () => {
     await panelen.selecteerEersteKastOpWand('Achterwand');
   });
 
-  test('stap 2 schuift secundaire uitleg op mobiel onder de actieve werkruimte', async ({ page }) => {
+  test('stap 2 schuift het compacte overzicht op mobiel onder de visualisatie', async ({ page }) => {
     const indeling = new IndelingPage(page);
     const panelen = new PanelenPage(page);
 
@@ -305,13 +308,17 @@ test.describe('mobiele paneel-editor', () => {
     await expect(page.getByTestId('paneel-stap-intro-compact')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Wandenoverzicht' })).toHaveCount(0);
 
-    const actieveWerkruimte = page.getByTestId('paneel-actieve-wand-werkruimte');
+    const visualisatie = page.getByTestId('paneel-werkbank-visualisatie');
+    const overzicht = page.getByTestId('paneel-review-overzicht');
     const terminologieBlok = page.getByTestId('paneel-terminologie-blok');
-    const werkruimteBox = await actieveWerkruimte.boundingBox();
+    const visualisatieBox = await visualisatie.boundingBox();
+    const overzichtBox = await overzicht.boundingBox();
     const terminologieBox = await terminologieBlok.boundingBox();
 
-    expect(werkruimteBox).not.toBeNull();
+    expect(visualisatieBox).not.toBeNull();
+    expect(overzichtBox).not.toBeNull();
     expect(terminologieBox).not.toBeNull();
-    expect(terminologieBox!.y).toBeGreaterThan(werkruimteBox!.y + werkruimteBox!.height - 1);
+    expect(overzichtBox!.y).toBeGreaterThan(visualisatieBox!.y + visualisatieBox!.height - 1);
+    expect(terminologieBox!.y).toBeGreaterThan(overzichtBox!.y + overzichtBox!.height - 1);
   });
 });

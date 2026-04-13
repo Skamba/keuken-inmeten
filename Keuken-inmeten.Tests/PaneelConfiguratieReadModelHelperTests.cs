@@ -21,20 +21,19 @@ public class PaneelConfiguratieReadModelHelperTests
                 MaakReviewGroep(wandA.Wand, aantalPanelen: 1),
                 MaakReviewGroep(wandB.Wand, aantalPanelen: 2)
             ],
-            paneelTypeTellingen: [new OverzichtGroeperingHelper.Telling("Front", 3)],
             toewijzingenAantal: 3,
             geopendeWandId: wandB.Wand.Id,
-            isReviewWeergaveActief: false,
             toonEditorDrawer: false,
             paneelRandSpeling: 3,
             paneelEditorStatus: MaakEditorStatus());
 
         Assert.True(model.ToonCompacteStapIntro);
         Assert.NotNull(model.ActieveWerkruimte);
+        Assert.NotNull(model.ActieveReviewGroep);
         Assert.Equal("Rechterwand", model.ActieveWerkruimte!.Samenvatting.Werkruimte.Wand.Naam);
+        Assert.Equal("Rechterwand", model.ActieveReviewGroep!.WandNaam);
         Assert.Single(model.OverzichtWanden);
         Assert.Equal("Linkerwand", model.OverzichtWanden[0].Werkruimte.Wand.Naam);
-        Assert.Equal("Rechterwand", model.ReviewGroepen[0].WandNaam);
     }
 
     [Fact]
@@ -46,10 +45,8 @@ public class PaneelConfiguratieReadModelHelperTests
             routeGate: null,
             wandWerkruimtes: [wand],
             paneelReviewGroepen: [],
-            paneelTypeTellingen: [],
             toewijzingenAantal: 0,
             geopendeWandId: null,
-            isReviewWeergaveActief: false,
             toonEditorDrawer: false,
             paneelRandSpeling: 3,
             paneelEditorStatus: MaakEditorStatus());
@@ -66,7 +63,7 @@ public class PaneelConfiguratieReadModelHelperTests
     }
 
     [Fact]
-    public void BouwPaginaModel_maakt_compacte_tabs_en_actieve_werkruimte_status()
+    public void BouwPaginaModel_maakt_werklaag_samenvatting_en_actieve_werkruimte_status()
     {
         var wand = MaakWerkruimte("Achterwand", aantalKasten: 2, aantalPanelen: 2);
         var status = MaakEditorStatus(
@@ -76,37 +73,36 @@ public class PaneelConfiguratieReadModelHelperTests
         var editorOpen = PaneelConfiguratieReadModelHelper.BouwPaginaModel(
             routeGate: null,
             wandWerkruimtes: [wand],
-            paneelReviewGroepen: [],
-            paneelTypeTellingen: [],
+            paneelReviewGroepen: [MaakReviewGroep(wand.Wand, aantalPanelen: 2)],
             toewijzingenAantal: 2,
             geopendeWandId: wand.Wand.Id,
-            isReviewWeergaveActief: false,
             toonEditorDrawer: true,
             paneelRandSpeling: 3,
             paneelEditorStatus: status);
         var editorGesloten = PaneelConfiguratieReadModelHelper.BouwPaginaModel(
             routeGate: null,
             wandWerkruimtes: [wand],
-            paneelReviewGroepen: [],
-            paneelTypeTellingen: [],
+            paneelReviewGroepen: [MaakReviewGroep(wand.Wand, aantalPanelen: 2)],
             toewijzingenAantal: 2,
             geopendeWandId: wand.Wand.Id,
-            isReviewWeergaveActief: false,
             toonEditorDrawer: false,
             paneelRandSpeling: 4,
             paneelEditorStatus: status);
 
-        Assert.True(editorOpen.ToonCompacteWeergaveTabs);
-        Assert.True(editorOpen.WeergaveTabs.IsCompact);
-        Assert.Equal("Editor open voor Achterwand", editorOpen.WeergaveTabs.Titel);
-        Assert.Equal(["2 paneel/panelen klaar"], editorOpen.WeergaveTabs.MetaItems);
+        Assert.Equal("Panelen voor Achterwand", editorOpen.WerklaagSamenvatting.Titel);
+        Assert.Equal(
+            ["Actief: Achterwand", "2 paneel/panelen op deze wand", "Editor open"],
+            editorOpen.WerklaagSamenvatting.MetaItems);
         Assert.Null(editorOpen.ActieveWerkruimte!.WerkruimteStatus);
+        Assert.NotNull(editorOpen.ActieveReviewGroep);
 
-        Assert.False(editorGesloten.ToonCompacteWeergaveTabs);
         Assert.True(editorGesloten.ToonUitgeklapteProjectinstellingen);
         Assert.NotNull(editorGesloten.ActieveWerkruimte!.WerkruimteStatus);
         Assert.Equal("Controleer paneelmaat", editorGesloten.ActieveWerkruimte.WerkruimteStatus!.Titel);
         Assert.Equal("Editor gesloten", editorGesloten.ActieveWerkruimte.MetaItems[^1]);
+        Assert.Equal(
+            "Plaats of controleer panelen voor deze wand zonder van weergave te wisselen.",
+            editorGesloten.WerklaagSamenvatting.Beschrijving);
     }
 
     private static PaneelWerkruimteContext MaakWerkruimte(string wandNaam, int aantalKasten, int aantalPanelen)

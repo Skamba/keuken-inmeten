@@ -69,17 +69,6 @@ public partial class PaneelConfiguratie
         ResetPaneelInvoer(wisSelectie: true);
     }
 
-    private void ActiveerEditorWeergave() => reviewWeergaveActief = false;
-
-    private void ActiveerReviewWeergave()
-    {
-        if (State.Toewijzingen.Count == 0)
-            return;
-
-        reviewWeergaveActief = true;
-        SluitPaneelWerklaag();
-    }
-
     private void OpenEditorDrawer()
     {
         if (geopendeWandId is not null)

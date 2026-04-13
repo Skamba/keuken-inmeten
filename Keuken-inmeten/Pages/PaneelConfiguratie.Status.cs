@@ -23,7 +23,6 @@ public partial class PaneelConfiguratie
 
     private void ActiveerPaneelWerkruimte(Guid? wandId, bool toonEditor = false)
     {
-        reviewWeergaveActief = false;
         geopendeWandId = wandId;
         toonEditorDrawer = toonEditor;
     }

@@ -43,70 +43,30 @@
 }
 else
 {
-    <div class="paneel-pagina-shell @((pagina.ToonEditorDrawer && !pagina.IsReviewWeergaveActief) ? "editor-open" : null)">
-        <div class="border rounded p-3 mb-4 bg-body-tertiary paneel-weergave-tabs @(geopendeWand is not null ? "paneel-weergave-tabs--compact" : null) @(pagina.ToonCompacteWeergaveTabs ? "paneel-weergave-tabs--editor-open" : null)" data-testid="paneel-weergave-tabs">
-            @if (pagina.WeergaveTabs.IsCompact)
-            {
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                    <div>
-                        <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Werklaag</div>
-                        <div class="fw-semibold">@pagina.WeergaveTabs.Titel</div>
-                        @if (!string.IsNullOrWhiteSpace(pagina.WeergaveTabs.Beschrijving))
-                        {
-                            <div class="small text-muted">@pagina.WeergaveTabs.Beschrijving</div>
-                        }
-                    </div>
-                    @if (pagina.WeergaveTabs.MetaItems.Count > 0)
+    <div class="paneel-pagina-shell @(pagina.ToonEditorDrawer ? "editor-open" : null)">
+        <div class="border rounded p-3 mb-4 bg-body-tertiary paneel-werklaag-samenvatting"
+             data-testid="paneel-werklaag-samenvatting">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                <div>
+                    <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Werklaag</div>
+                    <div class="fw-semibold">@pagina.WerklaagSamenvatting.Titel</div>
+                    @if (!string.IsNullOrWhiteSpace(pagina.WerklaagSamenvatting.Beschrijving))
                     {
-                        <div class="stap-meta-list paneel-weergave-meta-list">
-                            @foreach (var item in pagina.WeergaveTabs.MetaItems)
-                            {
-                                <span>@item</span>
-                            }
+                        <div class="small text-muted">
+                            @pagina.WerklaagSamenvatting.Beschrijving
                         </div>
                     }
                 </div>
-            }
-            else
-            {
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-                    <div>
-                        <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Weergave</div>
-                        <div class="fw-semibold">@pagina.WeergaveTabs.Titel</div>
-                        @if (!string.IsNullOrWhiteSpace(pagina.WeergaveTabs.Beschrijving))
-                        {
-                            <div class="small text-muted">
-                                @pagina.WeergaveTabs.Beschrijving
-                            </div>
-                        }
-                    </div>
+                @if (pagina.WerklaagSamenvatting.MetaItems.Count > 0)
+                {
                     <div class="stap-meta-list paneel-weergave-meta-list">
-                        @foreach (var item in pagina.WeergaveTabs.MetaItems)
+                        @foreach (var item in pagina.WerklaagSamenvatting.MetaItems)
                         {
                             <span>@item</span>
                         }
                     </div>
-                </div>
-            }
-            <ul class="nav nav-pills nav-fill flex-wrap @(pagina.ToonCompacteWeergaveTabs ? "mt-2" : "mt-3")">
-                <li class="nav-item">
-                    <button type="button"
-                            class="nav-link @(!pagina.IsReviewWeergaveActief ? "active" : "")"
-                            @onclick="ActiveerEditorWeergave"
-                            data-testid="paneel-editor-weergave-tab">
-                        <span class="fw-semibold">Editor</span>
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button type="button"
-                            class="nav-link @(pagina.IsReviewWeergaveActief ? "active" : "")"
-                            @onclick="ActiveerReviewWeergave"
-                            disabled="@(!pagina.ReviewBeschikbaar)"
-                            data-testid="paneel-review-weergave-tab">
-                        <span class="fw-semibold">Overzicht</span>
-                    </button>
-                </li>
-            </ul>
+                }
+            </div>
         </div>
 
         <details class="indeling-overige-wanden paneel-projectinstellingen mb-4"
@@ -147,191 +107,189 @@ else
             </div>
         </details>
 
-        @if (!pagina.IsReviewWeergaveActief)
-        {
-            <div data-testid="paneel-editor-weergave">
-                @if (geopendeWand is null)
-                {
-                    <div class="mb-3">
-                        <div>
-                            <h5 class="mb-1">Wandenoverzicht</h5>
-                            <p class="text-muted mb-0">Open één wand om panelen te plaatsen of te bewerken.</p>
-                        </div>
+        <div data-testid="paneel-editor-weergave">
+            @if (geopendeWand is null)
+            {
+                <div class="mb-3">
+                    <div>
+                        <h5 class="mb-1">Wandenoverzicht</h5>
+                        <p class="text-muted mb-0">Open één wand om panelen te plaatsen of te bewerken.</p>
                     </div>
+                </div>
 
-                    <div class="row g-3 mb-4">
+                <div class="row g-3 mb-4">
+                    @foreach (var wand in pagina.OverzichtWanden)
+                    {
+                        <div class="col-xl-6"
+                             @key="wand.Werkruimte.Wand.Id">
+                            <IndelingWandKaart WandId="wand.Werkruimte.Wand.Id"
+                                               WandNaam="@wand.Werkruimte.Wand.Naam"
+                                               DataTestId="paneel-wand-card"
+                                               KnopDataTestId="open-paneel-wand-button"
+                                               KnopLabel="@wand.OverzichtKnopLabel"
+                                               KnopClass="@wand.OverzichtKnopClass"
+                                               KnopUitgeschakeld="@wand.OverzichtKnopUitgeschakeld"
+                                               MetaClass="stap-meta-list"
+                                               IsActief="@wand.IsActief"
+                                               Badges="@wand.OverzichtBadges"
+                                               MetaItems="@wand.OverzichtMetaItems"
+                                               Beschrijving="@wand.OverzichtBeschrijving"
+                                               OnOpenen="@(() => ToggleWandWerkruimte(wand.Werkruimte.Wand.Id))">
+                            </IndelingWandKaart>
+                        </div>
+                    }
+                </div>
+            }
+            else if (pagina.OverzichtWanden.Count > 0)
+            {
+                <IndelingDetailsBlok Titel="Andere wanden"
+                                     Beschrijving="Verborgen zodat de actieve werkruimte rustiger blijft."
+                                     BadgeText="@($"{pagina.OverzichtWanden.Count} wand(en) direct beschikbaar")"
+                                     DetailsClass="indeling-overige-wanden paneel-overige-wanden-details mb-4"
+                                     DetailsDataTestId="paneel-overige-wanden-details"
+                                     SummaryDataTestId="paneel-overige-wanden-summary">
+                    <div class="indeling-overige-wanden-lijst">
                         @foreach (var wand in pagina.OverzichtWanden)
                         {
-                            <div class="col-xl-6"
-                                 @key="wand.Werkruimte.Wand.Id">
-                                <IndelingWandKaart WandId="wand.Werkruimte.Wand.Id"
-                                                   WandNaam="@wand.Werkruimte.Wand.Naam"
-                                                   DataTestId="paneel-wand-card"
-                                                   KnopDataTestId="open-paneel-wand-button"
-                                                   KnopLabel="@wand.OverzichtKnopLabel"
-                                                   KnopClass="@wand.OverzichtKnopClass"
-                                                   KnopUitgeschakeld="@wand.OverzichtKnopUitgeschakeld"
-                                                   MetaClass="stap-meta-list"
-                                                   IsActief="@wand.IsActief"
-                                                   Badges="@wand.OverzichtBadges"
-                                                   MetaItems="@wand.OverzichtMetaItems"
-                                                   Beschrijving="@wand.OverzichtBeschrijving"
-                                                   OnOpenen="@(() => ToggleWandWerkruimte(wand.Werkruimte.Wand.Id))">
-                                </IndelingWandKaart>
-                            </div>
+                            <IndelingWandSchakelaar WandId="wand.Werkruimte.Wand.Id"
+                                                    WandNaam="@wand.Werkruimte.Wand.Naam"
+                                                    DataTestId="paneel-wand-card"
+                                                    KnopDataTestId="open-paneel-wand-button"
+                                                    KnopLabel="@wand.SchakelaarKnopLabel"
+                                                    KnopUitgeschakeld="@wand.SchakelaarKnopUitgeschakeld"
+                                                    MetaClass="stap-meta-list"
+                                                    MetaItems="@wand.SchakelaarMetaItems"
+                                                    Beschrijving="@wand.SchakelaarBeschrijving"
+                                                    OnOpenen="@(() => ToggleWandWerkruimte(wand.Werkruimte.Wand.Id))"
+                                                    @key="wand.Werkruimte.Wand.Id">
+                            </IndelingWandSchakelaar>
                         }
                     </div>
-                }
-                else if (pagina.OverzichtWanden.Count > 0)
-                {
-                    <IndelingDetailsBlok Titel="Andere wanden"
-                                         Beschrijving="Verborgen zodat de actieve werkruimte rustiger blijft."
-                                         BadgeText="@($"{pagina.OverzichtWanden.Count} wand(en) direct beschikbaar")"
-                                         DetailsClass="indeling-overige-wanden paneel-overige-wanden-details mb-4"
-                                         DetailsDataTestId="paneel-overige-wanden-details"
-                                         SummaryDataTestId="paneel-overige-wanden-summary">
-                        <div class="indeling-overige-wanden-lijst">
-                            @foreach (var wand in pagina.OverzichtWanden)
-                            {
-                                <IndelingWandSchakelaar WandId="wand.Werkruimte.Wand.Id"
-                                                        WandNaam="@wand.Werkruimte.Wand.Naam"
-                                                        DataTestId="paneel-wand-card"
-                                                        KnopDataTestId="open-paneel-wand-button"
-                                                        KnopLabel="@wand.SchakelaarKnopLabel"
-                                                        KnopUitgeschakeld="@wand.SchakelaarKnopUitgeschakeld"
-                                                        MetaClass="stap-meta-list"
-                                                        MetaItems="@wand.SchakelaarMetaItems"
-                                                        Beschrijving="@wand.SchakelaarBeschrijving"
-                                                        OnOpenen="@(() => ToggleWandWerkruimte(wand.Werkruimte.Wand.Id))"
-                                                        @key="wand.Werkruimte.Wand.Id">
-                                </IndelingWandSchakelaar>
-                            }
-                        </div>
-                    </IndelingDetailsBlok>
-                }
+                </IndelingDetailsBlok>
+            }
 
-                @if (actieveWerkruimte is not null && geopendeWerkruimte is not null && geopendeWand is not null)
-                {
-                    var geopendeWandKasten = geopendeWerkruimte.Kasten;
-                    var geopendeWandApparaten = geopendeWerkruimte.Apparaten;
-                    var geopendeWandPanelen = geopendeWerkruimte.Toewijzingen;
+            @if (actieveWerkruimte is not null && geopendeWerkruimte is not null && geopendeWand is not null)
+            {
+                var geopendeWandKasten = geopendeWerkruimte.Kasten;
+                var geopendeWandApparaten = geopendeWerkruimte.Apparaten;
+                var geopendeWandPanelen = geopendeWerkruimte.Toewijzingen;
 
-                    <div class="card border-0 shadow-sm mb-4 indeling-actieve-werkruimte paneel-actieve-werkruimte"
-                         data-testid="paneel-actieve-wand-werkruimte"
-                         data-wand-id="@geopendeWand.Id"
-                         data-wand-naam="@geopendeWand.Naam">
-                        <div class="card-body">
-                            <div class="indeling-workspace-header paneel-workspace-header mb-3">
-                                <button type="button"
-                                        class="btn btn-link p-0 text-start text-body text-decoration-none"
-                                        @onclick="() => ToggleWandWerkruimte(geopendeWand.Id)"
-                                        data-testid="toggle-paneel-actieve-wand-button"
-                                        data-wand-id="@geopendeWand.Id"
-                                        data-wand-naam="@geopendeWand.Naam">
-                                    <span class="indeling-workspace-kicker d-block">Actieve wand</span>
-                                    <span class="h5 d-block mb-1 text-body">@geopendeWand.Naam</span>
-                                    <span class="stap-meta-list">
-                                        @foreach (var item in actieveWerkruimte.MetaItems)
-                                        {
-                                            <span>@item</span>
-                                        }
-                                    </span>
-                                </button>
-                                <div class="d-flex flex-wrap align-items-center justify-content-sm-end gap-2">
-                                    @if (!pagina.ToonEditorDrawer)
+                <div class="card border-0 shadow-sm mb-4 indeling-actieve-werkruimte paneel-actieve-wand-werkruimte"
+                     data-testid="paneel-actieve-wand-werkruimte"
+                     data-wand-id="@geopendeWand.Id"
+                     data-wand-naam="@geopendeWand.Naam">
+                    <div class="card-body">
+                        <div class="indeling-workspace-header paneel-workspace-header mb-3">
+                            <button type="button"
+                                    class="btn btn-link p-0 text-start text-body text-decoration-none"
+                                    @onclick="() => ToggleWandWerkruimte(geopendeWand.Id)"
+                                    data-testid="toggle-paneel-actieve-wand-button"
+                                    data-wand-id="@geopendeWand.Id"
+                                    data-wand-naam="@geopendeWand.Naam">
+                                <span class="indeling-workspace-kicker d-block">Actieve wand</span>
+                                <span class="h5 d-block mb-1 text-body">@geopendeWand.Naam</span>
+                                <span class="stap-meta-list">
+                                    @foreach (var item in actieveWerkruimte.MetaItems)
                                     {
-                                        <button type="button"
-                                            class="btn btn-sm btn-primary"
-                                            @onclick="OpenEditorDrawer"
-                                            data-testid="open-paneel-editor-button">
-                                            @paneelEditorStatus.OpenEditorKnopLabel
-                                        </button>
+                                        <span>@item</span>
                                     }
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="SluitWandWerkruimte">
-                                        Werkruimte sluiten
+                                </span>
+                            </button>
+                            <div class="d-flex flex-wrap align-items-center justify-content-sm-end gap-2">
+                                @if (!pagina.ToonEditorDrawer)
+                                {
+                                    <button type="button"
+                                        class="btn btn-sm btn-primary"
+                                        @onclick="OpenEditorDrawer"
+                                        data-testid="open-paneel-editor-button">
+                                        @paneelEditorStatus.OpenEditorKnopLabel
                                     </button>
+                                }
+                                <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="SluitWandWerkruimte">
+                                    Werkruimte sluiten
+                                </button>
+                            </div>
+                        </div>
+
+                        @if (actieveWerkruimte.WerkruimteStatus is { } werkruimteStatus)
+                        {
+                            <div class="paneel-werkruimte-status border rounded p-3 mb-3 bg-body-tertiary">
+                                <div>
+                                    <div class="small text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">@werkruimteStatus.Kicker</div>
+                                    <div class="fw-semibold mb-1">@werkruimteStatus.Titel</div>
+                                    <div class="small text-muted">@werkruimteStatus.Beschrijving</div>
                                 </div>
                             </div>
+                        }
 
-                            @if (actieveWerkruimte.WerkruimteStatus is { } werkruimteStatus)
-                            {
-                                <div class="paneel-werkruimte-status border rounded p-3 mb-3 bg-body-tertiary">
-                                    <div>
-                                        <div class="small text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">@werkruimteStatus.Kicker</div>
-                                        <div class="fw-semibold mb-1">@werkruimteStatus.Titel</div>
-                                        <div class="small text-muted">@werkruimteStatus.Beschrijving</div>
-                                    </div>
+                        <div class="row g-3 align-items-start paneel-werkbank-layout">
+                            <div class="col-12 col-xl-7 col-xxl-8">
+                                <div class="paneel-overzicht-scroll border rounded"
+                                     data-testid="paneel-werkbank-visualisatie">
+                                    <PaneelPlaatsEditor Kasten="@geopendeWandKasten"
+                                                        Apparaten="@geopendeWandApparaten"
+                                                        WandHoogte="@geopendeWand.Hoogte"
+                                                        WandBreedte="@geopendeWand.Breedte"
+                                                        PlintHoogte="@geopendeWand.PlintHoogte"
+                                                        TotaleRandSpeling="@State.PaneelRandSpeling"
+                                                        GeselecteerdeKastIds="@geselecteerdeKastIds"
+                                                        SvgMaxHoogte="65vh"
+                                                        BeperkTotContainerBreedte="true"
+                                                        Toewijzingen="@geopendeWandPanelen"
+                                                        VrijeSegmenten="@selectieContext.VrijeSegmenten"
+                                                        ConceptPaneel="@conceptPaneel"
+                                                        ConceptPaneelType="@formToewijzing.Type"
+                                                        ConceptPaneelScharnierZijde="@formToewijzing.ScharnierZijde"
+                                                        OnKastGeselecteerd="ToggleKast"
+                                                        OnConceptPaneelGewijzigd="VerwerkConceptPaneel" />
                                 </div>
-                            }
 
-                            <div class="paneel-overzicht-scroll border rounded">
-                                <PaneelPlaatsEditor Kasten="@geopendeWandKasten"
-                                                    Apparaten="@geopendeWandApparaten"
-                                                    WandHoogte="@geopendeWand.Hoogte"
-                                                    WandBreedte="@geopendeWand.Breedte"
-                                                    PlintHoogte="@geopendeWand.PlintHoogte"
-                                                    TotaleRandSpeling="@State.PaneelRandSpeling"
-                                                    GeselecteerdeKastIds="@geselecteerdeKastIds"
-                                                    SvgMaxHoogte="65vh"
-                                                    BeperkTotContainerBreedte="true"
-                                                    Toewijzingen="@geopendeWandPanelen"
-                                                    VrijeSegmenten="@selectieContext.VrijeSegmenten"
-                                                    ConceptPaneel="@conceptPaneel"
-                                                    ConceptPaneelType="@formToewijzing.Type"
-                                                    ConceptPaneelScharnierZijde="@formToewijzing.ScharnierZijde"
-                                                    OnKastGeselecteerd="ToggleKast"
-                                                    OnConceptPaneelGewijzigd="VerwerkConceptPaneel" />
-                            </div>
-
-                            @if (selectieContext.HeeftSelectie && !pagina.ToonEditorDrawer)
-                            {
-                                <div class="paneel-selectie-strip mt-3">
-                                    <div class="small text-muted">Uw selectie staat klaar. Open of houd de editor open om plaatsing, maat en opslaan af te ronden.</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <button type="button" class="btn btn-sm btn-link text-secondary p-0" @onclick="DeselecteerAlles">
-                                            Alles deselecteren ×
-                                        </button>
-                                        @if (!pagina.ToonEditorDrawer)
-                                        {
-                                            <button type="button"
-                                                    class="btn btn-outline-primary btn-sm"
-                                                    @onclick="OpenEditorDrawer"
-                                                    data-testid="open-paneel-editor-button-secondary">
-                                                @paneelEditorStatus.OpenEditorKnopLabel
+                                @if (selectieContext.HeeftSelectie && !pagina.ToonEditorDrawer)
+                                {
+                                    <div class="paneel-selectie-strip mt-3">
+                                        <div class="small text-muted">Uw selectie staat klaar. Open of houd de editor open om plaatsing, maat en opslaan af te ronden.</div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button type="button" class="btn btn-sm btn-link text-secondary p-0" @onclick="DeselecteerAlles">
+                                                Alles deselecteren ×
                                             </button>
-                                        }
+                                            @if (!pagina.ToonEditorDrawer)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-outline-primary btn-sm"
+                                                        @onclick="OpenEditorDrawer"
+                                                        data-testid="open-paneel-editor-button-secondary">
+                                                    @paneelEditorStatus.OpenEditorKnopLabel
+                                                </button>
+                                            }
+                                        </div>
                                     </div>
-                                </div>
-                            }
+                                }
+                            </div>
+                            <div class="col-12 col-xl-5 col-xxl-4">
+                                <PaneelReviewOverzicht Groep="@pagina.ActieveReviewGroep"
+                                                       GeopendeWandNaam="@geopendeWand.Naam"
+                                                       ProjectToewijzingenAantal="@pagina.ToewijzingenAantal"
+                                                       BewerkToewijzingId="@bewerkToewijzingId"
+                                                       OnBewerkPaneel="BewerkPaneel"
+                                                       OnVerwijderPaneel="VerwijderPaneel" />
+                            </div>
                         </div>
                     </div>
-                }
+                </div>
+            }
 
-                @if (pagina.ToonCompacteStapIntro)
-                {
-                    <div class="mt-3" data-testid="paneel-terminologie-blok">
-                        <TerminologieUitleg Titel="Paneeltermen in gewone taal"
-                                            Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde,scharnierpot,pothart"
-                                            Beschrijving="Open alleen als u tijdens het plaatsen nog een term wilt opfrissen." />
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <PaneelReviewOverzicht ToewijzingenAantal="@pagina.ToewijzingenAantal"
-                                   Groepen="@pagina.ReviewGroepen"
-                                   PaneelTypeTellingen="@pagina.PaneelTypeTellingen"
-                                   ActieveWandId="@geopendeWand?.Id"
-                                   BewerkToewijzingId="@bewerkToewijzingId"
-                                   GeopendeWandNaam="@geopendeWand?.Naam"
-                                   OnTerugNaarEditor="ActiveerEditorWeergave"
-                                   OnBewerkPaneel="BewerkPaneel"
-                                   OnVerwijderPaneel="VerwijderPaneel" />
-        }
+            @if (pagina.ToonCompacteStapIntro)
+            {
+                <div class="mt-3" data-testid="paneel-terminologie-blok">
+                    <TerminologieUitleg Titel="Paneeltermen in gewone taal"
+                                        Sleutels="openingsmaat,werkmaat,randspeling,scharnierzijde,scharnierpot,pothart"
+                                        Beschrijving="Open alleen als u tijdens het plaatsen nog een term wilt opfrissen." />
+                </div>
+            }
+        </div>
     </div>
 
-    @if (geopendeWand is not null && pagina.ToonEditorDrawer && !pagina.IsReviewWeergaveActief)
+    @if (geopendeWand is not null && pagina.ToonEditorDrawer)
     {
         var conceptMaatInfo = BerekenConceptMaatInfo();
         <PaneelEditorDrawer Status="@paneelEditorStatus"

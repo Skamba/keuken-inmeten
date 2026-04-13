@@ -17,10 +17,8 @@ public partial class PaneelConfiguratie
                 routeGate: StappenFlowHelper.BepaalRouteGate("panelen", StappenFlowHelper.BepaalStatus(State)),
                 wandWerkruimtes: State.LeesPaneelWerkruimtes(bewerkToewijzingId),
                 paneelReviewGroepen: OverzichtGroeperingHelper.GroepeerPaneelToewijzingen(State),
-                paneelTypeTellingen: OverzichtGroeperingHelper.MaakTellingen(State.Toewijzingen, toewijzing => TypeNaam(toewijzing.Type)),
                 toewijzingenAantal: State.Toewijzingen.Count,
                 geopendeWandId: geopendeWandId,
-                isReviewWeergaveActief: IsReviewWeergaveActief,
                 toonEditorDrawer: toonEditorDrawer,
                 paneelRandSpeling: State.PaneelRandSpeling,
                 paneelEditorStatus: paneelEditorStatus);
@@ -34,15 +32,12 @@ public static class PaneelConfiguratieReadModelHelper
         StapRouteGate? routeGate,
         IReadOnlyList<PaneelWerkruimteContext> wandWerkruimtes,
         IReadOnlyList<OverzichtGroeperingHelper.PaneelReviewGroep> paneelReviewGroepen,
-        IReadOnlyList<OverzichtGroeperingHelper.Telling> paneelTypeTellingen,
         int toewijzingenAantal,
         Guid? geopendeWandId,
-        bool isReviewWeergaveActief,
         bool toonEditorDrawer,
         double paneelRandSpeling,
         PaneelEditorStatusModel paneelEditorStatus)
     {
-        var reviewBeschikbaar = toewijzingenAantal > 0;
         var wandSamenvattingen = wandWerkruimtes
             .Select(werkruimte => BouwWandSamenvatting(werkruimte, geopendeWandId))
             .ToList();
@@ -58,45 +53,32 @@ public static class PaneelConfiguratieReadModelHelper
         var actieveWerkruimte = actieveWandSamenvatting is null
             ? null
             : BouwActieveWerkruimteModel(actieveWandSamenvatting, toonEditorDrawer, paneelEditorStatus);
-        var toonCompacteStapIntro = routeGate is null && actieveWerkruimte is not null && !isReviewWeergaveActief;
-        var toonCompacteWeergaveTabs = toonEditorDrawer && !isReviewWeergaveActief && actieveWerkruimte is not null;
+        var actieveReviewGroep = actieveWerkruimte is null
+            ? null
+            : paneelReviewGroepen.FirstOrDefault(groep => groep.WandId == actieveWerkruimte.Samenvatting.Werkruimte.Wand.Id);
+        var toonCompacteStapIntro = routeGate is null && actieveWerkruimte is not null;
 
         return new(
             RouteGate: routeGate,
             ToewijzingenAantal: toewijzingenAantal,
-            IsReviewWeergaveActief: isReviewWeergaveActief,
             ToonEditorDrawer: toonEditorDrawer,
-            ReviewBeschikbaar: reviewBeschikbaar,
             ToonCompacteStapIntro: toonCompacteStapIntro,
-            ToonCompacteWeergaveTabs: toonCompacteWeergaveTabs,
             ToonUitgeklapteProjectinstellingen: Math.Abs(paneelRandSpeling - 3) > 0.001,
-            Kop: BouwKopModel(routeGate, isReviewWeergaveActief, actieveWerkruimte),
-            WeergaveTabs: BouwWeergaveTabsModel(
+            Kop: BouwKopModel(routeGate, actieveWerkruimte),
+            WerklaagSamenvatting: BouwWerklaagSamenvattingModel(
                 actieveWerkruimte,
-                isReviewWeergaveActief,
-                reviewBeschikbaar,
                 toewijzingenAantal,
-                toonEditorDrawer,
-                toonCompacteWeergaveTabs),
+                toonEditorDrawer),
             PaneelEditorStatus: paneelEditorStatus,
             OverzichtWanden: overzichtWanden,
             ActieveWerkruimte: actieveWerkruimte,
-            ReviewGroepen: RangschikPaneelReviewGroepen(paneelReviewGroepen, actieveWerkruimte?.Samenvatting.Werkruimte.Wand.Id),
-            PaneelTypeTellingen: paneelTypeTellingen);
+            ActieveReviewGroep: actieveReviewGroep);
     }
 
     private static PaneelPaginaKopModel BouwKopModel(
         StapRouteGate? routeGate,
-        bool isReviewWeergaveActief,
         PaneelActieveWerkruimteModel? actieveWerkruimte)
     {
-        if (routeGate is null && isReviewWeergaveActief)
-        {
-            return new(
-                LeadTekst: "Loop aantallen, maten en acties per wand rustig na. Ga alleen terug naar de editor als u opnieuw wilt plaatsen of bewerken.",
-                CompactBlok: null);
-        }
-
         if (routeGate is null && actieveWerkruimte is not null)
         {
             return new(
@@ -108,56 +90,32 @@ public static class PaneelConfiguratieReadModelHelper
         }
 
         return new(
-            LeadTekst: "Open één wand en plaats daarna panelen in de editor. Het overzicht wordt pas nuttig zodra er panelen zijn.",
+            LeadTekst: "Open één wand en plaats of controleer daarna panelen in één werklaag.",
             CompactBlok: null);
     }
 
-    private static PaneelWeergaveTabsModel BouwWeergaveTabsModel(
+    private static PaneelWerklaagSamenvattingModel BouwWerklaagSamenvattingModel(
         PaneelActieveWerkruimteModel? actieveWerkruimte,
-        bool isReviewWeergaveActief,
-        bool reviewBeschikbaar,
         int toewijzingenAantal,
-        bool toonEditorDrawer,
-        bool toonCompacteWeergaveTabs)
+        bool toonEditorDrawer)
     {
-        if (toonCompacteWeergaveTabs)
-        {
-            return new(
-                IsCompact: true,
-                Titel: $"Editor open voor {actieveWerkruimte?.Samenvatting.Werkruimte.Wand.Naam ?? "Paneel-editor"}",
-                Beschrijving: "Rond selectie, maat en opslaan af zonder extra schermwissels.",
-                MetaItems: reviewBeschikbaar
-                    ? [$"{toewijzingenAantal} paneel/panelen klaar"]
-                    : []);
-        }
-
         var metaItems = new List<string>();
-        if (actieveWerkruimte is not null && !isReviewWeergaveActief)
+        if (actieveWerkruimte is not null)
         {
             metaItems.Add($"Actief: {actieveWerkruimte.Samenvatting.Werkruimte.Wand.Naam}");
+            metaItems.Add($"{actieveWerkruimte.Samenvatting.Werkruimte.Toewijzingen.Count} paneel/panelen op deze wand");
             metaItems.Add(toonEditorDrawer ? "Editor open" : "Editor gesloten");
         }
 
-        if (reviewBeschikbaar)
-            metaItems.Add($"{toewijzingenAantal} paneel/panelen");
-
-        var titel = isReviewWeergaveActief
-            ? "Overzicht van toegewezen panelen"
-            : actieveWerkruimte is null
-                ? "Open eerst één wand"
-                : $"Editor — {actieveWerkruimte.Samenvatting.Werkruimte.Wand.Naam}";
-        string? beschrijving = isReviewWeergaveActief
-            ? "Controleer hier aantallen, maten en acties zonder het canvas erboven."
-            : actieveWerkruimte is not null
-                ? toonEditorDrawer
-                    ? "De editor staat open. Rond selectie, maat en opslaan in één werklaag af."
-                    : "Werk op één wand tegelijk en open de editor zodra uw selectie klaarstaat."
-                : null;
-
         return new(
-            IsCompact: false,
-            Titel: titel,
-            Beschrijving: beschrijving,
+            Titel: actieveWerkruimte is null
+                ? "Open eerst één wand"
+                : $"Panelen voor {actieveWerkruimte.Samenvatting.Werkruimte.Wand.Naam}",
+            Beschrijving: actieveWerkruimte is null
+                ? "Daarna staan editor en overzicht samen in één werklaag."
+                : toonEditorDrawer
+                    ? "De editor staat open. Controleer panelen voor deze wand direct ernaast."
+                    : "Plaats of controleer panelen voor deze wand zonder van weergave te wisselen.",
             MetaItems: metaItems);
     }
 
@@ -237,17 +195,6 @@ public static class PaneelConfiguratieReadModelHelper
             SchakelaarKnopUitgeschakeld: aantalKasten == 0);
     }
 
-    private static IReadOnlyList<OverzichtGroeperingHelper.PaneelReviewGroep> RangschikPaneelReviewGroepen(
-        IReadOnlyList<OverzichtGroeperingHelper.PaneelReviewGroep> paneelReviewGroepen,
-        Guid? geopendeWandId)
-        => geopendeWandId is null
-            ? paneelReviewGroepen
-            : paneelReviewGroepen
-                .OrderBy(groep => groep.WandId == geopendeWandId ? 0 : 1)
-                .ThenBy(groep => groep.WandNaam, StringComparer.CurrentCultureIgnoreCase)
-                .ThenBy(groep => groep.WandId?.ToString("N"), StringComparer.Ordinal)
-                .ToList();
-
     private static string FormatMaat(double value)
         => value.ToString("0.#", CultureInfo.CurrentCulture);
 }
@@ -255,19 +202,15 @@ public static class PaneelConfiguratieReadModelHelper
 public sealed record PaneelConfiguratiePaginaModel(
     StapRouteGate? RouteGate,
     int ToewijzingenAantal,
-    bool IsReviewWeergaveActief,
     bool ToonEditorDrawer,
-    bool ReviewBeschikbaar,
     bool ToonCompacteStapIntro,
-    bool ToonCompacteWeergaveTabs,
     bool ToonUitgeklapteProjectinstellingen,
     PaneelPaginaKopModel Kop,
-    PaneelWeergaveTabsModel WeergaveTabs,
+    PaneelWerklaagSamenvattingModel WerklaagSamenvatting,
     PaneelEditorStatusModel PaneelEditorStatus,
     IReadOnlyList<PaneelWandSamenvatting> OverzichtWanden,
     PaneelActieveWerkruimteModel? ActieveWerkruimte,
-    IReadOnlyList<OverzichtGroeperingHelper.PaneelReviewGroep> ReviewGroepen,
-    IReadOnlyList<OverzichtGroeperingHelper.Telling> PaneelTypeTellingen);
+    OverzichtGroeperingHelper.PaneelReviewGroep? ActieveReviewGroep);
 
 public sealed record PaneelPaginaKopModel(
     string? LeadTekst,
@@ -278,8 +221,7 @@ public sealed record PaneelCompacteKopModel(
     string Titel,
     string Beschrijving);
 
-public sealed record PaneelWeergaveTabsModel(
-    bool IsCompact,
+public sealed record PaneelWerklaagSamenvattingModel(
     string Titel,
     string? Beschrijving,
     IReadOnlyList<string> MetaItems);

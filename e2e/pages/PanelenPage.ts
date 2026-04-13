@@ -19,6 +19,16 @@ export class PanelenPage {
     );
   }
 
+  private overzichtVoorWand(wandNaam: string): Locator {
+    return this.page.locator(
+      `[data-testid="paneel-review-overzicht"][data-wand-naam="${wandNaam}"]`,
+    );
+  }
+
+  overzichtGroepVoorWandId(wandId: string): Locator {
+    return this.page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${wandId}"]`);
+  }
+
   async expectLoaded() {
     await expect(this.page.getByRole('heading', { name: 'Stap 2: Panelen' })).toBeVisible();
   }
@@ -39,21 +49,17 @@ export class PanelenPage {
 
     await this.expectEditorWeergave();
     await this.expectActieveWerkruimte(wandNaam);
+    await this.expectOverzichtVoorWand(wandNaam);
   }
 
   async expectEditorWeergave() {
     await expect(this.page.getByTestId('paneel-editor-weergave')).toBeVisible();
-    await expect(this.page.getByTestId('paneel-review-weergave')).toHaveCount(0);
+    await expect(this.page.getByTestId('paneel-editor-weergave-tab')).toHaveCount(0);
+    await expect(this.page.getByTestId('paneel-review-weergave-tab')).toHaveCount(0);
   }
 
-  async openReviewWeergave() {
-    await this.page.getByTestId('paneel-review-weergave-tab').click();
-    await this.expectReviewWeergave();
-  }
-
-  async expectReviewWeergave() {
-    await expect(this.page.getByTestId('paneel-review-weergave')).toBeVisible();
-    await expect(this.page.getByTestId('paneel-editor-weergave')).toHaveCount(0);
+  async expectOverzichtVoorWand(wandNaam: string) {
+    await expect(this.overzichtVoorWand(wandNaam)).toBeVisible();
   }
 
   async expectActieveWerkruimte(wandNaam: string) {
@@ -65,12 +71,16 @@ export class PanelenPage {
     await this.expectActieveWerkruimte(wandNaam);
     await this.actieveWandToggle(wandNaam).click();
     await expect(this.page.getByTestId('paneel-actieve-wand-werkruimte')).toHaveCount(0);
+    await expect(this.page.getByTestId('paneel-review-overzicht')).toHaveCount(0);
   }
 
   async selecteerEersteKastOpWand(wandNaam: string) {
     await this.openWandWerkruimte(wandNaam);
 
-    const kast = this.actieveWerkruimte(wandNaam).locator('[data-testid="paneel-kast"]').first();
+    const kast = this.actieveWerkruimte(wandNaam)
+      .locator('[data-testid="paneel-kast"]')
+      .locator('rect')
+      .first();
     await kast.scrollIntoViewIfNeeded();
     await kast.click();
     await expect(this.page.getByTestId('paneel-opslaan-button')).toBeEnabled();
@@ -93,22 +103,18 @@ export class PanelenPage {
     await this.page.getByTestId('paneel-opdelen-bevestigen-button').click();
     await expect(this.page.getByTestId('paneel-opdelen-modal')).toHaveCount(0);
     await expect(this.page.getByTestId('paneel-editor-drawer')).toHaveCount(0);
+    await this.expectEditorWeergave();
   }
 
   async voegPaneelToe() {
     await this.page.getByTestId('paneel-opslaan-button').click();
     await expect(this.page.getByTestId('paneel-editor-drawer')).toHaveCount(0);
     await this.expectEditorWeergave();
-    await expect(this.page.getByTestId('paneel-review-teaser')).toHaveCount(0);
-    await expect(this.page.getByTestId('paneel-review-weergave-tab')).toBeEnabled();
+    await expect(this.page.getByTestId('paneel-review-groep')).toHaveCount(1);
   }
 
-  async bewerkEerstePaneelInReview() {
-    await this.page
-      .getByTestId('paneel-review-weergave')
-      .getByRole('button', { name: 'Bewerk' })
-      .first()
-      .click();
+  async bewerkEerstePaneelInOverzicht(wandNaam: string) {
+    await this.overzichtVoorWand(wandNaam).getByRole('button', { name: 'Bewerk' }).first().click();
     await this.expectEditorWeergave();
     await expect(this.page.getByTestId('paneel-editor-drawer')).toBeVisible();
   }

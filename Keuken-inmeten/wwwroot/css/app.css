@@ -1079,7 +1079,7 @@ code {
     position: relative;
 }
 
-.paneel-weergave-tabs {
+.paneel-werklaag-samenvatting {
     border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 82%, transparent);
     border-radius: 1rem;
     background: color-mix(in srgb, var(--bs-tertiary-bg) 75%, var(--bs-body-bg, #fff));
@@ -1088,10 +1088,6 @@ code {
 
 .paneel-weergave-meta-list {
     justify-content: flex-end;
-}
-
-.paneel-weergave-tabs--editor-open {
-    padding-block: 0.85rem;
 }
 
 .paneel-editor-drawer-layer {
@@ -1128,27 +1124,6 @@ code {
     padding-block: 1.25rem;
 }
 
-.paneel-weergave-tabs .nav-link {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-    text-align: left;
-}
-
-.paneel-weergave-tabs .nav {
-    gap: 0.45rem;
-}
-
-.paneel-weergave-tabs .nav-item {
-    flex: 1 1 12rem;
-}
-
-.paneel-weergave-tabs--compact .nav-link {
-    min-height: 0;
-}
-
 .paneel-projectinstellingen-badge {
     align-self: flex-start;
     white-space: nowrap;
@@ -1182,16 +1157,31 @@ code {
     background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 72%, var(--bs-body-bg, #fff));
 }
 
-.paneel-review-weergave {
-    scroll-margin-top: 5rem;
+.paneel-werkbank-layout {
+    --bs-gutter-y: 1rem;
 }
 
-.paneel-review-samenvatting {
-    background: var(--bs-tertiary-bg);
-    border-color: color-mix(in srgb, var(--bs-border-color, #d0d7de) 75%, transparent);
+.paneel-review-overzicht {
+    height: 100%;
 }
 
-.paneel-review-samenvatting-details summary,
+.paneel-review-overzicht-kaart {
+    height: 100%;
+    background: color-mix(in srgb, var(--bs-tertiary-bg, #f8f9fa) 72%, var(--bs-body-bg, #fff));
+}
+
+.paneel-review-overzicht-header {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 72%, transparent);
+}
+
+.paneel-review-empty-state {
+    padding: 0.9rem 1rem;
+    border: 1px dashed color-mix(in srgb, var(--bs-border-color, #d0d7de) 78%, transparent);
+    border-radius: 0.95rem;
+    background: var(--bs-body-bg, #fff);
+}
+
 .paneel-review-item-details summary,
 .paneel-editor-empty-details summary {
     display: flex;
@@ -1202,13 +1192,11 @@ code {
     list-style: none;
 }
 
-.paneel-review-samenvatting-details summary::-webkit-details-marker,
 .paneel-review-item-details summary::-webkit-details-marker,
 .paneel-editor-empty-details summary::-webkit-details-marker {
     display: none;
 }
 
-.paneel-review-samenvatting-details summary::after,
 .paneel-review-item-details summary::after,
 .paneel-editor-empty-details summary::after {
     content: "+";
@@ -1218,7 +1206,6 @@ code {
     line-height: 1;
 }
 
-.paneel-review-samenvatting-details[open] summary::after,
 .paneel-review-item-details[open] summary::after,
 .paneel-editor-empty-details[open] summary::after {
     content: "−";
@@ -1229,21 +1216,17 @@ code {
 }
 
 .paneel-review-item-main {
-    min-width: min(24rem, 100%);
-}
-
-.paneel-review-header {
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 72%, transparent);
+    min-width: min(16rem, 100%);
 }
 
 .paneel-review-groep {
-    border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 78%, transparent);
+    border: 0;
+    background: transparent;
 }
 
 .paneel-review-groep--actief {
-    border-color: color-mix(in srgb, var(--bs-primary, #0d6efd) 24%, var(--bs-border-color, #d0d7de));
-    box-shadow: 0 0.55rem 1.4rem rgba(13, 110, 253, 0.08);
+    border-color: transparent;
+    box-shadow: none;
 }
 
 .paneel-editor-empty-state {
@@ -1316,10 +1299,6 @@ code {
 }
 
 @media (max-width: 1199.98px) {
-    .paneel-weergave-tabs--compact {
-        padding-block: 0.85rem;
-    }
-
     .paneel-editor-drawer-layer {
         align-items: flex-end;
         justify-content: flex-end;
@@ -1354,6 +1333,13 @@ code {
 @media (min-width: 1200px) {
     .paneel-pagina-shell.editor-open {
         padding-right: min(36rem, 48vw);
+    }
+
+    .paneel-review-overzicht-kaart {
+        position: sticky;
+        top: 1rem;
+        max-height: calc(100vh - 6rem);
+        overflow: auto;
     }
 }
 

@@ -151,7 +151,6 @@ public partial class PaneelConfiguratie
     private void RondPaneelInvoerAf()
     {
         SluitPaneelWerklaag();
-        reviewWeergaveActief = false;
         ResetPaneelInvoer();
     }
 
