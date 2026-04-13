@@ -264,16 +264,33 @@ else
              data-testid="@(pagina.IsPlaatFocus ? "zaagplan-een-plaat-weergave" : "zaagplan-alle-platen-weergave")">
             @foreach (var plaat in pagina.PlatenVoorWeergave)
             {
-                <div class="zaagplan-plaat-card @(pagina.IsPlaatFocus ? "zaagplan-plaat-card--focus" : null) card border-0 shadow-sm mb-4"
-                     data-testid="zaagplan-plaat-card"
-                     data-plaat-nummer="@plaat.Nummer">
-                    <div class="card-body text-center">
-                        <ZaagplanVisueel Plaat="plaat" />
-                        <div class="zaagplan-plaat-meta mt-2 small text-muted">
-                            @plaat.Plaatsingen.Count paneel(en) op deze plaat
+                var gebruikteOppervlakte = plaat.Plaatsingen.Sum(plaatsing => plaatsing.Breedte * plaatsing.Hoogte);
+                var plaatOppervlakte = Math.Max(plaat.Breedte * plaat.Hoogte, 1);
+                var benutting = gebruikteOppervlakte / plaatOppervlakte;
+
+                <article class="zaagplan-plaat-card @(pagina.IsPlaatFocus ? "zaagplan-plaat-card--focus" : null) card border-0 shadow-sm"
+                         data-testid="zaagplan-plaat-card"
+                         data-plaat-nummer="@plaat.Nummer">
+                    <div class="zaagplan-plaat-card-header">
+                        <div>
+                            <div class="zaagplan-plaat-kicker">Plaat @plaat.Nummer</div>
+                            <div class="zaagplan-plaat-titel">@FormatMm(plaat.Breedte) × @FormatMm(plaat.Hoogte) mm</div>
+                        </div>
+                        <div class="zaagplan-plaat-status">
+                            <span class="zaagplan-plaat-pill">@plaat.Plaatsingen.Count paneel(en)</span>
+                            <span class="zaagplan-plaat-pill">Benutting @benutting.ToString("P0")</span>
                         </div>
                     </div>
-                </div>
+                    <div class="card-body zaagplan-plaat-card-body text-center">
+                        <ZaagplanVisueel Plaat="plaat"
+                                         MaxBreedte="@(pagina.IsPlaatFocus ? 1080 : 760)"
+                                         ToonTitel="false" />
+                        <div class="zaagplan-plaat-meta small text-muted">
+                            <span>@plaat.Plaatsingen.Count paneel(en) geplaatst</span>
+                            <span>@benutting.ToString("P0") benut</span>
+                        </div>
+                    </div>
+                </article>
             }
         </div>
     }

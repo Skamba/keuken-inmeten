@@ -1,17 +1,20 @@
 @using System.Globalization
 
 @{
+    var titelHoogte = ToonTitel ? TitelHoogte : 0;
     var schaal = MaxBreedte / Math.Max(Plaat.Breedte, 1);
     var svgW = Plaat.Breedte * schaal + Padding * 2;
-    var svgH = Plaat.Hoogte * schaal + Padding * 2 + TitelHoogte;
+    var svgH = Plaat.Hoogte * schaal + Padding * 2 + titelHoogte;
 }
 
-<svg width="@Fmt(svgW)" height="@Fmt(svgH)" class="zaagplan-plaat-svg">
-    @* Titel *@
-    @((MarkupString)$"<text x=\"{Fmt(svgW / 2)}\" y=\"20\" font-size=\"13\" font-weight=\"bold\" fill=\"#333\" text-anchor=\"middle\">Plaat {Plaat.Nummer} — {Plaat.Breedte:0.#} × {Plaat.Hoogte:0.#} mm</text>")
+<svg width="@Fmt(svgW)" height="@Fmt(svgH)" viewBox="0 0 @Fmt(svgW) @Fmt(svgH)" class="zaagplan-plaat-svg">
+    @if (ToonTitel)
+    {
+        @((MarkupString)$"<text x=\"{Fmt(svgW / 2)}\" y=\"20\" font-size=\"13\" font-weight=\"bold\" fill=\"#333\" text-anchor=\"middle\">Plaat {Plaat.Nummer} — {Plaat.Breedte:0.#} × {Plaat.Hoogte:0.#} mm</text>")
+    }
 
     @* Achtergrond plaat *@
-    <rect x="@Fmt(Padding)" y="@Fmt(Padding + TitelHoogte)"
+    <rect x="@Fmt(Padding)" y="@Fmt(Padding + titelHoogte)"
           width="@Fmt(Plaat.Breedte * schaal)" height="@Fmt(Plaat.Hoogte * schaal)"
           fill="#f5f0e8" stroke="#8b7355" stroke-width="2" rx="2" />
 
@@ -20,7 +23,7 @@
     {
         var p = Plaat.Plaatsingen[i];
         var px = Padding + p.X * schaal;
-        var py = Padding + TitelHoogte + p.Y * schaal;
+        var py = Padding + titelHoogte + p.Y * schaal;
         var pw = p.Breedte * schaal;
         var ph = p.Hoogte * schaal;
         var kleur = PaneelKleuren[i % PaneelKleuren.Length];
@@ -33,12 +36,13 @@
 
     @* Afmetingen plaat *@
     @((MarkupString)$"<text x=\"{Fmt(svgW / 2)}\" y=\"{Fmt(svgH - 4)}\" font-size=\"10\" fill=\"#888\" text-anchor=\"middle\">{Plaat.Breedte:0.#} mm breed</text>")
-    @((MarkupString)$"<text x=\"{Fmt(10)}\" y=\"{Fmt(Padding + TitelHoogte + Plaat.Hoogte * schaal / 2)}\" font-size=\"10\" fill=\"#888\" text-anchor=\"middle\" transform=\"rotate(-90, {Fmt(10)}, {Fmt(Padding + TitelHoogte + Plaat.Hoogte * schaal / 2)})\">{Plaat.Hoogte:0.#} mm hoog</text>")
+    @((MarkupString)$"<text x=\"{Fmt(10)}\" y=\"{Fmt(Padding + titelHoogte + Plaat.Hoogte * schaal / 2)}\" font-size=\"10\" fill=\"#888\" text-anchor=\"middle\" transform=\"rotate(-90, {Fmt(10)}, {Fmt(Padding + titelHoogte + Plaat.Hoogte * schaal / 2)})\">{Plaat.Hoogte:0.#} mm hoog</text>")
 </svg>
 
 @code {
     [Parameter, EditorRequired] public ZaagplanPlaat Plaat { get; set; } = default!;
     [Parameter] public double MaxBreedte { get; set; } = 600;
+    [Parameter] public bool ToonTitel { get; set; } = true;
 
     private const double Padding = 28;
     private const double TitelHoogte = 28;

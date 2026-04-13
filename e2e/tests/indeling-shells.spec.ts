@@ -153,17 +153,27 @@ test('stap 1 kan de wandopstelling fullscreen openen en weer sluiten', async ({ 
   const fullscreenSvg = shell.getByTestId('wand-opstelling-svg');
   await expect(fullscreenSvg).toBeVisible();
   await expect(shell.getByRole('button', { name: 'Uitlijnen' })).toBeVisible();
+  await expect(shell.getByRole('button', { name: 'Breedte vullen' })).toBeVisible();
+  await expect(shell.getByRole('button', { name: 'Hoogte vullen' })).toBeVisible();
+  await expect(shell).toHaveAttribute('data-view-mode', 'fit-width');
   const fullscreenStage = shell.locator('.fullscreen-visualisatie-stage');
-  const fullscreenSvgBox = await fullscreenSvg.boundingBox();
   const fullscreenStageBox = await fullscreenStage.boundingBox();
-  expect(fullscreenSvgBox).not.toBeNull();
   expect(fullscreenStageBox).not.toBeNull();
-  expect(fullscreenSvgBox!.width).toBeGreaterThan(previewSvgBox!.width + 100);
-  expect(fullscreenSvgBox!.height).toBeGreaterThan(previewSvgBox!.height + 80);
-  expect(fullscreenSvgBox!.height).toBeGreaterThan(fullscreenStageBox!.height * 0.82);
+
+  const fitWidthSvgBox = await fullscreenSvg.boundingBox();
+  expect(fitWidthSvgBox).not.toBeNull();
+  expect(fitWidthSvgBox!.width).toBeGreaterThan(previewSvgBox!.width + 180);
+  expect(fitWidthSvgBox!.width).toBeGreaterThan(fullscreenStageBox!.width * 0.85);
 
   await page.keyboard.press('Shift+Tab');
   await expect(fullscreenSvg).toBeFocused();
+
+  await shell.getByRole('button', { name: 'Hoogte vullen' }).click();
+  await expect(shell).toHaveAttribute('data-view-mode', 'fit-height');
+  const fullscreenSvgBox = await fullscreenSvg.boundingBox();
+  expect(fullscreenSvgBox).not.toBeNull();
+  expect(fullscreenSvgBox!.height).toBeGreaterThan(previewSvgBox!.height + 80);
+  expect(fullscreenSvgBox!.height).toBeGreaterThan(fullscreenStageBox!.height * 0.82);
 
   await page.keyboard.press('Escape');
   await expect(shell).toHaveCount(0);

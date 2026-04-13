@@ -350,6 +350,9 @@ test('stap 2 kan de paneelwerkbank fullscreen openen en weer sluiten', async ({ 
   const shell = page.getByTestId('paneel-werkbank-visualisatie-fullscreen-shell');
   await expect(shell).toBeVisible();
   await expect(shell.getByTestId('paneel-plaats-editor')).toBeVisible();
+  await expect(shell.getByRole('button', { name: 'Breedte vullen' })).toBeVisible();
+  await expect(shell.getByRole('button', { name: 'Hoogte vullen' })).toBeVisible();
+  await expect(shell).toHaveAttribute('data-view-mode', 'fit-width');
   const screenshotPath = testInfo.outputPath('paneel-werkbank-fullscreen.png');
   await shell.screenshot({ path: screenshotPath });
   await testInfo.attach('paneel-werkbank-fullscreen', {
@@ -357,12 +360,18 @@ test('stap 2 kan de paneelwerkbank fullscreen openen en weer sluiten', async ({ 
     contentType: 'image/png',
   });
   const fullscreenStage = shell.locator('.fullscreen-visualisatie-stage');
-  const fullscreenSvg = shell.locator('svg.wand-opstelling-svg');
-  const fullscreenSvgBox = await fullscreenSvg.boundingBox();
   const fullscreenStageBox = await fullscreenStage.boundingBox();
-  expect(fullscreenSvgBox).not.toBeNull();
   expect(fullscreenStageBox).not.toBeNull();
-  expect(fullscreenSvgBox!.width).toBeGreaterThan(previewSvgBox!.width + 100);
+  const fullscreenSvg = shell.locator('svg.wand-opstelling-svg');
+  const fitWidthSvgBox = await fullscreenSvg.boundingBox();
+  expect(fitWidthSvgBox).not.toBeNull();
+  expect(fitWidthSvgBox!.width).toBeGreaterThan(previewSvgBox!.width + 180);
+  expect(fitWidthSvgBox!.width).toBeGreaterThan(fullscreenStageBox!.width * 0.85);
+
+  await shell.getByRole('button', { name: 'Hoogte vullen' }).click();
+  await expect(shell).toHaveAttribute('data-view-mode', 'fit-height');
+  const fullscreenSvgBox = await fullscreenSvg.boundingBox();
+  expect(fullscreenSvgBox).not.toBeNull();
   expect(fullscreenSvgBox!.height).toBeGreaterThan(previewSvgBox!.height + 80);
   expect(fullscreenSvgBox!.height).toBeGreaterThan(fullscreenStageBox!.height * 0.78);
 

@@ -49,6 +49,7 @@ else
                  @ref="viewerShell"
                  @onclick:stopPropagation="true"
                  @onkeydown="HandleViewerKeyDown"
+                 data-view-mode="@ViewModeDataValue"
                  data-testid="@FullscreenShellDataTestId">
             <div class="fullscreen-visualisatie-toolbar">
                 <div>
@@ -63,6 +64,22 @@ else
                     {
                         @HeaderActions(true)
                     }
+                    <div class="fullscreen-visualisatie-view-switch" role="group" aria-label="Weergave in volledig scherm">
+                        <button type="button"
+                                class="btn btn-sm @(_fullscreenViewMode is FullscreenViewMode.FitWidth ? "btn-primary" : "btn-outline-secondary")"
+                                @onclick="@(() => SetViewMode(FullscreenViewMode.FitWidth))"
+                                aria-pressed="@(_fullscreenViewMode is FullscreenViewMode.FitWidth)"
+                                title="Laat de visualisatie de beschikbare breedte vullen">
+                            Breedte vullen
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm @(_fullscreenViewMode is FullscreenViewMode.FitHeight ? "btn-primary" : "btn-outline-secondary")"
+                                @onclick="@(() => SetViewMode(FullscreenViewMode.FitHeight))"
+                                aria-pressed="@(_fullscreenViewMode is FullscreenViewMode.FitHeight)"
+                                title="Houd de volledige hoogte van de visualisatie in beeld">
+                            Hoogte vullen
+                        </button>
+                    </div>
                     <button type="button"
                             class="btn btn-sm btn-outline-secondary fullscreen-visualisatie-toggle"
                             @onclick="CloseViewer"
@@ -76,7 +93,7 @@ else
                     </button>
                 </div>
             </div>
-            <div class="fullscreen-visualisatie-stage">
+            <div class="fullscreen-visualisatie-stage" data-view-mode="@ViewModeDataValue">
                 @Content(true)
             </div>
         </section>
@@ -99,8 +116,16 @@ else
     private bool _isFullscreen;
     private bool _viewerInitialized;
     private bool _focusPreviewToggleOnClose;
+    private FullscreenViewMode _fullscreenViewMode = FullscreenViewMode.FitWidth;
 
     private string DialogAriaLabel => $"{Title} in volledig scherm";
+    private string ViewModeDataValue => _fullscreenViewMode is FullscreenViewMode.FitWidth ? "fit-width" : "fit-height";
+
+    private enum FullscreenViewMode
+    {
+        FitWidth,
+        FitHeight
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -121,8 +146,12 @@ else
     private void OpenViewer()
     {
         _viewerInitialized = false;
+        _fullscreenViewMode = FullscreenViewMode.FitWidth;
         _isFullscreen = true;
     }
+
+    private void SetViewMode(FullscreenViewMode mode)
+        => _fullscreenViewMode = mode;
 
     private async Task CloseViewer()
     {

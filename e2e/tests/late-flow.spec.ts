@@ -259,8 +259,17 @@ test('zaagplan kan wisselen tussen alle platen en een plaat focus', async ({ pag
   await zaagplan.expectLoaded();
   await zaagplan.expectGeavanceerdeInstellingenGesloten();
   await zaagplan.expectAllePlatenWeergave(3);
+  const plaatKaarten = page.getByTestId('zaagplan-plaat-card');
+  const eerstePlaatBox = await plaatKaarten.nth(0).boundingBox();
+  const tweedePlaatBox = await plaatKaarten.nth(1).boundingBox();
+  expect(eerstePlaatBox).not.toBeNull();
+  expect(tweedePlaatBox).not.toBeNull();
+  expect(Math.abs(eerstePlaatBox!.y - tweedePlaatBox!.y)).toBeLessThan(80);
   await zaagplan.kiesEenPlaatTegelijk();
   await zaagplan.expectPlaatFocus(1);
+  const focusPlaatBox = await page.locator('[data-testid="zaagplan-plaat-card"][data-plaat-nummer="1"]').boundingBox();
+  expect(focusPlaatBox).not.toBeNull();
+  expect(focusPlaatBox!.width).toBeGreaterThan(900);
   await zaagplan.gaNaarVolgendePlaat();
   await zaagplan.expectPlaatFocus(2);
 });

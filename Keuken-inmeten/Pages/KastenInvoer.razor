@@ -113,9 +113,11 @@ else
                     </div>
                 </div>
 
+                <div class="indeling-workspace-layout @(toonWandOpstelling ? null : "indeling-workspace-layout--zonder-visualisatie")">
+                    <aside class="indeling-workspace-sidebar">
                 @if (toonPrimaireActies)
                 {
-                    <div class="indeling-werkstap @(werkstapCompact ? "indeling-werkstap--compact" : null) mb-4">
+                    <div class="indeling-werkstap @(werkstapCompact ? "indeling-werkstap--compact" : null)">
                         <div>
                             <div class="small fw-semibold text-uppercase text-muted mb-1">@werkstap.Kicker</div>
                             @if (werkstap.Titel is not null)
@@ -141,31 +143,33 @@ else
                     </div>
                 }
 
-                <div class="indeling-workspace-main">
-                    <div class="indeling-maten-kaart">
+                    <section class="indeling-maten-kaart indeling-maten-kaart--compact">
                         <div class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
                             <div>
                                 <h6 class="mb-1">Wandmaten</h6>
                                 <div class="small text-muted">Pas dit alleen aan als de basismaten van deze wand wijzigen.</div>
                             </div>
-                            <div class="small text-muted">@actieveWand.Breedte × @actieveWand.Hoogte mm · plint @actieveWand.PlintHoogte mm</div>
+                            <div class="small text-muted indeling-maten-samenvatting">
+                                <span>@actieveWand.Breedte × @actieveWand.Hoogte mm</span>
+                                <span>Plint @actieveWand.PlintHoogte mm</span>
+                            </div>
                         </div>
                         <div class="row g-3">
-                            <div class="col-sm-4">
+                            <div class="col-sm-4 col-xl-12">
                                 <label class="form-label small mb-0">Wandbreedte (mm)</label>
                                 <input type="number" class="form-control form-control-sm"
                                        data-testid="wand-breedte-input"
                                        value="@actieveWand.Breedte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Breedte), e)" />
                                 <div class="form-text hulp-hint mb-0" data-testid="wand-breedte-hint">Totaal van deze wand, bijvoorbeeld 3000.</div>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-4 col-xl-12">
                                 <label class="form-label small mb-0">Wandhoogte (mm)</label>
                                 <input type="number" class="form-control form-control-sm"
                                        data-testid="wand-hoogte-input"
                                        value="@actieveWand.Hoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Hoogte), e)" />
                                 <div class="form-text hulp-hint mb-0" data-testid="wand-hoogte-hint">Vrije hoogte van vloer tot plafond, bijvoorbeeld 2600.</div>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-4 col-xl-12">
                                 <label class="form-label small mb-0">Plinthoogte (mm)</label>
                                 <input type="number" class="form-control form-control-sm" min="0" step="10"
                                        data-testid="wand-plint-input"
@@ -173,9 +177,13 @@ else
                                 <div class="form-text hulp-hint mb-0" data-testid="wand-plint-hint">Meestal 100; gebruik 0 alleen zonder plint.</div>
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div class="indeling-workspace-grid mt-3 mb-4">
+                    </aside>
+
+                    <div class="indeling-workspace-primary">
+
+                    <div class="indeling-workspace-grid">
                         @if (toonWandOpstelling)
                         {
                             <FullscreenVisualisatie Title="Wandopstelling"
@@ -279,7 +287,7 @@ else
 
                             <IndelingDetailsBlok Titel="Nog een wand toevoegen"
                                                  Beschrijving="Open dit pas als deze werkruimte voorlopig klopt."
-                                                 DetailsClass="indeling-overige-wanden mb-4"
+                                                 DetailsClass="indeling-overige-wanden"
                                                  DetailsDataTestId="indeling-extra-wand-details"
                                                  SummaryDataTestId="indeling-extra-wand-summary">
                                 <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
@@ -299,7 +307,7 @@ else
 
                         @if (wandApparaten.Count > 0)
                         {
-                            <details class="indeling-overige-wanden mb-4"
+                            <details class="indeling-overige-wanden"
                                      open="@((bewerkApparaatId is not null && actieveWandId == actieveWand.Id) || bevestigVerwijderApparaatId is not null)">
                                 <summary class="indeling-overige-wanden-summary">
                                     <div>
@@ -355,7 +363,7 @@ else
                             </details>
                         }
 
-                        <details class="indeling-overige-wanden mb-4 indeling-workspace-actions"
+                        <details class="indeling-overige-wanden indeling-workspace-actions"
                                  open="@(bewerkWandId == actieveWand.Id || bevestigVerwijderWandId == actieveWand.Id)">
                             <summary class="indeling-overige-wanden-summary">
                                 <div>
@@ -397,6 +405,7 @@ else
                             </div>
                         </details>
                     </div>
+                </div>
             </div>
         </div>
     }

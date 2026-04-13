@@ -1546,9 +1546,21 @@ code {
     padding-block: 0.75rem;
 }
 
+.indeling-workspace-layout {
+    display: grid;
+    gap: 1rem;
+}
+
+.indeling-workspace-sidebar,
+.indeling-workspace-primary,
 .indeling-workspace-secondary {
     display: grid;
     gap: 1rem;
+    align-content: start;
+}
+
+.indeling-workspace-primary {
+    min-width: 0;
 }
 
 .indeling-workspace-grid {
@@ -1568,6 +1580,20 @@ code {
     background: var(--bs-tertiary-bg);
 }
 
+.indeling-maten-kaart--compact .row {
+    --bs-gutter-y: 0.75rem;
+}
+
+.indeling-maten-samenvatting {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.75rem;
+}
+
+.indeling-maten-samenvatting span {
+    white-space: nowrap;
+}
+
 .indeling-overige-wanden-lijst {
     display: grid;
     gap: 0.75rem;
@@ -1576,6 +1602,10 @@ code {
 .indeling-lijst-sectie {
     display: grid;
     gap: 0.8rem;
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 76%, transparent);
+    border-radius: 0.95rem;
+    background: var(--bs-body-bg);
 }
 
 .indeling-lijst-kop {
@@ -1697,14 +1727,20 @@ code {
 }
 
 @media (min-width: 1200px) {
-    .indeling-workspace-grid {
-        grid-template-columns: minmax(0, 1.05fr) minmax(20rem, 0.95fr);
+    .indeling-workspace-layout {
+        grid-template-columns: minmax(0, 1.15fr) minmax(19rem, 23rem);
         align-items: start;
     }
 
-    .indeling-visualisatie-kaart {
+    .indeling-workspace-sidebar {
+        grid-column: 2;
         position: sticky;
         top: 5rem;
+    }
+
+    .indeling-workspace-primary {
+        grid-column: 1;
+        grid-row: 1;
     }
 }
 
@@ -2157,6 +2193,12 @@ code {
     gap: 0.5rem;
 }
 
+.fullscreen-visualisatie-view-switch {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
 .fullscreen-visualisatie-body {
     min-width: 0;
 }
@@ -2196,7 +2238,9 @@ code {
     height: 100dvh;
     max-height: 100vh;
     max-height: 100dvh;
-    background: var(--bs-body-bg, #fff);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 248, 252, 0.96) 100%),
+        radial-gradient(circle at top, rgba(13, 110, 253, 0.08) 0, rgba(13, 110, 253, 0) 42%);
     color: var(--bs-body-color, #212529);
     display: flex;
     flex-direction: column;
@@ -2208,6 +2252,7 @@ code {
     padding: 1rem 1.1rem 0.85rem;
     border-bottom: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 82%, transparent);
     background: color-mix(in srgb, var(--bs-tertiary-bg) 70%, var(--bs-body-bg, #fff));
+    backdrop-filter: blur(10px);
 }
 
 .fullscreen-visualisatie-title {
@@ -2228,12 +2273,43 @@ code {
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    background: color-mix(in srgb, var(--bs-tertiary-bg) 78%, var(--bs-body-bg, #fff));
+    background:
+        linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(238, 244, 249, 0.92) 100%),
+        linear-gradient(rgba(106, 129, 153, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(106, 129, 153, 0.08) 1px, transparent 1px);
+    background-size: auto, 24px 24px, 24px 24px;
 }
 
 .fullscreen-visualisatie-stage > * {
     width: auto;
     max-width: 100%;
+}
+
+.fullscreen-visualisatie-shell[data-view-mode="fit-width"] .fullscreen-visualisatie-stage {
+    justify-content: stretch;
+}
+
+.fullscreen-visualisatie-shell[data-view-mode="fit-width"] .fullscreen-visualisatie-stage > * {
+    width: min(100%, 140rem);
+    max-width: none;
+}
+
+.fullscreen-visualisatie-shell[data-view-mode="fit-width"] .fullscreen-visualisatie-stage .wand-opstelling-container,
+.fullscreen-visualisatie-shell[data-view-mode="fit-width"] .fullscreen-visualisatie-stage .paneel-overzicht-scroll {
+    width: 100%;
+}
+
+.fullscreen-visualisatie-shell[data-view-mode="fit-width"] .fullscreen-visualisatie-stage .paneel-overzicht-scroll {
+    padding: 1rem 1.25rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.fullscreen-visualisatie-shell[data-view-mode="fit-width"] .fullscreen-visualisatie-stage svg.wand-opstelling-svg {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
 }
 
 .scharnier-overzicht-trigger {
