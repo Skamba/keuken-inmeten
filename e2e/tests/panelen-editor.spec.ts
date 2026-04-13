@@ -325,6 +325,11 @@ test('stap 2 kan de paneelwerkbank fullscreen openen en weer sluiten', async ({ 
   const shell = page.getByTestId('paneel-werkbank-visualisatie-fullscreen-shell');
   await expect(shell).toBeVisible();
   await expect(shell.getByTestId('paneel-plaats-editor')).toBeVisible();
+  const fullscreenSvg = shell.locator('svg.wand-opstelling-svg');
+  const fullscreenSvgBox = await fullscreenSvg.boundingBox();
+  expect(fullscreenSvgBox).not.toBeNull();
+  expect(fullscreenSvgBox!.width).toBeGreaterThan(300);
+  expect(fullscreenSvgBox!.height).toBeGreaterThan(200);
 
   await shell.getByTestId('paneel-werkbank-visualisatie-fullscreen-toggle').click();
   await expect(shell).toHaveCount(0);

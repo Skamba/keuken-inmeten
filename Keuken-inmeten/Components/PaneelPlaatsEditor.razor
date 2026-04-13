@@ -5,6 +5,8 @@
 
 <div class="wand-opstelling-container" style="text-align: center;" data-testid="paneel-plaats-editor">
     <svg @ref="svgRef"
+         width="@Fmt(SvgWidth)"
+         height="@Fmt(SvgHeight)"
          viewBox="0 0 @Fmt(SvgWidth) @Fmt(SvgHeight)"
          class="border rounded bg-body wand-opstelling-svg"
          style="max-height: @(SvgMaxHoogte ?? "55vh"); width: auto; max-width: @(BeperkTotContainerBreedte ? "100%" : "none"); display: block; margin: 0 auto;"
