@@ -161,43 +161,10 @@ public partial class KastenInvoer
     private static bool HeeftAfwijkendeTechnischeInstellingen(Kast kast)
         => IndelingFormulierHelper.HeeftAfwijkendeTechnischeInstellingen(kast);
 
-    private static string KastFormStapLabel(int stap)
-        => KastFormStappen[stap - 1];
-
-    private static string KastFormStapIntro(int stap)
-        => stap switch
-        {
-            1 => "Kies de wand, geef de kast een naam en start eventueel vanuit een eerder gebruikt voorbeeld.",
-            2 => "Voer alleen de hoofdmaten in. Het afgeleide kasttype ziet u meteen terug.",
-            3 => "Controleer de technische uitgangspunten bewust, ook als de standaardwaarden blijven staan.",
-            _ => "Controleer de samenvatting en voorvertoning voordat u de kast opslaat.",
-        };
-
-    private bool KanNaarVolgendeKastStap()
-        => kastFormStap switch
-        {
-            1 => actieveWandId is not null && !string.IsNullOrWhiteSpace(formKast.Naam),
-            2 => formKast.Breedte > 0 && formKast.Hoogte > 0 && formKast.Diepte > 0,
-            3 => technischeControleBevestigd
-                && formKast.Wanddikte > 0
-                && formKast.GaatjesAfstand > 0
-                && formKast.EersteGaatVanBoven > 0,
-            _ => false
-        };
-
-    private string TechnischeControleCheckboxLabel()
-        => HeeftAfwijkendeTechnischeInstellingen(formKast)
-            ? "Ik heb gecontroleerd dat deze technische waarden kloppen voor deze kast."
-            : "Ik heb gecontroleerd dat de standaard voor wanddikte, systeemgaten en eerste gat klopt voor deze kast.";
-
-    private string TechnischeControleSamenvatting()
-        => HeeftAfwijkendeTechnischeInstellingen(formKast)
-            ? $"Gecontroleerd: {formKast.Wanddikte:0.#} mm wanddikte, {formKast.GaatjesAfstand:0.#} mm systeemgaten, {formKast.EersteGaatVanBoven:0.#} mm eerste gat"
-            : $"Standaard bevestigd: {formKast.Wanddikte:0.#} mm wanddikte, {formKast.GaatjesAfstand:0.#} mm systeemgaten, {formKast.EersteGaatVanBoven:0.#} mm eerste gat";
-
     private void VolgendeKastFormStap()
     {
-        if (kastFormStap >= LaatsteKastFormStap || !KanNaarVolgendeKastStap())
+        var formulier = HuidigKastFormulierModel;
+        if (kastFormStap >= formulier.Stap.LaatsteStap || !formulier.Stap.KanNaarVolgendeStap)
             return;
 
         kastFormStap++;

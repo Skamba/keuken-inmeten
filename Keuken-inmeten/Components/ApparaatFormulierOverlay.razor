@@ -1,4 +1,5 @@
 @using Keuken_inmeten.Models
+@using Keuken_inmeten.Pages
 @using Keuken_inmeten.Services
 
 <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
@@ -16,16 +17,16 @@
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
                 <div>
                     <div class="small fw-semibold text-uppercase text-secondary-emphasis">Huidige stap</div>
-                    <div class="h6 mb-1" data-testid="apparaat-form-stap-label">Stap @Stap van @LaatsteStap: @StapLabel</div>
-                    <p class="text-muted small mb-0">@StapIntro</p>
+                    <div class="h6 mb-1" data-testid="apparaat-form-stap-label">Stap @HuidigFormulier.Stap.HuidigeStap van @HuidigFormulier.Stap.LaatsteStap: @HuidigFormulier.Stap.Label</div>
+                    <p class="text-muted small mb-0">@HuidigFormulier.Stap.Intro</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge text-bg-light" data-testid="apparaat-form-progress">Stap @Stap/@LaatsteStap</span>
+                    <span class="badge text-bg-light" data-testid="apparaat-form-progress">Stap @HuidigFormulier.Stap.HuidigeStap/@HuidigFormulier.Stap.LaatsteStap</span>
                     <StapHulpDrawer StapId="kasten" KnopLabel="Meer hulp" />
                 </div>
             </div>
 
-            @if (Stap == 1)
+            @if (HuidigFormulier.Stap.HuidigeStap == 1)
             {
                 <div class="row g-3">
                     <div class="col-md-4">
@@ -49,7 +50,7 @@
                     </div>
                 </div>
             }
-            else if (Stap == 2)
+            else if (HuidigFormulier.Stap.HuidigeStap == 2)
             {
                 <div class="row g-3 mb-3">
                     <div class="col-md-4">
@@ -121,17 +122,17 @@
                 <button type="button"
                         class="btn btn-outline-secondary"
                         @onclick="OnVorige"
-                        disabled="@(Stap == 1)"
+                        disabled="@(HuidigFormulier.Stap.HuidigeStap == 1)"
                         data-testid="apparaat-form-terug-button">
                     Terug
                 </button>
                 <div class="d-flex gap-2">
-                    @if (Stap < LaatsteStap)
+                    @if (HuidigFormulier.Stap.HuidigeStap < HuidigFormulier.Stap.LaatsteStap)
                     {
                         <button type="button"
                                 class="btn btn-primary"
                                 @onclick="OnVolgende"
-                                disabled="@(!KanVolgendeStap)"
+                                disabled="@(!HuidigFormulier.Stap.KanNaarVolgendeStap)"
                                 data-testid="apparaat-form-volgende-button">
                             Volgende stap
                         </button>
@@ -155,9 +156,6 @@
 @code {
     [Parameter, EditorRequired] public bool IsBewerken { get; set; }
     [Parameter, EditorRequired] public int Stap { get; set; }
-    [Parameter, EditorRequired] public int LaatsteStap { get; set; }
-    [Parameter, EditorRequired] public string StapLabel { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string StapIntro { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string ActieveWandNaam { get; set; } = string.Empty;
     [Parameter, EditorRequired] public Apparaat FormApparaat { get; set; } = default!;
     [Parameter, EditorRequired] public EventCallback OnSluiten { get; set; }
@@ -166,12 +164,11 @@
     [Parameter, EditorRequired] public EventCallback OnOpslaan { get; set; }
     [Parameter, EditorRequired] public EventCallback<ChangeEventArgs> OnApparaatTypeGewijzigd { get; set; }
 
-    private bool KanVolgendeStap => Stap switch
-    {
-        1 => !string.IsNullOrWhiteSpace(FormApparaat.Naam),
-        2 => FormApparaat.Breedte > 0 && FormApparaat.Hoogte > 0 && FormApparaat.Diepte > 0,
-        _ => false
-    };
+    private ApparaatFormulierModel HuidigFormulier
+        => KastenInvoerFormulierFlowHelper.BouwApparaatFormulierModel(
+            Stap,
+            ActieveWandNaam,
+            FormApparaat);
 
     private static string ApparaatTypeLabel(ApparaatType type)
         => IndelingFormulierHelper.ApparaatTypeLabel(type);

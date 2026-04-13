@@ -9,14 +9,15 @@
 <StapIndicator HuidigeStap="kasten" />
 
 @{
-    var actieveWand = State.Wanden.Find(wand => wand.Id == actieveWandId);
+    var pagina = HuidigePaginaModel;
+    var actieveWerkruimte = pagina.ActieveWerkruimte;
 }
 
 <section class="stap-pagina-kop mb-4">
     <div class="stap-pagina-kop__top">
         <div class="stap-pagina-kop__intro">
             <h2 class="page-header">Stap 1: Indeling</h2>
-            @if (actieveWand is null)
+            @if (actieveWerkruimte is null)
             {
                 <p class="stap-pagina-kop__lead">Maak wandindelingen aan en open daarna steeds één wand om maten, kasten en objecten rustig per werkruimte uit te werken.</p>
             }
@@ -51,7 +52,7 @@
 }
 else
 {
-    @if (actieveWand is null)
+    @if (actieveWerkruimte is null)
     {
         <div class="indeling-nieuwe-wand-strip mb-4">
             <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-end gap-3">
@@ -80,11 +81,9 @@ else
 }
 else
 {
-    var overzichtWanden = actieveWand is null
-        ? State.Wanden
-        : State.Wanden.Where(wand => wand.Id != actieveWand.Id).ToList();
+    var overzichtWanden = pagina.OverzichtWanden;
 
-    @if (actieveWand is null)
+    @if (actieveWerkruimte is null)
     {
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
             <div>
@@ -93,25 +92,12 @@ else
         </div>
 
         <div class="row g-3 mb-4">
-            @foreach (var wand in overzichtWanden)
+            @foreach (var overzicht in overzichtWanden)
             {
-                var wandKasten = State.KastenVoorWand(wand.Id);
-                var wandApparaten = State.ApparatenVoorWand(wand.Id);
-                var gevuldeBreedte = wand.TotaleBreedte(State.Kasten);
-                var vrijeBreedte = Math.Max(0, wand.Breedte - gevuldeBreedte);
-                var overzichtBadges = new List<IndelingBadge>();
-                if (wandKasten.Count > 0)
-                {
-                    overzichtBadges.Add(new($"{wandKasten.Count} kast(en)"));
-                }
-                if (wandApparaten.Count > 0)
-                {
-                    overzichtBadges.Add(new($"{wandApparaten.Count} apparaat(en)"));
-                }
-                overzichtBadges.Add(new($"{wand.Breedte} mm"));
+                var wand = overzicht.Wand;
 
                 <div class="col-xl-6"
-                     @key="wand.Id">
+                      @key="wand.Id">
                     <IndelingWandKaart WandId="wand.Id"
                                        WandNaam="@wand.Naam"
                                        DataTestId="indeling-wand-card"
@@ -121,8 +107,8 @@ else
                                        InhoudClass="indeling-wand-samenvatting-inhoud"
                                        KopClass="d-flex flex-wrap align-items-center gap-2 indeling-wand-samenvatting-kop"
                                        ActiesClass="indeling-wand-samenvatting-acties"
-                                       Badges="overzichtBadges"
-                                       MetaTekst="@($"{gevuldeBreedte} mm ingevuld · {vrijeBreedte} mm vrije wandruimte")"
+                                       Badges="overzicht.OverzichtBadges"
+                                       MetaTekst="@overzicht.OverzichtMetaTekst"
                                        OnOpenen="@(() => OpenWandWerkruimte(wand.Id))">
                     </IndelingWandKaart>
                 </div>
@@ -161,14 +147,17 @@ else
         }
     }
 
-    @if (actieveWand is not null)
+    @if (actieveWerkruimte is not null)
     {
-        var wandKasten = State.KastenVoorWand(actieveWand.Id);
-        var wandApparaten = State.ApparatenVoorWand(actieveWand.Id);
-        var gevuldeBreedte = actieveWand.TotaleBreedte(State.Kasten);
-        var vrijeBreedte = Math.Max(0, actieveWand.Breedte - gevuldeBreedte);
-        var toonPrimaireActies = !toonKastFormulier && !toonApparaatFormulier;
-        var toonWandOpstelling = wandKasten.Count > 0 || wandApparaten.Count > 0;
+        var actieveWand = actieveWerkruimte.Samenvatting.Wand;
+        var wandKasten = actieveWerkruimte.Samenvatting.Kasten;
+        var wandApparaten = actieveWerkruimte.Samenvatting.Apparaten;
+        var gevuldeBreedte = actieveWerkruimte.Samenvatting.GevuldeBreedte;
+        var vrijeBreedte = actieveWerkruimte.Samenvatting.VrijeBreedte;
+        var toonPrimaireActies = actieveWerkruimte.ToonPrimaireActies;
+        var toonWandOpstelling = actieveWerkruimte.ToonWandOpstelling;
+        var werkstap = actieveWerkruimte.Werkstap;
+        var werkstapCompact = werkstap.Titel is null;
 
         <div class="card border-0 shadow-sm mb-4 indeling-actieve-werkruimte"
              data-testid="actieve-wand-werkruimte"
@@ -198,53 +187,30 @@ else
 
                 @if (toonPrimaireActies)
                 {
-                    @if (wandKasten.Count == 0)
-                    {
-                        <div class="indeling-werkstap mb-4">
-                            <div>
-                                <div class="small fw-semibold text-uppercase text-muted mb-1">Nu doen</div>
-                                <div class="fw-semibold">Voeg eerst de eerste kast toe.</div>
-                                <div class="small text-muted">Gebruik een apparaat pas zodra het echt wandruimte of de vrije opening verandert.</div>
-                            </div>
-                            <div class="d-flex flex-wrap gap-2">
-                                <button class="btn btn-primary"
-                                        @onclick="() => OpenKastFormulier(actieveWand.Id)"
-                                        data-testid="open-kast-form-button"
-                                        data-wand-id="@actieveWand.Id">
-                                    Kast toevoegen
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm"
-                                        @onclick="() => OpenApparaatFormulier(actieveWand.Id)"
-                                        data-testid="open-apparaat-form-button"
-                                        data-wand-id="@actieveWand.Id">
-                                    Apparaat toevoegen
-                                </button>
-                            </div>
+                    <div class="indeling-werkstap @(werkstapCompact ? "indeling-werkstap--compact" : null) mb-4">
+                        <div>
+                            <div class="small fw-semibold text-uppercase text-muted mb-1">@werkstap.Kicker</div>
+                            @if (werkstap.Titel is not null)
+                            {
+                                <div class="fw-semibold">@werkstap.Titel</div>
+                            }
+                            <div class="small text-muted @(werkstapCompact ? "mb-0" : null)">@werkstap.Beschrijving</div>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="indeling-werkstap indeling-werkstap--compact mb-4">
-                            <div>
-                                <div class="small fw-semibold text-uppercase text-muted mb-1">Volgende stap</div>
-                                <div class="small text-muted mb-0">Werk alleen bij wat op deze wand nog ontbreekt. Apparaten blijven optioneel zolang ze geen ruimte of vrije opening veranderen.</div>
-                            </div>
-                            <div class="d-flex flex-wrap gap-2">
-                                <button class="btn btn-primary"
-                                        @onclick="() => OpenKastFormulier(actieveWand.Id)"
-                                        data-testid="open-kast-form-button"
-                                        data-wand-id="@actieveWand.Id">
-                                    Kast toevoegen
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm"
-                                        @onclick="() => OpenApparaatFormulier(actieveWand.Id)"
-                                        data-testid="open-apparaat-form-button"
-                                        data-wand-id="@actieveWand.Id">
-                                    Apparaat toevoegen
-                                </button>
-                            </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-primary"
+                                    @onclick="() => OpenKastFormulier(actieveWand.Id)"
+                                    data-testid="open-kast-form-button"
+                                    data-wand-id="@actieveWand.Id">
+                                Kast toevoegen
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm"
+                                    @onclick="() => OpenApparaatFormulier(actieveWand.Id)"
+                                    data-testid="open-apparaat-form-button"
+                                    data-wand-id="@actieveWand.Id">
+                                Apparaat toevoegen
+                            </button>
                         </div>
-                    }
+                    </div>
                 }
 
                 <div class="indeling-workspace-grid mb-4">
@@ -490,28 +456,17 @@ else
                                      DetailsDataTestId="indeling-overige-wanden-details"
                                      SummaryDataTestId="indeling-overige-wanden-summary">
                     <div class="indeling-overige-wanden-lijst">
-                        @foreach (var wand in overzichtWanden)
+                        @foreach (var overigeWand in overzichtWanden)
                         {
-                            var overigeWandKasten = State.KastenVoorWand(wand.Id);
-                            var overigeWandApparaten = State.ApparatenVoorWand(wand.Id);
-                            var overigeGevuldeBreedte = wand.TotaleBreedte(State.Kasten);
-                            var overigeVrijeBreedte = Math.Max(0, wand.Breedte - overigeGevuldeBreedte);
-                            var overigeBadges = new List<IndelingBadge>
-                            {
-                                new($"{overigeWandKasten.Count} kast(en)")
-                            };
-                            if (overigeWandApparaten.Count > 0)
-                            {
-                                overigeBadges.Add(new($"{overigeWandApparaten.Count} apparaat(en)"));
-                            }
+                            var wand = overigeWand.Wand;
 
                             <IndelingWandSchakelaar WandId="wand.Id"
                                                     WandNaam="@wand.Naam"
                                                     DataTestId="indeling-wand-card"
                                                     KnopDataTestId="open-wand-workspace-button"
                                                     KnopLabel="Open wand"
-                                                    Badges="overigeBadges"
-                                                    MetaTekst="@($"{overigeGevuldeBreedte} mm ingevuld · {overigeVrijeBreedte} mm vrij · {wand.Breedte} mm wandbreedte")"
+                                                    Badges="overigeWand.SchakelaarBadges"
+                                                    MetaTekst="@overigeWand.SchakelaarMetaTekst"
                                                     OnOpenen="@(() => OpenWandWerkruimte(wand.Id))"
                                                     @key="wand.Id">
                             </IndelingWandSchakelaar>
@@ -622,7 +577,6 @@ else
 {
     <KastFormulierOverlay IsBewerken="@isBewerken"
                           Stap="@kastFormStap"
-                          LaatsteStap="@LaatsteKastFormStap"
                           ActieveWandId="@actieveWandId"
                           Wanden="State.Wanden"
                           Templates="State.KastTemplates"
@@ -632,10 +586,6 @@ else
                           TechnischeControleBevestigd="@technischeControleBevestigd"
                           TechnischeControleBevestigdChanged="@(value => technischeControleBevestigd = value)"
                           ActieveWandNaam="@ActieveWandNaam()"
-                          StapLabel="@KastFormStapLabel(kastFormStap)"
-                          StapIntro="@KastFormStapIntro(kastFormStap)"
-                          TechnischeControleCheckboxLabel="@TechnischeControleCheckboxLabel()"
-                          TechnischeControleSamenvatting="@TechnischeControleSamenvatting()"
                           OnSluiten="SluitKastFormulier"
                           OnVorige="VorigeKastFormStap"
                           OnVolgende="VolgendeKastFormStap"
@@ -651,9 +601,6 @@ else
 {
     <ApparaatFormulierOverlay IsBewerken="@isApparaatBewerken"
                               Stap="@apparaatFormStap"
-                              LaatsteStap="@LaatsteApparaatFormStap"
-                              StapLabel="@ApparaatFormStapLabel(apparaatFormStap)"
-                              StapIntro="@ApparaatFormStapIntro(apparaatFormStap)"
                               ActieveWandNaam="@ActieveWandNaam()"
                               FormApparaat="@formApparaat"
                               OnSluiten="SluitApparaatFormulier"

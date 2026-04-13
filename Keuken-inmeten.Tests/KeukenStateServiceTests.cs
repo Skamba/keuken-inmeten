@@ -214,6 +214,45 @@ public class KeukenStateServiceTests
     }
 
     [Fact]
+    public void VerwijderKast_wist_alleen_gekoppelde_verificatiestatussen()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        state.VoegWandToe(wand);
+
+        var kastLinks = MaakGeplaatsteKast("Links", xPositie: 0);
+        var kastRechts = MaakGeplaatsteKast("Rechts", xPositie: 600);
+        state.VoegKastToe(kastLinks, wand.Id);
+        state.VoegKastToe(kastRechts, wand.Id);
+
+        var links = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            Type = PaneelType.Deur,
+            KastIds = [kastLinks.Id],
+            Breedte = 596,
+            Hoogte = 716
+        };
+        var rechts = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            Type = PaneelType.BlindPaneel,
+            KastIds = [kastRechts.Id],
+            Breedte = 596,
+            Hoogte = 716
+        };
+
+        state.VoegToewijzingenToe([links, rechts]);
+        state.WerkVerificatieStatusBij(links.Id, matenOk: true, scharnierPositiesOk: false);
+        state.WerkVerificatieStatusBij(rechts.Id, matenOk: false, scharnierPositiesOk: true);
+
+        state.VerwijderKast(kastLinks.Id);
+
+        var status = Assert.Single(state.VerificatieStatussen);
+        Assert.Equal(rechts.Id, status.ToewijzingId);
+    }
+
+    [Fact]
     public void VoegToewijzingenToe_voegt_meerdere_toe_met_exact_een_state_change()
     {
         var state = new KeukenStateService();

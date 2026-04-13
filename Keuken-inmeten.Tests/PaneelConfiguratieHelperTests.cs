@@ -369,4 +369,179 @@ public class PaneelConfiguratieHelperTests
         Assert.Equal(3, hoogtes.Count);
         Assert.Equal(700.5, hoogtes.Sum(), precision: 1);
     }
+
+    [Fact]
+    public void BouwConceptStartState_geeft_leeg_model_zonder_selectie()
+    {
+        var state = PaneelConfiguratieHelper.BouwConceptStartState(null, []);
+
+        Assert.Null(state.ConceptPaneel);
+        Assert.Null(state.XPositie);
+        Assert.Null(state.HoogteVanVloer);
+        Assert.Equal(0d, state.Breedte);
+        Assert.Equal(0d, state.Hoogte);
+    }
+
+    [Fact]
+    public void BouwConceptStateVoorBron_neemt_openingsrechthoek_over_en_rondt_formulierwaarden_af()
+    {
+        var bron = new PaneelGeometrieBron(
+            Guid.NewGuid(),
+            new PaneelRechthoek
+            {
+                XPositie = 10.44,
+                HoogteVanVloer = 19.66,
+                Breedte = 599.56,
+                Hoogte = 721.24
+            });
+
+        var state = PaneelConfiguratieHelper.BouwConceptStateVoorBron(bron);
+
+        Assert.NotNull(state.ConceptPaneel);
+        Assert.NotSame(bron.OpeningsRechthoek, state.ConceptPaneel);
+        Assert.Equal(10.44, state.ConceptPaneel!.XPositie);
+        Assert.Equal(19.66, state.ConceptPaneel.HoogteVanVloer);
+        Assert.Equal(10.4, state.XPositie);
+        Assert.Equal(19.7, state.HoogteVanVloer);
+        Assert.Equal(599.6, state.Breedte);
+        Assert.Equal(721.2, state.Hoogte);
+    }
+
+    [Fact]
+    public void VerwerkConceptWijziging_gebruikt_selectiecontext_voor_snap_en_formulierwaarden()
+    {
+        var kast = new Kast
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Spoelkast",
+            Breedte = 600,
+            Hoogte = 720,
+            XPositie = 0,
+            HoogteVanVloer = 0
+        };
+        var context = new PaneelSelectieContext(
+            ActieveWandId: Guid.NewGuid(),
+            ActieveWandNaam: "Achterwand",
+            GeselecteerdeKasten: [kast],
+            Werkruimte: null,
+            SelectieBereik: new PaneelRechthoek
+            {
+                XPositie = 0,
+                HoogteVanVloer = 0,
+                Breedte = 600,
+                Hoogte = 720
+            },
+            BestaandePaneelRechthoeken:
+            [
+                new PaneelRechthoek
+                {
+                    XPositie = 200,
+                    HoogteVanVloer = 100,
+                    Breedte = 200,
+                    Hoogte = 300
+                }
+            ],
+            VrijeSegmenten: [],
+            OpdeelBereik: null,
+            GeselecteerdeKastNamen: kast.Naam);
+
+        var state = PaneelConfiguratieHelper.VerwerkConceptWijziging(
+            new PaneelConceptWijziging
+            {
+                Bewerking = "move",
+                Paneel = new PaneelRechthoek
+                {
+                    XPositie = 183,
+                    HoogteVanVloer = 117,
+                    Breedte = 200,
+                    Hoogte = 300
+                }
+            },
+            context);
+
+        Assert.NotNull(state);
+        Assert.NotNull(state!.ConceptPaneel);
+        Assert.Equal(200d, state.ConceptPaneel!.XPositie);
+        Assert.Equal(100d, state.ConceptPaneel.HoogteVanVloer);
+        Assert.Equal(200d, state.XPositie);
+        Assert.Equal(100d, state.HoogteVanVloer);
+        Assert.Equal(200d, state.Breedte);
+        Assert.Equal(300d, state.Hoogte);
+    }
+
+    [Fact]
+    public void BouwSelectieContext_bundelt_geselecteerde_kasten_en_vrije_segmenten()
+    {
+        var kast = new Kast
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Spoelkast",
+            Breedte = 600,
+            Hoogte = 720,
+            XPositie = 0,
+            HoogteVanVloer = 0
+        };
+        var werkruimte = new PaneelWerkruimteContext(
+            new KeukenWand { Id = Guid.NewGuid(), Naam = "Achterwand", Breedte = 2400, Hoogte = 2700 },
+            [kast],
+            [],
+            [],
+            [new PaneelGeometrieBron(Guid.NewGuid(), new PaneelRechthoek
+            {
+                XPositie = 0,
+                HoogteVanVloer = 0,
+                Breedte = 600,
+                Hoogte = 200
+            })]);
+
+        var context = PaneelConfiguratieHelper.BouwSelectieContext(
+            werkruimte.Wand.Id,
+            werkruimte.Wand.Naam,
+            [kast],
+            werkruimte,
+            isBewerkModus: false);
+
+        Assert.True(context.HeeftSelectie);
+        Assert.True(context.HeeftEnkeleKastSelectie);
+        Assert.Same(kast, context.EnkeleGeselecteerdeKast);
+        Assert.Equal("Achterwand", context.ActieveWandNaam);
+        Assert.Equal("Spoelkast", context.GeselecteerdeKastNamen);
+        Assert.NotNull(context.SelectieBereik);
+        Assert.Single(context.BestaandePaneelRechthoeken);
+        Assert.Single(context.VrijeSegmenten);
+        Assert.NotNull(context.OpdeelBereik);
+        Assert.Equal(200d, context.OpdeelBereik!.HoogteVanVloer);
+        Assert.Equal(520d, context.OpdeelBereik.Hoogte);
+    }
+
+    [Fact]
+    public void BouwSelectieContext_geeft_geen_opdeelbereik_in_bewerkmodus()
+    {
+        var kast = new Kast
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Kast A",
+            Breedte = 600,
+            Hoogte = 720,
+            XPositie = 0,
+            HoogteVanVloer = 0
+        };
+
+        var context = PaneelConfiguratieHelper.BouwSelectieContext(
+            Guid.NewGuid(),
+            "Achterwand",
+            [kast],
+            new PaneelWerkruimteContext(
+                new KeukenWand { Id = Guid.NewGuid(), Naam = "Achterwand", Breedte = 2400, Hoogte = 2700 },
+                [kast],
+                [],
+                [],
+                []),
+            isBewerkModus: true);
+
+        Assert.True(context.HeeftEnkeleKastSelectie);
+        Assert.NotNull(context.SelectieBereik);
+        Assert.Empty(context.VrijeSegmenten);
+        Assert.Null(context.OpdeelBereik);
+    }
 }

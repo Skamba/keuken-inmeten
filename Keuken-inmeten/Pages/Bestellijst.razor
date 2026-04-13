@@ -100,7 +100,7 @@ else
         </div>
     </div>
 
-    @if (_toonExportFlow)
+    @if (_exportFlow.ToonExportFlow)
     {
         <div class="hulp-drawer-overlay bestellijst-export-overlay" @onclick="SluitExportFlow">
             <aside class="bestellijst-export-drawer card border-0 shadow-lg"
@@ -127,7 +127,7 @@ else
                         <div class="@ExportStapClass(BestellijstExportFlowStap.Bevestigen)">3. Bevestig</div>
                     </div>
 
-                    @if (_exportFlowStap is BestellijstExportFlowStap.Kiezen)
+                    @if (_exportFlow.Stap is BestellijstExportFlowStap.Kiezen)
                     {
                         <section data-testid="bestellijst-export-step-kies">
                             <div class="small text-muted mb-3">Kies eerst alleen het bestandsformaat.</div>
@@ -136,7 +136,7 @@ else
                             <div class="row g-3">
                                 @foreach (var optie in BestellijstExportFlowHelper.Opties)
                                 {
-                                    var isGeselecteerd = _exportType == optie.Type;
+                                    var isGeselecteerd = _exportFlow.ExportType == optie.Type;
 
                                     <div class="col-md-6">
                                         <button type="button"
@@ -166,7 +166,7 @@ else
                             <div class="small text-muted mt-3">Materiaal kunt u in de voorvertoning aanpassen als dit bestand van de standaard moet afwijken.</div>
                         </section>
                     }
-                    else if (_exportFlowStap is BestellijstExportFlowStap.Preview)
+                    else if (_exportFlow.Stap is BestellijstExportFlowStap.Preview)
                     {
                         <section data-testid="bestellijst-export-step-preview">
                             <div class="row g-3">
@@ -179,8 +179,8 @@ else
                                         </div>
                                         <p class="text-muted small mb-3">@pagina.GekozenExport.KorteBeschrijving</p>
                                         <div class="bestellijst-toolbar-meta">
-                                            <span><strong>Materiaal:</strong> @DisplayPaneelType()</span>
-                                            <span><strong>Dikte:</strong> @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</span>
+                                            <span><strong>Materiaal:</strong> @pagina.ExportDocument.PaneelType</span>
+                                            <span><strong>Dikte:</strong> @BestellijstExportFormatter.FormatDikteLabel(pagina.ExportDocument.DikteMm)</span>
                                             <span><strong>Orderregels:</strong> @pagina.ExportDocument.Orderregels</span>
                                             <span><strong>Panelen:</strong> @pagina.ExportDocument.TotaalAantal</span>
                                         </div>
@@ -191,7 +191,7 @@ else
                                         <div class="small fw-semibold text-uppercase text-muted mb-1">Gebruik dit als</div>
                                         <div class="small text-muted mb-3">@pagina.GekozenExport.WanneerKiezen</div>
                                         <div class="small"><strong>Resultaat:</strong> @pagina.GekozenExport.ResultaatUitleg</div>
-                                        <div class="small text-muted mt-3">Materiaal: @DisplayPaneelType() · @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</div>
+                                        <div class="small text-muted mt-3">Materiaal: @pagina.ExportDocument.PaneelType · @BestellijstExportFormatter.FormatDikteLabel(pagina.ExportDocument.DikteMm)</div>
                                     </div>
                                 </div>
                             </div>
@@ -215,7 +215,7 @@ else
                                 <summary data-testid="bestellijst-export-instellingen-summary">
                                     <div>
                                         <div class="fw-semibold">Materiaal aanpassen (optioneel)</div>
-                                        <div class="small text-muted">Standaard: @DisplayPaneelType() · @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</div>
+                                        <div class="small text-muted">Standaard: @pagina.ExportDocument.PaneelType · @BestellijstExportFormatter.FormatDikteLabel(pagina.ExportDocument.DikteMm)</div>
                                     </div>
                                 </summary>
                                 <div class="row g-3 mt-2">
@@ -223,7 +223,7 @@ else
                                         <label class="form-label fw-semibold">Paneeltype</label>
                                         <input class="form-control"
                                                list="paneeltype-opties"
-                                               @bind="_paneelType"
+                                               @bind="PaneelTypeInput"
                                                data-testid="bestellijst-paneeltype-input" />
                                         <div class="form-text hulp-hint" data-testid="bestellijst-paneeltype-hint">Bijvoorbeeld MDF wit of berken multiplex.</div>
                                         <datalist id="paneeltype-opties">
@@ -236,7 +236,7 @@ else
                                     <div class="col-md-5">
                                         <label class="form-label fw-semibold">Dikte (mm)</label>
                                         <input class="form-control"
-                                               @bind="_dikteMm"
+                                               @bind="DikteInput"
                                                inputmode="decimal"
                                                data-testid="bestellijst-dikte-input" />
                                         <div class="form-text hulp-hint" data-testid="bestellijst-dikte-hint">Gebruik hier de werkelijke plaatdikte, bijvoorbeeld 19 of 18,4.</div>
@@ -259,8 +259,8 @@ else
                                         <div class="small fw-semibold text-uppercase text-muted mb-2">Uw keuzes</div>
                                         <ul class="list-unstyled small mb-0 d-grid gap-2">
                                             <li><strong>Formaat:</strong> @pagina.GekozenExport.Label</li>
-                                            <li><strong>Materiaal:</strong> @DisplayPaneelType()</li>
-                                            <li><strong>Dikte:</strong> @BestellijstExportFormatter.FormatDikteLabel(_dikteMm)</li>
+                                            <li><strong>Materiaal:</strong> @pagina.ExportDocument.PaneelType</li>
+                                            <li><strong>Dikte:</strong> @BestellijstExportFormatter.FormatDikteLabel(pagina.ExportDocument.DikteMm)</li>
                                             <li><strong>Resultaat:</strong> @pagina.GekozenExport.ResultaatUitleg</li>
                                         </ul>
                                     </div>
@@ -269,7 +269,7 @@ else
                                     <div class="border rounded p-3 h-100">
                                         <div class="small fw-semibold text-uppercase text-muted mb-2">Wat gebeurt hierna?</div>
                                         <ul class="small mb-0 ps-3">
-                                            @if (_exportType is BestellijstExportType.Excel)
+                                            @if (_exportFlow.ExportType is BestellijstExportType.Excel)
                                             {
                                                 <li class="mb-1">Uw browser downloadt direct een spreadsheetbestand.</li>
                                                 <li class="mb-1">Controleer daarna de Downloads-map of open het bestand meteen.</li>
@@ -289,14 +289,14 @@ else
                 </div>
 
                 <div class="card-footer bg-transparent border-top d-flex justify-content-between flex-wrap gap-2">
-                    <button type="button"
-                            class="btn btn-outline-secondary"
-                            @onclick="AnnuleerOfGaTerugInExportFlow"
-                            data-testid="bestellijst-export-back-button">
-                        @(_exportFlowStap is BestellijstExportFlowStap.Kiezen ? "Annuleren" : "Terug")
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                @onclick="AnnuleerOfGaTerugInExportFlow"
+                                data-testid="bestellijst-export-back-button">
+                        @(_exportFlow.Stap is BestellijstExportFlowStap.Kiezen ? "Annuleren" : "Terug")
                     </button>
 
-                    @if (_exportFlowStap is BestellijstExportFlowStap.Kiezen)
+                    @if (_exportFlow.Stap is BestellijstExportFlowStap.Kiezen)
                     {
                         <button type="button"
                                 class="btn btn-primary"
@@ -305,7 +305,7 @@ else
                             Bekijk voorvertoning
                         </button>
                     }
-                    else if (_exportFlowStap is BestellijstExportFlowStap.Preview)
+                    else if (_exportFlow.Stap is BestellijstExportFlowStap.Preview)
                     {
                         <button type="button"
                                 class="btn btn-primary"

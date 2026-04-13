@@ -10,21 +10,12 @@ public partial class PersistentieService
         var shareJson = KeukenShareCodec.EncodeV4Json(_state.Exporteren());
         var compressedPayload = await ShareCompressionInterop.CompressSharePayloadAsync(shareJson);
         var token = KeukenShareCodec.MaakV4Token(compressedPayload);
-        var basis = new Uri(_navigation.BaseUri);
-        var routePad = string.IsNullOrWhiteSpace(route) ? "." : route.TrimStart('/');
-        var routeUrl = new Uri(basis, routePad);
-        var scheiding = string.IsNullOrEmpty(routeUrl.Query) ? "?" : "&";
-        return $"{routeUrl}{scheiding}s={token}";
+        return PersistentieDeelLinkHelper.MaakDeelUrl(_navigation.BaseUri, route, token);
     }
 
     public async Task<string> MaakDeelUrlVoorHuidigeRouteAsync()
     {
-        var relatieveUrl = _navigation.ToBaseRelativePath(_navigation.Uri);
-        var queryOfFragmentIndex = relatieveUrl.IndexOfAny(['?', '#']);
-        var route = queryOfFragmentIndex >= 0
-            ? relatieveUrl[..queryOfFragmentIndex]
-            : relatieveUrl;
-
+        var route = PersistentieDeelLinkHelper.BepaalRouteVoorHuidigeUrl(_navigation.ToBaseRelativePath(_navigation.Uri));
         return await MaakDeelUrlAsync(route);
     }
 
@@ -36,11 +27,7 @@ public partial class PersistentieService
 
     private async Task<(bool heeftLink, KeukenData? data)> LeesGedeeldeDataUitUrlAsync()
     {
-        var uri = new Uri(_navigation.Uri);
-        var token = LeesParameter(uri.Query, "s")
-            ?? LeesParameter(uri.Query, "share")
-            ?? LeesParameter(uri.Fragment, "s")
-            ?? LeesParameter(uri.Fragment, "share");
+        var token = PersistentieDeelLinkHelper.LeesTokenUitUrl(_navigation.Uri);
         if (string.IsNullOrWhiteSpace(token))
             return (false, null);
 
@@ -58,27 +45,5 @@ public partial class PersistentieService
         }
 
         return (true, KeukenShareCodec.TryDecode(token, out var gedeeldeData) ? gedeeldeData : null);
-    }
-
-    private static string? LeesParameter(string? bron, string naam)
-    {
-        if (string.IsNullOrWhiteSpace(bron))
-            return null;
-
-        var delen = bron.TrimStart('?', '#')
-            .Split('&', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-        foreach (var deel in delen)
-        {
-            var keyValue = deel.Split('=', 2);
-            if (!string.Equals(keyValue[0], naam, StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            return keyValue.Length > 1
-                ? Uri.UnescapeDataString(keyValue[1])
-                : string.Empty;
-        }
-
-        return null;
     }
 }

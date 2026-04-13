@@ -6,8 +6,6 @@ namespace Keuken_inmeten.Pages;
 
 public partial class Verificatie
 {
-    private enum VerificatieFase { Overzicht, PaneelVerificatie, Afronding }
-
     private VerificatieFase _fase = VerificatieFase.Overzicht;
     private int _paneelIndex;
     private BrowserWindowJsInterop? _browserWindowInterop;
@@ -20,82 +18,17 @@ public partial class Verificatie
     private void HandleStateChanged()
         => _ = InvokeAsync(StateHasChanged);
 
-    private PaneelVerificatieStatus GetChecks(PaneelResultaat resultaat)
-        => State.LeesVerificatieStatus(resultaat.ToewijzingId);
-
     private void ToggleMatenCheck(PaneelResultaat resultaat)
     {
-        var checks = GetChecks(resultaat);
+        var checks = State.LeesVerificatieStatus(resultaat.ToewijzingId);
         State.WerkVerificatieStatusBij(resultaat.ToewijzingId, !checks.MatenOk, checks.ScharnierPositiesOk);
     }
 
     private void ToggleScharnierCheck(PaneelResultaat resultaat)
     {
-        var checks = GetChecks(resultaat);
+        var checks = State.LeesVerificatieStatus(resultaat.ToewijzingId);
         State.WerkVerificatieStatusBij(resultaat.ToewijzingId, checks.MatenOk, !checks.ScharnierPositiesOk);
     }
-
-    private static bool HeeftScharnierCheck(PaneelResultaat r)
-        => r.Type == PaneelType.Deur && r.Boorgaten.Count > 0;
-
-    private bool AlleChecksVoorPaneel(int index, PaneelResultaat r)
-    {
-        var checks = GetChecks(r);
-
-        if (!checks.MatenOk)
-            return false;
-
-        return !HeeftScharnierCheck(r) || checks.ScharnierPositiesOk;
-    }
-
-    private int AantalAfgevinktVoorPaneel(int index, PaneelResultaat r)
-    {
-        var checks = GetChecks(r);
-
-        var count = checks.MatenOk ? 1 : 0;
-        if (HeeftScharnierCheck(r) && checks.ScharnierPositiesOk)
-            count++;
-
-        return count;
-    }
-
-    private static int TotaalChecksVoorPaneel(PaneelResultaat r)
-        => HeeftScharnierCheck(r) ? 2 : 1;
-
-    private int OpenChecksVoorPaneel(int index, PaneelResultaat r)
-        => TotaalChecksVoorPaneel(r) - AantalAfgevinktVoorPaneel(index, r);
-
-    private string OpenChecksLabel(int index, PaneelResultaat r)
-    {
-        var open = OpenChecksVoorPaneel(index, r);
-        return open == 0 ? "Alles klaar" : $"{open} open";
-    }
-
-    private string VolgendeControleTitel(int index, PaneelResultaat r)
-    {
-        var checks = GetChecks(r);
-
-        if (!checks.MatenOk)
-            return "Meet de maat in de opening na";
-
-        if (HeeftScharnierCheck(r) && !checks.ScharnierPositiesOk)
-            return "Controleer de systeemgaten";
-
-        return "Alle controles voor dit paneel zijn klaar";
-    }
-
-    private string HuidigeControleHint(int index, PaneelResultaat r)
-        => VolgendeControleTitel(index, r) switch
-        {
-            "Meet de maat in de opening na" => "Vergelijk de echte opening met de maat hieronder voordat u verdergaat.",
-            "Controleer de systeemgaten" => "Bevestig nu of de scharnierplaatposities in de gaatjesrij kloppen.",
-            _ => "Alle checkliststappen voor dit paneel zijn afgevinkt."
-        };
-
-    private string PaneelTabStatusTekst(int index, PaneelResultaat r)
-        => AlleChecksVoorPaneel(index, r)
-            ? "Klaar"
-            : $"{AantalAfgevinktVoorPaneel(index, r)}/{TotaalChecksVoorPaneel(r)} controles";
 
     private void GaNaarPaneel(int index)
     {

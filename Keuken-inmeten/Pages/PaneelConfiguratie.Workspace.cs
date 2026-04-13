@@ -14,7 +14,7 @@ public partial class PaneelConfiguratie
         ActiveerPaneelWerkruimte(wandId, toonEditor: true);
         VerlaatPaneelBewerkmodus();
 
-        if (ActieveWandId is Guid actieveWandId && actieveWandId != wandId)
+        if (HuidigeSelectieContext.ActieveWandId is Guid actieveWandId && actieveWandId != wandId)
             WisGeselecteerdeKasten();
 
         if (!geselecteerdeKastIds.Add(kastId))
@@ -93,7 +93,7 @@ public partial class PaneelConfiguratie
     }
 
     private bool KanKastOpdelenIn(int aantal)
-        => OpdeelBereik is { Hoogte: var hoogte }
+        => HuidigeSelectieContext.OpdeelBereik is { Hoogte: var hoogte }
            && hoogte >= (aantal * PaneelLayoutService.MinPaneelMaat) - 0.001;
 
     private void OpenKastOpdelenModal()
@@ -109,7 +109,7 @@ public partial class PaneelConfiguratie
 
     private void StelOpdeelAantalIn(int aantal)
     {
-        if (!KanKastOpdelenIn(aantal) || OpdeelBereik is not { } bereik)
+        if (!KanKastOpdelenIn(aantal) || HuidigeSelectieContext.OpdeelBereik is not { } bereik)
             return;
 
         opdeelAantal = aantal;
@@ -118,14 +118,14 @@ public partial class PaneelConfiguratie
 
     private void BevestigKastOpdelen()
     {
-        if (OpdeelBereik is not { } bereik || geselecteerdeKasten.Count != 1)
+        var selectieContext = HuidigeSelectieContext;
+        if (selectieContext.OpdeelBereik is not { } bereik || selectieContext.EnkeleGeselecteerdeKast is not { } kast)
             return;
 
         var analyse = PaneelConfiguratieHelper.AnalyseerOpdeelHoogtes(bereik.Hoogte, opdeelHoogtes);
         if (!analyse.KanBevestigen)
             return;
 
-        var kast = geselecteerdeKasten[0];
         var toewijzingen = PaneelConfiguratieHelper.BouwOpdeelSegmenten(bereik, opdeelHoogtes)
             .Select(segment => MaakPaneelToewijzing(segment, [kast]))
             .ToList();

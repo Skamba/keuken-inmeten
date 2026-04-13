@@ -16,28 +16,10 @@ public partial class KastenInvoer
     private void SluitApparaatFormulier()
         => StelApparaatFormulierIn(NieuwApparaat(), false);
 
-    private static string ApparaatFormStapLabel(int stap)
-        => ApparaatFormStappen[stap - 1];
-
-    private static string ApparaatFormStapIntro(int stap)
-        => stap switch
-        {
-            1 => "Kies type, naam en wandcontext van het apparaat.",
-            2 => "Voer alleen de maatvoering in.",
-            _ => "Controleer de samenvatting en voorvertoning voordat u het apparaat opslaat.",
-        };
-
-    private bool KanNaarVolgendeApparaatStap()
-        => apparaatFormStap switch
-        {
-            1 => !string.IsNullOrWhiteSpace(formApparaat.Naam),
-            2 => formApparaat.Breedte > 0 && formApparaat.Hoogte > 0 && formApparaat.Diepte > 0,
-            _ => false
-        };
-
     private void VolgendeApparaatFormStap()
     {
-        if (apparaatFormStap >= LaatsteApparaatFormStap || !KanNaarVolgendeApparaatStap())
+        var formulier = HuidigApparaatFormulierModel;
+        if (apparaatFormStap >= formulier.Stap.LaatsteStap || !formulier.Stap.KanNaarVolgendeStap)
             return;
 
         apparaatFormStap++;

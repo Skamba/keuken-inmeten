@@ -8,35 +8,30 @@
 <StapIndicator HuidigeStap="panelen" />
 
 @{
-    var flowStatus = StappenFlowHelper.BepaalStatus(State);
-    var routeGate = StappenFlowHelper.BepaalRouteGate("panelen", flowStatus);
-    var geopendeWand = GeopendeWand;
-    var isReviewWeergaveActief = IsReviewWeergaveActief;
-    var paneelEditorStatus = HuidigePaneelEditorStatus;
-    var toonCompacteStapIntro = routeGate is null && geopendeWand is not null && !isReviewWeergaveActief;
-    var toonCompacteWeergaveTabs = toonEditorDrawer && !isReviewWeergaveActief && geopendeWand is not null;
-    var toonUitgeklapteProjectinstellingen = Math.Abs(State.PaneelRandSpeling - 3) > 0.001;
+    var pagina = HuidigePaginaModel;
+    var routeGate = pagina.RouteGate;
+    var selectieContext = HuidigeSelectieContext;
+    var paneelEditorStatus = pagina.PaneelEditorStatus;
+    var actieveWerkruimte = pagina.ActieveWerkruimte;
+    var geopendeWerkruimte = actieveWerkruimte?.Samenvatting.Werkruimte;
+    var geopendeWand = geopendeWerkruimte?.Wand;
 }
 
 <section class="stap-pagina-kop mb-4">
     <div class="stap-pagina-kop__top">
         <div class="stap-pagina-kop__intro">
             <h2 class="page-header">Stap 2: Panelen</h2>
-            @if (routeGate is null && isReviewWeergaveActief)
-            {
-                <p class="stap-pagina-kop__lead">Loop aantallen, maten en acties per wand rustig na. Ga alleen terug naar de editor als u opnieuw wilt plaatsen of bewerken.</p>
-            }
-            else if (toonCompacteStapIntro)
+            @if (pagina.Kop.CompactBlok is { } compactBlok)
             {
                 <div class="stap-pagina-kop__compact" data-testid="paneel-stap-intro-compact">
-                    <span class="stap-pagina-kop__kicker">Actieve wand</span>
-                    <span class="fw-semibold">@(geopendeWand?.Naam ?? "Paneel-editor")</span>
-                    <span class="small text-muted">Rond selectie, maat en opslaan af zonder extra schermwissels.</span>
+                    <span class="stap-pagina-kop__kicker">@compactBlok.Kicker</span>
+                    <span class="fw-semibold">@compactBlok.Titel</span>
+                    <span class="small text-muted">@compactBlok.Beschrijving</span>
                 </div>
             }
             else
             {
-                <p class="stap-pagina-kop__lead">Open één wand en plaats daarna panelen in de editor. Het overzicht wordt pas nuttig zodra er panelen zijn.</p>
+                <p class="stap-pagina-kop__lead">@pagina.Kop.LeadTekst</p>
             }
         </div>
     </div>
@@ -48,38 +43,26 @@
 }
 else
 {
-    var paneelReviewGroepen = OverzichtGroeperingHelper.GroepeerPaneelToewijzingen(State);
-    var paneelTypeTellingen = OverzichtGroeperingHelper.MaakTellingen(State.Toewijzingen, toewijzing => TypeNaam(toewijzing.Type));
-    var reviewBeschikbaar = State.Toewijzingen.Count > 0;
-    var wandWerkruimtes = State.LeesPaneelWerkruimtes(bewerkToewijzingId);
-    var gerangschiktePaneelReviewGroepen = geopendeWand is null
-        ? paneelReviewGroepen
-        : paneelReviewGroepen
-            .OrderBy(groep => groep.WandId == geopendeWand.Id ? 0 : 1)
-            .ThenBy(groep => groep.WandNaam)
-            .ThenBy(groep => groep.WandId?.ToString("N"))
-            .ToList();
-    var overzichtWerkruimtes = geopendeWand is null
-        ? wandWerkruimtes
-        : wandWerkruimtes.Where(werkruimte => werkruimte.Wand.Id != geopendeWand.Id).ToList();
-    var geopendeWerkruimte = geopendeWand is null
-        ? null
-        : wandWerkruimtes.FirstOrDefault(werkruimte => werkruimte.Wand.Id == geopendeWand.Id);
-
-    <div class="paneel-pagina-shell @((toonEditorDrawer && !isReviewWeergaveActief) ? "editor-open" : null)">
-        <div class="border rounded p-3 mb-4 bg-body-tertiary paneel-weergave-tabs @(geopendeWand is not null ? "paneel-weergave-tabs--compact" : null) @(toonCompacteWeergaveTabs ? "paneel-weergave-tabs--editor-open" : null)" data-testid="paneel-weergave-tabs">
-            @if (toonCompacteWeergaveTabs)
+    <div class="paneel-pagina-shell @((pagina.ToonEditorDrawer && !pagina.IsReviewWeergaveActief) ? "editor-open" : null)">
+        <div class="border rounded p-3 mb-4 bg-body-tertiary paneel-weergave-tabs @(geopendeWand is not null ? "paneel-weergave-tabs--compact" : null) @(pagina.ToonCompacteWeergaveTabs ? "paneel-weergave-tabs--editor-open" : null)" data-testid="paneel-weergave-tabs">
+            @if (pagina.WeergaveTabs.IsCompact)
             {
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <div>
                         <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Werklaag</div>
-                        <div class="fw-semibold">Editor open voor @geopendeWand?.Naam</div>
-                        <div class="small text-muted">Rond selectie, maat en opslaan af zonder extra schermwissels.</div>
+                        <div class="fw-semibold">@pagina.WeergaveTabs.Titel</div>
+                        @if (!string.IsNullOrWhiteSpace(pagina.WeergaveTabs.Beschrijving))
+                        {
+                            <div class="small text-muted">@pagina.WeergaveTabs.Beschrijving</div>
+                        }
                     </div>
-                    @if (reviewBeschikbaar)
+                    @if (pagina.WeergaveTabs.MetaItems.Count > 0)
                     {
                         <div class="stap-meta-list paneel-weergave-meta-list">
-                            <span>@State.Toewijzingen.Count paneel/panelen klaar</span>
+                            @foreach (var item in pagina.WeergaveTabs.MetaItems)
+                            {
+                                <span>@item</span>
+                            }
                         </div>
                     }
                 </div>
@@ -89,45 +72,26 @@ else
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
                     <div>
                         <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Weergave</div>
-                        <div class="fw-semibold">
-                            @(isReviewWeergaveActief
-                                ? "Overzicht van toegewezen panelen"
-                                : geopendeWand is null
-                                    ? "Open eerst één wand"
-                                    : $"Editor — {geopendeWand.Naam}")
-                        </div>
-                        @if (isReviewWeergaveActief)
+                        <div class="fw-semibold">@pagina.WeergaveTabs.Titel</div>
+                        @if (!string.IsNullOrWhiteSpace(pagina.WeergaveTabs.Beschrijving))
                         {
                             <div class="small text-muted">
-                                Controleer hier aantallen, maten en acties zonder het canvas erboven.
-                            </div>
-                        }
-                        else if (geopendeWand is not null)
-                        {
-                            <div class="small text-muted">
-                                @(toonEditorDrawer
-                                    ? "De editor staat open. Rond selectie, maat en opslaan in één werklaag af."
-                                    : "Werk op één wand tegelijk en open de editor zodra uw selectie klaarstaat.")
+                                @pagina.WeergaveTabs.Beschrijving
                             </div>
                         }
                     </div>
                     <div class="stap-meta-list paneel-weergave-meta-list">
-                        @if (geopendeWand is not null && !isReviewWeergaveActief)
+                        @foreach (var item in pagina.WeergaveTabs.MetaItems)
                         {
-                            <span>Actief: @geopendeWand.Naam</span>
-                            <span>@(toonEditorDrawer ? "Editor open" : "Editor gesloten")</span>
-                        }
-                        @if (reviewBeschikbaar)
-                        {
-                            <span>@State.Toewijzingen.Count paneel/panelen</span>
+                            <span>@item</span>
                         }
                     </div>
                 </div>
             }
-            <ul class="nav nav-pills nav-fill flex-wrap @(toonCompacteWeergaveTabs ? "mt-2" : "mt-3")">
+            <ul class="nav nav-pills nav-fill flex-wrap @(pagina.ToonCompacteWeergaveTabs ? "mt-2" : "mt-3")">
                 <li class="nav-item">
                     <button type="button"
-                            class="nav-link @(!isReviewWeergaveActief ? "active" : "")"
+                            class="nav-link @(!pagina.IsReviewWeergaveActief ? "active" : "")"
                             @onclick="ActiveerEditorWeergave"
                             data-testid="paneel-editor-weergave-tab">
                         <span class="fw-semibold">Editor</span>
@@ -135,9 +99,9 @@ else
                 </li>
                 <li class="nav-item">
                     <button type="button"
-                            class="nav-link @(isReviewWeergaveActief ? "active" : "")"
+                            class="nav-link @(pagina.IsReviewWeergaveActief ? "active" : "")"
                             @onclick="ActiveerReviewWeergave"
-                            disabled="@(State.Toewijzingen.Count == 0)"
+                            disabled="@(!pagina.ReviewBeschikbaar)"
                             data-testid="paneel-review-weergave-tab">
                         <span class="fw-semibold">Overzicht</span>
                     </button>
@@ -147,7 +111,7 @@ else
 
         <details class="indeling-overige-wanden paneel-projectinstellingen mb-4"
                  data-testid="paneel-projectinstellingen"
-                 open="@toonUitgeklapteProjectinstellingen">
+                 open="@pagina.ToonUitgeklapteProjectinstellingen">
             <summary class="indeling-overige-wanden-summary">
                 <div>
                     <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Projectinstelling</div>
@@ -183,7 +147,7 @@ else
             </div>
         </details>
 
-        @if (!isReviewWeergaveActief)
+        @if (!pagina.IsReviewWeergaveActief)
         {
             <div data-testid="paneel-editor-weergave">
                 @if (geopendeWand is null)
@@ -196,101 +160,57 @@ else
                     </div>
 
                     <div class="row g-3 mb-4">
-                        @foreach (var werkruimte in overzichtWerkruimtes)
+                        @foreach (var wand in pagina.OverzichtWanden)
                         {
-                            var wand = werkruimte.Wand;
-                            var wandKasten = werkruimte.Kasten;
-                            var wandPanelen = werkruimte.Toewijzingen;
-                            var isActieveWerkruimte = geopendeWand?.Id == wand.Id;
-                            var overzichtBadges = isActieveWerkruimte
-                                ? new List<IndelingBadge> { new("Nu open", "badge text-bg-primary") }
-                                : [];
-                            var overzichtMeta = new List<string>();
-                            if (wandKasten.Count > 0)
-                            {
-                                overzichtMeta.Add($"{wandKasten.Count} kast(en)");
-                            }
-                            if (wandPanelen.Count > 0)
-                            {
-                                overzichtMeta.Add($"{wandPanelen.Count} paneel/panelen");
-                            }
-                            overzichtMeta.Add($"{wand.Breedte} mm wand");
-                            var knopLabel = wandKasten.Count == 0
-                                ? "Eerst stap 1"
-                                : isActieveWerkruimte
-                                    ? "Werkruimte geopend"
-                                    : "Open wand";
-                            var knopClass = wandKasten.Count == 0 ? "btn btn-outline-secondary" : "btn btn-primary";
-                            var beschrijving = wandKasten.Count == 0
-                                ? "Voeg eerst een kast toe in stap 1."
-                                : wandPanelen.Count > 0
-                                    ? "Open deze wand om panelen te bekijken of te bewerken."
-                                    : "Open deze wand om uw eerste paneel te plaatsen.";
-
                             <div class="col-xl-6"
-                                 @key="wand.Id">
-                                <IndelingWandKaart WandId="wand.Id"
-                                                   WandNaam="@wand.Naam"
+                                 @key="wand.Werkruimte.Wand.Id">
+                                <IndelingWandKaart WandId="wand.Werkruimte.Wand.Id"
+                                                   WandNaam="@wand.Werkruimte.Wand.Naam"
                                                    DataTestId="paneel-wand-card"
                                                    KnopDataTestId="open-paneel-wand-button"
-                                                   KnopLabel="@knopLabel"
-                                                   KnopClass="@knopClass"
-                                                   KnopUitgeschakeld="@(isActieveWerkruimte || wandKasten.Count == 0)"
+                                                   KnopLabel="@wand.OverzichtKnopLabel"
+                                                   KnopClass="@wand.OverzichtKnopClass"
+                                                   KnopUitgeschakeld="@wand.OverzichtKnopUitgeschakeld"
                                                    MetaClass="stap-meta-list"
-                                                   IsActief="isActieveWerkruimte"
-                                                   Badges="overzichtBadges"
-                                                   MetaItems="overzichtMeta"
-                                                   Beschrijving="@beschrijving"
-                                                   OnOpenen="@(() => ToggleWandWerkruimte(wand.Id))">
+                                                   IsActief="@wand.IsActief"
+                                                   Badges="@wand.OverzichtBadges"
+                                                   MetaItems="@wand.OverzichtMetaItems"
+                                                   Beschrijving="@wand.OverzichtBeschrijving"
+                                                   OnOpenen="@(() => ToggleWandWerkruimte(wand.Werkruimte.Wand.Id))">
                                 </IndelingWandKaart>
                             </div>
                         }
                     </div>
                 }
-                else if (overzichtWerkruimtes.Count > 0)
+                else if (pagina.OverzichtWanden.Count > 0)
                 {
                     <IndelingDetailsBlok Titel="Andere wanden"
                                          Beschrijving="Verborgen zodat de actieve werkruimte rustiger blijft."
-                                         BadgeText="@($"{overzichtWerkruimtes.Count} wand(en) direct beschikbaar")"
+                                         BadgeText="@($"{pagina.OverzichtWanden.Count} wand(en) direct beschikbaar")"
                                          DetailsClass="indeling-overige-wanden paneel-overige-wanden-details mb-4"
                                          DetailsDataTestId="paneel-overige-wanden-details"
                                          SummaryDataTestId="paneel-overige-wanden-summary">
                         <div class="indeling-overige-wanden-lijst">
-                            @foreach (var werkruimte in overzichtWerkruimtes)
+                            @foreach (var wand in pagina.OverzichtWanden)
                             {
-                                var wand = werkruimte.Wand;
-                                var wandKasten = werkruimte.Kasten;
-                                var wandApparaten = werkruimte.Apparaten;
-                                var wandPanelen = werkruimte.Toewijzingen;
-                                var overzichtMeta = new List<string> { $"{wandKasten.Count} kast(en)" };
-                                if (wandPanelen.Count > 0)
-                                {
-                                    overzichtMeta.Add($"{wandPanelen.Count} paneel/panelen");
-                                }
-                                overzichtMeta.Add($"{wand.Breedte} mm wand");
-                                var beschrijving = wandKasten.Count == 0
-                                    ? "Nog geen kasten op deze wand. Voeg die eerst in stap 1 toe."
-                                    : $"{wandPanelen.Count} paneel/panelen · {wandApparaten.Count} apparaat(en) · {wand.Breedte} mm wandbreedte";
-                                var knopLabel = wandKasten.Count == 0 ? "Eerst kast toevoegen" : "Open wand";
-
-                                <IndelingWandSchakelaar WandId="wand.Id"
-                                                        WandNaam="@wand.Naam"
+                                <IndelingWandSchakelaar WandId="wand.Werkruimte.Wand.Id"
+                                                        WandNaam="@wand.Werkruimte.Wand.Naam"
                                                         DataTestId="paneel-wand-card"
                                                         KnopDataTestId="open-paneel-wand-button"
-                                                        KnopLabel="@knopLabel"
-                                                        KnopUitgeschakeld="@(wandKasten.Count == 0)"
+                                                        KnopLabel="@wand.SchakelaarKnopLabel"
+                                                        KnopUitgeschakeld="@wand.SchakelaarKnopUitgeschakeld"
                                                         MetaClass="stap-meta-list"
-                                                        MetaItems="overzichtMeta"
-                                                        Beschrijving="@beschrijving"
-                                                        OnOpenen="@(() => ToggleWandWerkruimte(wand.Id))"
-                                                        @key="wand.Id">
+                                                        MetaItems="@wand.SchakelaarMetaItems"
+                                                        Beschrijving="@wand.SchakelaarBeschrijving"
+                                                        OnOpenen="@(() => ToggleWandWerkruimte(wand.Werkruimte.Wand.Id))"
+                                                        @key="wand.Werkruimte.Wand.Id">
                                 </IndelingWandSchakelaar>
                             }
                         </div>
                     </IndelingDetailsBlok>
                 }
 
-                @if (geopendeWand is not null && geopendeWerkruimte is not null)
+                @if (actieveWerkruimte is not null && geopendeWerkruimte is not null && geopendeWand is not null)
                 {
                     var geopendeWandKasten = geopendeWerkruimte.Kasten;
                     var geopendeWandApparaten = geopendeWerkruimte.Apparaten;
@@ -311,17 +231,14 @@ else
                                     <span class="indeling-workspace-kicker d-block">Actieve wand</span>
                                     <span class="h5 d-block mb-1 text-body">@geopendeWand.Naam</span>
                                     <span class="stap-meta-list">
-                                        <span>@geopendeWandKasten.Count kast(en)</span>
-                                        <span>@geopendeWandPanelen.Count paneel/panelen</span>
-                                        @if (geopendeWandApparaten.Count > 0)
+                                        @foreach (var item in actieveWerkruimte.MetaItems)
                                         {
-                                            <span>@geopendeWandApparaten.Count apparaat(en)</span>
+                                            <span>@item</span>
                                         }
-                                        <span>@(toonEditorDrawer ? "Editor open" : "Editor gesloten")</span>
                                     </span>
                                 </button>
                                 <div class="d-flex flex-wrap align-items-center justify-content-sm-end gap-2">
-                                    @if (!toonEditorDrawer)
+                                    @if (!pagina.ToonEditorDrawer)
                                     {
                                         <button type="button"
                                             class="btn btn-sm btn-primary"
@@ -336,13 +253,13 @@ else
                                 </div>
                             </div>
 
-                            @if (!toonEditorDrawer)
+                            @if (actieveWerkruimte.WerkruimteStatus is { } werkruimteStatus)
                             {
                                 <div class="paneel-werkruimte-status border rounded p-3 mb-3 bg-body-tertiary">
                                     <div>
-                                        <div class="small text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Volgende stap</div>
-                                        <div class="fw-semibold mb-1">@paneelEditorStatus.VolgendePaneelStapTekst</div>
-                                        <div class="small text-muted">@paneelEditorStatus.WerkruimteStatusDetailTekst</div>
+                                        <div class="small text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">@werkruimteStatus.Kicker</div>
+                                        <div class="fw-semibold mb-1">@werkruimteStatus.Titel</div>
+                                        <div class="small text-muted">@werkruimteStatus.Beschrijving</div>
                                     </div>
                                 </div>
                             }
@@ -358,7 +275,7 @@ else
                                                     SvgMaxHoogte="65vh"
                                                     BeperkTotContainerBreedte="true"
                                                     Toewijzingen="@geopendeWandPanelen"
-                                                    VrijeSegmenten="@VrijeSegmentenVoorSelectie()"
+                                                    VrijeSegmenten="@selectieContext.VrijeSegmenten"
                                                     ConceptPaneel="@conceptPaneel"
                                                     ConceptPaneelType="@formToewijzing.Type"
                                                     ConceptPaneelScharnierZijde="@formToewijzing.ScharnierZijde"
@@ -366,7 +283,7 @@ else
                                                     OnConceptPaneelGewijzigd="VerwerkConceptPaneel" />
                             </div>
 
-                            @if (geselecteerdeKastIds.Count > 0 && !toonEditorDrawer)
+                            @if (selectieContext.HeeftSelectie && !pagina.ToonEditorDrawer)
                             {
                                 <div class="paneel-selectie-strip mt-3">
                                     <div class="small text-muted">Uw selectie staat klaar. Open of houd de editor open om plaatsing, maat en opslaan af te ronden.</div>
@@ -374,7 +291,7 @@ else
                                         <button type="button" class="btn btn-sm btn-link text-secondary p-0" @onclick="DeselecteerAlles">
                                             Alles deselecteren ×
                                         </button>
-                                        @if (!toonEditorDrawer)
+                                        @if (!pagina.ToonEditorDrawer)
                                         {
                                             <button type="button"
                                                     class="btn btn-outline-primary btn-sm"
@@ -390,7 +307,7 @@ else
                     </div>
                 }
 
-                @if (toonCompacteStapIntro)
+                @if (pagina.ToonCompacteStapIntro)
                 {
                     <div class="mt-3" data-testid="paneel-terminologie-blok">
                         <TerminologieUitleg Titel="Paneeltermen in gewone taal"
@@ -402,9 +319,9 @@ else
         }
         else
         {
-            <PaneelReviewOverzicht ToewijzingenAantal="@State.Toewijzingen.Count"
-                                   Groepen="@gerangschiktePaneelReviewGroepen"
-                                   PaneelTypeTellingen="@paneelTypeTellingen"
+            <PaneelReviewOverzicht ToewijzingenAantal="@pagina.ToewijzingenAantal"
+                                   Groepen="@pagina.ReviewGroepen"
+                                   PaneelTypeTellingen="@pagina.PaneelTypeTellingen"
                                    ActieveWandId="@geopendeWand?.Id"
                                    BewerkToewijzingId="@bewerkToewijzingId"
                                    GeopendeWandNaam="@geopendeWand?.Naam"
@@ -414,12 +331,11 @@ else
         }
     </div>
 
-    @if (geopendeWand is not null && toonEditorDrawer && !isReviewWeergaveActief)
+    @if (geopendeWand is not null && pagina.ToonEditorDrawer && !pagina.IsReviewWeergaveActief)
     {
         var conceptMaatInfo = BerekenConceptMaatInfo();
-        var vrijeSegmenten = VrijeSegmentenVoorSelectie();
         <PaneelEditorDrawer Status="@paneelEditorStatus"
-                            OpdeelBereik="@OpdeelBereik"
+                            OpdeelBereik="@selectieContext.OpdeelBereik"
                             GeselecteerdType="@formToewijzing.Type"
                             GeselecteerdeScharnierZijde="@formToewijzing.ScharnierZijde"
                             PotHartInput="@PotHartInput"
@@ -434,8 +350,8 @@ else
                             OnderkantInputChanged="@(EventCallback.Factory.Create<double>(this, value => OnderkantInput = value))"
                             ConceptPaneel="@conceptPaneel"
                             ConceptMaatInfo="@conceptMaatInfo"
-                            VrijeSegmenten="@vrijeSegmenten"
-                            GeselecteerdeKast="@(geselecteerdeKasten.Count == 1 ? geselecteerdeKasten[0] : null)"
+                            VrijeSegmenten="@selectieContext.VrijeSegmenten"
+                            GeselecteerdeKast="@selectieContext.EnkeleGeselecteerdeKast"
                             ToonKastOpdelenModal="@toonKastOpdelenModal"
                             OpdeelAantal="@opdeelAantal"
                             OpdeelHoogtes="opdeelHoogtes"
@@ -459,4 +375,4 @@ else
 <StapNavigatie HuidigeStap="panelen"
                VorigeHref="kasten"
                VolgendeHref="verificatie"
-               VolgendeDisabled="@(State.Toewijzingen.Count == 0)" />
+               VolgendeDisabled="@(pagina.ToewijzingenAantal == 0)" />

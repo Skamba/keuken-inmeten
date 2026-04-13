@@ -32,7 +32,7 @@
 </section>
 
 @{
-    var pagina = MaakPaginaModel();
+    var pagina = HuidigePaginaModel;
     var uitlijnWaarschuwingen = WandUitlijnControleService.BepaalWaarschuwingen(State.Wanden, State.Kasten);
 }
 
@@ -154,7 +154,8 @@ else if (_fase == VerificatieFase.PaneelVerificatie && pagina.ActiefPaneel is no
 {
     var paneel = pagina.ActiefPaneel;
     var r = paneel.Resultaat;
-    var checks = paneel.Checks;
+    var checklist = paneel.Checklist;
+    var checks = checklist.Checks;
     var paneelbeeldToelichting = PaneelbeeldSpelingToelichting(r);
 
     <div class="verificatie-focus-strip mb-3">
@@ -167,7 +168,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && pagina.ActiefPaneel is no
             <div class="small text-muted">Paneel @(_paneelIndex + 1) van @pagina.Resultaten.Count · @paneel.WandNaam</div>
         </div>
         <div class="text-sm-end">
-            <div class="fw-semibold">@paneel.AfgerondePanelen van @pagina.Resultaten.Count panelen klaar</div>
+            <div class="fw-semibold">@paneel.AfgerondePanelen van @paneel.TotaalPanelen panelen klaar</div>
             <div class="small text-muted">@paneel.OpenPaneelControles open controles in deze stap</div>
         </div>
     </div>
@@ -176,8 +177,8 @@ else if (_fase == VerificatieFase.PaneelVerificatie && pagina.ActiefPaneel is no
         <div class="verificatie-detail-strip mb-4">
             <div class="verificatie-detail-strip-main">
                 <div class="verificatie-samenvatting-label">Nu controleren</div>
-                <div class="fw-semibold">@paneel.VolgendeControle</div>
-                <div class="small text-muted">@paneel.HuidigeControleHint</div>
+                <div class="fw-semibold">@checklist.VolgendeControle</div>
+                <div class="small text-muted">@checklist.HuidigeControleHint</div>
             </div>
             <div class="verificatie-detail-strip-meta">
                 <div>
@@ -187,8 +188,8 @@ else if (_fase == VerificatieFase.PaneelVerificatie && pagina.ActiefPaneel is no
                 </div>
                 <div>
                     <div class="verificatie-samenvatting-label">Status</div>
-                    <div class="fw-semibold">@paneel.AantalAfgevinkt van @paneel.TotaalChecks controles afgevinkt</div>
-                    <div class="small text-muted">@paneel.OpenChecksLabel</div>
+                    <div class="fw-semibold">@checklist.AantalAfgevinkt van @checklist.TotaalChecks controles afgevinkt</div>
+                    <div class="small text-muted">@checklist.OpenChecksLabel</div>
                 </div>
             </div>
         </div>
@@ -245,7 +246,7 @@ else if (_fase == VerificatieFase.PaneelVerificatie && pagina.ActiefPaneel is no
                         }
                     </div>
 
-                    @if (paneel.IsDeur)
+                    @if (checklist.HeeftScharnierCheck)
                     {
                         @* ── Controle 2: Controleer de gaatjesrij ── *@
                         <div class="verificatie-check @(checks.ScharnierPositiesOk ? "verificatie-check-ok" : "") mb-4">
@@ -313,8 +314,8 @@ else if (_fase == VerificatieFase.PaneelVerificatie && pagina.ActiefPaneel is no
                     </div>
                         <div class="verificatie-zijkader small text-muted">
                             <div class="fw-semibold text-body mb-1">Paneelbeeld</div>
-                            <div>@FormatMm(r.Breedte) &#215; @FormatMm(r.Hoogte) · @paneel.OpenChecksLabel</div>
-                            @if (paneel.IsDeur)
+                            <div>@FormatMm(r.Breedte) &#215; @FormatMm(r.Hoogte) · @checklist.OpenChecksLabel</div>
+                            @if (checklist.HeeftScharnierCheck)
                             {
                                 <div>@r.Boorgaten.Count @(r.Boorgaten.Count == 1 ? "potscharniergat" : "potscharniergaten") &#216;@(r.Boorgaten.FirstOrDefault()?.Diameter ?? 35) mm</div>
                             }
@@ -343,15 +344,16 @@ else if (_fase == VerificatieFase.PaneelVerificatie && pagina.ActiefPaneel is no
                     @for (int i = 0; i < pagina.Resultaten.Count; i++)
                     {
                         var ri = pagina.Resultaten[i];
+                        var status = pagina.Checklists[i];
                         var idx = i;
                         var isActief = idx == _paneelIndex;
-                        var isOk = AlleChecksVoorPaneel(idx, ri);
+                        var isOk = status.Geverifieerd;
 
                         <button class="btn @(isActief ? "btn-primary" : isOk ? "btn-outline-success" : "btn-outline-secondary") btn-sm verificatie-paneelselectie-knop"
                                 @onclick="() => GaNaarPaneel(idx)"
                                 disabled="@isActief">
                             <span class="fw-semibold">Paneel @(i + 1) · @ri.KastNaam</span>
-                            <span class="small @(isActief ? "opacity-75" : "text-muted")">@PaneelTabStatusTekst(idx, ri)</span>
+                            <span class="small @(isActief ? "opacity-75" : "text-muted")">@status.PaneelTabStatusTekst</span>
                         </button>
                     }
                 </div>
@@ -365,13 +367,13 @@ else if (_fase == VerificatieFase.PaneelVerificatie && pagina.ActiefPaneel is no
                 &#8592; @(_paneelIndex == 0 ? "Terug naar taaklijst" : "Vorig paneel")
             </button>
             <div class="text-muted small">
-                @if (AlleChecksVoorPaneel(_paneelIndex, r))
+                @if (checklist.Geverifieerd)
                 {
                     <span class="text-success fw-semibold">&#10003; Alle controles afgevinkt</span>
                 }
                 else
                 {
-                    <span>@paneel.AantalAfgevinkt van @paneel.TotaalChecks controles afgevinkt</span>
+                    <span>@checklist.AantalAfgevinkt van @checklist.TotaalChecks controles afgevinkt</span>
                 }
             </div>
             <button class="btn btn-success" @onclick="VolgendPaneel">

@@ -15,19 +15,9 @@ public partial class PaneelConfiguratie
             return;
         }
 
-        var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
-        if (selectieBereik is null)
-        {
-            conceptPaneel = null;
-            formToewijzing.XPositie = null;
-            formToewijzing.HoogteVanVloer = null;
-            formToewijzing.Breedte = 0;
-            formToewijzing.Hoogte = 0;
-            return;
-        }
-
-        conceptPaneel = BepaalStartRechthoek(selectieBereik);
-        UpdateFormVanConcept();
+        PasConceptStateToe(PaneelConfiguratieHelper.BouwConceptStartState(
+            HuidigeSelectieContext.SelectieBereik,
+            HuidigeSelectieContext.VrijeSegmenten));
     }
 
     private void ResetFormToewijzing()
@@ -47,106 +37,31 @@ public partial class PaneelConfiguratie
         formToewijzing.Type = toewijzing.Type;
         formToewijzing.ScharnierZijde = toewijzing.ScharnierZijde;
         formToewijzing.PotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(toewijzing.PotHartVanRand);
-        conceptPaneel = paneelBron.OpeningsRechthoek.Kopie();
-        UpdateFormVanConcept();
+        PasConceptStateToe(PaneelConfiguratieHelper.BouwConceptStateVoorBron(paneelBron));
     }
 
-    private void UpdateFormVanConcept()
+    private void PasConceptStateToe(PaneelConceptState conceptState)
     {
-        if (conceptPaneel is null)
-            return;
-
-        formToewijzing.XPositie = Math.Round(conceptPaneel.XPositie, 1);
-        formToewijzing.HoogteVanVloer = Math.Round(conceptPaneel.HoogteVanVloer, 1);
-        formToewijzing.Breedte = Math.Round(conceptPaneel.Breedte, 1);
-        formToewijzing.Hoogte = Math.Round(conceptPaneel.Hoogte, 1);
+        conceptPaneel = conceptState.ConceptPaneel;
+        formToewijzing.XPositie = conceptState.XPositie;
+        formToewijzing.HoogteVanVloer = conceptState.HoogteVanVloer;
+        formToewijzing.Breedte = conceptState.Breedte;
+        formToewijzing.Hoogte = conceptState.Hoogte;
     }
 
     private void VerwerkConceptPaneel(PaneelConceptWijziging wijziging)
     {
-        var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
-        if (selectieBereik is null)
-            return;
-
-        var voorstel = PaneelLayoutService.ClampBinnen(wijziging.Paneel, selectieBereik);
-        conceptPaneel = wijziging.Bewerking.StartsWith("input-", StringComparison.Ordinal)
-            ? voorstel
-            : SnapPaneel(wijziging.Bewerking, voorstel, selectieBereik);
-        UpdateFormVanConcept();
+        if (PaneelConfiguratieHelper.VerwerkConceptWijziging(wijziging, HuidigeSelectieContext) is { } conceptState)
+            PasConceptStateToe(conceptState);
     }
-
-    private PaneelRechthoek SnapPaneel(string bewerking, PaneelRechthoek voorstel, PaneelRechthoek selectieBereik)
-        => PaneelConfiguratieHelper.SnapPaneel(
-            bewerking,
-            voorstel,
-            selectieBereik,
-            XTargets(selectieBereik),
-            YTargets(selectieBereik));
-
-    private IEnumerable<double> XTargets(PaneelRechthoek selectieBereik)
-    {
-        yield return selectieBereik.XPositie;
-        yield return selectieBereik.Rechterkant;
-
-        foreach (var kast in geselecteerdeKasten)
-        {
-            yield return kast.XPositie;
-            yield return kast.XPositie + kast.Breedte;
-        }
-
-        foreach (var paneel in BestaandePaneelRechthoeken())
-        {
-            yield return paneel.XPositie;
-            yield return paneel.Rechterkant;
-        }
-    }
-
-    private IEnumerable<double> YTargets(PaneelRechthoek selectieBereik)
-    {
-        yield return selectieBereik.HoogteVanVloer;
-        yield return selectieBereik.Bovenzijde;
-
-        foreach (var kast in geselecteerdeKasten)
-        {
-            yield return kast.HoogteVanVloer;
-            yield return kast.HoogteVanVloer + kast.Hoogte;
-        }
-
-        foreach (var paneel in BestaandePaneelRechthoeken())
-        {
-            yield return paneel.HoogteVanVloer;
-            yield return paneel.Bovenzijde;
-        }
-    }
-
-    private IEnumerable<PaneelRechthoek> BestaandePaneelRechthoeken()
-    {
-        foreach (var paneelBron in ActievePaneelWerkruimte?.PaneelBronnen ?? [])
-        {
-            yield return paneelBron.OpeningsRechthoek.Kopie();
-        }
-    }
-
-    private List<PaneelRechthoek> VrijeSegmentenVoorSelectie()
-    {
-        var selectieBereik = PaneelLayoutService.BerekenOmhullende(geselecteerdeKasten);
-        return selectieBereik is null
-            ? []
-            : PaneelConfiguratieHelper.BepaalVrijeSegmenten(selectieBereik, BestaandePaneelRechthoeken());
-    }
-
-    private PaneelRechthoek BepaalStartRechthoek(PaneelRechthoek selectieBereik)
-        => PaneelConfiguratieHelper.BepaalStartRechthoek(selectieBereik, VrijeSegmentenVoorSelectie());
 
     private void GebruikVrijSegment(PaneelRechthoek segment)
-    {
-        conceptPaneel = segment.Kopie();
-        UpdateFormVanConcept();
-    }
+        => PasConceptStateToe(PaneelConfiguratieHelper.BouwConceptStateVoorSegment(segment));
 
     private PaneelMaatInfo? BerekenConceptMaatInfo()
     {
-        if (conceptPaneel is null || ActievePaneelWerkruimte is not { } werkruimte)
+        var selectieContext = HuidigeSelectieContext;
+        if (conceptPaneel is null || selectieContext.Werkruimte is not { } werkruimte)
             return null;
 
         return PaneelGeometrieService.BerekenVoorConceptPaneel(
@@ -160,7 +75,8 @@ public partial class PaneelConfiguratie
 
     private void PaneelOpslaan()
     {
-        if (conceptPaneel is null || geselecteerdeKastIds.Count == 0)
+        var selectieContext = HuidigeSelectieContext;
+        if (conceptPaneel is null || !selectieContext.HeeftSelectie)
             return;
 
         if (HeeftConflicterendPaneel())
@@ -169,7 +85,7 @@ public partial class PaneelConfiguratie
             return;
         }
 
-        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(geselecteerdeKasten, conceptPaneel);
+        var dragendeKasten = PaneelLayoutService.BepaalOverlappendeKasten(selectieContext.GeselecteerdeKasten, conceptPaneel);
         if (dragendeKasten.Count == 0)
             return;
 

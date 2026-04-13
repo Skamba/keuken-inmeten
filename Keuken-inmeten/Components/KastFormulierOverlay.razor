@@ -1,4 +1,5 @@
 @using Keuken_inmeten.Models
+@using Keuken_inmeten.Pages
 @using Keuken_inmeten.Services
 
 <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start"
@@ -16,16 +17,16 @@
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
                 <div>
                     <div class="small fw-semibold text-uppercase text-success-emphasis">Huidige stap</div>
-                    <div class="h6 mb-1" data-testid="kast-form-stap-label">Stap @Stap van @LaatsteStap: @StapLabel</div>
-                    <p class="text-muted small mb-0">@StapIntro</p>
+                    <div class="h6 mb-1" data-testid="kast-form-stap-label">Stap @HuidigFormulier.Stap.HuidigeStap van @HuidigFormulier.Stap.LaatsteStap: @HuidigFormulier.Stap.Label</div>
+                    <p class="text-muted small mb-0">@HuidigFormulier.Stap.Intro</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge text-bg-light" data-testid="kast-form-progress">Stap @Stap/@LaatsteStap</span>
+                    <span class="badge text-bg-light" data-testid="kast-form-progress">Stap @HuidigFormulier.Stap.HuidigeStap/@HuidigFormulier.Stap.LaatsteStap</span>
                     <StapHulpDrawer StapId="kasten" KnopLabel="Meer hulp" />
                 </div>
             </div>
 
-            @if (Stap == 1)
+            @if (HuidigFormulier.Stap.HuidigeStap == 1)
             {
                 @if (!IsBewerken && Templates.Count > 0)
                 {
@@ -69,7 +70,7 @@
                     </div>
                 </div>
             }
-            else if (Stap == 2)
+            else if (HuidigFormulier.Stap.HuidigeStap == 2)
             {
                 <div class="row g-3 mb-3">
                     <div class="col-md-4">
@@ -97,7 +98,7 @@
                     U vult hier alleen de hoofdmaten in. In de volgende stap controleert u bewust de gaatjesrij en kastdetails, ook als de standaard blijft staan.
                 </div>
             }
-            else if (Stap == 3)
+            else if (HuidigFormulier.Stap.HuidigeStap == 3)
             {
                 <div class="card border-0 bg-body-tertiary mb-3">
                     <div class="card-body">
@@ -108,10 +109,10 @@
                                 <span class="d-block fw-semibold">Controleer gaatjesrij en kastdetails</span>
                                 <span class="small text-muted">Kritieke controle voor passende panelen en correcte boringen. Open om waarden te controleren of aan te passen.</span>
                             </span>
-                            <span class="fs-5" aria-hidden="true">@(ToonTechnischeInstellingen ? "−" : "+")</span>
+                            <span class="fs-5" aria-hidden="true">@(HuidigFormulier.ToonTechnischeInstellingen ? "−" : "+")</span>
                         </button>
 
-                        @if (ToonTechnischeInstellingen)
+                        @if (HuidigFormulier.ToonTechnischeInstellingen)
                         {
                             <div class="mt-3">
                                 <div class="alert alert-warning small mb-3" role="alert">
@@ -160,7 +161,7 @@
                                            @bind="TechnischeControleBevestigdBinding"
                                            data-testid="kast-technische-controle-checkbox" />
                                     <label class="form-check-label" for="kast-technische-controle-checkbox">
-                                        @TechnischeControleCheckboxLabel
+                                        @HuidigFormulier.TechnischeControleCheckboxLabel
                                     </label>
                                 </div>
 
@@ -172,7 +173,7 @@
                             <div class="alert alert-warning mt-3 mb-0" role="alert">
                                 <div class="fw-semibold mb-1">Kritieke controle</div>
                                 <div class="small mb-2">Deze waarden bepalen of panelen passen en of de gaatjesrij aansluit. Controleer bewust of de standaard klopt voor deze kast.</div>
-                                <div class="small text-body-secondary mb-3">@TechnischeControleSamenvatting</div>
+                                <div class="small text-body-secondary mb-3">@HuidigFormulier.TechnischeControleSamenvatting</div>
                                 <div class="form-check">
                                     <input class="form-check-input"
                                            type="checkbox"
@@ -180,7 +181,7 @@
                                            @bind="TechnischeControleBevestigdBinding"
                                            data-testid="kast-technische-controle-checkbox" />
                                     <label class="form-check-label" for="kast-technische-controle-checkbox-collapsed">
-                                        @TechnischeControleCheckboxLabel
+                                        @HuidigFormulier.TechnischeControleCheckboxLabel
                                     </label>
                                 </div>
                             </div>
@@ -210,7 +211,7 @@
 
                                     <dt class="col-sm-4">Techniek</dt>
                                     <dd class="col-sm-8">
-                                        <span>@TechnischeControleSamenvatting</span>
+                                        <span>@HuidigFormulier.TechnischeControleSamenvatting</span>
                                     </dd>
                                 </dl>
                             </div>
@@ -228,17 +229,17 @@
                 <button type="button"
                         class="btn btn-outline-secondary"
                         @onclick="OnVorige"
-                        disabled="@(Stap == 1)"
+                        disabled="@(HuidigFormulier.Stap.HuidigeStap == 1)"
                         data-testid="kast-form-terug-button">
                     Terug
                 </button>
                 <div class="d-flex gap-2">
-                    @if (Stap < LaatsteStap)
+                    @if (HuidigFormulier.Stap.HuidigeStap < HuidigFormulier.Stap.LaatsteStap)
                     {
                         <button type="button"
                                 class="btn btn-primary"
                                 @onclick="OnVolgende"
-                                disabled="@(!KanVolgendeStap)"
+                                disabled="@(!HuidigFormulier.Stap.KanNaarVolgendeStap)"
                                 data-testid="kast-form-volgende-button">
                             Volgende stap
                         </button>
@@ -263,7 +264,6 @@
 @code {
     [Parameter, EditorRequired] public bool IsBewerken { get; set; }
     [Parameter, EditorRequired] public int Stap { get; set; }
-    [Parameter, EditorRequired] public int LaatsteStap { get; set; }
     [Parameter, EditorRequired] public Guid? ActieveWandId { get; set; }
     [Parameter, EditorRequired] public IReadOnlyList<KeukenWand> Wanden { get; set; } = [];
     [Parameter, EditorRequired] public IReadOnlyList<KastTemplate> Templates { get; set; } = [];
@@ -273,10 +273,6 @@
     [Parameter, EditorRequired] public bool TechnischeControleBevestigd { get; set; }
     [Parameter, EditorRequired] public EventCallback<bool> TechnischeControleBevestigdChanged { get; set; }
     [Parameter, EditorRequired] public string ActieveWandNaam { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string StapLabel { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string StapIntro { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string TechnischeControleCheckboxLabel { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string TechnischeControleSamenvatting { get; set; } = string.Empty;
     [Parameter, EditorRequired] public EventCallback OnSluiten { get; set; }
     [Parameter, EditorRequired] public EventCallback OnVorige { get; set; }
     [Parameter, EditorRequired] public EventCallback OnVolgende { get; set; }
@@ -287,16 +283,14 @@
     [Parameter, EditorRequired] public EventCallback OnTechnischeInstellingGewijzigd { get; set; }
 
     private KastType FormKastType => IndelingFormulierHelper.InferKastType(FormKast.Hoogte);
-    private bool KanVolgendeStap => Stap switch
-    {
-        1 => ActieveWandId is not null && !string.IsNullOrWhiteSpace(FormKast.Naam),
-        2 => FormKast.Breedte > 0 && FormKast.Hoogte > 0 && FormKast.Diepte > 0,
-        3 => TechnischeControleBevestigd
-            && FormKast.Wanddikte > 0
-            && FormKast.GaatjesAfstand > 0
-            && FormKast.EersteGaatVanBoven > 0,
-        _ => false
-    };
+    private KastFormulierModel HuidigFormulier
+        => KastenInvoerFormulierFlowHelper.BouwKastFormulierModel(
+            Stap,
+            ActieveWandId,
+            ActieveWandNaam,
+            FormKast,
+            ToonTechnischeInstellingen,
+            TechnischeControleBevestigd);
 
     private bool TechnischeControleBevestigdBinding
     {

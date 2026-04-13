@@ -8,13 +8,6 @@ namespace Keuken_inmeten.Pages;
 
 public partial class Bestellijst
 {
-    private enum BestellijstExportFlowStap
-    {
-        Kiezen = 1,
-        Preview = 2,
-        Bevestigen = 3
-    }
-
     private static readonly string[] PaneelTypeOpties =
     [
         "MDF gelakt",
@@ -28,66 +21,35 @@ public partial class Bestellijst
     private static readonly JsonSerializerOptions ExportJsonOptions = new(JsonSerializerDefaults.Web);
 
     private BestellijstExportJsInterop? _exportInterop;
-    private BestellijstExportFlowStap _exportFlowStap = BestellijstExportFlowStap.Kiezen;
-    private BestellijstExportType _exportType = BestellijstExportType.Pdf;
-    private string _paneelType = "MDF gelakt";
-    private string _dikteMm = "19";
+    private BestellijstExportFlowState _exportFlow = BestellijstReadModelHelper.MaakStandaardExportFlow();
     private bool _toonTechnischeDetails;
-    private bool _toonExportFlow;
 
     private BestellijstExportJsInterop ExportInterop => _exportInterop ??= new(JS);
 
-    private BestellijstPaginaModel MaakPaginaModel()
-    {
-        var flowStatus = StappenFlowHelper.BepaalStatus(State);
-        var items = BestellijstService.BerekenItems(State);
-        var exportDocument = MaakExportDocument(items, DateTime.Now);
-
-        return new BestellijstPaginaModel(
-            RouteGate: StappenFlowHelper.BepaalRouteGate("bestellijst", flowStatus),
-            Items: items,
-            WandGroepen: OverzichtGroeperingHelper.GroepeerBestellijstOpWand(items),
-            PaneelTypeTellingen: OverzichtGroeperingHelper.MaakTellingen(items, item => item.PaneelRolLabel, item => item.Aantal),
-            TotaalAantal: items.Sum(item => item.Aantal),
-            TotaalBoorgaten: items.Sum(item => item.Aantal * item.Boorgaten.Count),
-            ExportDocument: exportDocument,
-            GekozenExport: BestellijstExportFlowHelper.Voor(_exportType),
-            ExportPreviewPunten: BestellijstExportFlowHelper.MaakPreviewPunten(exportDocument, _exportType));
-    }
-
-    private BestellijstExportDocument MaakExportDocument(IReadOnlyList<BestellijstItem> items, DateTime generatedAt)
-        => BestellijstExportService.BouwDocument(items, DisplayPaneelType(), _dikteMm, generatedAt);
+    private BestellijstPaginaModel MaakPaginaModel(DateTime? generatedAt = null)
+        => BestellijstReadModelHelper.BouwPaginaModel(State, _exportFlow, generatedAt ?? DateTime.Now);
 
     private void OpenExportFlow()
-    {
-        _toonExportFlow = true;
-        _exportFlowStap = BestellijstExportFlowStap.Kiezen;
-    }
+        => _exportFlow = BestellijstReadModelHelper.OpenExportFlow(_exportFlow);
 
     private void SluitExportFlow()
-    {
-        _toonExportFlow = false;
-        _exportFlowStap = BestellijstExportFlowStap.Kiezen;
-    }
+        => _exportFlow = BestellijstReadModelHelper.SluitExportFlow(_exportFlow);
 
-    private void KiesExportType(BestellijstExportType type) => _exportType = type;
+    private void KiesExportType(BestellijstExportType type)
+        => _exportFlow = BestellijstReadModelHelper.KiesExportType(_exportFlow, type);
 
-    private void GaNaarExportPreview() => _exportFlowStap = BestellijstExportFlowStap.Preview;
+    private void GaNaarExportPreview()
+        => _exportFlow = BestellijstReadModelHelper.GaNaarPreview(_exportFlow);
 
-    private void GaNaarExportBevestiging() => _exportFlowStap = BestellijstExportFlowStap.Bevestigen;
+    private void GaNaarExportBevestiging()
+        => _exportFlow = BestellijstReadModelHelper.GaNaarBevestiging(_exportFlow);
 
     private void GaTerugInExportFlow()
-    {
-        _exportFlowStap = _exportFlowStap switch
-        {
-            BestellijstExportFlowStap.Bevestigen => BestellijstExportFlowStap.Preview,
-            _ => BestellijstExportFlowStap.Kiezen
-        };
-    }
+        => _exportFlow = BestellijstReadModelHelper.GaTerug(_exportFlow);
 
     private void AnnuleerOfGaTerugInExportFlow()
     {
-        if (_exportFlowStap is BestellijstExportFlowStap.Kiezen)
+        if (_exportFlow.Stap is BestellijstExportFlowStap.Kiezen)
         {
             SluitExportFlow();
             return;
@@ -98,7 +60,7 @@ public partial class Bestellijst
 
     private async Task BevestigExport()
     {
-        if (_exportType is BestellijstExportType.Excel)
+        if (_exportFlow.ExportType is BestellijstExportType.Excel)
         {
             await ExporteerExcel();
             return;
@@ -109,7 +71,7 @@ public partial class Bestellijst
 
     private string ExportStapClass(BestellijstExportFlowStap stap)
     {
-        var huidigeStap = (int)_exportFlowStap;
+        var huidigeStap = (int)_exportFlow.Stap;
         var stapNummer = (int)stap;
 
         return stapNummer == huidigeStap
@@ -126,11 +88,10 @@ public partial class Bestellijst
 
     private async Task ExporteerExcel()
     {
-        var items = BestellijstService.BerekenItems(State);
         var generatedAt = DateTime.Now;
-        var document = MaakExportDocument(items, generatedAt);
-        var bestand = BestellijstExportService.MaakBestandsNaam("bestellijst", DisplayPaneelType(), "xls", generatedAt);
-        var xml = BestellijstExcelRenderer.Render(document);
+        var pagina = MaakPaginaModel(generatedAt);
+        var bestand = BestellijstExportService.MaakBestandsNaam("bestellijst", pagina.ExportDocument.PaneelType, "xls", generatedAt);
+        var xml = BestellijstExcelRenderer.Render(pagina.ExportDocument);
 
         try
         {
@@ -151,11 +112,10 @@ public partial class Bestellijst
 
     private async Task ExporteerPdf()
     {
-        var items = BestellijstService.BerekenItems(State);
         var generatedAt = DateTime.Now;
-        var document = MaakExportDocument(items, generatedAt);
-        var bestand = BestellijstExportService.MaakBestandsNaam("bestellijst", DisplayPaneelType(), "pdf", generatedAt);
-        var payloadJson = JsonSerializer.Serialize(BestellijstPdfPayloadBuilder.Bouw(document), ExportJsonOptions);
+        var pagina = MaakPaginaModel(generatedAt);
+        var bestand = BestellijstExportService.MaakBestandsNaam("bestellijst", pagina.ExportDocument.PaneelType, "pdf", generatedAt);
+        var payloadJson = JsonSerializer.Serialize(BestellijstPdfPayloadBuilder.Bouw(pagina.ExportDocument), ExportJsonOptions);
 
         try
         {
@@ -172,7 +132,19 @@ public partial class Bestellijst
     }
 
     private string DisplayPaneelType()
-        => string.IsNullOrWhiteSpace(_paneelType) ? "Onbekend paneeltype" : _paneelType.Trim();
+        => BestellijstReadModelHelper.BepaalPaneelTypeLabel(_exportFlow.PaneelType);
+
+    private string PaneelTypeInput
+    {
+        get => _exportFlow.PaneelType;
+        set => _exportFlow = BestellijstReadModelHelper.StelPaneelTypeIn(_exportFlow, value);
+    }
+
+    private string DikteInput
+    {
+        get => _exportFlow.DikteMm;
+        set => _exportFlow = BestellijstReadModelHelper.StelDikteIn(_exportFlow, value);
+    }
 
     private static string MaatLabel(BestellijstItem item)
         => $"{FormatNumber(item.Hoogte)} hoog × {FormatNumber(item.Breedte)} breed";
@@ -224,15 +196,4 @@ public partial class Bestellijst
         if (_exportInterop is not null)
             await _exportInterop.DisposeAsync();
     }
-
-    private sealed record BestellijstPaginaModel(
-        StapRouteGate? RouteGate,
-        List<BestellijstItem> Items,
-        List<OverzichtGroeperingHelper.BestellijstWandGroep> WandGroepen,
-        List<OverzichtGroeperingHelper.Telling> PaneelTypeTellingen,
-        int TotaalAantal,
-        int TotaalBoorgaten,
-        BestellijstExportDocument ExportDocument,
-        BestellijstExportOptie GekozenExport,
-        IReadOnlyList<string> ExportPreviewPunten);
 }

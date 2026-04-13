@@ -45,7 +45,7 @@ public partial class KeukenStateService
 
         Kasten.RemoveAll(k => k.Id == id);
         Toewijzingen.RemoveAll(t => t.KastIds.Contains(id));
-        VerificatieStatussen.RemoveAll(status => verwijderdeToewijzingIds.Contains(status.ToewijzingId));
+        PaneelVerificatieStatusHelper.VerwijderStatussenVoorToewijzingen(VerificatieStatussen, verwijderdeToewijzingIds);
         foreach (var wand in Wanden)
             wand.KastIds.Remove(id);
     }

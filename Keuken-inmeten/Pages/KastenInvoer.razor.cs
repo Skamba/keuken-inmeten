@@ -32,12 +32,6 @@ public partial class KastenInvoer
     private Guid? bevestigVerwijderApparaatId;
     private int apparaatFormStap = 1;
 
-    private const int LaatsteKastFormStap = 4;
-    private const int LaatsteApparaatFormStap = 3;
-
-    private static readonly string[] KastFormStappen = ["Basis", "Maten", "Techniek", "Controle"];
-    private static readonly string[] ApparaatFormStappen = ["Basis", "Maten", "Controle"];
-
     protected override void OnInitialized()
         => State.OnStateChanged += HandleStateChanged;
 
