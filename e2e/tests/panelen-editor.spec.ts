@@ -266,6 +266,34 @@ test('focuskaart toont geen extra toelichting onder open eerst één wand', asyn
   await expect(page.getByText('Begin met één wand. Het overzicht wordt pas nuttig zodra er panelen zijn.')).toHaveCount(0);
 });
 
+test('stap 2 kan de paneelwerkbank fullscreen openen en weer sluiten', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast fullscreen',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await panelen.openWandWerkruimte('Achterwand');
+  await expect(page.getByTestId('paneel-werkbank-visualisatie-fullscreen-toggle')).toBeVisible();
+  await page.getByTestId('paneel-werkbank-visualisatie-fullscreen-toggle').click();
+
+  const shell = page.getByTestId('paneel-werkbank-visualisatie-fullscreen-shell');
+  await expect(shell).toBeVisible();
+  await expect(shell.getByTestId('paneel-plaats-editor')).toBeVisible();
+
+  await shell.getByTestId('paneel-werkbank-visualisatie-fullscreen-toggle').click();
+  await expect(shell).toHaveCount(0);
+  await expect(page.getByTestId('paneel-werkbank-visualisatie')).toBeVisible();
+});
+
 test.describe('mobiele paneel-editor', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 

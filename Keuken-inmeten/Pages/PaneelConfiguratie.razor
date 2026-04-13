@@ -224,25 +224,33 @@ else
 
                         <div class="row g-3 align-items-start paneel-werkbank-layout">
                             <div class="col-12 col-xl-7 col-xxl-8">
-                                <div class="paneel-overzicht-scroll border rounded"
-                                     data-testid="paneel-werkbank-visualisatie">
-                                    <PaneelPlaatsEditor Kasten="@geopendeWandKasten"
-                                                        Apparaten="@geopendeWandApparaten"
-                                                        WandHoogte="@geopendeWand.Hoogte"
-                                                        WandBreedte="@geopendeWand.Breedte"
-                                                        PlintHoogte="@geopendeWand.PlintHoogte"
-                                                        TotaleRandSpeling="@State.PaneelRandSpeling"
-                                                        GeselecteerdeKastIds="@geselecteerdeKastIds"
-                                                        SvgMaxHoogte="65vh"
-                                                        BeperkTotContainerBreedte="true"
-                                                        Toewijzingen="@geopendeWandPanelen"
-                                                        VrijeSegmenten="@selectieContext.VrijeSegmenten"
-                                                        ConceptPaneel="@conceptPaneel"
-                                                        ConceptPaneelType="@formToewijzing.Type"
-                                                        ConceptPaneelScharnierZijde="@formToewijzing.ScharnierZijde"
-                                                        OnKastGeselecteerd="ToggleKast"
-                                                        OnConceptPaneelGewijzigd="VerwerkConceptPaneel" />
-                                </div>
+                                <FullscreenVisualisatie Title="Paneelplaatsing"
+                                                        Description="Live controle van opening, werkmaat en plaatsing op deze wand."
+                                                        PreviewClass="paneel-visualisatie-kaart"
+                                                        PreviewDataTestId="paneel-werkbank-visualisatie"
+                                                        FullscreenShellDataTestId="paneel-werkbank-visualisatie-fullscreen-shell"
+                                                        ToggleDataTestId="paneel-werkbank-visualisatie-fullscreen-toggle">
+                                    <Content Context="isFullscreen">
+                                        <div class="paneel-overzicht-scroll border rounded">
+                                            <PaneelPlaatsEditor Kasten="@geopendeWandKasten"
+                                                                Apparaten="@geopendeWandApparaten"
+                                                                WandHoogte="@geopendeWand.Hoogte"
+                                                                WandBreedte="@geopendeWand.Breedte"
+                                                                PlintHoogte="@geopendeWand.PlintHoogte"
+                                                                TotaleRandSpeling="@State.PaneelRandSpeling"
+                                                                GeselecteerdeKastIds="@geselecteerdeKastIds"
+                                                                SvgMaxHoogte="@(isFullscreen ? "82dvh" : "65vh")"
+                                                                BeperkTotContainerBreedte="@(!isFullscreen)"
+                                                                Toewijzingen="@geopendeWandPanelen"
+                                                                VrijeSegmenten="@selectieContext.VrijeSegmenten"
+                                                                ConceptPaneel="@conceptPaneel"
+                                                                ConceptPaneelType="@formToewijzing.Type"
+                                                                ConceptPaneelScharnierZijde="@formToewijzing.ScharnierZijde"
+                                                                OnKastGeselecteerd="ToggleKast"
+                                                                OnConceptPaneelGewijzigd="VerwerkConceptPaneel" />
+                                        </div>
+                                    </Content>
+                                </FullscreenVisualisatie>
 
                                 @if (selectieContext.HeeftSelectie && !pagina.ToonEditorDrawer)
                                 {

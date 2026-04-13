@@ -1,0 +1,155 @@
+@using Keuken_inmeten.Services.Interop
+@using Microsoft.AspNetCore.Components.Web
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+@if (!_isFullscreen)
+{
+    <section class="fullscreen-visualisatie-card @PreviewClass" data-testid="@PreviewDataTestId">
+        <div class="fullscreen-visualisatie-header">
+            <div>
+                <h6 class="mb-0">@Title</h6>
+                @if (!string.IsNullOrWhiteSpace(Description))
+                {
+                    <div class="small text-muted">@Description</div>
+                }
+            </div>
+            <div class="fullscreen-visualisatie-actions">
+                @if (HeaderActions is not null)
+                {
+                    @HeaderActions(false)
+                }
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary fullscreen-visualisatie-toggle"
+                        @onclick="OpenViewer"
+                        @ref="previewToggleButton"
+                        data-testid="@ToggleDataTestId"
+                        title="Vergroot deze weergave"
+                        aria-label="Vergroot deze weergave">
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
+                        <path d="M6 2.5 2.5 6M10 2.5 13.5 6M13.5 10 10 13.5M2.5 10 6 13.5" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="fullscreen-visualisatie-body">
+            @Content(false)
+        </div>
+    </section>
+}
+else
+{
+    <div class="fullscreen-visualisatie-backdrop" @onclick="CloseViewer">
+        <section class="fullscreen-visualisatie-shell"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-label="@DialogAriaLabel"
+                 tabindex="0"
+                 @ref="viewerShell"
+                 @onclick:stopPropagation="true"
+                 @onkeydown="HandleViewerKeyDown"
+                 data-testid="@FullscreenShellDataTestId">
+            <div class="fullscreen-visualisatie-toolbar">
+                <div>
+                    <div class="fullscreen-visualisatie-title">@Title</div>
+                    @if (!string.IsNullOrWhiteSpace(Description))
+                    {
+                        <div class="fullscreen-visualisatie-subtitle">@Description</div>
+                    }
+                </div>
+                <div class="fullscreen-visualisatie-actions">
+                    @if (HeaderActions is not null)
+                    {
+                        @HeaderActions(true)
+                    }
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary fullscreen-visualisatie-toggle"
+                            @onclick="CloseViewer"
+                            data-testid="@ToggleDataTestId"
+                            title="Verklein deze weergave"
+                            aria-label="Verklein deze weergave">
+                        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                            <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
+                            <path d="M6 6 2.5 2.5M10 6 13.5 2.5M10 10 13.5 13.5M6 10 2.5 13.5" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="fullscreen-visualisatie-stage">
+                @Content(true)
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = default!;
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string PreviewClass { get; set; } = "";
+    [Parameter, EditorRequired] public string PreviewDataTestId { get; set; } = default!;
+    [Parameter, EditorRequired] public string FullscreenShellDataTestId { get; set; } = default!;
+    [Parameter, EditorRequired] public string ToggleDataTestId { get; set; } = default!;
+    [Parameter, EditorRequired] public RenderFragment<bool> Content { get; set; } = default!;
+    [Parameter] public RenderFragment<bool>? HeaderActions { get; set; }
+
+    private ElementReference previewToggleButton;
+    private ElementReference viewerShell;
+    private FullscreenVisualisatieJsInterop? viewerInterop;
+    private bool _isFullscreen;
+    private bool _viewerInitialized;
+    private bool _focusPreviewToggleOnClose;
+
+    private string DialogAriaLabel => $"{Title} in volledig scherm";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_isFullscreen && !_viewerInitialized)
+        {
+            viewerInterop ??= new FullscreenVisualisatieJsInterop(JS);
+            await viewerInterop.InitAsync(viewerShell);
+            _viewerInitialized = true;
+            await viewerShell.FocusAsync();
+        }
+        else if (!_isFullscreen && _focusPreviewToggleOnClose)
+        {
+            _focusPreviewToggleOnClose = false;
+            await previewToggleButton.FocusAsync();
+        }
+    }
+
+    private void OpenViewer()
+    {
+        _viewerInitialized = false;
+        _isFullscreen = true;
+    }
+
+    private async Task CloseViewer()
+    {
+        if (viewerInterop is not null && _viewerInitialized)
+        {
+            await viewerInterop.DisposeViewerAsync(viewerShell);
+            _viewerInitialized = false;
+        }
+
+        _isFullscreen = false;
+        _focusPreviewToggleOnClose = true;
+    }
+
+    private async Task HandleViewerKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+            await CloseViewer();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (viewerInterop is not null)
+        {
+            if (_viewerInitialized)
+                await viewerInterop.DisposeViewerAsync(viewerShell);
+
+            await viewerInterop.DisposeAsync();
+        }
+    }
+}

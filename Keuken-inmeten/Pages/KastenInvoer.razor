@@ -183,32 +183,36 @@ else
                     <div class="indeling-workspace-grid mt-3 mb-4">
                         @if (toonWandOpstelling)
                         {
-                            <div class="indeling-visualisatie-kaart"
-                                 data-testid="indeling-wandopstelling">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div>
-                                        <h6 class="mb-0">Wandopstelling</h6>
-                                        <div class="small text-muted">Live controle van maat, volgorde en vrije ruimte.</div>
-                                    </div>
+                            <FullscreenVisualisatie Title="Wandopstelling"
+                                                    Description="Live controle van maat, volgorde en vrije ruimte."
+                                                    PreviewClass="indeling-visualisatie-kaart"
+                                                    PreviewDataTestId="indeling-wandopstelling"
+                                                    FullscreenShellDataTestId="indeling-wandopstelling-fullscreen-shell"
+                                                    ToggleDataTestId="indeling-wandopstelling-fullscreen-toggle">
+                                <HeaderActions Context="isFullscreen">
                                     <button class="btn btn-sm btn-outline-success"
                                             title="Sluit kleine gaten (< 10 mm) tussen aangrenzende kasten automatisch"
                                             @onclick="() => SluitGatenOpActieveWand()">
                                         Uitlijnen
                                     </button>
-                                </div>
-                                <WandOpstelling Kasten="@wandKasten"
-                                                Apparaten="@wandApparaten"
-                                                WandHoogte="@actieveWand.Hoogte"
-                                                WandBreedte="@actieveWand.Breedte"
-                                                PlintHoogte="@actieveWand.PlintHoogte"
-                                                 GeselecteerdeKastId="@(actieveWandId == actieveWand.Id ? bewerkKastId : null)"
-                                                 OnKastGeselecteerd="(id) => SelecteerKast(id, actieveWand.Id)"
-                                                  OnKastVerplaatst="VerplaatsKastOpWand"
-                                                  OnKastKopieren="KopieerNaarKlembord"
-                                                  OnKastPlakken="() => PlakUitKlembord(actieveWand.Id)"
-                                                  OnApparaatVerplaatst="VerplaatsApparaatOpWand"
-                                                  OnPlankActie="VerwerkPlankActie" />
-                            </div>
+                                </HeaderActions>
+                                <Content Context="isFullscreen">
+                                    <WandOpstelling Kasten="@wandKasten"
+                                                    Apparaten="@wandApparaten"
+                                                    WandHoogte="@actieveWand.Hoogte"
+                                                    WandBreedte="@actieveWand.Breedte"
+                                                    PlintHoogte="@actieveWand.PlintHoogte"
+                                                    SvgMaxHoogte="@(isFullscreen ? "82dvh" : null)"
+                                                    BeperkTotContainerBreedte="@(!isFullscreen)"
+                                                    GeselecteerdeKastId="@(actieveWandId == actieveWand.Id ? bewerkKastId : null)"
+                                                    OnKastGeselecteerd="(id) => SelecteerKast(id, actieveWand.Id)"
+                                                    OnKastVerplaatst="VerplaatsKastOpWand"
+                                                    OnKastKopieren="KopieerNaarKlembord"
+                                                    OnKastPlakken="() => PlakUitKlembord(actieveWand.Id)"
+                                                    OnApparaatVerplaatst="VerplaatsApparaatOpWand"
+                                                    OnPlankActie="VerwerkPlankActie" />
+                                </Content>
+                            </FullscreenVisualisatie>
                         }
 
                         <div class="indeling-workspace-secondary">

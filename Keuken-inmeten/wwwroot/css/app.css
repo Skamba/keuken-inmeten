@@ -1063,6 +1063,15 @@ code {
     background: var(--bs-body-bg, #fff);
 }
 
+.paneel-visualisatie-kaart {
+    display: grid;
+    gap: 0.85rem;
+    padding: 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 76%, transparent);
+    border-radius: 0.95rem;
+    background: var(--bs-tertiary-bg);
+}
+
 .stap-meta-list {
     display: flex;
     flex-wrap: wrap;
@@ -2127,6 +2136,106 @@ code {
     margin-top: 0.5rem;
 }
 
+.fullscreen-visualisatie-card {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.fullscreen-visualisatie-header,
+.fullscreen-visualisatie-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+}
+
+.fullscreen-visualisatie-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.fullscreen-visualisatie-body {
+    min-width: 0;
+}
+
+.fullscreen-visualisatie-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0.55rem;
+}
+
+.fullscreen-visualisatie-toggle svg {
+    width: 1rem;
+    height: 1rem;
+    stroke: currentColor;
+    stroke-width: 1.35;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
+
+.fullscreen-visualisatie-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+}
+
+.fullscreen-visualisatie-shell {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-body-color, #212529);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    outline: none;
+}
+
+.fullscreen-visualisatie-toolbar {
+    padding: 1rem 1.1rem 0.85rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--bs-border-color, #d0d7de) 82%, transparent);
+    background: color-mix(in srgb, var(--bs-tertiary-bg) 70%, var(--bs-body-bg, #fff));
+}
+
+.fullscreen-visualisatie-title {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.fullscreen-visualisatie-subtitle {
+    margin-top: 0.2rem;
+    font-size: 0.82rem;
+    color: var(--bs-secondary-color, #516173);
+}
+
+.fullscreen-visualisatie-stage {
+    flex: 1;
+    overflow: auto;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    background: color-mix(in srgb, var(--bs-tertiary-bg) 78%, var(--bs-body-bg, #fff));
+}
+
+.fullscreen-visualisatie-stage > * {
+    width: auto;
+    max-width: 100%;
+}
+
 .scharnier-overzicht-trigger {
     width: 100%;
     padding: 0.6rem;
@@ -2279,6 +2388,16 @@ code {
     .scharnier-viewer-actions {
         justify-content: flex-end;
         flex-wrap: wrap;
+    }
+
+    .fullscreen-visualisatie-header,
+    .fullscreen-visualisatie-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .fullscreen-visualisatie-actions {
+        justify-content: flex-end;
     }
 }
 

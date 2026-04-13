@@ -96,6 +96,37 @@ test('stap 1 verplaatst wandnavigatie naar de navbar onder indeling', async ({ p
   await expect(page.locator('[data-testid="nav-indeling-wand-link"][data-wand-naam="Linkerwand"]')).toBeVisible();
 });
 
+test('stap 1 kan de wandopstelling fullscreen openen en weer sluiten', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast fullscreen',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+
+  await indeling.openWandWerkruimte('Achterwand');
+  await expect(page.getByTestId('indeling-wandopstelling-fullscreen-toggle')).toBeVisible();
+  await page.getByTestId('indeling-wandopstelling-fullscreen-toggle').click();
+
+  const shell = page.getByTestId('indeling-wandopstelling-fullscreen-shell');
+  await expect(shell).toBeVisible();
+  await expect(shell).toBeFocused();
+  await expect(shell.getByTestId('wand-opstelling-svg')).toBeVisible();
+  await expect(shell.getByRole('button', { name: 'Uitlijnen' })).toBeVisible();
+
+  await page.keyboard.press('Shift+Tab');
+  await expect(shell.getByTestId('wand-opstelling-svg')).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(shell).toHaveCount(0);
+  await expect(page.getByTestId('indeling-wandopstelling')).toBeVisible();
+  await expect(page.getByTestId('indeling-wandopstelling-fullscreen-toggle')).toBeFocused();
+});
+
 test('stap 1 toont geen aparte andere-wanden schakelaar meer in de werkruimtekolom', async ({ page }) => {
   const indeling = new IndelingPage(page);
 
