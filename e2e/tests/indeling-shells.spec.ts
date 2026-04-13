@@ -98,6 +98,36 @@ test('stap 1 verplaatst wandnavigatie naar de navbar onder indeling', async ({ p
   await expect(page.locator('[data-testid="nav-indeling-wand-link"][data-wand-naam="Linkerwand"]')).toBeVisible();
 });
 
+test('stap 1 opent zonder query direct een wand en toont geen sluitknop meer', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegWandToe('Linkerwand');
+  await indeling.openWandWerkruimte('Linkerwand');
+  await expect.poll(async () => {
+    return await page.evaluate(() => {
+      const raw = window.localStorage.getItem('keuken-inmeten-data');
+      if (!raw) {
+        return 0;
+      }
+
+      try {
+        const document = JSON.parse(raw);
+        return Array.isArray(document?.data?.wanden) ? document.data.wanden.length : 0;
+      } catch {
+        return 0;
+      }
+    });
+  }).toBe(2);
+
+  await page.goto('/kasten');
+
+  await indeling.expectActieveWerkruimte('Achterwand');
+  await expect(page.getByRole('button', { name: 'Werkruimte sluiten' })).toHaveCount(0);
+  await expect(page.getByTestId('nav-indeling-wand-link')).toHaveCount(2);
+});
+
 test('stap 1 kan de wandopstelling fullscreen openen en weer sluiten', async ({ page }) => {
   const indeling = new IndelingPage(page);
 

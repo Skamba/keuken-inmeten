@@ -37,15 +37,11 @@ public static class KastenInvoerReadModelHelper
             ? samenvattingen.FirstOrDefault(item => item.Wand.Id == wandId)
             : null;
 
-        var overzichtWanden = actieveSamenvatting is null
-            ? samenvattingen
-            : samenvattingen.Where(item => item.Wand.Id != actieveSamenvatting.Wand.Id).ToList();
-
         var actieveWerkruimte = actieveSamenvatting is null
             ? null
             : BouwActieveWerkruimte(actieveSamenvatting, toonKastFormulier, toonApparaatFormulier);
 
-        return new(actieveWerkruimte, overzichtWanden);
+        return new(actieveWerkruimte);
     }
 
     private static KastenInvoerWandSamenvatting BouwWandSamenvatting(
@@ -63,11 +59,7 @@ public static class KastenInvoerReadModelHelper
             Kasten: wandKasten,
             Apparaten: wandApparaten,
             GevuldeBreedte: gevuldeBreedte,
-            VrijeBreedte: vrijeBreedte,
-            OverzichtBadges: BouwOverzichtBadges(wand, wandKasten, wandApparaten),
-            SchakelaarBadges: BouwSchakelaarBadges(wandKasten, wandApparaten),
-            OverzichtMetaTekst: $"{FormatMaat(gevuldeBreedte)} mm ingevuld · {FormatMaat(vrijeBreedte)} mm vrije wandruimte",
-            SchakelaarMetaTekst: $"{FormatMaat(gevuldeBreedte)} mm ingevuld · {FormatMaat(vrijeBreedte)} mm vrij · {FormatMaat(wand.Breedte)} mm wandbreedte");
+            VrijeBreedte: vrijeBreedte);
     }
 
     private static KastenInvoerActieveWerkruimteModel BouwActieveWerkruimte(
@@ -92,38 +84,6 @@ public static class KastenInvoerReadModelHelper
             Werkstap: werkstap);
     }
 
-    private static IReadOnlyList<IndelingBadge> BouwOverzichtBadges(
-        KeukenWand wand,
-        IReadOnlyList<Kast> wandKasten,
-        IReadOnlyList<Apparaat> wandApparaten)
-    {
-        var badges = new List<IndelingBadge>();
-
-        if (wandKasten.Count > 0)
-            badges.Add(new($"{wandKasten.Count} kast(en)"));
-
-        if (wandApparaten.Count > 0)
-            badges.Add(new($"{wandApparaten.Count} apparaat(en)"));
-
-        badges.Add(new($"{FormatMaat(wand.Breedte)} mm"));
-        return badges;
-    }
-
-    private static IReadOnlyList<IndelingBadge> BouwSchakelaarBadges(
-        IReadOnlyList<Kast> wandKasten,
-        IReadOnlyList<Apparaat> wandApparaten)
-    {
-        var badges = new List<IndelingBadge>
-        {
-            new($"{wandKasten.Count} kast(en)")
-        };
-
-        if (wandApparaten.Count > 0)
-            badges.Add(new($"{wandApparaten.Count} apparaat(en)"));
-
-        return badges;
-    }
-
     private static List<T> ZoekOpVolgorde<T>(IEnumerable<Guid> ids, IReadOnlyDictionary<Guid, T> lookup)
         where T : class
         => ids
@@ -131,14 +91,10 @@ public static class KastenInvoerReadModelHelper
             .Where(item => item is not null)
             .Cast<T>()
             .ToList();
-
-    private static string FormatMaat(double value)
-        => value.ToString("0.#", CultureInfo.CurrentCulture);
 }
 
 public sealed record KastenInvoerPaginaModel(
-    KastenInvoerActieveWerkruimteModel? ActieveWerkruimte,
-    IReadOnlyList<KastenInvoerWandSamenvatting> OverzichtWanden);
+    KastenInvoerActieveWerkruimteModel? ActieveWerkruimte);
 
 public sealed record KastenInvoerActieveWerkruimteModel(
     KastenInvoerWandSamenvatting Samenvatting,
@@ -156,8 +112,4 @@ public sealed record KastenInvoerWandSamenvatting(
     IReadOnlyList<Kast> Kasten,
     IReadOnlyList<Apparaat> Apparaten,
     double GevuldeBreedte,
-    double VrijeBreedte,
-    IReadOnlyList<IndelingBadge> OverzichtBadges,
-    IReadOnlyList<IndelingBadge> SchakelaarBadges,
-    string OverzichtMetaTekst,
-    string SchakelaarMetaTekst);
+    double VrijeBreedte);

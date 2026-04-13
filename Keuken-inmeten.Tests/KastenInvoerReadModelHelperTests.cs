@@ -7,7 +7,7 @@ using Xunit;
 public class KastenInvoerReadModelHelperTests
 {
     [Fact]
-    public void BouwPaginaModel_bouwt_overzicht_samenvatting_met_badges_en_meta()
+    public void BouwPaginaModel_bouwt_actieve_wand_samenvatting_met_ingevulde_en_vrije_breedte()
     {
         var wand = MaakWand("Achterwand", breedte: 2400);
         var kast = MaakKast("Onderkast", breedte: 600);
@@ -19,24 +19,20 @@ public class KastenInvoerReadModelHelperTests
             [wand],
             [kast],
             [apparaat],
-            actieveWandId: null,
+            actieveWandId: wand.Id,
             toonKastFormulier: false,
             toonApparaatFormulier: false);
 
-        Assert.Null(model.ActieveWerkruimte);
-
-        var overzicht = Assert.Single(model.OverzichtWanden);
-        Assert.Equal("600 mm ingevuld · 1800 mm vrije wandruimte", overzicht.OverzichtMetaTekst);
-        Assert.Equal("600 mm ingevuld · 1800 mm vrij · 2400 mm wandbreedte", overzicht.SchakelaarMetaTekst);
-        Assert.Collection(
-            overzicht.OverzichtBadges,
-            badge => Assert.Equal("1 kast(en)", badge.Label),
-            badge => Assert.Equal("1 apparaat(en)", badge.Label),
-            badge => Assert.Equal("2400 mm", badge.Label));
+        var actieveWerkruimte = Assert.IsType<KastenInvoerActieveWerkruimteModel>(model.ActieveWerkruimte);
+        Assert.Equal(wand.Id, actieveWerkruimte.Samenvatting.Wand.Id);
+        Assert.Equal(600, actieveWerkruimte.Samenvatting.GevuldeBreedte);
+        Assert.Equal(1800, actieveWerkruimte.Samenvatting.VrijeBreedte);
+        Assert.Single(actieveWerkruimte.Samenvatting.Kasten);
+        Assert.Single(actieveWerkruimte.Samenvatting.Apparaten);
     }
 
     [Fact]
-    public void BouwPaginaModel_filtert_actieve_wand_uit_overzicht_en_geeft_eerste_kast_stap()
+    public void BouwPaginaModel_geeft_eerste_kast_stap_voor_de_actieve_wand()
     {
         var actieveWand = MaakWand("Achterwand");
         var andereWand = MaakWand("Zijwand");
@@ -57,9 +53,8 @@ public class KastenInvoerReadModelHelperTests
         Assert.False(actieveWerkruimte.ToonWandOpstelling);
         Assert.Equal("Nu doen", actieveWerkruimte.Werkstap.Kicker);
         Assert.Equal("Voeg eerst de eerste kast toe.", actieveWerkruimte.Werkstap.Titel);
-
-        var overzicht = Assert.Single(model.OverzichtWanden);
-        Assert.Equal(andereWand.Id, overzicht.Wand.Id);
+        Assert.Empty(actieveWerkruimte.Samenvatting.Kasten);
+        Assert.Empty(actieveWerkruimte.Samenvatting.Apparaten);
     }
 
     [Fact]

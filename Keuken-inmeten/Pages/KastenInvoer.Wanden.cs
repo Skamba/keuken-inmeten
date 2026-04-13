@@ -17,6 +17,12 @@ public partial class KastenInvoer
         wand.Naam = wandNaam;
         State.VoegWandToe(wand);
         SluitWandToevoegenModal();
+
+        if (actieveWandId is null && Wand is null)
+        {
+            StelActieveWandContextIn(wand.Id);
+            NavigeerNaarWand(wand.Id, replaceHistoryEntry: true);
+        }
     }
 
     private void WandToevoegenBijEnter(KeyboardEventArgs e)
@@ -55,9 +61,6 @@ public partial class KastenInvoer
     private void OpenWandWerkruimte(Guid wandId)
         => NavigeerNaarWand(wandId);
 
-    private void SluitWandWerkruimte()
-        => NavigeerNaarWand(null);
-
     private void OnWandGewijzigd(ChangeEventArgs e)
     {
         if (Guid.TryParse(e.Value?.ToString(), out var id) && actieveWandId != id)
@@ -71,6 +74,14 @@ public partial class KastenInvoer
         => actieveWandId is Guid id
             ? State.Wanden.Find(wand => wand.Id == id)?.Naam ?? "Onbekende wand"
             : "Geen wand gekozen";
+
+    private Guid? BepaalGewensteWandId()
+    {
+        if (Wand is Guid wandId && State.Wanden.Exists(wand => wand.Id == wandId))
+            return wandId;
+
+        return State.Wanden.FirstOrDefault()?.Id;
+    }
 
     private void WijzigWandAfmeting(KeukenWand wand, string eigenschap, ChangeEventArgs e)
     {
@@ -106,7 +117,6 @@ public partial class KastenInvoer
         {
             SluitKastFormulier();
             SluitApparaatFormulier();
-            SluitWandWerkruimte();
         }
 
         Feedback.ToonInfo($"Wand '{wandNaam}' verwijderd.");

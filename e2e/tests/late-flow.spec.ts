@@ -54,7 +54,6 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
     hoogte: 720,
     diepte: 560,
   });
-  await page.getByRole('button', { name: 'Werkruimte sluiten' }).click();
 
   await openIndelingWand(tweedeWandId!);
   await page.getByTestId('open-kast-form-button').click();
@@ -67,7 +66,6 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
   await indeling.bevestigTechnischeKastControle();
   await indeling.gaNaarVolgendeKastFormStap();
   await page.getByTestId('kast-opslaan-button').click();
-  await page.getByRole('button', { name: 'Werkruimte sluiten' }).click();
 
   await indeling.gaNaarPanelen();
   await panelen.expectLoaded();

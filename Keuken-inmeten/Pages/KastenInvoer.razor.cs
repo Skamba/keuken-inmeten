@@ -41,9 +41,11 @@ public partial class KastenInvoer
 
     protected override void OnParametersSet()
     {
-        Guid? gewensteWandId = Wand is Guid wandId && State.Wanden.Exists(wand => wand.Id == wandId)
-            ? wandId
-            : null;
+        var gewensteWandId = BepaalGewensteWandId();
+
+        if (Wand != gewensteWandId)
+            NavigeerNaarWand(gewensteWandId, replaceHistoryEntry: true);
+
         if (actieveWandId != gewensteWandId)
             StelActieveWandContextIn(gewensteWandId);
     }
@@ -55,8 +57,9 @@ public partial class KastenInvoer
     {
         if (actieveWandId.HasValue && !State.Wanden.Exists(wand => wand.Id == actieveWandId.Value))
         {
-            NavigeerNaarWand(null, replaceHistoryEntry: true);
-            StelActieveWandContextIn(null);
+            var fallbackWandId = State.Wanden.FirstOrDefault()?.Id;
+            NavigeerNaarWand(fallbackWandId, replaceHistoryEntry: true);
+            StelActieveWandContextIn(fallbackWandId);
         }
 
         _ = InvokeAsync(StateHasChanged);
