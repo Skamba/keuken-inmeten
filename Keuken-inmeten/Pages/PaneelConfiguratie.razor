@@ -44,44 +44,6 @@
 else
 {
     <div class="paneel-pagina-shell @(pagina.ToonEditorDrawer ? "editor-open" : null)">
-        <details class="indeling-overige-wanden paneel-projectinstellingen mb-4"
-                 data-testid="paneel-projectinstellingen"
-                 open="@pagina.ToonUitgeklapteProjectinstellingen">
-            <summary class="indeling-overige-wanden-summary">
-                <div>
-                    <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Projectinstelling</div>
-                    <div class="fw-semibold">@PaneelMaatUitlegHelper.RandSpelingLabel</div>
-                    <div class="small text-muted">Nu @($"{ProjectRandSpelingInput:0.#} mm") totaal. Open dit alleen als het hele project bewust meer of minder voeg nodig heeft.</div>
-                </div>
-                <span class="badge text-bg-light border paneel-projectinstellingen-badge">@($"{ProjectRandSpelingInput:0.#} mm")</span>
-            </summary>
-            <div class="indeling-overige-wanden-body">
-                <div class="row g-3 align-items-start">
-                    <div class="col-lg-7">
-                        <div class="small text-muted">
-                            Deze waarde geldt voor het hele project. Tussen twee panelen verdeelt de app de totale voeg automatisch zodat zaagmaten hele millimeters blijven. Vrije buitenranden blijven ongewijzigd.
-                        </div>
-                    </div>
-                    <div class="col-lg-5">
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <label class="form-label fw-semibold small text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: .04em;">@PaneelMaatUitlegHelper.RandSpelingLabel (mm)</label>
-                            <HulpInfoKnop Titel="Totale voeg tussen rakende delen"
-                                          Tekst="Deze projectinstelling bepaalt de totale vrije ruimte tussen een paneel en een apparaat of buurpaneel."
-                                          Voorbeeld="Bij een totale voeg van 3 mm tussen twee panelen krijgt het ene paneel bijvoorbeeld 1 mm aftrek en het andere 2 mm."
-                                          WatNuDoen="Laat de standaard staan tenzij uw beslag, afwerking of montage bewust om meer of minder totale voeg vraagt." />
-                        </div>
-                        <input type="number"
-                               class="form-control"
-                               @bind="ProjectRandSpelingInput"
-                               min="0"
-                               step="1"
-                               data-testid="project-randspeling-input" />
-                        <div class="form-text hulp-hint">Standaard 3 mm totaal voor het hele project.</div>
-                    </div>
-                </div>
-            </div>
-        </details>
-
         <div data-testid="paneel-editor-weergave">
             @if (geopendeWand is null)
             {

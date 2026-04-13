@@ -24,7 +24,6 @@ public class PaneelConfiguratieReadModelHelperTests
             toewijzingenAantal: 3,
             geopendeWandId: wandB.Wand.Id,
             toonEditorDrawer: false,
-            paneelRandSpeling: 3,
             paneelEditorStatus: MaakEditorStatus());
 
         Assert.True(model.ToonCompacteStapIntro);
@@ -48,7 +47,6 @@ public class PaneelConfiguratieReadModelHelperTests
             toewijzingenAantal: 0,
             geopendeWandId: null,
             toonEditorDrawer: false,
-            paneelRandSpeling: 3,
             paneelEditorStatus: MaakEditorStatus());
 
         var samenvatting = Assert.Single(model.OverzichtWanden);
@@ -77,7 +75,6 @@ public class PaneelConfiguratieReadModelHelperTests
             toewijzingenAantal: 2,
             geopendeWandId: wand.Wand.Id,
             toonEditorDrawer: true,
-            paneelRandSpeling: 3,
             paneelEditorStatus: status);
         var editorGesloten = PaneelConfiguratieReadModelHelper.BouwPaginaModel(
             routeGate: null,
@@ -86,7 +83,6 @@ public class PaneelConfiguratieReadModelHelperTests
             toewijzingenAantal: 2,
             geopendeWandId: wand.Wand.Id,
             toonEditorDrawer: false,
-            paneelRandSpeling: 4,
             paneelEditorStatus: status);
 
         Assert.True(editorOpen.ToonCompacteStapIntro);
@@ -97,7 +93,6 @@ public class PaneelConfiguratieReadModelHelperTests
         Assert.Null(editorOpen.ActieveWerkruimte!.WerkruimteStatus);
         Assert.NotNull(editorOpen.ActieveReviewGroep);
 
-        Assert.True(editorGesloten.ToonUitgeklapteProjectinstellingen);
         Assert.NotNull(editorGesloten.ActieveWerkruimte!.WerkruimteStatus);
         Assert.Equal("Controleer paneelmaat", editorGesloten.ActieveWerkruimte.WerkruimteStatus!.Titel);
         Assert.Equal("Editor gesloten", editorGesloten.ActieveWerkruimte.MetaItems[^1]);

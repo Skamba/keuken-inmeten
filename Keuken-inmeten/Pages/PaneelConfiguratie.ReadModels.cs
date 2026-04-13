@@ -20,7 +20,6 @@ public partial class PaneelConfiguratie
                 toewijzingenAantal: State.Toewijzingen.Count,
                 geopendeWandId: geopendeWandId,
                 toonEditorDrawer: toonEditorDrawer,
-                paneelRandSpeling: State.PaneelRandSpeling,
                 paneelEditorStatus: paneelEditorStatus);
         }
     }
@@ -35,7 +34,6 @@ public static class PaneelConfiguratieReadModelHelper
         int toewijzingenAantal,
         Guid? geopendeWandId,
         bool toonEditorDrawer,
-        double paneelRandSpeling,
         PaneelEditorStatusModel paneelEditorStatus)
     {
         var wandSamenvattingen = wandWerkruimtes
@@ -63,7 +61,6 @@ public static class PaneelConfiguratieReadModelHelper
             ToewijzingenAantal: toewijzingenAantal,
             ToonEditorDrawer: toonEditorDrawer,
             ToonCompacteStapIntro: toonCompacteStapIntro,
-            ToonUitgeklapteProjectinstellingen: Math.Abs(paneelRandSpeling - 3) > 0.001,
             Kop: BouwKopModel(routeGate, actieveWerkruimte),
             PaneelEditorStatus: paneelEditorStatus,
             OverzichtWanden: overzichtWanden,
@@ -175,7 +172,6 @@ public sealed record PaneelConfiguratiePaginaModel(
     int ToewijzingenAantal,
     bool ToonEditorDrawer,
     bool ToonCompacteStapIntro,
-    bool ToonUitgeklapteProjectinstellingen,
     PaneelPaginaKopModel Kop,
     PaneelEditorStatusModel PaneelEditorStatus,
     IReadOnlyList<PaneelWandSamenvatting> OverzichtWanden,

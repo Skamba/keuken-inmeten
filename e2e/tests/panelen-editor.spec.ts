@@ -250,6 +250,28 @@ test('stap 2 toont geen werklaag- of andere-wanden fluff meer', async ({ page })
   await panelen.expectActieveWerkruimte('Linkerwand');
 });
 
+test('stap 2 toont geen projectinstelling meer', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast projectsetting',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await expect(page.getByTestId('paneel-projectinstellingen')).toHaveCount(0);
+  await expect(page.getByTestId('project-randspeling-input')).toHaveCount(0);
+
+  await panelen.openWandWerkruimte('Achterwand');
+  await panelen.expectActieveWerkruimte('Achterwand');
+});
+
 test('stap 2 toont geen staphulp- of begrippenknoppen meer', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);

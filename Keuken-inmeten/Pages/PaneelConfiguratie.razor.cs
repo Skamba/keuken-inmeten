@@ -213,9 +213,4 @@ public partial class PaneelConfiguratie
         set => formToewijzing.PotHartVanRand = ScharnierBerekeningService.NormaliseerCupCenterVanRand(value);
     }
 
-    private double ProjectRandSpelingInput
-    {
-        get => State.PaneelRandSpeling;
-        set => State.StelPaneelRandSpelingIn(value);
-    }
 }
