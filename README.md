@@ -44,6 +44,6 @@ npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-## Deploymen
+## Deployment
 
 Bij elke push naar `main` wordt de app automatisch gepubliceerd naar GitHub Pages via de CI/CD-workflow in `.github/workflows/`.
