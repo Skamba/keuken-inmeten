@@ -146,44 +146,45 @@ else
                     </div>
                 }
 
-                <div class="indeling-workspace-grid mb-4">
-                    <div class="indeling-workspace-main">
-                        <div class="indeling-maten-kaart">
-                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
-                                <div>
-                                    <h6 class="mb-1">Wandmaten</h6>
-                                    <div class="small text-muted">Pas dit alleen aan als de basismaten van deze wand wijzigen.</div>
-                                </div>
-                                <div class="small text-muted">@actieveWand.Breedte × @actieveWand.Hoogte mm · plint @actieveWand.PlintHoogte mm</div>
+                <div class="indeling-workspace-main">
+                    <div class="indeling-maten-kaart">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
+                            <div>
+                                <h6 class="mb-1">Wandmaten</h6>
+                                <div class="small text-muted">Pas dit alleen aan als de basismaten van deze wand wijzigen.</div>
                             </div>
-                            <div class="row g-3">
-                                <div class="col-sm-4">
-                                    <label class="form-label small mb-0">Wandbreedte (mm)</label>
-                                    <input type="number" class="form-control form-control-sm"
-                                           data-testid="wand-breedte-input"
-                                           value="@actieveWand.Breedte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Breedte), e)" />
-                                    <div class="form-text hulp-hint mb-0" data-testid="wand-breedte-hint">Totaal van deze wand, bijvoorbeeld 3000.</div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <label class="form-label small mb-0">Wandhoogte (mm)</label>
-                                    <input type="number" class="form-control form-control-sm"
-                                           data-testid="wand-hoogte-input"
-                                           value="@actieveWand.Hoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Hoogte), e)" />
-                                    <div class="form-text hulp-hint mb-0" data-testid="wand-hoogte-hint">Vrije hoogte van vloer tot plafond, bijvoorbeeld 2600.</div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <label class="form-label small mb-0">Plinthoogte (mm)</label>
-                                    <input type="number" class="form-control form-control-sm" min="0" step="10"
-                                           data-testid="wand-plint-input"
-                                           value="@actieveWand.PlintHoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.PlintHoogte), e)" />
-                                    <div class="form-text hulp-hint mb-0" data-testid="wand-plint-hint">Meestal 100; gebruik 0 alleen zonder plint.</div>
-                                </div>
+                            <div class="small text-muted">@actieveWand.Breedte × @actieveWand.Hoogte mm · plint @actieveWand.PlintHoogte mm</div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-sm-4">
+                                <label class="form-label small mb-0">Wandbreedte (mm)</label>
+                                <input type="number" class="form-control form-control-sm"
+                                       data-testid="wand-breedte-input"
+                                       value="@actieveWand.Breedte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Breedte), e)" />
+                                <div class="form-text hulp-hint mb-0" data-testid="wand-breedte-hint">Totaal van deze wand, bijvoorbeeld 3000.</div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label small mb-0">Wandhoogte (mm)</label>
+                                <input type="number" class="form-control form-control-sm"
+                                       data-testid="wand-hoogte-input"
+                                       value="@actieveWand.Hoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.Hoogte), e)" />
+                                <div class="form-text hulp-hint mb-0" data-testid="wand-hoogte-hint">Vrije hoogte van vloer tot plafond, bijvoorbeeld 2600.</div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label small mb-0">Plinthoogte (mm)</label>
+                                <input type="number" class="form-control form-control-sm" min="0" step="10"
+                                       data-testid="wand-plint-input"
+                                       value="@actieveWand.PlintHoogte" @onchange="e => WijzigWandAfmeting(actieveWand, nameof(KeukenWand.PlintHoogte), e)" />
+                                <div class="form-text hulp-hint mb-0" data-testid="wand-plint-hint">Meestal 100; gebruik 0 alleen zonder plint.</div>
                             </div>
                         </div>
+                    </div>
 
+                    <div class="indeling-workspace-grid mt-3 mb-4">
                         @if (toonWandOpstelling)
                         {
-                            <div class="indeling-visualisatie-kaart mt-3">
+                            <div class="indeling-visualisatie-kaart"
+                                 data-testid="indeling-wandopstelling">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <div>
                                         <h6 class="mb-0">Wandopstelling</h6>
@@ -209,194 +210,195 @@ else
                                                   OnPlankActie="VerwerkPlankActie" />
                             </div>
                         }
-                    </div>
-                </div>
 
-                <section class="indeling-lijst-sectie mb-4">
-                    <div class="indeling-lijst-kop">
-                        <div>
-                            <h6 class="mb-1">Kasten op deze wand</h6>
-                            <div class="small text-muted">Gebruik deze lijst vooral voor bewerken, dupliceren of verwijderen.</div>
-                        </div>
-                        <span class="text-muted small">@(wandKasten.Count == 0 ? "Nog geen kasten" : $"{wandKasten.Count} toegevoegd")</span>
-                    </div>
-                    @if (wandKasten.Count > 0)
-                    {
-                        <div class="indeling-object-lijst">
-                            @foreach (var kast in wandKasten)
-                            {
-                                <div class="indeling-object-rij @(bewerkKastId == kast.Id && actieveWandId == actieveWand.Id ? "is-active" : null)">
-                                    <div class="indeling-object-meta">
-                                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                            <span class="badge @TypeBadge(kast.Type)">@kast.Type</span>
-                                            <span class="fw-semibold">@kast.Naam</span>
-                                        </div>
-                                        <div class="small text-muted">@kast.Breedte × @kast.Hoogte mm</div>
+                        <div class="indeling-workspace-secondary">
+                            <section class="indeling-lijst-sectie"
+                                     data-testid="indeling-kasten-op-wand">
+                                <div class="indeling-lijst-kop">
+                                    <div>
+                                        <h6 class="mb-1">Kasten op deze wand</h6>
+                                        <div class="small text-muted">Gebruik deze lijst vooral voor bewerken, dupliceren of verwijderen.</div>
                                     </div>
-                                    @if (bevestigVerwijderKastId == kast.Id)
-                                    {
-                                        <div class="indeling-object-confirmatie">
-                                            <span class="text-danger small fw-semibold">Verwijderen?</span>
-                                            <button class="btn btn-danger btn-sm"
-                                                    @onclick="() => { VerwijderKast(kast.Id); bevestigVerwijderKastId = null; }">Ja</button>
-                                            <button class="btn btn-outline-secondary btn-sm"
-                                                    @onclick="() => bevestigVerwijderKastId = null">Annuleer</button>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="indeling-object-acties">
-                                            <button class="btn btn-outline-primary btn-sm"
-                                                    @onclick="() => BewerkKast(kast, actieveWand.Id)">
-                                                Bewerk
-                                            </button>
-                                            <details class="indeling-row-details">
-                                                <summary class="small fw-semibold text-secondary">Meer acties</summary>
-                                                <div class="indeling-row-details-body">
-                                                    <button class="btn btn-outline-secondary btn-sm"
-                                                            @onclick="() => KopieerKast(kast, actieveWand.Id)">
-                                                        Kopieer
-                                                    </button>
-                                                    <button class="btn btn-outline-danger btn-sm"
-                                                            @onclick="() => bevestigVerwijderKastId = kast.Id">
-                                                        Verwijder
-                                                    </button>
-                                                </div>
-                                            </details>
-                                        </div>
-                                    }
+                                    <span class="text-muted small">@(wandKasten.Count == 0 ? "Nog geen kasten" : $"{wandKasten.Count} toegevoegd")</span>
                                 </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="border rounded p-3 small text-muted bg-body-tertiary">
-                            Nog geen kasten. Begin met <strong>Kast toevoegen</strong>.
-                        </div>
-                    }
-                </section>
-
-                @if (wandApparaten.Count > 0)
-                {
-                    <details class="indeling-overige-wanden mb-4"
-                             open="@((bewerkApparaatId is not null && actieveWandId == actieveWand.Id) || bevestigVerwijderApparaatId is not null)">
-                        <summary class="indeling-overige-wanden-summary">
-                            <div>
-                                <h5 class="mb-0">Apparaten op deze wand</h5>
-                                <div class="small text-muted">Open dit alleen als een apparaat de indeling van deze wand echt raakt.</div>
-                            </div>
-                            <span class="badge text-bg-light indeling-workspace-hint">@wandApparaten.Count toegevoegd</span>
-                        </summary>
-                        <div class="indeling-overige-wanden-body">
-                            <div class="indeling-object-lijst">
-                                @foreach (var apparaat in wandApparaten)
+                                @if (wandKasten.Count > 0)
                                 {
-                                    <div class="indeling-object-rij @(bewerkApparaatId == apparaat.Id && actieveWandId == actieveWand.Id ? "is-active" : null)">
-                                        <div class="indeling-object-meta">
-                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                                <span class="badge bg-secondary">@ApparaatTypeLabel(apparaat.Type)</span>
-                                                <span class="fw-semibold">@apparaat.Naam</span>
-                                            </div>
-                                            <div class="small text-muted">@apparaat.Breedte × @apparaat.Hoogte mm</div>
-                                        </div>
-                                        @if (bevestigVerwijderApparaatId == apparaat.Id)
+                                    <div class="indeling-object-lijst">
+                                        @foreach (var kast in wandKasten)
                                         {
-                                            <div class="indeling-object-confirmatie">
-                                                <span class="text-danger small fw-semibold">Verwijderen?</span>
-                                                <button class="btn btn-danger btn-sm"
-                                                        @onclick="() => { VerwijderApparaat(apparaat.Id); bevestigVerwijderApparaatId = null; }">Ja</button>
-                                                <button class="btn btn-outline-secondary btn-sm"
-                                                        @onclick="() => bevestigVerwijderApparaatId = null">Annuleer</button>
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <div class="indeling-object-acties">
-                                                <button class="btn btn-outline-primary btn-sm"
-                                                        @onclick="() => BewerkApparaat(apparaat, actieveWand.Id)">
-                                                    Bewerk
-                                                </button>
-                                                <details class="indeling-row-details">
-                                                    <summary class="small fw-semibold text-secondary">Meer acties</summary>
-                                                    <div class="indeling-row-details-body">
-                                                        <button class="btn btn-outline-danger btn-sm"
-                                                                @onclick="() => bevestigVerwijderApparaatId = apparaat.Id">
-                                                            Verwijder
-                                                        </button>
+                                            <div class="indeling-object-rij @(bewerkKastId == kast.Id && actieveWandId == actieveWand.Id ? "is-active" : null)">
+                                                <div class="indeling-object-meta">
+                                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                        <span class="badge @TypeBadge(kast.Type)">@kast.Type</span>
+                                                        <span class="fw-semibold">@kast.Naam</span>
                                                     </div>
-                                                </details>
+                                                    <div class="small text-muted">@kast.Breedte × @kast.Hoogte mm</div>
+                                                </div>
+                                                @if (bevestigVerwijderKastId == kast.Id)
+                                                {
+                                                    <div class="indeling-object-confirmatie">
+                                                        <span class="text-danger small fw-semibold">Verwijderen?</span>
+                                                        <button class="btn btn-danger btn-sm"
+                                                                @onclick="() => { VerwijderKast(kast.Id); bevestigVerwijderKastId = null; }">Ja</button>
+                                                        <button class="btn btn-outline-secondary btn-sm"
+                                                                @onclick="() => bevestigVerwijderKastId = null">Annuleer</button>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="indeling-object-acties">
+                                                        <button class="btn btn-outline-primary btn-sm"
+                                                                @onclick="() => BewerkKast(kast, actieveWand.Id)">
+                                                            Bewerk
+                                                        </button>
+                                                        <details class="indeling-row-details">
+                                                            <summary class="small fw-semibold text-secondary">Meer acties</summary>
+                                                            <div class="indeling-row-details-body">
+                                                                <button class="btn btn-outline-secondary btn-sm"
+                                                                        @onclick="() => KopieerKast(kast, actieveWand.Id)">
+                                                                    Kopieer
+                                                                </button>
+                                                                <button class="btn btn-outline-danger btn-sm"
+                                                                        @onclick="() => bevestigVerwijderKastId = kast.Id">
+                                                                    Verwijder
+                                                                </button>
+                                                            </div>
+                                                        </details>
+                                                    </div>
+                                                }
                                             </div>
                                         }
                                     </div>
-                                }
-                            </div>
-                        </div>
-                    </details>
-                }
-
-                <details class="indeling-overige-wanden mb-4 indeling-workspace-actions"
-                         open="@(bewerkWandId == actieveWand.Id || bevestigVerwijderWandId == actieveWand.Id)">
-                    <summary class="indeling-overige-wanden-summary">
-                        <div>
-                            <h5 class="mb-0">Meer acties voor deze wand</h5>
-                            <div class="small text-muted">Open dit alleen voor hernoemen of verwijderen buiten de hoofdtaak.</div>
-                        </div>
-                    </summary>
-                    <div class="indeling-overige-wanden-body">
-                        <p class="text-muted small mb-3">Zelden gebruikte of destructieve acties staan hier zodat de hoofdtaak op deze wand rustig blijft.</p>
-
-                        @if (bewerkWandId == actieveWand.Id)
-                        {
-                            <div class="d-flex flex-wrap gap-2">
-                                <input type="text" class="form-control form-control-sm" style="max-width: 280px;" @bind="bewerkWandNaam" @bind:event="oninput" />
-                                <button class="btn btn-sm btn-outline-primary" @onclick="WandNaamOpslaan">Opslaan</button>
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => bewerkWandId = null">Annuleren</button>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="d-flex flex-wrap gap-2">
-                                <button class="btn btn-sm btn-outline-primary" @onclick="() => { bewerkWandId = actieveWand.Id; bewerkWandNaam = actieveWand.Naam; }">
-                                    Wand hernoemen
-                                </button>
-                                @if (bevestigVerwijderWandId == actieveWand.Id)
-                                {
-                                    <span class="text-danger small fw-semibold align-self-center">Wand verwijderen?</span>
-                                    <button class="btn btn-sm btn-danger" @onclick="() => BevestigVerwijderWand(actieveWand.Id)">Ja, verwijder</button>
-                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigVerwijderWandId = null">Annuleren</button>
                                 }
                                 else
                                 {
-                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigVerwijderWandId = actieveWand.Id">
-                                        Wand verwijderen
-                                    </button>
+                                    <div class="border rounded p-3 small text-muted bg-body-tertiary">
+                                        Nog geen kasten. Begin met <strong>Kast toevoegen</strong>.
+                                    </div>
+                                }
+                            </section>
+
+                            <IndelingDetailsBlok Titel="Nog een wand toevoegen"
+                                                 Beschrijving="Open dit pas als deze werkruimte voorlopig klopt."
+                                                 DetailsClass="indeling-overige-wanden mb-4"
+                                                 DetailsDataTestId="indeling-extra-wand-details"
+                                                 SummaryDataTestId="indeling-extra-wand-summary">
+                                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+                                    <div class="small text-muted">Gebruik de pop-up om een extra wandnaam toe te voegen zonder de werkruimte onrustig te maken.</div>
+                                    <div class="d-flex justify-content-xl-end">
+                                        <button type="button"
+                                                class="btn btn-primary"
+                                                @onclick="OpenWandToevoegenModal"
+                                                data-testid="open-wand-toevoegen-modal-button">
+                                            Wand toevoegen
+                                        </button>
+                                    </div>
+                                </div>
+                            </IndelingDetailsBlok>
+                        </div>
+                    </div>
+
+                        @if (wandApparaten.Count > 0)
+                        {
+                            <details class="indeling-overige-wanden mb-4"
+                                     open="@((bewerkApparaatId is not null && actieveWandId == actieveWand.Id) || bevestigVerwijderApparaatId is not null)">
+                                <summary class="indeling-overige-wanden-summary">
+                                    <div>
+                                        <h5 class="mb-0">Apparaten op deze wand</h5>
+                                        <div class="small text-muted">Open dit alleen als een apparaat de indeling van deze wand echt raakt.</div>
+                                    </div>
+                                    <span class="badge text-bg-light indeling-workspace-hint">@wandApparaten.Count toegevoegd</span>
+                                </summary>
+                                <div class="indeling-overige-wanden-body">
+                                    <div class="indeling-object-lijst">
+                                        @foreach (var apparaat in wandApparaten)
+                                        {
+                                            <div class="indeling-object-rij @(bewerkApparaatId == apparaat.Id && actieveWandId == actieveWand.Id ? "is-active" : null)">
+                                                <div class="indeling-object-meta">
+                                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                        <span class="badge bg-secondary">@ApparaatTypeLabel(apparaat.Type)</span>
+                                                        <span class="fw-semibold">@apparaat.Naam</span>
+                                                    </div>
+                                                    <div class="small text-muted">@apparaat.Breedte × @apparaat.Hoogte mm</div>
+                                                </div>
+                                                @if (bevestigVerwijderApparaatId == apparaat.Id)
+                                                {
+                                                    <div class="indeling-object-confirmatie">
+                                                        <span class="text-danger small fw-semibold">Verwijderen?</span>
+                                                        <button class="btn btn-danger btn-sm"
+                                                                @onclick="() => { VerwijderApparaat(apparaat.Id); bevestigVerwijderApparaatId = null; }">Ja</button>
+                                                        <button class="btn btn-outline-secondary btn-sm"
+                                                                @onclick="() => bevestigVerwijderApparaatId = null">Annuleer</button>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="indeling-object-acties">
+                                                        <button class="btn btn-outline-primary btn-sm"
+                                                                @onclick="() => BewerkApparaat(apparaat, actieveWand.Id)">
+                                                            Bewerk
+                                                        </button>
+                                                        <details class="indeling-row-details">
+                                                            <summary class="small fw-semibold text-secondary">Meer acties</summary>
+                                                            <div class="indeling-row-details-body">
+                                                                <button class="btn btn-outline-danger btn-sm"
+                                                                        @onclick="() => bevestigVerwijderApparaatId = apparaat.Id">
+                                                                    Verwijder
+                                                                </button>
+                                                            </div>
+                                                        </details>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </details>
+                        }
+
+                        <details class="indeling-overige-wanden mb-4 indeling-workspace-actions"
+                                 open="@(bewerkWandId == actieveWand.Id || bevestigVerwijderWandId == actieveWand.Id)">
+                            <summary class="indeling-overige-wanden-summary">
+                                <div>
+                                    <h5 class="mb-0">Meer acties voor deze wand</h5>
+                                    <div class="small text-muted">Open dit alleen voor hernoemen of verwijderen buiten de hoofdtaak.</div>
+                                </div>
+                            </summary>
+                            <div class="indeling-overige-wanden-body">
+                                <p class="text-muted small mb-3">Zelden gebruikte of destructieve acties staan hier zodat de hoofdtaak op deze wand rustig blijft.</p>
+
+                                @if (bewerkWandId == actieveWand.Id)
+                                {
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <input type="text" class="form-control form-control-sm" style="max-width: 280px;" @bind="bewerkWandNaam" @bind:event="oninput" />
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="WandNaamOpslaan">Opslaan</button>
+                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => bewerkWandId = null">Annuleren</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => { bewerkWandId = actieveWand.Id; bewerkWandNaam = actieveWand.Naam; }">
+                                            Wand hernoemen
+                                        </button>
+                                        @if (bevestigVerwijderWandId == actieveWand.Id)
+                                        {
+                                            <span class="text-danger small fw-semibold align-self-center">Wand verwijderen?</span>
+                                            <button class="btn btn-sm btn-danger" @onclick="() => BevestigVerwijderWand(actieveWand.Id)">Ja, verwijder</button>
+                                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigVerwijderWandId = null">Annuleren</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigVerwijderWandId = actieveWand.Id">
+                                                Wand verwijderen
+                                            </button>
+                                        }
+                                    </div>
                                 }
                             </div>
-                        }
+                        </details>
                     </div>
-                </details>
             </div>
-        </div>
-
-        <div class="indeling-workspace-secondary">
-            <IndelingDetailsBlok Titel="Nog een wand toevoegen"
-                                 Beschrijving="Open dit pas als deze werkruimte voorlopig klopt."
-                                 DetailsClass="indeling-overige-wanden mb-4"
-                                 DetailsDataTestId="indeling-extra-wand-details"
-                                 SummaryDataTestId="indeling-extra-wand-summary">
-                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-                    <div class="small text-muted">Gebruik de pop-up om een extra wandnaam toe te voegen zonder de werkruimte onrustig te maken.</div>
-                    <div class="d-flex justify-content-xl-end">
-                        <button type="button"
-                                class="btn btn-primary"
-                                @onclick="OpenWandToevoegenModal"
-                                data-testid="open-wand-toevoegen-modal-button">
-                            Wand toevoegen
-                        </button>
-                    </div>
-                </div>
-            </IndelingDetailsBlok>
         </div>
     }
 }

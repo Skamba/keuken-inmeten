@@ -52,6 +52,36 @@ test('stap 1 toont maar één actieve wandwerkruimte tegelijk', async ({ page })
   await indeling.expectActieveWerkruimte('Linkerwand');
 });
 
+test('stap 1 zet kasten op deze wand naast wandopstelling op desktop', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast rechts',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+
+  await indeling.openWandWerkruimte('Achterwand');
+
+  const wandopstelling = page.getByTestId('indeling-wandopstelling');
+  const kastenLijst = page.getByTestId('indeling-kasten-op-wand');
+
+  await expect(wandopstelling).toBeVisible();
+  await expect(kastenLijst).toBeVisible();
+
+  const wandopstellingBox = await wandopstelling.boundingBox();
+  const kastenLijstBox = await kastenLijst.boundingBox();
+
+  expect(wandopstellingBox).not.toBeNull();
+  expect(kastenLijstBox).not.toBeNull();
+  expect(kastenLijstBox!.x).toBeGreaterThan(wandopstellingBox!.x + wandopstellingBox!.width - 1);
+  expect(Math.abs(kastenLijstBox!.y - wandopstellingBox!.y)).toBeLessThan(120);
+});
+
 test('stap 1 verplaatst wandnavigatie naar de navbar onder indeling', async ({ page }) => {
   const indeling = new IndelingPage(page);
 
