@@ -62,6 +62,35 @@ public class VerificatieReadModelHelperTests
     }
 
     [Fact]
+    public void BouwPaginaModel_filtert_overzicht_op_gefocuste_wand_zonder_andere_wanden_te_hernummeren()
+    {
+        var linkerwand = new KeukenWand { Id = Guid.NewGuid(), Naam = "Linkerwand" };
+        var rechterwand = new KeukenWand { Id = Guid.NewGuid(), Naam = "Rechterwand" };
+
+        var pagina = VerificatieReadModelHelper.BouwPaginaModel(
+            routeGate: null,
+            wanden: [linkerwand, rechterwand],
+            paneelBronnen:
+            [
+                MaakPaneelBron(linkerwand.Id, linkerwand.Naam, kastNaam: "Kast links", matenOk: true, scharnierPositiesOk: true),
+                MaakPaneelBron(rechterwand.Id, rechterwand.Naam, kastNaam: "Kast rechts", matenOk: false, scharnierPositiesOk: false)
+            ],
+            fase: VerificatieFase.Overzicht,
+            paneelIndex: 0,
+            laatsteGebruiktePotHartVanRand: ScharnierBerekeningService.CupCenterVanRand,
+            gefocusteWandId: rechterwand.Id);
+
+        var overzicht = Assert.IsType<VerificatieOverzichtModel>(pagina.Overzicht);
+        var groep = Assert.Single(overzicht.TaakGroepen);
+        Assert.Equal(rechterwand.Id, groep.WandId);
+        Assert.Equal("Kast rechts", overzicht.SamenvattingTaak.Resultaat.KastNaam);
+        Assert.Equal(1, overzicht.TotaalTaken);
+        Assert.Equal(1, overzicht.EersteOngecontroleerdIndex);
+        Assert.Equal(2, overzicht.TotaalOpenChecks);
+        Assert.False(overzicht.AlGestart);
+    }
+
+    [Fact]
     public void BouwPaginaModel_gebruikt_laatste_pothart_als_geen_boorgat_of_toewijzing_bestaat()
     {
         var pagina = VerificatieReadModelHelper.BouwPaginaModel(

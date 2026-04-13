@@ -114,8 +114,23 @@ public partial class NavMenu
     private void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
         => _ = InvokeAsync(StateHasChanged);
 
-    private static string MaakWandRoute(Guid wandId)
-        => $"kasten?wand={wandId:D}";
+    private static string? BepaalWandNavTestIdPrefix(string stapId)
+        => stapId switch
+        {
+            "kasten" => "indeling",
+            "panelen" => "panelen",
+            "verificatie" => "verificatie",
+            _ => null
+        };
+
+    private static string MaakWandRoute(string stapId, Guid wandId)
+        => stapId switch
+        {
+            "kasten" => $"kasten?wand={wandId:D}",
+            "panelen" => $"panelen?wand={wandId:D}",
+            "verificatie" => $"verificatie?wand={wandId:D}",
+            _ => throw new ArgumentOutOfRangeException(nameof(stapId), stapId, "Onbekende stap voor wandnavigatie.")
+        };
 
     private void ResetImportSelectie(bool vernieuwInput)
     {

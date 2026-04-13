@@ -6,6 +6,11 @@ namespace Keuken_inmeten.Pages;
 
 public partial class PaneelConfiguratie
 {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    [SupplyParameterFromQuery(Name = "wand")]
+    public Guid? Wand { get; set; }
+
     private PaneelToewijzing formToewijzing = new();
     private readonly HashSet<Guid> geselecteerdeKastIds = [];
     private PaneelRechthoek? conceptPaneel;
@@ -22,6 +27,15 @@ public partial class PaneelConfiguratie
         ResetFormToewijzing();
     }
 
+    protected override void OnParametersSet()
+    {
+        Guid? gewensteWandId = Wand is Guid wandId && State.ZoekWand(wandId) is not null
+            ? wandId
+            : null;
+        if (geopendeWandId != gewensteWandId)
+            StelPaneelWandContextIn(gewensteWandId);
+    }
+
     public void Dispose()
         => State.OnStateChanged -= HandleStateChanged;
 
@@ -29,11 +43,8 @@ public partial class PaneelConfiguratie
     {
         if (geopendeWandId is Guid wandId && State.ZoekWand(wandId) is null)
         {
-            geopendeWandId = null;
-            SluitPaneelWerklaag();
-            VerlaatPaneelBewerkmodus(resetFormulier: true);
-            WisGeselecteerdeKasten();
-            conceptPaneel = null;
+            NavigeerNaarWand(null, replaceHistoryEntry: true);
+            StelPaneelWandContextIn(null);
         }
 
         if (toonKastOpdelenModal && !KanKastOpdelen)

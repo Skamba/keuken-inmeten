@@ -27,7 +27,8 @@ public partial class Verificatie
                 paneelBronnen: paneelBronnen,
                 fase: _fase,
                 paneelIndex: _paneelIndex,
-                laatsteGebruiktePotHartVanRand: State.LaatstGebruiktePotHartVanRand);
+                laatsteGebruiktePotHartVanRand: State.LaatstGebruiktePotHartVanRand,
+                gefocusteWandId: GefocusteWandId);
         }
     }
 
@@ -57,7 +58,8 @@ public static class VerificatieReadModelHelper
         IReadOnlyList<VerificatiePaneelBron> paneelBronnen,
         VerificatieFase fase,
         int paneelIndex,
-        double laatsteGebruiktePotHartVanRand)
+        double laatsteGebruiktePotHartVanRand,
+        Guid? gefocusteWandId = null)
     {
         var resultaten = paneelBronnen
             .Select(item => item.Resultaat)
@@ -70,14 +72,15 @@ public static class VerificatieReadModelHelper
             RouteGate: routeGate,
             Resultaten: resultaten,
             Checklists: checklists,
-            Overzicht: BouwOverzichtModel(wanden, paneelBronnen),
+            Overzicht: BouwOverzichtModel(wanden, paneelBronnen, gefocusteWandId),
             ActiefPaneel: BouwActiefPaneelModel(paneelBronnen, fase, paneelIndex, laatsteGebruiktePotHartVanRand),
             Afronding: BouwAfrondingModel(paneelBronnen, fase));
     }
 
     private static VerificatieOverzichtModel? BouwOverzichtModel(
         IReadOnlyList<KeukenWand> wanden,
-        IReadOnlyList<VerificatiePaneelBron> paneelBronnen)
+        IReadOnlyList<VerificatiePaneelBron> paneelBronnen,
+        Guid? gefocusteWandId)
     {
         if (paneelBronnen.Count == 0)
             return null;
@@ -99,17 +102,28 @@ public static class VerificatieReadModelHelper
             .Where(groep => groep is not null)
             .Cast<VerificatieTaakGroepModel>()
             .ToList();
-        var aantalAfgerond = taken.Count(taak => taak.Geverifieerd);
-        var eersteOngecontroleerdIndex = taken.FirstOrDefault(taak => !taak.Geverifieerd)?.Index ?? 0;
-        var samenvattingTaak = aantalAfgerond == taken.Count
-            ? taken[^1]
-            : taken.First(taak => !taak.Geverifieerd);
+        var zichtbareTaakGroepen = gefocusteWandId is Guid wandId
+            ? taakGroepen.Where(groep => groep.WandId == wandId).ToList()
+            : taakGroepen;
+        if (zichtbareTaakGroepen.Count == 0)
+            zichtbareTaakGroepen = taakGroepen;
+
+        var zichtbareTaken = zichtbareTaakGroepen.Count > 0
+            ? zichtbareTaakGroepen.SelectMany(groep => groep.Taken).ToList()
+            : taken;
+        var aantalAfgerond = zichtbareTaken.Count(taak => taak.Geverifieerd);
+        var eersteOngecontroleerdIndex = zichtbareTaken.FirstOrDefault(taak => !taak.Geverifieerd)?.Index
+            ?? zichtbareTaken[0].Index;
+        var samenvattingTaak = aantalAfgerond == zichtbareTaken.Count
+            ? zichtbareTaken[^1]
+            : zichtbareTaken.First(taak => !taak.Geverifieerd);
 
         return new(
-            TaakGroepen: taakGroepen,
+            TaakGroepen: zichtbareTaakGroepen,
             AantalAfgerond: aantalAfgerond,
+            TotaalTaken: zichtbareTaken.Count,
             EersteOngecontroleerdIndex: eersteOngecontroleerdIndex,
-            TotaalOpenChecks: taken.Sum(taak => taak.OpenChecks),
+            TotaalOpenChecks: zichtbareTaken.Sum(taak => taak.OpenChecks),
             AlGestart: aantalAfgerond > 0,
             SamenvattingTaak: samenvattingTaak);
     }
@@ -196,6 +210,7 @@ public sealed record VerificatiePaginaModel(
 public sealed record VerificatieOverzichtModel(
     IReadOnlyList<VerificatieTaakGroepModel> TaakGroepen,
     int AantalAfgerond,
+    int TotaalTaken,
     int EersteOngecontroleerdIndex,
     int TotaalOpenChecks,
     bool AlGestart,

@@ -83,8 +83,8 @@ else if (_fase == VerificatieFase.Overzicht && pagina.Overzicht is not null)
                 </div>
                 <div class="verificatie-overview-action">
                     <div class="verificatie-samenvatting-label">Volgende taak</div>
-                    <div class="fw-semibold">@(overzicht.AantalAfgerond == pagina.Resultaten.Count ? "Alle controles zijn klaar" : overzicht.SamenvattingTaak.VolgendeControle)</div>
-                    <div class="small text-muted mb-3">@((overzicht.AantalAfgerond == pagina.Resultaten.Count) ? "U kunt afronden of een taak opnieuw openen." : $"Paneel {overzicht.SamenvattingTaak.Index + 1} · {overzicht.SamenvattingTaak.Resultaat.KastNaam}")</div>
+                    <div class="fw-semibold">@(overzicht.AantalAfgerond == overzicht.TotaalTaken ? "Alle controles zijn klaar" : overzicht.SamenvattingTaak.VolgendeControle)</div>
+                    <div class="small text-muted mb-3">@((overzicht.AantalAfgerond == overzicht.TotaalTaken) ? "U kunt afronden of een taak opnieuw openen." : $"Paneel {overzicht.SamenvattingTaak.Index + 1} · {overzicht.SamenvattingTaak.Resultaat.KastNaam}")</div>
                     <button class="btn btn-success btn-lg"
                             @onclick="() => GaNaarPaneel(overzicht.EersteOngecontroleerdIndex)"
                             data-testid="verificatie-start-button">
@@ -94,7 +94,7 @@ else if (_fase == VerificatieFase.Overzicht && pagina.Overzicht is not null)
             </div>
 
             <div class="verificatie-overview-strip mb-3">
-                <span>@overzicht.AantalAfgerond van @pagina.Resultaten.Count taken klaar</span>
+                <span>@overzicht.AantalAfgerond van @overzicht.TotaalTaken taken klaar</span>
                 <span>@overzicht.TotaalOpenChecks open controles</span>
                 <span>@overzicht.TaakGroepen.Count wand(en)</span>
             </div>

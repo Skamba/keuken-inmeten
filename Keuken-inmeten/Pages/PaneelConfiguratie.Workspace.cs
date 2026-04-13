@@ -23,51 +23,25 @@ public partial class PaneelConfiguratie
         ResetConceptPaneel();
     }
 
-    private void DeselecteerWand(Guid wandId)
-    {
-        VerlaatPaneelBewerkmodus(resetFormulier: true);
-        if (geopendeWandId == wandId)
-            ActiveerPaneelWerkruimte(null);
-
-        var wandKastIds = State.LeesPaneelWerkruimte(wandId)?.Kasten.Select(kast => kast.Id) ?? [];
-        foreach (var id in wandKastIds)
-            geselecteerdeKastIds.Remove(id);
-
-        ResetConceptPaneel();
-    }
-
     private void ToggleWandWerkruimte(Guid wandId)
     {
         if (geopendeWandId == wandId)
         {
-            DeselecteerWand(wandId);
+            NavigeerNaarWand(null);
             return;
         }
 
-        OpenWandWerkruimte(wandId);
+        NavigeerNaarWand(wandId);
     }
 
     private void DeselecteerAlles()
         => ResetPaneelInvoer(wisSelectie: true);
 
     private void OpenWandWerkruimte(Guid wandId)
-    {
-        if (geopendeWandId != wandId)
-        {
-            VerlaatPaneelBewerkmodus(resetFormulier: true);
-            WisGeselecteerdeKasten();
-        }
-
-        ActiveerPaneelWerkruimte(wandId);
-        ResetConceptPaneel();
-    }
+        => NavigeerNaarWand(wandId);
 
     private void SluitWandWerkruimte()
-    {
-        geopendeWandId = null;
-        SluitPaneelWerklaag();
-        ResetPaneelInvoer(wisSelectie: true);
-    }
+        => NavigeerNaarWand(null);
 
     private void OpenEditorDrawer()
     {
@@ -122,5 +96,33 @@ public partial class PaneelConfiguratie
         State.VoegToewijzingenToe(toewijzingen);
         Feedback.ToonSucces($"{toewijzingen.Count} panelen toegevoegd voor '{kast.Naam}'.");
         RondPaneelInvoerAf();
+    }
+
+    private void NavigeerNaarWand(Guid? wandId, bool replaceHistoryEntry = false)
+    {
+        var doel = wandId is Guid id
+            ? $"panelen?wand={id:D}"
+            : "panelen";
+        Navigation.NavigateTo(doel, replace: replaceHistoryEntry);
+    }
+
+    private void StelPaneelWandContextIn(Guid? wandId)
+    {
+        if (wandId is null)
+        {
+            geopendeWandId = null;
+            SluitPaneelWerklaag();
+            ResetPaneelInvoer(wisSelectie: true);
+            return;
+        }
+
+        if (geopendeWandId != wandId)
+        {
+            VerlaatPaneelBewerkmodus(resetFormulier: true);
+            WisGeselecteerdeKasten();
+        }
+
+        ActiveerPaneelWerkruimte(wandId);
+        ResetConceptPaneel();
     }
 }

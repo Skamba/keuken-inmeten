@@ -15,19 +15,16 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
     await expect(page.locator(`[data-testid="actieve-wand-werkruimte"][data-wand-id="${wandId}"]`)).toBeVisible();
   }
 
-  async function openPaneelWand(wandId: string) {
-    const kaart = page.locator(`[data-testid="paneel-wand-card"][data-wand-id="${wandId}"]`);
-    const knop = kaart.getByTestId('open-paneel-wand-button');
-    if (!(await knop.isVisible())) {
-      const samenvatting = page.getByTestId('paneel-overige-wanden-summary');
-      if (await samenvatting.isVisible()) {
-        await samenvatting.click();
-        await expect(knop).toBeVisible();
-      }
-    }
-
-    await knop.click();
+  async function openPaneelWandViaNavbar(wandId: string) {
+    await page.locator(`[data-testid="nav-panelen-wand-link"][data-wand-id="${wandId}"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/panelen\\?wand=${wandId}$`));
     await expect(page.locator(`[data-testid="paneel-actieve-wand-werkruimte"][data-wand-id="${wandId}"]`)).toBeVisible();
+  }
+
+  async function focusVerificatieWandViaNavbar(wandId: string) {
+    await page.locator(`[data-testid="nav-verificatie-wand-link"][data-wand-id="${wandId}"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/verificatie\\?wand=${wandId}$`));
+    await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${wandId}"]`)).toBeVisible();
   }
 
   await indeling.goto();
@@ -74,13 +71,14 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
 
   await indeling.gaNaarPanelen();
   await panelen.expectLoaded();
+  await expect(page.getByTestId('nav-panelen-wand-link')).toHaveCount(2);
 
-  await openPaneelWand(eersteWandId!);
+  await openPaneelWandViaNavbar(eersteWandId!);
   await page.locator('[data-testid="paneel-kast"]').first().click();
   await page.getByTestId('paneel-opslaan-button').click();
   await page.getByRole('button', { name: 'Werkruimte sluiten' }).click();
 
-  await openPaneelWand(tweedeWandId!);
+  await openPaneelWandViaNavbar(tweedeWandId!);
   await page.locator('[data-testid="paneel-kast"]').first().click();
   await page.getByTestId('paneel-opslaan-button').click();
 
@@ -88,7 +86,7 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
   await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${tweedeWandId}"]`)).toBeVisible();
   await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${eersteWandId}"]`)).toHaveCount(0);
 
-  await openPaneelWand(eersteWandId!);
+  await openPaneelWandViaNavbar(eersteWandId!);
   await expect(page.getByTestId('paneel-review-groep')).toHaveCount(1);
   await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${eersteWandId}"]`)).toBeVisible();
   await expect(page.locator(`[data-testid="paneel-review-groep"][data-wand-id="${tweedeWandId}"]`)).toHaveCount(0);
@@ -96,9 +94,20 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
   await panelen.gaNaarVerificatie();
   await verificatie.expectLoaded();
   await verificatie.expectTaaklijst();
+  await expect(page.getByTestId('nav-verificatie-wand-link')).toHaveCount(2);
   await expect(page.getByTestId('verificatie-taakgroep')).toHaveCount(2);
   await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${eersteWandId}"]`)).toBeVisible();
   await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${tweedeWandId}"]`)).toBeVisible();
+
+  await focusVerificatieWandViaNavbar(tweedeWandId!);
+  await expect(page.getByTestId('verificatie-taakgroep')).toHaveCount(1);
+  await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${tweedeWandId}"]`)).toBeVisible();
+  await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${eersteWandId}"]`)).toHaveCount(0);
+
+  await focusVerificatieWandViaNavbar(eersteWandId!);
+  await expect(page.getByTestId('verificatie-taakgroep')).toHaveCount(1);
+  await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${eersteWandId}"]`)).toBeVisible();
+  await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${tweedeWandId}"]`)).toHaveCount(0);
 });
 
 test('stap 3 toont verificatie als taaklijst per wand', async ({ page }) => {

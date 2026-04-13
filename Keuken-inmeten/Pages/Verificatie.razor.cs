@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Keuken_inmeten.Models;
 using Keuken_inmeten.Services;
 using Keuken_inmeten.Services.Interop;
@@ -6,17 +7,34 @@ namespace Keuken_inmeten.Pages;
 
 public partial class Verificatie
 {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    [SupplyParameterFromQuery(Name = "wand")]
+    public Guid? Wand { get; set; }
+
     private VerificatieFase _fase = VerificatieFase.Overzicht;
     private int _paneelIndex;
     private BrowserWindowJsInterop? _browserWindowInterop;
 
     private BrowserWindowJsInterop BrowserWindowInterop => _browserWindowInterop ??= new(JS);
+    private Guid? GefocusteWandId => Wand is Guid wandId && State.Wanden.Exists(wand => wand.Id == wandId) ? wandId : null;
 
     protected override void OnInitialized()
         => State.OnStateChanged += HandleStateChanged;
 
+    protected override void OnParametersSet()
+    {
+        if (Wand is Guid && GefocusteWandId is null)
+            Navigation.NavigateTo("verificatie", replace: true);
+    }
+
     private void HandleStateChanged()
-        => _ = InvokeAsync(StateHasChanged);
+    {
+        if (Wand is Guid wandId && !State.Wanden.Exists(wand => wand.Id == wandId))
+            Navigation.NavigateTo("verificatie", replace: true);
+
+        _ = InvokeAsync(StateHasChanged);
+    }
 
     private void ToggleMatenCheck(PaneelResultaat resultaat)
     {
@@ -95,7 +113,9 @@ public partial class Verificatie
         => await BrowserWindowInterop.PrintCurrentPageAsync();
 
     private Task DeelResultaat()
-        => Delen.DeelKeukenAsync("verificatie");
+        => Delen.DeelKeukenAsync(GefocusteWandId is Guid wandId
+            ? $"verificatie?wand={wandId:D}"
+            : "verificatie");
 
     public async ValueTask DisposeAsync()
     {

@@ -70,7 +70,7 @@ test('navbar deelt een v4-link naar de huidige stap die in een schone sessie opn
     await gedeeldePagina.goto(deelUrl);
 
     await expect(gedeeldePagina).toHaveURL(/\/kasten\?s=v4\./);
-    await expect(gedeeldePagina.getByText('Achterwand')).toBeVisible();
+    await expect(gedeeldePagina.locator('[data-testid="nav-indeling-wand-link"][data-wand-naam="Achterwand"]')).toBeVisible();
     await gedeeldeIndeling.openWandWerkruimte('Achterwand');
     await expect(gedeeldePagina.locator('span.fw-semibold').filter({ hasText: 'Onderkast delen' })).toBeVisible();
   } finally {
