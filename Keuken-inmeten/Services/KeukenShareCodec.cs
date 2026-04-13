@@ -109,54 +109,44 @@ public static partial class KeukenShareCodec
     }
 
     private static bool TryDecodeV3(string token, out KeukenData data)
-    {
-        data = new KeukenData();
-
-        try
-        {
-            var json = VanBase64Url(token[VersiePrefixV3.Length..]);
-            var decoded = JsonSerializer.Deserialize<CompactShareData>(json, CompactJsonOpties);
-            return TryDecodeCompactData(decoded, out data);
-        }
-        catch (FormatException)
-        {
-            return false;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
-    }
+        => TryDecodeCompactToken(token, VersiePrefixV3, out data);
 
     private static bool TryDecodeV2(string token, out KeukenData data)
-    {
-        data = new KeukenData();
-
-        try
-        {
-            var json = VanBase64Url(token[VersiePrefixV2.Length..]);
-            var decoded = JsonSerializer.Deserialize<CompactShareData>(json, CompactJsonOpties);
-            return TryDecodeCompactData(decoded, out data);
-        }
-        catch (FormatException)
-        {
-            return false;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
-    }
+        => TryDecodeCompactToken(token, VersiePrefixV2, out data);
 
     private static bool TryDecodeV1(string token, out KeukenData data)
+        => TryDecodeLegacyToken(token, out data);
+
+    private static bool TryDecodeCompactToken(string token, string prefix, out KeukenData data)
     {
         data = new KeukenData();
 
+        return TryDeserializeBase64Url(token, prefix, CompactJsonOpties, out CompactShareData? decoded)
+            && TryDecodeCompactData(decoded, out data);
+    }
+
+    private static bool TryDecodeLegacyToken(string token, out KeukenData data)
+    {
+        data = new KeukenData();
+
+        return TryDeserializeBase64Url(token, VersiePrefixV1, LegacyJsonOpties, out KeukenData? decoded)
+            && decoded is not null
+            && KeukenDataMigratieService.TryMigreerDeelData(KeukenDataMigratieService.LegacySchemaVersie, decoded, out data);
+    }
+
+    private static bool TryDeserializeBase64Url<T>(
+        string token,
+        string prefix,
+        JsonSerializerOptions opties,
+        out T? decoded)
+    {
+        decoded = default;
+
         try
         {
-            var json = VanBase64Url(token[VersiePrefixV1.Length..]);
-            var decoded = JsonSerializer.Deserialize<KeukenData>(json, LegacyJsonOpties);
-            return KeukenDataMigratieService.TryMigreerDeelData(KeukenDataMigratieService.LegacySchemaVersie, decoded, out data);
+            var json = VanBase64Url(token[prefix.Length..]);
+            decoded = JsonSerializer.Deserialize<T>(json, opties);
+            return true;
         }
         catch (FormatException)
         {

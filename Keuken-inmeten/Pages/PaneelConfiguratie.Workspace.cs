@@ -11,13 +11,11 @@ public partial class PaneelConfiguratie
         if (wandId is null)
             return;
 
-        reviewWeergaveActief = false;
-        geopendeWandId = wandId;
-        toonEditorDrawer = true;
-        bewerkToewijzingId = null;
+        ActiveerPaneelWerkruimte(wandId, toonEditor: true);
+        VerlaatPaneelBewerkmodus();
 
         if (ActieveWandId is Guid actieveWandId && actieveWandId != wandId)
-            geselecteerdeKastIds.Clear();
+            WisGeselecteerdeKasten();
 
         if (!geselecteerdeKastIds.Add(kastId))
             geselecteerdeKastIds.Remove(kastId);
@@ -27,19 +25,14 @@ public partial class PaneelConfiguratie
 
     private void DeselecteerWand(Guid wandId)
     {
-        bewerkToewijzingId = null;
+        VerlaatPaneelBewerkmodus(resetFormulier: true);
         if (geopendeWandId == wandId)
-        {
-            reviewWeergaveActief = false;
-            geopendeWandId = null;
-            toonEditorDrawer = false;
-        }
+            ActiveerPaneelWerkruimte(null);
 
-        var wandKastIds = State.KastenVoorWand(wandId).Select(k => k.Id).ToList();
+        var wandKastIds = State.LeesPaneelWerkruimte(wandId)?.Kasten.Select(kast => kast.Id) ?? [];
         foreach (var id in wandKastIds)
             geselecteerdeKastIds.Remove(id);
 
-        ResetFormToewijzing();
         ResetConceptPaneel();
     }
 
@@ -55,36 +48,25 @@ public partial class PaneelConfiguratie
     }
 
     private void DeselecteerAlles()
-    {
-        bewerkToewijzingId = null;
-        geselecteerdeKastIds.Clear();
-        ResetFormToewijzing();
-        ResetConceptPaneel();
-    }
+        => ResetPaneelInvoer(wisSelectie: true);
 
     private void OpenWandWerkruimte(Guid wandId)
     {
         if (geopendeWandId != wandId)
         {
-            bewerkToewijzingId = null;
-            geselecteerdeKastIds.Clear();
-            ResetFormToewijzing();
+            VerlaatPaneelBewerkmodus(resetFormulier: true);
+            WisGeselecteerdeKasten();
         }
 
-        reviewWeergaveActief = false;
-        geopendeWandId = wandId;
-        toonEditorDrawer = false;
+        ActiveerPaneelWerkruimte(wandId);
         ResetConceptPaneel();
     }
 
     private void SluitWandWerkruimte()
     {
         geopendeWandId = null;
-        toonEditorDrawer = false;
-        bewerkToewijzingId = null;
-        geselecteerdeKastIds.Clear();
-        ResetFormToewijzing();
-        ResetConceptPaneel();
+        SluitPaneelWerklaag();
+        ResetPaneelInvoer(wisSelectie: true);
     }
 
     private void ActiveerEditorWeergave() => reviewWeergaveActief = false;
@@ -95,89 +77,24 @@ public partial class PaneelConfiguratie
             return;
 
         reviewWeergaveActief = true;
-        toonEditorDrawer = false;
-        toonKastOpdelenModal = false;
+        SluitPaneelWerklaag();
     }
 
     private void OpenEditorDrawer()
     {
         if (geopendeWandId is not null)
-        {
-            reviewWeergaveActief = false;
-            toonEditorDrawer = true;
-        }
+            ActiveerPaneelWerkruimte(geopendeWandId, toonEditor: true);
     }
 
     private void SluitEditorDrawer()
     {
-        toonEditorDrawer = false;
-        bewerkToewijzingId = null;
-        ResetFormToewijzing();
-        ResetConceptPaneel();
+        SluitPaneelWerklaag();
+        ResetPaneelInvoer();
     }
-
-    private string EditorDrawerTitel()
-        => IsBewerkModus
-            ? $"Paneel bewerken — {GeopendeWand?.Naam}"
-            : ToonCompacteEditorLeegstaat
-                ? $"Kastselectie — {GeopendeWand?.Naam}"
-                : $"Paneel plaatsen — {GeopendeWand?.Naam}";
-
-    private string EditorWerklaagStatusTekst()
-    {
-        if (toonEditorDrawer)
-            return ToonCompacteEditorLeegstaat ? "Editor open; selecteer nu kast(en)" : "Paneel-editor staat open";
-
-        return geselecteerdeKastIds.Count > 0
-            ? "Selectie klaar; open nu de editor"
-            : "Selecteer eerst kast(en) in de tekening";
-    }
-
-    private string EditorStatusHintTekst()
-        => toonEditorDrawer
-            ? ToonCompacteEditorLeegstaat
-                ? "Zodra u kast(en) kiest, verschijnen plaatsing, maat en opslaan hier."
-                : "Plaatsing, maat en opslaan staan nu in de editorlaag."
-            : geselecteerdeKastIds.Count > 0
-                ? "Open de editor voor plaatsing, maat en opslaan."
-                : "Selecteer eerst kast(en) in de tekening.";
-
-    private string OpenEditorKnopLabel()
-        => geselecteerdeKastIds.Count > 0 || IsBewerkModus ? "Open paneel-editor" : "Open editorlaag";
-
-    private string PaneelWerkruimteStatusDetailTekst()
-        => geselecteerdeKastIds.Count > 0
-            ? $"{geselecteerdeKastIds.Count} kast(en) geselecteerd. {EditorStatusHintTekst()}"
-            : EditorStatusHintTekst();
 
     private bool KanKastOpdelenIn(int aantal)
         => OpdeelBereik is { Hoogte: var hoogte }
            && hoogte >= (aantal * PaneelLayoutService.MinPaneelMaat) - 0.001;
-
-    private string OpdeelInstellingenTekst()
-        => formToewijzing.Type == PaneelType.Deur
-            ? $"{TypeNaam(formToewijzing.Type)} · scharnier {formToewijzing.ScharnierZijde.ToString().ToLowerInvariant()} · pot-hart {FormatMm(PotHartInput)}"
-            : TypeNaam(formToewijzing.Type);
-
-    private string OpdeelStatusTekst()
-    {
-        if (!OpdeelAnalyse.HeeftGeldigeDeelHoogtes)
-            return $"Elk deel moet minimaal {FormatMm(PaneelLayoutService.MinPaneelMaat)} hoog zijn.";
-
-        if (OpdeelAnalyse.KanBevestigen)
-            return "De ingevulde hoogtes vullen de volledige opening.";
-
-        return OpdeelAnalyse.RestantHoogte > 0
-            ? $"Nog {FormatMm(OpdeelAnalyse.RestantHoogte)} te verdelen."
-            : $"{FormatMm(Math.Abs(OpdeelAnalyse.RestantHoogte))} te veel ingevuld.";
-    }
-
-    private string OpdeelStatusClass()
-        => OpdeelAnalyse.KanBevestigen
-            ? "alert-success"
-            : OpdeelAnalyse.HeeftGeldigeDeelHoogtes
-                ? "alert-warning"
-                : "alert-danger";
 
     private void OpenKastOpdelenModal()
     {

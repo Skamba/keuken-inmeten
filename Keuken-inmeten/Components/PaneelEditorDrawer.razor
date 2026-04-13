@@ -2,7 +2,7 @@
 @using Keuken_inmeten.Services
 
 <section class="paneel-editor-drawer-layer">
-    <div class="paneel-editor-drawer @(ToonCompacteEditorLeegstaat ? "paneel-editor-drawer--waiting" : null)"
+    <div class="paneel-editor-drawer @(Status.ToonCompacteEditorLeegstaat ? "paneel-editor-drawer--waiting" : null)"
          data-testid="paneel-editor-drawer"
          aria-labelledby="paneel-editor-drawer-title">
         <div class="card border-0 h-100">
@@ -11,15 +11,15 @@
                     <div>
                         <div class="small fw-semibold text-uppercase text-primary-emphasis">Paneel-editor</div>
                         <h5 id="paneel-editor-drawer-title" class="mb-0" style="font-size: 1rem;">
-                            @EditorDrawerTitel
+                            @Status.EditorDrawerTitel
                         </h5>
-                        @if (EditorHeaderMeta is not null)
+                        @if (Status.EditorHeaderMeta is not null)
                         {
-                            <div class="small text-muted paneel-editor-header-meta">@EditorHeaderMeta</div>
+                            <div class="small text-muted paneel-editor-header-meta">@Status.EditorHeaderMeta</div>
                         }
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        @if (IsBewerkModus)
+                        @if (Status.IsBewerkModus)
                         {
                             <button type="button" class="btn btn-sm btn-link text-secondary p-0" @onclick="OnAnnuleerBewerken">
                                 Annuleer
@@ -35,28 +35,28 @@
                 </div>
             </div>
             <div class="card-body paneel-editor-drawer-body">
-                @if (ToonCompacteEditorLeegstaat)
+                @if (Status.ToonCompacteEditorLeegstaat)
                 {
                     <div class="paneel-editor-empty-state border rounded p-2 p-sm-3 bg-body-tertiary">
                         <h6 class="mb-1">Selecteer nu kast(en) in de tekening</h6>
-                        <p class="small text-muted mb-0">Tik de juiste kast(en) binnen <strong>@GeopendeWandNaam</strong>. Zodra u selecteert, verschijnen plaatsing, maat en opslaan hier.</p>
+                        <p class="small text-muted mb-0">Tik de juiste kast(en) binnen <strong>@Status.GeopendeWandNaam</strong>. Zodra u selecteert, verschijnen plaatsing, maat en opslaan hier.</p>
                     </div>
                 }
                 else
                 {
                     <div class="paneel-editor-focus border rounded p-3 mb-3 bg-body-tertiary">
-                        <div class="fw-semibold mb-1">@VolgendePaneelStapTekst</div>
-                        <div class="small text-muted">@KernHintTekst</div>
+                        <div class="fw-semibold mb-1">@Status.VolgendePaneelStapTekst</div>
+                        <div class="small text-muted">@Status.KernHintTekst</div>
                         <div class="stap-meta-list paneel-editor-focus-meta-list mt-2">
-                            <span>Selectie: @SelectieSamenvatting</span>
-                            <span>Opslaan: @OpslaanSamenvatting</span>
+                            <span>Selectie: @Status.SelectieSamenvatting</span>
+                            <span>Opslaan: @Status.OpslaanSamenvatting</span>
                         </div>
                     </div>
 
-                    @if (HeeftEnkeleKastSelectie)
+                    @if (Status.HeeftEnkeleKastSelectie)
                     {
                         <details class="paneel-editor-empty-details mb-3 paneel-editor-extra-details"
-                                 open="@(ToonKastOpdelenModal || KanKastOpdelen)">
+                                 open="@(ToonKastOpdelenModal || Status.KanKastOpdelen)">
                             <summary class="small fw-semibold text-secondary">Kast opdelen</summary>
                             <div class="d-grid gap-3 mt-2">
                                 <div class="small text-muted">
@@ -76,7 +76,7 @@
                                     <button type="button"
                                             class="btn btn-outline-primary"
                                             @onclick="OnOpenKastOpdelenModal"
-                                            disabled="@(!KanKastOpdelen)"
+                                            disabled="@(!Status.KanKastOpdelen)"
                                             data-testid="open-paneel-opdelen-modal-button">
                                         Kast opdelen
                                     </button>
@@ -145,7 +145,7 @@
                     }
 
                     <details class="paneel-editor-empty-details paneel-editor-handmatig-details mb-3"
-                             open="@IsBewerkModus">
+                             open="@Status.IsBewerkModus">
                         <summary class="small fw-semibold text-secondary">Handmatig maat en positie invullen</summary>
                         <div class="small text-muted mt-2">Open dit alleen als u de maat of positie preciezer wilt intypen dan via slepen en hoekpunten zetten.</div>
                         <div class="row g-2 mt-1">
@@ -243,17 +243,17 @@
                     <div class="paneel-editor-footer">
                         <div class="d-flex gap-2">
                             <button type="button" class="btn btn-outline-secondary flex-grow-1" @onclick="OnReset">
-                                @(IsBewerkModus ? "Reset naar origineel" : "Reset naar selectie")
+                                @(Status.IsBewerkModus ? "Reset naar origineel" : "Reset naar selectie")
                             </button>
                             <button type="button" class="btn btn-primary flex-grow-1" @onclick="OnOpslaan"
-                                    disabled="@(!KanOpslaan)"
+                                    disabled="@(!Status.KanOpslaan)"
                                     data-testid="paneel-opslaan-button">
-                                @(IsBewerkModus ? "Paneel opslaan" : "+ Paneel toevoegen")
+                                @(Status.IsBewerkModus ? "Paneel opslaan" : "+ Paneel toevoegen")
                             </button>
                         </div>
-                        @if (!KanOpslaan)
+                        @if (!Status.KanOpslaan)
                         {
-                            <div class="form-text mt-2 mb-0">@OpslaanStatusTekst</div>
+                            <div class="form-text mt-2 mb-0">@Status.OpslaanStatusTekst</div>
                         }
                     </div>
 
@@ -265,8 +265,8 @@
                                            OpdeelAantal="@OpdeelAantal"
                                            OpdeelHoogtes="OpdeelHoogtes"
                                            OpdeelAnalyse="@OpdeelAnalyse"
-                                           StatusClass="@OpdeelStatusClass"
-                                           StatusTekst="@OpdeelStatusTekst"
+                                           StatusClass="@Status.OpdeelStatusClass"
+                                           StatusTekst="@Status.OpdeelStatusTekst"
                                            KanKastOpdelenIn="KanKastOpdelenIn"
                                            OnSluiten="OnSluitKastOpdelenModal"
                                            OnStelAantalIn="OnStelOpdeelAantalIn"
@@ -280,19 +280,8 @@
 </section>
 
 @code {
-    [Parameter, EditorRequired] public string GeopendeWandNaam { get; set; } = string.Empty;
-    [Parameter] public string? EditorHeaderMeta { get; set; }
-    [Parameter, EditorRequired] public bool ToonCompacteEditorLeegstaat { get; set; }
-    [Parameter, EditorRequired] public bool IsBewerkModus { get; set; }
-    [Parameter, EditorRequired] public bool KanOpslaan { get; set; }
-    [Parameter, EditorRequired] public string VolgendePaneelStapTekst { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string KernHintTekst { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string SelectieSamenvatting { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string OpslaanSamenvatting { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string OpslaanStatusTekst { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public bool HeeftEnkeleKastSelectie { get; set; }
+    [Parameter, EditorRequired] public PaneelEditorStatusModel Status { get; set; } = default!;
     [Parameter] public PaneelRechthoek? OpdeelBereik { get; set; }
-    [Parameter, EditorRequired] public bool KanKastOpdelen { get; set; }
     [Parameter, EditorRequired] public PaneelType GeselecteerdType { get; set; }
     [Parameter, EditorRequired] public ScharnierZijde GeselecteerdeScharnierZijde { get; set; }
     [Parameter, EditorRequired] public double PotHartInput { get; set; }
@@ -308,8 +297,6 @@
     [Parameter, EditorRequired] public int OpdeelAantal { get; set; }
     [Parameter, EditorRequired] public IList<double> OpdeelHoogtes { get; set; } = [];
     [Parameter, EditorRequired] public PaneelOpdeelAnalyse OpdeelAnalyse { get; set; } = default!;
-    [Parameter, EditorRequired] public string OpdeelStatusClass { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string OpdeelStatusTekst { get; set; } = string.Empty;
     [Parameter, EditorRequired] public Func<int, bool> KanKastOpdelenIn { get; set; } = default!;
     [Parameter, EditorRequired] public EventCallback<PaneelType> OnTypeGewijzigd { get; set; }
     [Parameter, EditorRequired] public EventCallback<ScharnierZijde> OnScharnierZijdeGewijzigd { get; set; }
@@ -328,12 +315,6 @@
     [Parameter, EditorRequired] public EventCallback OnOpdeelHoogtesGewijzigd { get; set; }
     [Parameter, EditorRequired] public EventCallback OnAnnuleerBewerken { get; set; }
     [Parameter, EditorRequired] public EventCallback OnSluiten { get; set; }
-
-    private string EditorDrawerTitel => IsBewerkModus
-        ? $"Paneel bewerken — {GeopendeWandNaam}"
-        : ToonCompacteEditorLeegstaat
-            ? $"Kastselectie — {GeopendeWandNaam}"
-            : $"Paneel plaatsen — {GeopendeWandNaam}";
 
     private string OpdeelInstellingenTekst => GeselecteerdType == PaneelType.Deur
         ? $"{TypeNaam(GeselecteerdType)} · scharnier {GeselecteerdeScharnierZijde.ToString().ToLowerInvariant()} · pot-hart {FormatMm(PotHartInput)}"

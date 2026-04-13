@@ -121,11 +121,8 @@ public partial class PaneelConfiguratie
 
     private IEnumerable<PaneelRechthoek> BestaandePaneelRechthoeken()
     {
-        foreach (var paneelBron in PaneelBronnenVoorActieveWand())
+        foreach (var paneelBron in ActievePaneelWerkruimte?.PaneelBronnen ?? [])
         {
-            if (paneelBron.PaneelId == bewerkToewijzingId)
-                continue;
-
             yield return paneelBron.OpeningsRechthoek.Kopie();
         }
     }
@@ -149,19 +146,14 @@ public partial class PaneelConfiguratie
 
     private PaneelMaatInfo? BerekenConceptMaatInfo()
     {
-        if (conceptPaneel is null)
+        if (conceptPaneel is null || ActievePaneelWerkruimte is not { } werkruimte)
             return null;
 
-        if (ActieveWandId is not Guid wandId)
-            return null;
-
-        var wandKasten = State.KastenVoorWand(wandId);
-        var paneelBronnen = PaneelBronnenVoorActieveWand();
         return PaneelGeometrieService.BerekenVoorConceptPaneel(
             conceptPaneel,
-            wandKasten,
-            State.ApparatenVoorWand(wandId),
-            paneelBronnen,
+            werkruimte.Kasten,
+            werkruimte.Apparaten,
+            werkruimte.PaneelBronnen,
             State.PaneelRandSpeling,
             bewerkToewijzingId)?.MaatInfo;
     }
@@ -191,76 +183,41 @@ public partial class PaneelConfiguratie
         RondPaneelInvoerAf();
     }
 
-    private List<PaneelToewijzing> ToewijzingenVoorWand(KeukenWand wand)
-    {
-        var wandKastIds = wand.KastIds.ToHashSet();
-        return State.Toewijzingen
-            .Where(t => t.Id != bewerkToewijzingId && t.KastIds.Any(wandKastIds.Contains))
-            .ToList();
-    }
-
     private PaneelGeometrieBron? PaneelBron(PaneelToewijzing toewijzing)
         => PaneelGeometrieService.MaakBronVoorToewijzing(toewijzing, State.ZoekKasten(toewijzing.KastIds));
 
-    private List<PaneelGeometrieBron> PaneelBronnenVoorActieveWand()
-    {
-        if (ActieveWandId is not Guid actieveWandId)
-            return [];
-
-        var wandKastIds = State.KastenVoorWand(actieveWandId).Select(kast => kast.Id).ToHashSet();
-        return State.Toewijzingen
-            .Where(toewijzing => toewijzing.KastIds.Any(wandKastIds.Contains))
-            .Select(PaneelBron)
-            .Where(bron => bron is not null)
-            .Cast<PaneelGeometrieBron>()
-            .ToList();
-    }
-
     private void BewerkPaneel(Guid toewijzingId)
     {
-        var toewijzing = State.Toewijzingen.FirstOrDefault(item => item.Id == toewijzingId);
+        var toewijzing = State.ZoekGeindexeerdeToewijzing(toewijzingId)?.Toewijzing;
         if (toewijzing is null)
             return;
 
-        reviewWeergaveActief = false;
-        geopendeWandId = VindWandIdVoorToewijzing(toewijzing);
-        toonEditorDrawer = true;
-        bewerkToewijzingId = toewijzingId;
-        geselecteerdeKastIds.Clear();
-        foreach (var kastId in toewijzing.KastIds)
-            geselecteerdeKastIds.Add(kastId);
-
-        ResetConceptPaneel();
+        StartPaneelBewerking(toewijzing);
     }
 
     private void AnnuleerBewerken()
-    {
-        bewerkToewijzingId = null;
-        ResetFormToewijzing();
-        ResetConceptPaneel();
-    }
+        => ResetPaneelInvoer();
 
     private void VerwijderPaneel(Guid toewijzingId)
     {
-        var index = State.Toewijzingen.FindIndex(item => item.Id == toewijzingId);
-        var toewijzing = index >= 0 ? State.Toewijzingen[index] : null;
-        if (toewijzing is null)
+        var toewijzingInfo = State.ZoekGeindexeerdeToewijzing(toewijzingId);
+        if (toewijzingInfo is null)
             return;
 
         if (bewerkToewijzingId == toewijzingId)
-            bewerkToewijzingId = null;
+            VerlaatPaneelBewerkmodus();
 
-        var snapshot = new PaneelVerwijderSnapshot(KopieerToewijzing(toewijzing), index);
+        var snapshot = new PaneelVerwijderSnapshot(KopieerToewijzing(toewijzingInfo.Toewijzing), toewijzingInfo.Index);
         State.VerwijderToewijzing(toewijzingId);
         ResetConceptPaneel();
         Feedback.ToonInfo(
-            $"Paneel {index + 1} verwijderd.",
+            $"Paneel {toewijzingInfo.Index + 1} verwijderd.",
             "Ongedaan maken",
             () => HerstelPaneelAsync(snapshot));
     }
 
     private Guid? VindWandId(Guid kastId)
-        => State.Wanden.FirstOrDefault(wand => wand.KastIds.Contains(kastId))?.Id;
+        => State.WandVoorKast(kastId)?.Id;
 
     private Guid? VindWandIdVoorToewijzing(PaneelToewijzing toewijzing)
         => toewijzing.KastIds
@@ -277,12 +234,9 @@ public partial class PaneelConfiguratie
 
     private void RondPaneelInvoerAf()
     {
-        toonKastOpdelenModal = false;
+        SluitPaneelWerklaag();
         reviewWeergaveActief = false;
-        toonEditorDrawer = false;
-        bewerkToewijzingId = null;
-        ResetFormToewijzing();
-        ResetConceptPaneel();
+        ResetPaneelInvoer();
     }
 
     private PaneelToewijzing MaakPaneelToewijzing(PaneelRechthoek paneel, IReadOnlyList<Kast> dragendeKasten, Guid? toewijzingId = null) => new()

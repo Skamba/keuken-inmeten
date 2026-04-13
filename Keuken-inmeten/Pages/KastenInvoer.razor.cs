@@ -47,15 +47,7 @@ public partial class KastenInvoer
     private void HandleStateChanged()
     {
         if (actieveWandId.HasValue && !State.Wanden.Exists(wand => wand.Id == actieveWandId.Value))
-        {
-            actieveWandId = null;
-            bewerkKastId = null;
-            bewerkApparaatId = null;
-            bewerkWandId = null;
-            bevestigVerwijderWandId = null;
-            bevestigVerwijderKastId = null;
-            bevestigVerwijderApparaatId = null;
-        }
+            StelActieveWandContextIn(null);
 
         _ = InvokeAsync(StateHasChanged);
     }

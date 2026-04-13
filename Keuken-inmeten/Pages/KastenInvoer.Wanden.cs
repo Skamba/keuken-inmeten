@@ -62,26 +62,10 @@ public partial class KastenInvoer
     }
 
     private void OpenWandWerkruimte(Guid wandId)
-    {
-        actieveWandId = wandId;
-        bewerkKastId = null;
-        bewerkApparaatId = null;
-        bewerkWandId = null;
-        bevestigVerwijderWandId = null;
-        bevestigVerwijderKastId = null;
-        bevestigVerwijderApparaatId = null;
-    }
+        => StelActieveWandContextIn(wandId);
 
     private void SluitWandWerkruimte()
-    {
-        actieveWandId = null;
-        bewerkKastId = null;
-        bewerkApparaatId = null;
-        bewerkWandId = null;
-        bevestigVerwijderWandId = null;
-        bevestigVerwijderKastId = null;
-        bevestigVerwijderApparaatId = null;
-    }
+        => StelActieveWandContextIn(null);
 
     private void OnWandGewijzigd(ChangeEventArgs e)
     {
@@ -128,7 +112,7 @@ public partial class KastenInvoer
         {
             SluitKastFormulier();
             SluitApparaatFormulier();
-            actieveWandId = null;
+            SluitWandWerkruimte();
         }
 
         Feedback.ToonInfo($"Wand '{wandNaam}' verwijderd.");

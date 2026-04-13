@@ -7,7 +7,7 @@ public partial class KeukenStateService
     public bool VoegApparaatToe(Apparaat apparaat, Guid wandId)
     {
         SynchroniseerApparaat(apparaat, KeukenDomeinValidatieService.NormaliseerApparaat(apparaat));
-        var wand = Wanden.Find(item => item.Id == wandId);
+        var wand = VindWand(wandId);
         if (wand is null || !PastApparaatOpWand(wand, apparaat))
             return false;
 
@@ -38,7 +38,7 @@ public partial class KeukenStateService
         if (index < 0)
             return false;
 
-        var wand = Wanden.Find(item => item.ApparaatIds.Contains(genormaliseerd.Id));
+        var wand = VindWandVoorApparaat(genormaliseerd.Id);
         if (wand is null || !PastApparaatOpWand(wand, genormaliseerd, genormaliseerd.Id))
             return false;
 
@@ -49,11 +49,11 @@ public partial class KeukenStateService
 
     public bool VerplaatsApparaat(Guid id, double xPositie, double hoogteVanVloer)
     {
-        var apparaat = Apparaten.Find(item => item.Id == id);
+        var apparaat = VindApparaat(id);
         if (apparaat is null)
             return false;
 
-        var wand = Wanden.Find(item => item.ApparaatIds.Contains(id));
+        var wand = VindWandVoorApparaat(id);
         if (wand is null)
             return false;
 
@@ -76,7 +76,7 @@ public partial class KeukenStateService
 
     public bool HerstelApparaat(Apparaat apparaat, Guid wandId, int index)
     {
-        var wand = Wanden.Find(item => item.Id == wandId);
+        var wand = VindWand(wandId);
         if (wand is null)
             return false;
 
@@ -103,13 +103,10 @@ public partial class KeukenStateService
 
     public List<Apparaat> ApparatenVoorWand(Guid wandId)
     {
-        var wand = Wanden.Find(w => w.Id == wandId);
+        var wand = VindWand(wandId);
         if (wand is null)
             return [];
 
-        return wand.ApparaatIds
-            .Select(id => Apparaten.Find(a => a.Id == id))
-            .Where(a => a is not null)
-            .ToList()!;
+        return ZoekEntiteitenOpVolgorde(wand.ApparaatIds, Apparaten, item => item.Id);
     }
 }

@@ -214,6 +214,62 @@ public class PaneelGeometrieServiceTests
     }
 
     [Fact]
+    public void State_berekenresultaten_gebruikt_naastliggende_panelen_op_dezelfde_wand()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Muur",
+            Breedte = 3200,
+            Hoogte = 2700,
+            PlintHoogte = 100
+        };
+        var linksOnder = NieuweKast("Links onder", 1800, 100, 600, 1920);
+        var linksBoven = NieuweKast("Links boven", 1800, 2020, 600, 320);
+        var rechtsOnder = NieuweKast("Rechts onder", 2400, 100, 600, 1920);
+        var rechtsBoven = NieuweKast("Rechts boven", 2400, 2020, 600, 320);
+        var linksToewijzing = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            KastIds = [linksBoven.Id, linksOnder.Id],
+            Type = PaneelType.Deur,
+            ScharnierZijde = ScharnierZijde.Rechts,
+            Breedte = 600,
+            Hoogte = 2240
+        };
+        var rechtsToewijzing = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            KastIds = [rechtsBoven.Id, rechtsOnder.Id],
+            Type = PaneelType.Deur,
+            ScharnierZijde = ScharnierZijde.Links,
+            Breedte = 600,
+            Hoogte = 2240
+        };
+
+        state.VoegWandToe(wand);
+        state.VoegKastToe(linksOnder, wand.Id);
+        state.VoegKastToe(linksBoven, wand.Id);
+        state.VoegKastToe(rechtsOnder, wand.Id);
+        state.VoegKastToe(rechtsBoven, wand.Id);
+        state.VoegToewijzingToe(linksToewijzing);
+        state.VoegToewijzingToe(rechtsToewijzing);
+
+        var resultaten = state.BerekenResultaten().ToDictionary(item => item.ToewijzingId);
+
+        var linksResultaat = Assert.Contains(linksToewijzing.Id, resultaten);
+        var rechtsResultaat = Assert.Contains(rechtsToewijzing.Id, resultaten);
+        Assert.NotNull(linksResultaat.MaatInfo);
+        Assert.NotNull(rechtsResultaat.MaatInfo);
+        Assert.Equal(1, linksResultaat.MaatInfo!.InkortingRechts);
+        Assert.Equal(2, rechtsResultaat.MaatInfo!.InkortingLinks);
+        Assert.Equal(599, linksResultaat.MaatInfo.PaneelRechthoek.Breedte);
+        Assert.Equal(598, rechtsResultaat.MaatInfo.PaneelRechthoek.Breedte);
+        Assert.Equal(3, rechtsResultaat.MaatInfo.PaneelRechthoek.XPositie - linksResultaat.MaatInfo.PaneelRechthoek.Rechterkant);
+    }
+
+    [Fact]
     public void State_berekent_dezelfde_paneelmaatinfo_als_de_centrale_geometrie_service()
     {
         var state = new KeukenStateService();

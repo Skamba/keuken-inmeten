@@ -13,7 +13,7 @@ public partial class KeukenStateService
 
     public void VerwijderWand(Guid id)
     {
-        var wand = Wanden.Find(w => w.Id == id);
+        var wand = VindWand(id);
         if (wand is not null)
         {
             foreach (var kastId in wand.KastIds.ToList())
@@ -39,7 +39,7 @@ public partial class KeukenStateService
 
     public bool HernoemWand(Guid id, string naam)
     {
-        var wand = Wanden.Find(item => item.Id == id);
+        var wand = VindWand(id);
         var opgeschoondeNaam = naam.Trim();
         if (wand is null || string.IsNullOrWhiteSpace(opgeschoondeNaam) || wand.Naam == opgeschoondeNaam)
             return false;
@@ -54,7 +54,7 @@ public partial class KeukenStateService
         if (breedte <= 0 || hoogte <= 0 || plintHoogte < 0)
             return false;
 
-        var wand = Wanden.Find(item => item.Id == id);
+        var wand = VindWand(id);
         if (wand is null)
             return false;
 
@@ -87,21 +87,21 @@ public partial class KeukenStateService
 
     public List<Kast> KastenVoorWand(Guid wandId)
     {
-        var wand = Wanden.Find(w => w.Id == wandId);
+        var wand = VindWand(wandId);
         if (wand is null)
             return [];
 
         return ZoekKasten(wand.KastIds);
     }
 
-    public List<Kast> ZoekKasten(List<Guid> kastIds)
-        => kastIds
-            .Select(id => Kasten.Find(k => k.Id == id))
-            .Where(k => k is not null)
-            .ToList()!;
+    public KeukenWand? ZoekWand(Guid wandId)
+        => VindWand(wandId);
+
+    public List<Kast> ZoekKasten(IEnumerable<Guid> kastIds)
+        => ZoekEntiteitenOpVolgorde(kastIds, Kasten, item => item.Id);
 
     public KeukenWand? WandVoorKast(Guid kastId)
-        => Wanden.Find(w => w.KastIds.Contains(kastId));
+        => VindWandVoorKast(kastId);
 
     public string WandNaamVoorKasten(IEnumerable<Guid> kastIds, string geenWandLabel = "—")
         => kastIds
@@ -110,7 +110,7 @@ public partial class KeukenStateService
 
     public void VerplaatsKastInWand(Guid wandId, int vanIndex, int naarIndex)
     {
-        var wand = Wanden.Find(w => w.Id == wandId);
+        var wand = VindWand(wandId);
         if (wand is null)
             return;
         if (vanIndex < 0 || vanIndex >= wand.KastIds.Count)

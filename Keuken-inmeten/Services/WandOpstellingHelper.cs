@@ -221,7 +221,7 @@ public static class WandOpstellingHelper
     /// <paramref name="gewijzigdeKast"/> werd bijgewerkt. Geeft voor elke
     /// aangrenzende kast de nieuwe positie zodat het gat gesloten wordt.
     /// </summary>
-    public static IReadOnlyList<(Guid KastId, double XPositie, double HoogteVanVloer)> BepaalGatSluitingen(
+    public static IReadOnlyList<GatSluiting> BepaalGatSluitingen(
         Kast gewijzigdeKast,
         IEnumerable<Kast> andereKasten)
     {
@@ -229,52 +229,65 @@ public static class WandOpstellingHelper
         const double maxGap = RasterMm + 0.001;
         const double minOverlap = 1.0;
 
-        var resultaat = new List<(Guid, double, double)>();
+        var resultaat = new List<GatSluiting>();
 
         foreach (var andere in andereKasten)
         {
-            var hOverlap = Math.Min(gewijzigdeKast.XPositie + gewijzigdeKast.Breedte, andere.XPositie + andere.Breedte)
-                         - Math.Max(gewijzigdeKast.XPositie, andere.XPositie);
-
-            if (hOverlap > minOverlap)
+            if (ProbeerHorizontaleGatSluiting(gewijzigdeKast, andere, minGap, maxGap, minOverlap) is GatSluiting horizontaleSluiting)
             {
-                var gapBoven = andere.HoogteVanVloer - (gewijzigdeKast.HoogteVanVloer + gewijzigdeKast.Hoogte);
-                if (gapBoven is > minGap and < maxGap)
-                {
-                    resultaat.Add((andere.Id, andere.XPositie, gewijzigdeKast.HoogteVanVloer + gewijzigdeKast.Hoogte));
-                    continue;
-                }
-
-                var gapOnder = gewijzigdeKast.HoogteVanVloer - (andere.HoogteVanVloer + andere.Hoogte);
-                if (gapOnder is > minGap and < maxGap)
-                {
-                    resultaat.Add((andere.Id, andere.XPositie, gewijzigdeKast.HoogteVanVloer - andere.Hoogte));
-                    continue;
-                }
+                resultaat.Add(horizontaleSluiting);
+                continue;
             }
 
-            var vOverlap = Math.Min(gewijzigdeKast.HoogteVanVloer + gewijzigdeKast.Hoogte, andere.HoogteVanVloer + andere.Hoogte)
-                         - Math.Max(gewijzigdeKast.HoogteVanVloer, andere.HoogteVanVloer);
-
-            if (vOverlap > minOverlap)
-            {
-                var gapRechts = andere.XPositie - (gewijzigdeKast.XPositie + gewijzigdeKast.Breedte);
-                if (gapRechts is > minGap and < maxGap)
-                {
-                    resultaat.Add((andere.Id, gewijzigdeKast.XPositie + gewijzigdeKast.Breedte, andere.HoogteVanVloer));
-                    continue;
-                }
-
-                var gapLinks = gewijzigdeKast.XPositie - (andere.XPositie + andere.Breedte);
-                if (gapLinks is > minGap and < maxGap)
-                {
-                    resultaat.Add((andere.Id, gewijzigdeKast.XPositie - andere.Breedte, andere.HoogteVanVloer));
-                    continue;
-                }
-            }
+            if (ProbeerVerticaleGatSluiting(gewijzigdeKast, andere, minGap, maxGap, minOverlap) is GatSluiting verticaleSluiting)
+                resultaat.Add(verticaleSluiting);
         }
 
         return resultaat;
+    }
+
+    private static GatSluiting? ProbeerHorizontaleGatSluiting(
+        Kast gewijzigdeKast,
+        Kast andere,
+        double minGap,
+        double maxGap,
+        double minOverlap)
+    {
+        var hOverlap = Math.Min(gewijzigdeKast.XPositie + gewijzigdeKast.Breedte, andere.XPositie + andere.Breedte)
+                     - Math.Max(gewijzigdeKast.XPositie, andere.XPositie);
+        if (hOverlap <= minOverlap)
+            return null;
+
+        var gapBoven = andere.HoogteVanVloer - (gewijzigdeKast.HoogteVanVloer + gewijzigdeKast.Hoogte);
+        if (gapBoven > minGap && gapBoven < maxGap)
+            return new(andere.Id, andere.XPositie, gewijzigdeKast.HoogteVanVloer + gewijzigdeKast.Hoogte);
+
+        var gapOnder = gewijzigdeKast.HoogteVanVloer - (andere.HoogteVanVloer + andere.Hoogte);
+        return gapOnder > minGap && gapOnder < maxGap
+            ? new GatSluiting(andere.Id, andere.XPositie, gewijzigdeKast.HoogteVanVloer - andere.Hoogte)
+            : null;
+    }
+
+    private static GatSluiting? ProbeerVerticaleGatSluiting(
+        Kast gewijzigdeKast,
+        Kast andere,
+        double minGap,
+        double maxGap,
+        double minOverlap)
+    {
+        var vOverlap = Math.Min(gewijzigdeKast.HoogteVanVloer + gewijzigdeKast.Hoogte, andere.HoogteVanVloer + andere.Hoogte)
+                     - Math.Max(gewijzigdeKast.HoogteVanVloer, andere.HoogteVanVloer);
+        if (vOverlap <= minOverlap)
+            return null;
+
+        var gapRechts = andere.XPositie - (gewijzigdeKast.XPositie + gewijzigdeKast.Breedte);
+        if (gapRechts > minGap && gapRechts < maxGap)
+            return new(andere.Id, gewijzigdeKast.XPositie + gewijzigdeKast.Breedte, andere.HoogteVanVloer);
+
+        var gapLinks = gewijzigdeKast.XPositie - (andere.XPositie + andere.Breedte);
+        return gapLinks > minGap && gapLinks < maxGap
+            ? new GatSluiting(andere.Id, gewijzigdeKast.XPositie - andere.Breedte, andere.HoogteVanVloer)
+            : null;
     }
 
     private static IEnumerable<double> BepaalXSnapTargets(Kast kast, IEnumerable<Kast> andereKasten, double wandBreedte)
@@ -337,4 +350,5 @@ public static class WandOpstellingHelper
         => Math.Clamp(ClampOpRaster(waarde), minimum, maximum);
 }
 
+public readonly record struct GatSluiting(Guid KastId, double XPositie, double HoogteVanVloer);
 public readonly record struct WandPositie(double XPositie, double HoogteVanVloer);

@@ -6,16 +6,12 @@ public partial class KeukenStateService
 {
     private bool VoegKastToeZonderNotify(Kast kast, Guid wandId, int? index = null)
     {
-        var wand = Wanden.Find(item => item.Id == wandId);
+        var wand = VindWand(wandId);
         if (wand is null)
             return false;
 
         Kasten.Add(kast);
-        if (index is int insertIndex)
-            wand.KastIds.Insert(Math.Clamp(insertIndex, 0, wand.KastIds.Count), kast.Id);
-        else
-            wand.KastIds.Add(kast.Id);
-
+        PlaatsIdInVolgorde(wand.KastIds, kast.Id, index);
         BijwerkenKastTemplate(kast);
         return true;
     }
@@ -30,16 +26,12 @@ public partial class KeukenStateService
 
     private bool VoegApparaatToeZonderNotify(Apparaat apparaat, Guid wandId, int? index = null)
     {
-        var wand = Wanden.Find(item => item.Id == wandId);
+        var wand = VindWand(wandId);
         if (wand is null)
             return false;
 
         Apparaten.Add(apparaat);
-        if (index is int insertIndex)
-            wand.ApparaatIds.Insert(Math.Clamp(insertIndex, 0, wand.ApparaatIds.Count), apparaat.Id);
-        else
-            wand.ApparaatIds.Add(apparaat.Id);
-
+        PlaatsIdInVolgorde(wand.ApparaatIds, apparaat.Id, index);
         return true;
     }
 
@@ -56,6 +48,46 @@ public partial class KeukenStateService
 
     private static bool ZijnBijnaGelijk(double links, double rechts)
         => Math.Abs(links - rechts) < 0.001;
+
+    private KeukenWand? VindWand(Guid wandId)
+        => Wanden.Find(item => item.Id == wandId);
+
+    private KeukenWand? VindWandVoorKast(Guid kastId)
+        => Wanden.Find(item => item.KastIds.Contains(kastId));
+
+    private KeukenWand? VindWandVoorApparaat(Guid apparaatId)
+        => Wanden.Find(item => item.ApparaatIds.Contains(apparaatId));
+
+    private Kast? VindKast(Guid kastId)
+        => Kasten.Find(item => item.Id == kastId);
+
+    private Apparaat? VindApparaat(Guid apparaatId)
+        => Apparaten.Find(item => item.Id == apparaatId);
+
+    private static List<T> ZoekEntiteitenOpVolgorde<T>(
+        IEnumerable<Guid> ids,
+        IEnumerable<T> bron,
+        Func<T, Guid> idSelector)
+        where T : class
+    {
+        var lookup = bron.ToDictionary(idSelector);
+
+        return ids
+            .Select(lookup.GetValueOrDefault)
+            .Where(item => item is not null)
+            .Cast<T>()
+            .ToList();
+    }
+
+    private static void PlaatsIdInVolgorde(List<Guid> ids, Guid id, int? index = null)
+    {
+        ids.Remove(id);
+
+        if (index is int insertIndex)
+            ids.Insert(Math.Clamp(insertIndex, 0, ids.Count), id);
+        else
+            ids.Add(id);
+    }
 
     private bool PastIndelingOpWand(KeukenWand wand)
     {
@@ -77,7 +109,7 @@ public partial class KeukenStateService
     }
 
     private bool PastKastOpWand(KeukenWand wand, Kast kast, Guid? uitsluitenKastId = null)
-        => IndelingFormulierHelper.IsVrijeKastPlaatsing(
+        => KastPlaatsingService.IsVrijePlaatsing(
             wand,
             KastenVoorWand(wand.Id),
             kast,
@@ -112,29 +144,22 @@ public partial class KeukenStateService
 
     private bool VerplaatsKastNaarWandZonderNotify(Guid kastId, Guid wandId, int? index = null)
     {
-        var doelWand = Wanden.Find(item => item.Id == wandId);
+        var doelWand = VindWand(wandId);
         if (doelWand is null)
             return false;
 
-        var huidigeWand = Wanden.Find(item => item.KastIds.Contains(kastId));
+        var huidigeWand = VindWandVoorKast(kastId);
         if (huidigeWand?.Id == wandId)
         {
             if (index is not int insertIndex)
                 return true;
 
-            huidigeWand.KastIds.Remove(kastId);
-            huidigeWand.KastIds.Insert(Math.Clamp(insertIndex, 0, huidigeWand.KastIds.Count), kastId);
+            PlaatsIdInVolgorde(huidigeWand.KastIds, kastId, insertIndex);
             return true;
         }
 
         huidigeWand?.KastIds.Remove(kastId);
-        doelWand.KastIds.Remove(kastId);
-
-        if (index is int doelIndex)
-            doelWand.KastIds.Insert(Math.Clamp(doelIndex, 0, doelWand.KastIds.Count), kastId);
-        else
-            doelWand.KastIds.Add(kastId);
-
+        PlaatsIdInVolgorde(doelWand.KastIds, kastId, index);
         return true;
     }
 

@@ -251,6 +251,42 @@ public class BestellijstServiceTests
     }
 
     [Fact]
+    public void Meegegeven_resultaten_leveren_dezelfde_bestellijstitems_op()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand
+        {
+            Id = Guid.NewGuid(),
+            Naam = "Muur",
+            Breedte = 3000,
+            Hoogte = 2600
+        };
+
+        state.VoegWandToe(wand);
+
+        var kast = MaakOnderkast("Onderkast", xPositie: 0);
+        state.VoegKastToe(kast, wand.Id);
+
+        state.VoegToewijzingToe(new PaneelToewijzing
+        {
+            KastIds = [Guid.NewGuid()],
+            Type = PaneelType.Deur,
+            ScharnierZijde = ScharnierZijde.Links,
+            Breedte = 400,
+            Hoogte = 700
+        });
+        state.VoegToewijzingToe(MaakDeurToewijzing(kast.Id));
+
+        var resultaten = state.BerekenResultaten();
+        var verwacht = BestellijstService.BerekenItems(state);
+        var actual = BestellijstService.BerekenItems(state, resultaten);
+
+        Assert.Equal(
+            verwacht.Select(NaarVergelijkingssleutel).ToList(),
+            actual.Select(NaarVergelijkingssleutel).ToList());
+    }
+
+    [Fact]
     public void Excel_export_bevat_boorgatkolommen_en_metadata()
     {
         var item = MaakBestellijstItem();
@@ -445,4 +481,25 @@ public class BestellijstServiceTests
             new Boorgat { X = 22.5, Y = 1118 }
         ]
     };
+
+    private static (
+        string Naam,
+        int Aantal,
+        string ContextLabel,
+        string WandNaam,
+        string KastenLabel,
+        string ScharnierLabel,
+        double Hoogte,
+        double Breedte,
+        string BronLocaties) NaarVergelijkingssleutel(BestellijstItem item)
+        => (
+            item.Naam,
+            item.Aantal,
+            item.ContextLabel,
+            item.WandNaam,
+            item.KastenLabel,
+            item.ScharnierLabel,
+            item.Hoogte,
+            item.Breedte,
+            string.Join(" | ", item.BronLocaties));
 }

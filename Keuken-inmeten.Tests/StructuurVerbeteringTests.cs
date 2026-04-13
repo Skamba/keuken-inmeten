@@ -88,6 +88,70 @@ public class KeukenStateServiceHelperTests
     }
 
     [Fact]
+    public void ApparatenVoorWand_vindt_apparaten_op_id_en_behoudt_volgorde()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand { Naam = "Muur", Breedte = 2400, Hoogte = 2700, PlintHoogte = 100 };
+        state.VoegWandToe(wand);
+
+        var apparaat1 = new Apparaat
+        {
+            Naam = "Oven",
+            Type = ApparaatType.Oven,
+            Breedte = 600,
+            Hoogte = 600,
+            Diepte = 560,
+            XPositie = 0,
+            HoogteVanVloer = 100
+        };
+        var apparaat2 = new Apparaat
+        {
+            Naam = "Magnetron",
+            Type = ApparaatType.Magnetron,
+            Breedte = 600,
+            Hoogte = 450,
+            Diepte = 560,
+            XPositie = 700,
+            HoogteVanVloer = 100
+        };
+        state.VoegApparaatToe(apparaat1, wand.Id);
+        state.VoegApparaatToe(apparaat2, wand.Id);
+        wand.ApparaatIds = [apparaat2.Id, apparaat1.Id];
+
+        var gevonden = state.ApparatenVoorWand(wand.Id);
+
+        Assert.Equal(2, gevonden.Count);
+        Assert.Equal("Magnetron", gevonden[0].Naam);
+        Assert.Equal("Oven", gevonden[1].Naam);
+    }
+
+    [Fact]
+    public void ApparatenVoorWand_negeert_ontbrekende_ids()
+    {
+        var state = new KeukenStateService();
+        var wand = new KeukenWand { Naam = "Muur", Breedte = 2400, Hoogte = 2700, PlintHoogte = 100 };
+        state.VoegWandToe(wand);
+
+        var apparaat = new Apparaat
+        {
+            Naam = "Oven",
+            Type = ApparaatType.Oven,
+            Breedte = 600,
+            Hoogte = 600,
+            Diepte = 560,
+            XPositie = 0,
+            HoogteVanVloer = 100
+        };
+        state.VoegApparaatToe(apparaat, wand.Id);
+        wand.ApparaatIds = [apparaat.Id, Guid.NewGuid()];
+
+        var gevonden = state.ApparatenVoorWand(wand.Id);
+
+        var teruggevonden = Assert.Single(gevonden);
+        Assert.Equal("Oven", teruggevonden.Naam);
+    }
+
+    [Fact]
     public void WandVoorKast_vindt_wand_die_kast_bevat()
     {
         var state = new KeukenStateService();

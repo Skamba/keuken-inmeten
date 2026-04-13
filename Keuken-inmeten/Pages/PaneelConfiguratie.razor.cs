@@ -28,14 +28,13 @@ public partial class PaneelConfiguratie
 
     private void HandleStateChanged()
     {
-        if (geopendeWandId is Guid wandId && State.Wanden.All(wand => wand.Id != wandId))
+        if (geopendeWandId is Guid wandId && State.ZoekWand(wandId) is null)
         {
             geopendeWandId = null;
-            toonEditorDrawer = false;
-            bewerkToewijzingId = null;
-            geselecteerdeKastIds.Clear();
+            SluitPaneelWerklaag();
+            VerlaatPaneelBewerkmodus(resetFormulier: true);
+            WisGeselecteerdeKasten();
             conceptPaneel = null;
-            ResetFormToewijzing();
         }
 
         if (reviewWeergaveActief && State.Toewijzingen.Count == 0)
@@ -55,25 +54,20 @@ public partial class PaneelConfiguratie
         => OpdeelBereik is { Hoogte: var hoogte }
            && hoogte >= (2 * PaneelLayoutService.MinPaneelMaat) - 0.001;
 
+    private GeindexeerdeToewijzing? BewerkteToewijzingInfo
+        => bewerkToewijzingId is Guid id ? State.ZoekGeindexeerdeToewijzing(id) : null;
+
     private KeukenWand? GeopendeWand
-        => geopendeWandId is Guid id ? State.Wanden.FirstOrDefault(wand => wand.Id == id) : null;
+        => geopendeWandId is Guid id ? State.ZoekWand(id) : null;
 
     private int BewerkIndex =>
-        bewerkToewijzingId is Guid id
-            ? State.Toewijzingen.FindIndex(toewijzing => toewijzing.Id == id) + 1
-            : 0;
+        BewerkteToewijzingInfo is { Index: var index } ? index + 1 : 0;
 
     private PaneelToewijzing? BewerkteToewijzing =>
-        bewerkToewijzingId is Guid id
-            ? State.Toewijzingen.FirstOrDefault(toewijzing => toewijzing.Id == id)
-            : null;
+        BewerkteToewijzingInfo?.Toewijzing;
 
     private List<Kast> geselecteerdeKasten =>
-        geselecteerdeKastIds
-            .Select(id => State.Kasten.Find(k => k.Id == id))
-            .Where(k => k is not null)
-            .Cast<Kast>()
-            .ToList();
+        State.ZoekKasten(geselecteerdeKastIds);
 
     private PaneelRechthoek? OpdeelBereik
     {
@@ -107,8 +101,11 @@ public partial class PaneelConfiguratie
         }
     }
 
+    private PaneelWerkruimteContext? ActievePaneelWerkruimte
+        => ActieveWandId is Guid wandId ? State.LeesPaneelWerkruimte(wandId, bewerkToewijzingId) : null;
+
     private string ActieveWandNaam =>
-        ActieveWandId is Guid wandId ? State.Wanden.Find(w => w.Id == wandId)?.Naam ?? "—" : "—";
+        ActieveWandId is Guid wandId ? State.ZoekWand(wandId)?.Naam ?? "—" : "—";
 
     private PaneelFlowContext HuidigePaneelFlow => new(
         HeeftWandContext: geopendeWandId is not null,
@@ -120,14 +117,18 @@ public partial class PaneelConfiguratie
         ActieveWandNaam: GeopendeWand?.Naam ?? ActieveWandNaam,
         GeselecteerdeKastNamen: string.Join(" + ", geselecteerdeKasten.Select(kast => kast.Naam)));
 
-    private bool KanPaneelOpslaan()
-        => PaneelConfiguratieHelper.KanPaneelOpslaan(HuidigePaneelFlow);
-
-    private string VolgendePaneelStapTekst()
-        => PaneelConfiguratieHelper.BepaalVolgendePaneelStapTekst(HuidigePaneelFlow);
-
-    private string OpslaanStatusTekst()
-        => PaneelConfiguratieHelper.BepaalOpslaanStatusTekst(HuidigePaneelFlow);
+    private PaneelEditorStatusModel HuidigePaneelEditorStatus
+        => PaneelConfiguratieHelper.BouwEditorStatus(new PaneelEditorStatusContext(
+            Flow: HuidigePaneelFlow,
+            GeopendeWandNaam: GeopendeWand?.Naam ?? ActieveWandNaam,
+            GeselecteerdeKastAantal: geselecteerdeKastIds.Count,
+            ToonEditorDrawer: toonEditorDrawer,
+            ToonCompacteEditorLeegstaat: ToonCompacteEditorLeegstaat,
+            IsBewerkModus: IsBewerkModus,
+            HeeftEnkeleKastSelectie: HeeftEnkeleKastSelectie,
+            KanKastOpdelen: KanKastOpdelen,
+            BewerkIndex: BewerkIndex,
+            OpdeelAnalyse: OpdeelAnalyse));
 
     private bool RaaktGeselecteerdeKast()
         => conceptPaneel is not null
@@ -136,33 +137,6 @@ public partial class PaneelConfiguratie
     private bool HeeftConflicterendPaneel()
         => conceptPaneel is not null
             && BestaandePaneelRechthoeken().Any(bestaandPaneel => PaneelLayoutService.HeeftOverlap(conceptPaneel, bestaandPaneel));
-
-    private string PaneelEditorSelectieSamenvatting()
-        => geselecteerdeKasten.Count switch
-        {
-            0 => "Nog geen kast",
-            1 => geselecteerdeKasten[0].Naam,
-            _ => $"{geselecteerdeKasten.Count} kasten"
-        };
-
-    private static string PaneelEditorOpslaanSamenvatting(bool kanOpslaan)
-        => kanOpslaan ? "Klaar" : "Nog controleren";
-
-    private string PaneelEditorKernHintTekst(bool kanOpslaan)
-    {
-        if (kanOpslaan)
-            return "Controleer hieronder alleen nog maat en type. Daarna kunt u direct opslaan.";
-
-        if (conceptPaneel is null)
-            return "Sleep in de tekening of kies een vrij vak. De velden hieronder volgen direct mee.";
-
-        if (HeeftConflicterendPaneel())
-            return "Verplaats of verklein het paneel totdat het geen bestaand paneel meer overlapt.";
-
-        return RaaktGeselecteerdeKast()
-            ? "Controleer hieronder maat en type voordat u opslaat."
-            : "Pas positie, maat of selectie aan totdat het paneel weer een geselecteerde kast raakt.";
-    }
 
     private double BreedteInput
     {

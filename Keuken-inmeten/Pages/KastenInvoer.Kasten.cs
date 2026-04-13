@@ -9,13 +9,7 @@ public partial class KastenInvoer
     private void OpenKastFormulier(Guid wandId)
     {
         OpenWandWerkruimte(wandId);
-        formKast = NieuweKastMetVorigeWaarden();
-        isBewerken = false;
-        bewerkKastId = null;
-        kastFormStap = 1;
-        toonTechnischeInstellingen = HeeftAfwijkendeTechnischeInstellingen(formKast);
-        technischeControleBevestigd = false;
-        toonKastFormulier = true;
+        StelKastFormulierIn(NieuweKastMetVorigeWaarden(), true);
         AutoBerekenPosities();
     }
 
@@ -28,15 +22,7 @@ public partial class KastenInvoer
     }
 
     private void SluitKastFormulier()
-    {
-        formKast = NieuweKast();
-        isBewerken = false;
-        bewerkKastId = null;
-        kastFormStap = 1;
-        toonTechnischeInstellingen = false;
-        technischeControleBevestigd = false;
-        toonKastFormulier = false;
-    }
+        => StelKastFormulierIn(NieuweKast(), false);
 
     private static KastType InferKastType(double hoogte) => IndelingFormulierHelper.InferKastType(hoogte);
 
@@ -61,13 +47,7 @@ public partial class KastenInvoer
                 return;
         }
 
-        formKast = NieuweKastMetVorigeWaarden();
-        isBewerken = false;
-        bewerkKastId = null;
-        kastFormStap = 1;
-        toonTechnischeInstellingen = false;
-        technischeControleBevestigd = false;
-        toonKastFormulier = false;
+        StelKastFormulierIn(NieuweKastMetVorigeWaarden(), false);
     }
 
     private void SelecteerKast(Guid kastId, Guid wandId)
@@ -79,13 +59,7 @@ public partial class KastenInvoer
     private void BewerkKast(Kast kast, Guid wandId)
     {
         OpenWandWerkruimte(wandId);
-        isBewerken = true;
-        bewerkKastId = kast.Id;
-        kastFormStap = 1;
-        toonKastFormulier = true;
-        formKast = KopieerKast(kast);
-        toonTechnischeInstellingen = HeeftAfwijkendeTechnischeInstellingen(formKast);
-        technischeControleBevestigd = false;
+        StelKastFormulierIn(KopieerKast(kast), true, true, kast.Id);
     }
 
     private Kast NieuweKastMetVorigeWaarden()
@@ -117,7 +91,7 @@ public partial class KastenInvoer
             kast.Planken = KopieerKast(bestaand).Planken;
         }
 
-        if (!IndelingFormulierHelper.TryVindVrijeKastPlaatsing(
+        if (!KastPlaatsingService.TryVindVrijePlaatsing(
                 wand,
                 State.KastenVoorWand(actieveId),
                 kast,
@@ -128,8 +102,8 @@ public partial class KastenInvoer
             return false;
         }
 
-        kast.XPositie = plaatsing.xPositie;
-        kast.HoogteVanVloer = plaatsing.hoogteVanVloer;
+        kast.XPositie = plaatsing.XPositie;
+        kast.HoogteVanVloer = plaatsing.HoogteVanVloer;
         wandId = actieveId;
         return true;
     }
@@ -143,7 +117,7 @@ public partial class KastenInvoer
         if (wand is null)
             return;
 
-        if (!IndelingFormulierHelper.TryVindVrijeKastPlaatsing(
+        if (!KastPlaatsingService.TryVindVrijePlaatsing(
                 wand,
                 State.KastenVoorWand(wandId),
                 kopie,
@@ -154,8 +128,8 @@ public partial class KastenInvoer
         }
 
         kopie.Id = Guid.NewGuid();
-        kopie.XPositie = plaatsing.xPositie;
-        kopie.HoogteVanVloer = plaatsing.hoogteVanVloer;
+        kopie.XPositie = plaatsing.XPositie;
+        kopie.HoogteVanVloer = plaatsing.HoogteVanVloer;
         State.VoegKastToe(kopie, wandId);
     }
 

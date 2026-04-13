@@ -18,19 +18,18 @@ public static class BestellijstService
         string Signatuur,
         PaneelResultaat Resultaat);
 
-    public static List<BestellijstItem> BerekenItems(KeukenStateService state)
+    public static List<BestellijstItem> BerekenItems(
+        KeukenStateService state,
+        IReadOnlyList<PaneelResultaat>? resultaten = null)
     {
-        var resultaten = state.BerekenResultaten();
+        var context = new BestellijstContext(state, resultaten);
         var bronnen = new List<BestellijstBron>();
 
-        for (int i = 0; i < resultaten.Count; i++)
+        foreach (var resultaat in context.Resultaten)
         {
-            var resultaat = resultaten[i];
-            var toewijzing = state.Toewijzingen.Find(t => t.Id == resultaat.ToewijzingId);
-            var kasten = state.ZoekKasten(resultaat.KastIds.ToList());
-            var wand = resultaat.KastIds
-                .Select(kastId => state.WandVoorKast(kastId))
-                .FirstOrDefault(kandidaat => kandidaat is not null);
+            var toewijzing = context.ToewijzingVoor(resultaat.ToewijzingId);
+            var kasten = context.KastenVoor(resultaat);
+            var wand = context.WandVoor(resultaat);
             var wandNaam = string.IsNullOrWhiteSpace(wand?.Naam) ? "Onbekende wand" : wand.Naam;
             var kastenLabel = string.Join(" + ", kasten.Select(k => k.Naam));
             var basisNaam = BepaalBasisNaam(resultaat, kasten);
@@ -171,4 +170,75 @@ public static class BestellijstService
         => type == PaneelType.Deur ? type.ToString() : "Paneel";
 
     private static string Fmt(double value) => VisualisatieHelper.FmtData(value);
+
+    private static List<T> ZoekEntiteitenOpLookup<T>(IEnumerable<Guid> ids, IReadOnlyDictionary<Guid, T> lookup)
+        where T : class
+        => ids
+            .Select(lookup.GetValueOrDefault)
+            .Where(item => item is not null)
+            .Cast<T>()
+            .ToList();
+
+    private sealed class BestellijstContext
+    {
+        private readonly IReadOnlyDictionary<Guid, PaneelToewijzing> toewijzingLookup;
+        private readonly IReadOnlyDictionary<Guid, Kast> kastenLookup;
+        private readonly IReadOnlyDictionary<Guid, KeukenWand> wandVoorKastLookup;
+        private readonly Dictionary<Guid, List<Kast>> kastenVoorResultaatCache = [];
+        private readonly Dictionary<Guid, KeukenWand?> wandVoorResultaatCache = [];
+
+        public BestellijstContext(
+            KeukenStateService state,
+            IReadOnlyList<PaneelResultaat>? resultaten)
+        {
+            Resultaten = resultaten is List<PaneelResultaat> lijst
+                ? lijst
+                : resultaten?.ToList() ?? state.BerekenResultaten();
+            toewijzingLookup = state.Toewijzingen.ToDictionary(item => item.Id);
+            kastenLookup = state.Kasten.ToDictionary(item => item.Id);
+            wandVoorKastLookup = BouwWandVoorKastLookup(state.Wanden);
+        }
+
+        public IReadOnlyList<PaneelResultaat> Resultaten { get; }
+
+        public PaneelToewijzing? ToewijzingVoor(Guid toewijzingId)
+            => toewijzingLookup.GetValueOrDefault(toewijzingId);
+
+        public List<Kast> KastenVoor(PaneelResultaat resultaat)
+        {
+            if (!kastenVoorResultaatCache.TryGetValue(resultaat.ToewijzingId, out var kasten))
+            {
+                kasten = ZoekEntiteitenOpLookup(resultaat.KastIds, kastenLookup);
+                kastenVoorResultaatCache[resultaat.ToewijzingId] = kasten;
+            }
+
+            return kasten;
+        }
+
+        public KeukenWand? WandVoor(PaneelResultaat resultaat)
+        {
+            if (!wandVoorResultaatCache.TryGetValue(resultaat.ToewijzingId, out var wand))
+            {
+                wand = resultaat.KastIds
+                    .Select(kastId => wandVoorKastLookup.GetValueOrDefault(kastId))
+                    .FirstOrDefault(kandidaat => kandidaat is not null);
+                wandVoorResultaatCache[resultaat.ToewijzingId] = wand;
+            }
+
+            return wand;
+        }
+
+        private static IReadOnlyDictionary<Guid, KeukenWand> BouwWandVoorKastLookup(IEnumerable<KeukenWand> wanden)
+        {
+            var lookup = new Dictionary<Guid, KeukenWand>();
+
+            foreach (var wand in wanden)
+            {
+                foreach (var kastId in wand.KastIds)
+                    lookup[kastId] = wand;
+            }
+
+            return lookup;
+        }
+    }
 }

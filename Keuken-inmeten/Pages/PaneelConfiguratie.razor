@@ -12,6 +12,7 @@
     var routeGate = StappenFlowHelper.BepaalRouteGate("panelen", flowStatus);
     var geopendeWand = GeopendeWand;
     var isReviewWeergaveActief = IsReviewWeergaveActief;
+    var paneelEditorStatus = HuidigePaneelEditorStatus;
     var toonCompacteStapIntro = routeGate is null && geopendeWand is not null && !isReviewWeergaveActief;
     var toonCompacteWeergaveTabs = toonEditorDrawer && !isReviewWeergaveActief && geopendeWand is not null;
     var toonUitgeklapteProjectinstellingen = Math.Abs(State.PaneelRandSpeling - 3) > 0.001;
@@ -50,6 +51,7 @@ else
     var paneelReviewGroepen = OverzichtGroeperingHelper.GroepeerPaneelToewijzingen(State);
     var paneelTypeTellingen = OverzichtGroeperingHelper.MaakTellingen(State.Toewijzingen, toewijzing => TypeNaam(toewijzing.Type));
     var reviewBeschikbaar = State.Toewijzingen.Count > 0;
+    var wandWerkruimtes = State.LeesPaneelWerkruimtes(bewerkToewijzingId);
     var gerangschiktePaneelReviewGroepen = geopendeWand is null
         ? paneelReviewGroepen
         : paneelReviewGroepen
@@ -57,9 +59,12 @@ else
             .ThenBy(groep => groep.WandNaam)
             .ThenBy(groep => groep.WandId?.ToString("N"))
             .ToList();
-    var overzichtWanden = geopendeWand is null
-        ? State.Wanden
-        : State.Wanden.Where(wand => wand.Id != geopendeWand.Id).ToList();
+    var overzichtWerkruimtes = geopendeWand is null
+        ? wandWerkruimtes
+        : wandWerkruimtes.Where(werkruimte => werkruimte.Wand.Id != geopendeWand.Id).ToList();
+    var geopendeWerkruimte = geopendeWand is null
+        ? null
+        : wandWerkruimtes.FirstOrDefault(werkruimte => werkruimte.Wand.Id == geopendeWand.Id);
 
     <div class="paneel-pagina-shell @((toonEditorDrawer && !isReviewWeergaveActief) ? "editor-open" : null)">
         <div class="border rounded p-3 mb-4 bg-body-tertiary paneel-weergave-tabs @(geopendeWand is not null ? "paneel-weergave-tabs--compact" : null) @(toonCompacteWeergaveTabs ? "paneel-weergave-tabs--editor-open" : null)" data-testid="paneel-weergave-tabs">
@@ -191,10 +196,11 @@ else
                     </div>
 
                     <div class="row g-3 mb-4">
-                        @foreach (var wand in overzichtWanden)
+                        @foreach (var werkruimte in overzichtWerkruimtes)
                         {
-                            var wandKasten = State.KastenVoorWand(wand.Id);
-                            var wandPanelen = ToewijzingenVoorWand(wand);
+                            var wand = werkruimte.Wand;
+                            var wandKasten = werkruimte.Kasten;
+                            var wandPanelen = werkruimte.Toewijzingen;
                             var isActieveWerkruimte = geopendeWand?.Id == wand.Id;
                             var overzichtBadges = isActieveWerkruimte
                                 ? new List<IndelingBadge> { new("Nu open", "badge text-bg-primary") }
@@ -241,20 +247,21 @@ else
                         }
                     </div>
                 }
-                else if (overzichtWanden.Count > 0)
+                else if (overzichtWerkruimtes.Count > 0)
                 {
                     <IndelingDetailsBlok Titel="Andere wanden"
                                          Beschrijving="Verborgen zodat de actieve werkruimte rustiger blijft."
-                                         BadgeText="@($"{overzichtWanden.Count} wand(en) direct beschikbaar")"
+                                         BadgeText="@($"{overzichtWerkruimtes.Count} wand(en) direct beschikbaar")"
                                          DetailsClass="indeling-overige-wanden paneel-overige-wanden-details mb-4"
                                          DetailsDataTestId="paneel-overige-wanden-details"
                                          SummaryDataTestId="paneel-overige-wanden-summary">
                         <div class="indeling-overige-wanden-lijst">
-                            @foreach (var wand in overzichtWanden)
+                            @foreach (var werkruimte in overzichtWerkruimtes)
                             {
-                                var wandKasten = State.KastenVoorWand(wand.Id);
-                                var wandApparaten = State.ApparatenVoorWand(wand.Id);
-                                var wandPanelen = ToewijzingenVoorWand(wand);
+                                var wand = werkruimte.Wand;
+                                var wandKasten = werkruimte.Kasten;
+                                var wandApparaten = werkruimte.Apparaten;
+                                var wandPanelen = werkruimte.Toewijzingen;
                                 var overzichtMeta = new List<string> { $"{wandKasten.Count} kast(en)" };
                                 if (wandPanelen.Count > 0)
                                 {
@@ -283,11 +290,11 @@ else
                     </IndelingDetailsBlok>
                 }
 
-                @if (geopendeWand is not null)
+                @if (geopendeWand is not null && geopendeWerkruimte is not null)
                 {
-                    var geopendeWandKasten = State.KastenVoorWand(geopendeWand.Id);
-                    var geopendeWandApparaten = State.ApparatenVoorWand(geopendeWand.Id);
-                    var geopendeWandPanelen = ToewijzingenVoorWand(geopendeWand);
+                    var geopendeWandKasten = geopendeWerkruimte.Kasten;
+                    var geopendeWandApparaten = geopendeWerkruimte.Apparaten;
+                    var geopendeWandPanelen = geopendeWerkruimte.Toewijzingen;
 
                     <div class="card border-0 shadow-sm mb-4 indeling-actieve-werkruimte paneel-actieve-werkruimte"
                          data-testid="paneel-actieve-wand-werkruimte"
@@ -317,10 +324,10 @@ else
                                     @if (!toonEditorDrawer)
                                     {
                                         <button type="button"
-                                                class="btn btn-sm btn-primary"
-                                                @onclick="OpenEditorDrawer"
-                                                data-testid="open-paneel-editor-button">
-                                            @OpenEditorKnopLabel()
+                                            class="btn btn-sm btn-primary"
+                                            @onclick="OpenEditorDrawer"
+                                            data-testid="open-paneel-editor-button">
+                                            @paneelEditorStatus.OpenEditorKnopLabel
                                         </button>
                                     }
                                     <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="SluitWandWerkruimte">
@@ -334,8 +341,8 @@ else
                                 <div class="paneel-werkruimte-status border rounded p-3 mb-3 bg-body-tertiary">
                                     <div>
                                         <div class="small text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Volgende stap</div>
-                                        <div class="fw-semibold mb-1">@VolgendePaneelStapTekst()</div>
-                                        <div class="small text-muted">@PaneelWerkruimteStatusDetailTekst()</div>
+                                        <div class="fw-semibold mb-1">@paneelEditorStatus.VolgendePaneelStapTekst</div>
+                                        <div class="small text-muted">@paneelEditorStatus.WerkruimteStatusDetailTekst</div>
                                     </div>
                                 </div>
                             }
@@ -373,7 +380,7 @@ else
                                                     class="btn btn-outline-primary btn-sm"
                                                     @onclick="OpenEditorDrawer"
                                                     data-testid="open-paneel-editor-button-secondary">
-                                                @OpenEditorKnopLabel()
+                                                @paneelEditorStatus.OpenEditorKnopLabel
                                             </button>
                                         }
                                     </div>
@@ -409,28 +416,10 @@ else
 
     @if (geopendeWand is not null && toonEditorDrawer && !isReviewWeergaveActief)
     {
-        var kanOpslaan = KanPaneelOpslaan();
         var conceptMaatInfo = BerekenConceptMaatInfo();
         var vrijeSegmenten = VrijeSegmentenVoorSelectie();
-        var editorHeaderMeta = IsBewerkModus
-            ? $"Paneel {BewerkIndex}"
-            : geselecteerdeKastIds.Count > 0
-                ? $"{geselecteerdeKastIds.Count} kast(en) geselecteerd"
-                : null;
-
-        <PaneelEditorDrawer GeopendeWandNaam="@geopendeWand.Naam"
-                            EditorHeaderMeta="@editorHeaderMeta"
-                            ToonCompacteEditorLeegstaat="@ToonCompacteEditorLeegstaat"
-                            IsBewerkModus="@IsBewerkModus"
-                            KanOpslaan="@kanOpslaan"
-                            VolgendePaneelStapTekst="@VolgendePaneelStapTekst()"
-                            KernHintTekst="@PaneelEditorKernHintTekst(kanOpslaan)"
-                            SelectieSamenvatting="@PaneelEditorSelectieSamenvatting()"
-                            OpslaanSamenvatting="@PaneelEditorOpslaanSamenvatting(kanOpslaan)"
-                            OpslaanStatusTekst="@OpslaanStatusTekst()"
-                            HeeftEnkeleKastSelectie="@HeeftEnkeleKastSelectie"
+        <PaneelEditorDrawer Status="@paneelEditorStatus"
                             OpdeelBereik="@OpdeelBereik"
-                            KanKastOpdelen="@KanKastOpdelen"
                             GeselecteerdType="@formToewijzing.Type"
                             GeselecteerdeScharnierZijde="@formToewijzing.ScharnierZijde"
                             PotHartInput="@PotHartInput"
@@ -451,8 +440,6 @@ else
                             OpdeelAantal="@opdeelAantal"
                             OpdeelHoogtes="opdeelHoogtes"
                             OpdeelAnalyse="@OpdeelAnalyse"
-                            OpdeelStatusClass="@OpdeelStatusClass()"
-                            OpdeelStatusTekst="@OpdeelStatusTekst()"
                             KanKastOpdelenIn="KanKastOpdelenIn"
                             OnTypeGewijzigd="@(EventCallback.Factory.Create<PaneelType>(this, value => formToewijzing.Type = value))"
                             OnScharnierZijdeGewijzigd="@(EventCallback.Factory.Create<ScharnierZijde>(this, value => formToewijzing.ScharnierZijde = value))"

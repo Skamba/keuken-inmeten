@@ -243,6 +243,66 @@ public class KeukenStateServiceTests
     }
 
     [Fact]
+    public void ZoekGeindexeerdeToewijzing_geeft_toewijzing_met_bewaarde_volgorde()
+    {
+        var state = new KeukenStateService();
+        var eerste = new PaneelToewijzing { Id = Guid.NewGuid(), Type = PaneelType.Deur, Breedte = 600, Hoogte = 700 };
+        var tweede = new PaneelToewijzing { Id = Guid.NewGuid(), Type = PaneelType.LadeFront, Breedte = 600, Hoogte = 300 };
+
+        state.VoegToewijzingenToe([eerste, tweede]);
+
+        var gevonden = state.ZoekGeindexeerdeToewijzing(tweede.Id);
+
+        Assert.NotNull(gevonden);
+        Assert.Equal(1, gevonden.Index);
+        Assert.Equal(tweede.Id, gevonden.Toewijzing.Id);
+        Assert.Null(state.ZoekGeindexeerdeToewijzing(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public void LeesPaneelWerkruimte_geeft_wandcontext_en_sluit_bewerkte_toewijzing_uit()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Achterwand");
+        state.VoegWandToe(wand);
+
+        var kastLinks = MaakGeplaatsteKast("Links", xPositie: 0);
+        var kastRechts = MaakGeplaatsteKast("Rechts", xPositie: 600);
+        var apparaat = MaakApparaat("Oven", xPositie: 1200, hoogteVanVloer: 100);
+        state.VoegKastToe(kastLinks, wand.Id);
+        state.VoegKastToe(kastRechts, wand.Id);
+        state.VoegApparaatToe(apparaat, wand.Id);
+
+        var eerste = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            Type = PaneelType.Deur,
+            KastIds = [kastLinks.Id],
+            Breedte = 596,
+            Hoogte = 716
+        };
+        var tweede = new PaneelToewijzing
+        {
+            Id = Guid.NewGuid(),
+            Type = PaneelType.BlindPaneel,
+            KastIds = [kastRechts.Id],
+            Breedte = 596,
+            Hoogte = 716
+        };
+        state.VoegToewijzingenToe([eerste, tweede]);
+
+        var werkruimte = state.LeesPaneelWerkruimte(wand.Id, eerste.Id);
+
+        Assert.NotNull(werkruimte);
+        Assert.Equal(wand.Id, werkruimte.Wand.Id);
+        Assert.Equal([kastLinks.Id, kastRechts.Id], werkruimte.Kasten.Select(kast => kast.Id).ToList());
+        Assert.Equal([apparaat.Id], werkruimte.Apparaten.Select(item => item.Id).ToList());
+        Assert.Equal([tweede.Id], werkruimte.Toewijzingen.Select(item => item.Id).ToList());
+        var bron = Assert.Single(werkruimte.PaneelBronnen);
+        Assert.Equal(tweede.Id, bron.PaneelId);
+    }
+
+    [Fact]
     public void HernoemWand_triggert_exact_een_state_change()
     {
         var state = new KeukenStateService();
@@ -549,6 +609,47 @@ public class KeukenStateServiceTests
         Assert.Contains(kast.Id, doelWand.KastIds);
         Assert.Equal(doelWand.Id, state.WandVoorKast(kast.Id)?.Id);
         Assert.Equal("Onderkast verplaatst", Assert.Single(state.Kasten).Naam);
+    }
+
+    [Fact]
+    public void WerkKastBijOpWand_sluit_klein_horizontaal_gat_bij_aangrenzende_kast()
+    {
+        var state = new KeukenStateService();
+        var wand = MaakWand("Wand");
+        state.VoegWandToe(wand);
+
+        var kastA = MaakKast("Links");
+        kastA.Breedte = 600;
+        kastA.Hoogte = 720;
+        kastA.XPositie = 0;
+        kastA.HoogteVanVloer = 100;
+
+        var kastB = MaakKast("Rechts");
+        kastB.Breedte = 600;
+        kastB.Hoogte = 720;
+        kastB.XPositie = 600;
+        kastB.HoogteVanVloer = 100;
+
+        state.VoegKastToe(kastA, wand.Id);
+        state.VoegKastToe(kastB, wand.Id);
+
+        var gewijzigd = state.WerkKastBijOpWand(new Kast
+        {
+            Id = kastA.Id,
+            Naam = kastA.Naam,
+            Type = kastA.Type,
+            Breedte = 595,
+            Hoogte = kastA.Hoogte,
+            Diepte = kastA.Diepte,
+            Wanddikte = kastA.Wanddikte,
+            GaatjesAfstand = kastA.GaatjesAfstand,
+            EersteGaatVanBoven = kastA.EersteGaatVanBoven,
+            HoogteVanVloer = kastA.HoogteVanVloer,
+            XPositie = kastA.XPositie
+        }, wand.Id);
+
+        Assert.True(gewijzigd);
+        Assert.Equal(595d, state.Kasten.Single(kast => kast.Id == kastB.Id).XPositie);
     }
 
     [Fact]

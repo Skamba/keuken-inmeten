@@ -14,10 +14,13 @@ public class KeukenShareCodecTests
         var data = MaakVoorbeeldData();
 
         var json = KeukenShareCodec.EncodeCompactJson(data);
+        using var document = JsonDocument.Parse(json);
 
         var decodedOk = KeukenShareCodec.TryDecodeCompactJson(json, out var decoded);
 
         Assert.True(decodedOk);
+        var compacteKasten = document.RootElement.GetProperty("k");
+        var compacteApparaten = document.RootElement.GetProperty("a");
         var wand = Assert.Single(decoded.Wanden);
         var kasten = decoded.Kasten.OrderBy(k => k.Naam).ToList();
         var apparaat = Assert.Single(decoded.Apparaten);
@@ -29,11 +32,20 @@ public class KeukenShareCodecTests
         Assert.Equal(2, wand.KastIds.Count);
         Assert.Contains(hogeKast.Id, wand.KastIds);
         Assert.Contains(onderkast.Id, wand.KastIds);
+        Assert.False(compacteKasten[0].TryGetProperty("x", out _));
+        Assert.False(compacteKasten[0].TryGetProperty("y", out _));
+        Assert.False(compacteApparaten[0].TryGetProperty("x", out _));
+        Assert.False(compacteApparaten[0].TryGetProperty("y", out _));
         Assert.Equal("Hoge kast", kasten[0].Naam);
         Assert.Equal("Onderkast links", kasten[1].Naam);
+        Assert.Equal(2400, hogeKast.XPositie);
+        Assert.Equal(0, onderkast.XPositie);
+        Assert.Equal(0, onderkast.HoogteVanVloer);
         Assert.Equal(85, hogeKast.MontagePlaatPosities[0].AfstandVanBoven);
         Assert.Equal(360, onderkast.Planken[0].HoogteVanBodem);
         Assert.Equal("Oven", apparaat.Naam);
+        Assert.Equal(600, apparaat.XPositie);
+        Assert.Equal(120, apparaat.HoogteVanVloer);
         Assert.Equal(2400, toewijzing.XPositie);
         Assert.Equal(700, toewijzing.HoogteVanVloer);
         Assert.Equal(600, toewijzing.Breedte);
@@ -52,6 +64,18 @@ public class KeukenShareCodecTests
     public void Ongeldige_token_wordt_afgewezen()
     {
         var decodedOk = KeukenShareCodec.TryDecode("v1.geen-geldige-data", out var decoded);
+
+        Assert.False(decodedOk);
+        Assert.Empty(decoded.Wanden);
+        Assert.Empty(decoded.Kasten);
+    }
+
+    [Theory]
+    [InlineData("v2.geen-geldige-data")]
+    [InlineData("v3.geen-geldige-data")]
+    public void Ongeldige_compacte_tokens_worden_afgewezen(string token)
+    {
+        var decodedOk = KeukenShareCodec.TryDecode(token, out var decoded);
 
         Assert.False(decodedOk);
         Assert.Empty(decoded.Wanden);

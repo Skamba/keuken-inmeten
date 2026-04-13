@@ -50,6 +50,71 @@ public class PaneelConfiguratieHelperTests
     }
 
     [Fact]
+    public void BouwEditorStatus_geeft_wachtende_selectiestatus_voor_lege_editor()
+    {
+        var status = PaneelConfiguratieHelper.BouwEditorStatus(new PaneelEditorStatusContext(
+            Flow: new PaneelFlowContext(
+                HeeftWandContext: true,
+                HeeftSelectie: false,
+                HeeftConceptPaneel: false,
+                HeeftGeldigeMaat: false,
+                RaaktGeselecteerdeKast: false,
+                HeeftConflicterendPaneel: false,
+                ActieveWandNaam: "Achterwand",
+                GeselecteerdeKastNamen: string.Empty),
+            GeopendeWandNaam: "Achterwand",
+            GeselecteerdeKastAantal: 0,
+            ToonEditorDrawer: false,
+            ToonCompacteEditorLeegstaat: true,
+            IsBewerkModus: false,
+            HeeftEnkeleKastSelectie: false,
+            KanKastOpdelen: false,
+            BewerkIndex: 0,
+            OpdeelAnalyse: new PaneelOpdeelAnalyse(720, 0, 720, true, false)));
+
+        Assert.Equal("Kastselectie — Achterwand", status.EditorDrawerTitel);
+        Assert.Equal("Open editorlaag", status.OpenEditorKnopLabel);
+        Assert.Equal("Selecteer eerst kast(en) in de tekening", status.WerklaagStatusTekst);
+        Assert.Equal("Selecteer eerst kast(en) in de tekening.", status.WerkruimteStatusDetailTekst);
+        Assert.Equal("Nog geen kast", status.SelectieSamenvatting);
+        Assert.Equal("Nog 720 mm te verdelen.", status.OpdeelStatusTekst);
+        Assert.Equal("alert-warning", status.OpdeelStatusClass);
+    }
+
+    [Fact]
+    public void BouwEditorStatus_geeft_bewerkstatus_en_conflictteksten_terug()
+    {
+        var status = PaneelConfiguratieHelper.BouwEditorStatus(new PaneelEditorStatusContext(
+            Flow: new PaneelFlowContext(
+                HeeftWandContext: true,
+                HeeftSelectie: true,
+                HeeftConceptPaneel: true,
+                HeeftGeldigeMaat: true,
+                RaaktGeselecteerdeKast: true,
+                HeeftConflicterendPaneel: true,
+                ActieveWandNaam: "Achterwand",
+                GeselecteerdeKastNamen: "Spoelkast"),
+            GeopendeWandNaam: "Achterwand",
+            GeselecteerdeKastAantal: 1,
+            ToonEditorDrawer: true,
+            ToonCompacteEditorLeegstaat: false,
+            IsBewerkModus: true,
+            HeeftEnkeleKastSelectie: true,
+            KanKastOpdelen: true,
+            BewerkIndex: 3,
+            OpdeelAnalyse: new PaneelOpdeelAnalyse(720, 90, 630, false, false)));
+
+        Assert.Equal("Paneel bewerken — Achterwand", status.EditorDrawerTitel);
+        Assert.Equal("Paneel 3", status.EditorHeaderMeta);
+        Assert.False(status.KanOpslaan);
+        Assert.Equal("Verplaats of verklein het paneel totdat het geen bestaand paneel meer overlapt.", status.KernHintTekst);
+        Assert.Equal("Nee, het paneel overlapt nog een bestaand paneel.", status.OpslaanStatusTekst);
+        Assert.Equal("Spoelkast", status.SelectieSamenvatting);
+        Assert.Equal("alert-danger", status.OpdeelStatusClass);
+        Assert.Equal($"Elk deel moet minimaal {PaneelLayoutService.MinPaneelMaat:0.#} mm hoog zijn.", status.OpdeelStatusTekst);
+    }
+
+    [Fact]
     public void SnapPaneel_move_snapt_naar_dichtstbijzijnde_targets_met_behoud_van_maat()
     {
         var selectieBereik = new PaneelRechthoek

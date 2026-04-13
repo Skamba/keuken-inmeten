@@ -10,21 +10,11 @@ public partial class KastenInvoer
     private void OpenApparaatFormulier(Guid wandId)
     {
         OpenWandWerkruimte(wandId);
-        formApparaat = NieuwApparaat();
-        isApparaatBewerken = false;
-        bewerkApparaatId = null;
-        apparaatFormStap = 1;
-        toonApparaatFormulier = true;
+        StelApparaatFormulierIn(NieuwApparaat(), true);
     }
 
     private void SluitApparaatFormulier()
-    {
-        toonApparaatFormulier = false;
-        formApparaat = NieuwApparaat();
-        isApparaatBewerken = false;
-        bewerkApparaatId = null;
-        apparaatFormStap = 1;
-    }
+        => StelApparaatFormulierIn(NieuwApparaat(), false);
 
     private static string ApparaatFormStapLabel(int stap)
         => ApparaatFormStappen[stap - 1];
@@ -119,17 +109,13 @@ public partial class KastenInvoer
                 return;
         }
 
-        SluitApparaatFormulier();
+        StelApparaatFormulierIn(NieuwApparaat(), false);
     }
 
     private void BewerkApparaat(Apparaat apparaat, Guid wandId)
     {
         OpenWandWerkruimte(wandId);
-        isApparaatBewerken = true;
-        bewerkApparaatId = apparaat.Id;
-        apparaatFormStap = 1;
-        toonApparaatFormulier = true;
-        formApparaat = KopieerApparaat(apparaat);
+        StelApparaatFormulierIn(KopieerApparaat(apparaat), true, true, apparaat.Id);
     }
 
     private void VerwijderApparaat(Guid id)

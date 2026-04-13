@@ -9,7 +9,7 @@ public partial class KeukenStateService
     public bool VoegKastToe(Kast kast, Guid wandId)
     {
         SynchroniseerKast(kast, KeukenDomeinValidatieService.NormaliseerKast(kast));
-        var wand = Wanden.Find(item => item.Id == wandId);
+        var wand = VindWand(wandId);
         if (wand is null || !PastKastOpWand(wand, kast))
             return false;
 
@@ -65,7 +65,7 @@ public partial class KeukenStateService
 
     public bool WerkKastBijOpWand(Kast kast, Guid wandId)
     {
-        var doelWand = Wanden.Find(wand => wand.Id == wandId);
+        var doelWand = VindWand(wandId);
         if (doelWand is null)
             return false;
 
@@ -91,26 +91,12 @@ public partial class KeukenStateService
             .Where(kast => kast.Id != gewijzigdeKast.Id)
             .ToList();
 
-        foreach (var (kastId, nieuwX, nieuwY) in WandOpstellingHelper.BepaalGatSluitingen(gewijzigdeKast, andereKasten))
-        {
-            var andereKast = Kasten.Find(kast => kast.Id == kastId);
-            if (andereKast is null)
-                continue;
-
-            var kandidaat = IndelingFormulierHelper.KopieerKast(andereKast);
-            kandidaat.XPositie = KeukenDomeinValidatieService.NormaliseerPositie(nieuwX);
-            kandidaat.HoogteVanVloer = KeukenDomeinValidatieService.NormaliseerPositie(nieuwY);
-            if (PastKastOpWand(wand, kandidaat, kandidaat.Id))
-            {
-                andereKast.XPositie = kandidaat.XPositie;
-                andereKast.HoogteVanVloer = kandidaat.HoogteVanVloer;
-            }
-        }
+        PasGatSluitingenToe(wand, WandOpstellingHelper.BepaalGatSluitingen(gewijzigdeKast, andereKasten));
     }
 
     public bool SluitAlleGatenOpWand(Guid wandId)
     {
-        var wand = Wanden.Find(w => w.Id == wandId);
+        var wand = VindWand(wandId);
         if (wand is null)
             return false;
 
@@ -124,23 +110,11 @@ public partial class KeukenStateService
             foreach (var kast in kasten)
             {
                 var anderen = kasten.Where(item => item.Id != kast.Id).ToList();
-                foreach (var (kastId, nieuwX, nieuwY) in WandOpstellingHelper.BepaalGatSluitingen(kast, anderen))
-                {
-                    var andere = Kasten.Find(item => item.Id == kastId);
-                    if (andere is null)
-                        continue;
+                if (!PasGatSluitingenToe(wand, WandOpstellingHelper.BepaalGatSluitingen(kast, anderen)))
+                    continue;
 
-                    var kandidaat = IndelingFormulierHelper.KopieerKast(andere);
-                    kandidaat.XPositie = KeukenDomeinValidatieService.NormaliseerPositie(nieuwX);
-                    kandidaat.HoogteVanVloer = KeukenDomeinValidatieService.NormaliseerPositie(nieuwY);
-                    if (PastKastOpWand(wand, kandidaat, kandidaat.Id))
-                    {
-                        andere.XPositie = kandidaat.XPositie;
-                        andere.HoogteVanVloer = kandidaat.HoogteVanVloer;
-                        gewijzigd = true;
-                        verandering = true;
-                    }
-                }
+                gewijzigd = true;
+                verandering = true;
             }
         }
         while (verandering);
@@ -162,11 +136,11 @@ public partial class KeukenStateService
 
     public bool VerplaatsKast(Guid id, double xPositie, double hoogteVanVloer)
     {
-        var kast = Kasten.Find(item => item.Id == id);
+        var kast = VindKast(id);
         if (kast is null)
             return false;
 
-        var wand = WandVoorKast(id);
+        var wand = VindWandVoorKast(id);
         if (wand is null)
             return false;
 
@@ -189,7 +163,7 @@ public partial class KeukenStateService
 
     public Plank? VoegPlankToe(Guid kastId, double hoogteVanBodem, Guid? plankId = null, int? index = null)
     {
-        var kast = Kasten.Find(item => item.Id == kastId);
+        var kast = VindKast(kastId);
         if (kast is null)
             return null;
 
@@ -206,7 +180,7 @@ public partial class KeukenStateService
 
     public bool VerplaatsPlank(Guid kastId, Guid plankId, double hoogteVanBodem)
     {
-        var kast = Kasten.Find(item => item.Id == kastId);
+        var kast = VindKast(kastId);
         var plank = kast?.Planken.Find(item => item.Id == plankId);
         if (plank is null || kast is null)
             return false;
@@ -222,7 +196,7 @@ public partial class KeukenStateService
 
     public bool VerwijderPlank(Guid kastId, Guid plankId)
     {
-        var kast = Kasten.Find(item => item.Id == kastId);
+        var kast = VindKast(kastId);
         var plank = kast?.Planken.Find(item => item.Id == plankId);
         if (kast is null || plank is null)
             return false;
@@ -234,7 +208,7 @@ public partial class KeukenStateService
 
     public Plank? HerstelPlank(Guid kastId, Plank plank, int index)
     {
-        var kast = Kasten.Find(item => item.Id == kastId);
+        var kast = VindKast(kastId);
         if (kast is null)
             return null;
 
@@ -251,7 +225,7 @@ public partial class KeukenStateService
 
     public bool HerstelKastMetToewijzingen(Kast kast, Guid wandId, int kastIndex, IReadOnlyList<GeindexeerdeToewijzing> toewijzingen)
     {
-        var wand = Wanden.Find(item => item.Id == wandId);
+        var wand = VindWand(wandId);
         if (wand is null)
             return false;
 
@@ -306,5 +280,41 @@ public partial class KeukenStateService
             if (oldest is not null)
                 KastTemplates.Remove(oldest);
         }
+    }
+
+    private bool PasGatSluitingenToe(KeukenWand wand, IEnumerable<GatSluiting> sluitingen)
+    {
+        var gewijzigd = false;
+        foreach (var sluiting in sluitingen)
+            gewijzigd |= ProbeerGatSluitingToeTePassen(wand, sluiting);
+
+        return gewijzigd;
+    }
+
+    private bool ProbeerGatSluitingToeTePassen(KeukenWand wand, GatSluiting sluiting)
+    {
+        var andereKast = VindKast(sluiting.KastId);
+        if (andereKast is null)
+            return false;
+
+        var kandidaat = MaakGatSluitKandidaat(andereKast, sluiting);
+        if (!PastKastOpWand(wand, kandidaat, kandidaat.Id))
+            return false;
+
+        if (ZijnBijnaGelijk(andereKast.XPositie, kandidaat.XPositie)
+            && ZijnBijnaGelijk(andereKast.HoogteVanVloer, kandidaat.HoogteVanVloer))
+            return false;
+
+        andereKast.XPositie = kandidaat.XPositie;
+        andereKast.HoogteVanVloer = kandidaat.HoogteVanVloer;
+        return true;
+    }
+
+    private static Kast MaakGatSluitKandidaat(Kast bron, GatSluiting sluiting)
+    {
+        var kandidaat = IndelingFormulierHelper.KopieerKast(bron);
+        kandidaat.XPositie = KeukenDomeinValidatieService.NormaliseerPositie(sluiting.XPositie);
+        kandidaat.HoogteVanVloer = KeukenDomeinValidatieService.NormaliseerPositie(sluiting.HoogteVanVloer);
+        return kandidaat;
     }
 }

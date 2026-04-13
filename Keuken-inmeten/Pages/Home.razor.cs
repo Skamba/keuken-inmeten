@@ -6,11 +6,12 @@ public partial class Home
 {
     private HomePaginaModel MaakPaginaModel()
     {
+        var resultaten = State.BerekenResultaten();
         var aantalWanden = State.Wanden.Count;
         var aantalKasten = State.Kasten.Count;
         var aantalPanelen = State.Toewijzingen.Count;
-        var aantalResultaten = State.BerekenResultaten().Count;
-        var bestellijstItems = BestellijstService.BerekenItems(State);
+        var aantalResultaten = resultaten.Count;
+        var bestellijstItems = BestellijstService.BerekenItems(State, resultaten);
         var aantalBestellijstItems = bestellijstItems.Count;
         var totaalBoorgaten = bestellijstItems.Sum(item => item.Aantal * item.Boorgaten.Count);
         var heeftProjectData = aantalWanden > 0 || aantalKasten > 0 || aantalPanelen > 0;
