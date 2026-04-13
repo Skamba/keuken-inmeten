@@ -141,17 +141,29 @@ test('stap 1 kan de wandopstelling fullscreen openen en weer sluiten', async ({ 
   });
 
   await indeling.openWandWerkruimte('Achterwand');
+  const previewSvg = page.getByTestId('indeling-wandopstelling').getByTestId('wand-opstelling-svg');
+  const previewSvgBox = await previewSvg.boundingBox();
+  expect(previewSvgBox).not.toBeNull();
   await expect(page.getByTestId('indeling-wandopstelling-fullscreen-toggle')).toBeVisible();
   await page.getByTestId('indeling-wandopstelling-fullscreen-toggle').click();
 
   const shell = page.getByTestId('indeling-wandopstelling-fullscreen-shell');
   await expect(shell).toBeVisible();
   await expect(shell).toBeFocused();
-  await expect(shell.getByTestId('wand-opstelling-svg')).toBeVisible();
+  const fullscreenSvg = shell.getByTestId('wand-opstelling-svg');
+  await expect(fullscreenSvg).toBeVisible();
   await expect(shell.getByRole('button', { name: 'Uitlijnen' })).toBeVisible();
+  const fullscreenStage = shell.locator('.fullscreen-visualisatie-stage');
+  const fullscreenSvgBox = await fullscreenSvg.boundingBox();
+  const fullscreenStageBox = await fullscreenStage.boundingBox();
+  expect(fullscreenSvgBox).not.toBeNull();
+  expect(fullscreenStageBox).not.toBeNull();
+  expect(fullscreenSvgBox!.width).toBeGreaterThan(previewSvgBox!.width + 100);
+  expect(fullscreenSvgBox!.height).toBeGreaterThan(previewSvgBox!.height + 80);
+  expect(fullscreenSvgBox!.height).toBeGreaterThan(fullscreenStageBox!.height * 0.82);
 
   await page.keyboard.press('Shift+Tab');
-  await expect(shell.getByTestId('wand-opstelling-svg')).toBeFocused();
+  await expect(fullscreenSvg).toBeFocused();
 
   await page.keyboard.press('Escape');
   await expect(shell).toHaveCount(0);

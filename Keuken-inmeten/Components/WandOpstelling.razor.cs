@@ -42,6 +42,9 @@ public partial class WandOpstelling
     private double VloerY => P + MuurHoogtePx;
     private double SvgWidth => MuurBreedtePx + P * 2 + 30;
     private double SvgHeight => MuurHoogtePx + P + 30;
+    private string SvgStyle => BeperkTotContainerBreedte
+        ? $"max-height: {SvgMaxHoogte ?? "65vh"}; width: auto; max-width: 100%; display: block; cursor: default; outline: none; margin: 0 auto;"
+        : $"height: {SvgMaxHoogte ?? "82dvh"}; max-height: {SvgMaxHoogte ?? "82dvh"}; width: auto; max-width: 100%; display: block; cursor: default; outline: none; margin: 0 auto;";
 
     private IReadOnlyList<int> HoogteMarkeringen()
         => WandOpstellingHelper.BepaalHoogteMarkeringen(WandHoogte);
