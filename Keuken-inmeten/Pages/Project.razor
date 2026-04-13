@@ -1,0 +1,215 @@
+@page "/project"
+@using Microsoft.AspNetCore.Components.Forms
+@inject IJSRuntime JS
+@inject KeukenStateService State
+@inject DeelLinkService Delen
+@inject ProjectBeheerService Projectbeheer
+@implements IAsyncDisposable
+
+<PageTitle>Projectinstellingen en opties</PageTitle>
+
+@{
+    var pagina = MaakPaginaModel();
+}
+
+<div class="container py-4 project-page" data-testid="project-page">
+    <section class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 p-lg-5">
+            <div class="row g-4 align-items-start">
+                <div class="col-lg-7">
+                    <span class="badge rounded-pill text-bg-primary mb-3">@pagina.BadgeTekst</span>
+                    <h1 class="display-6 fw-bold mb-3">Projectinstellingen en opties</h1>
+                    <p class="lead text-muted mb-0">@pagina.LeadTekst</p>
+                </div>
+                <div class="col-lg-5">
+                    <div class="project-summary-card h-100" data-testid="project-summary-card">
+                        <div class="small fw-semibold text-uppercase text-primary-emphasis mb-1">Huidige stand</div>
+                        <h2 class="h5 mb-1">@pagina.StatusTitel</h2>
+                        <p class="text-muted small mb-3">@pagina.StatusBeschrijving</p>
+                        <div class="stap-meta-list">
+                            @foreach (var item in pagina.MetaItems)
+                            {
+                                <span>@item</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="row g-4 align-items-start">
+        <div class="col-xl-7">
+            <section class="card border-0 shadow-sm mb-4 project-card" data-testid="project-setting-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+                        <div>
+                            <div class="text-uppercase text-muted fw-semibold mb-1 project-kicker">Projectinstelling</div>
+                            <div class="fw-semibold">@PaneelMaatUitlegHelper.RandSpelingLabel</div>
+                            <div class="small text-muted">@pagina.RandSpelingSamenvatting</div>
+                        </div>
+                        <span class="badge text-bg-light border project-setting-badge">@($"{ProjectRandSpelingInput:0.#} mm")</span>
+                    </div>
+
+                    <div class="row g-3 align-items-start">
+                        <div class="col-lg-7">
+                            <div class="small text-muted project-setting-copy">
+                                Deze waarde geldt voor het hele project. Tussen twee panelen verdeelt de app de totale voeg automatisch zodat zaagmaten hele millimeters blijven. Vrije buitenranden blijven ongewijzigd.
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label class="form-label fw-semibold small text-uppercase mb-0 project-kicker"
+                                       for="project-randspeling-input">
+                                    @PaneelMaatUitlegHelper.RandSpelingLabel (mm)
+                                </label>
+                                <HulpInfoKnop Titel="Totale voeg tussen rakende delen"
+                                              Tekst="Deze projectinstelling bepaalt de totale vrije ruimte tussen een paneel en een apparaat of buurpaneel."
+                                              Voorbeeld="Bij een totale voeg van 3 mm tussen twee panelen krijgt het ene paneel bijvoorbeeld 1 mm aftrek en het andere 2 mm."
+                                              WatNuDoen="Laat de standaard staan tenzij uw beslag, afwerking of montage bewust om meer of minder totale voeg vraagt." />
+                            </div>
+                            <input id="project-randspeling-input"
+                                   type="number"
+                                   class="form-control"
+                                   @bind="ProjectRandSpelingInput"
+                                   min="0"
+                                   step="1"
+                                   data-testid="project-randspeling-input" />
+                            <div class="form-text hulp-hint">Standaard 3 mm totaal voor het hele project.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm project-card" data-testid="project-actions-card">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted fw-semibold mb-1 project-kicker">Projectopties</div>
+                    <h2 class="h4 mb-1">Delen, bewaren en herstellen</h2>
+                    <p class="text-muted mb-4">Gebruik deze acties voor het hele project. De deellink opent direct deze projectpagina met dezelfde data.</p>
+
+                    <div class="row g-3 align-items-start">
+                        <div class="col-md-6">
+                            <button type="button"
+                                    class="btn btn-outline-primary w-100 text-start project-action-button"
+                                    @onclick="DeelProject"
+                                    data-testid="project-share-button">
+                                <span class="project-action-button__label">Deel project</span>
+                                <span class="project-action-button__copy">Maak een deelbare link naar deze keukenconfiguratie.</span>
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button"
+                                    class="btn btn-outline-primary w-100 text-start project-action-button"
+                                    @onclick="ExporteerProject"
+                                    data-testid="project-export-button">
+                                <span class="project-action-button__label">Download project</span>
+                                <span class="project-action-button__copy">Bewaar het volledige project als JSON-bestand.</span>
+                            </button>
+                        </div>
+                        <div class="col-12">
+                            <div class="project-import-panel" data-testid="project-import-card">
+                                <div>
+                                    <div class="fw-semibold">Laad project</div>
+                                    <div class="small text-muted">Importeer een eerder geëxporteerd JSON-bestand. De huidige keuken wordt direct vervangen.</div>
+                                </div>
+
+                                <label class="btn btn-outline-primary project-import-picker-button" data-testid="project-import-picker-button">
+                                    Kies JSON-bestand
+                                    <InputFile @key="importInputVersion"
+                                               class="project-import-input"
+                                               accept=".json,application/json"
+                                               aria-label="Kies een JSON-bestand om te importeren"
+                                               title="Kies een opgeslagen keukenproject in JSON-formaat"
+                                               OnChange="SelecteerImportBestand"
+                                               data-testid="project-import-input" />
+                                </label>
+
+                                @if (gekozenImportBestandNaam is { Length: > 0 } bestandsnaam)
+                                {
+                                    <div class="alert alert-light border py-2 px-3 mb-0" data-testid="project-import-selected-file">
+                                        <div class="small text-muted mb-1">Geselecteerd bestand</div>
+                                        <div class="fw-semibold text-break">@bestandsnaam</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="small text-muted mb-0">Nog geen bestand geselecteerd.</div>
+                                }
+
+                                <div class="d-flex flex-wrap justify-content-end gap-2">
+                                    <button type="button"
+                                            class="btn btn-primary"
+                                            disabled="@(gekozenImportBestand is null)"
+                                            @onclick="BevestigImportProject"
+                                            data-testid="project-import-confirm-button">
+                                        Laad project
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-xl-5">
+            <section class="card border-0 shadow-sm mb-4 project-card" data-testid="project-theme-card">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted fw-semibold mb-1 project-kicker">Weergave</div>
+                    <h2 class="h4 mb-1">Uiterlijk</h2>
+                    <p class="text-muted mb-4">@pagina.UiterlijkBeschrijving</p>
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            @onclick="ToggleTheme"
+                            data-testid="project-theme-button">
+                        @ThemeLabel
+                    </button>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm project-card project-card--danger" data-testid="project-reset-card">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted fw-semibold mb-1 project-kicker">Projectoptie</div>
+                    <h2 class="h4 mb-1">Opnieuw beginnen</h2>
+                    <p class="text-muted mb-3">Wis alle wanden, kasten, panelen en apparaten als u dit project helemaal opnieuw wilt opbouwen.</p>
+
+                    @if (pagina.KanWissen)
+                    {
+                        <button type="button"
+                                class="btn btn-outline-danger"
+                                @onclick="ToggleWisProjectBevestiging"
+                                data-testid="project-delete-button">
+                            Wis project
+                        </button>
+
+                        @if (toonWisProjectBevestiging)
+                        {
+                            <div class="project-confirm-card mt-3" data-testid="project-delete-confirmation">
+                                <div class="fw-semibold text-danger-emphasis">Hele keuken wissen?</div>
+                                <div class="small text-muted">Alle wanden, kasten, panelen en apparaten worden verwijderd zodat u opnieuw kunt beginnen.</div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button"
+                                            class="btn btn-outline-secondary"
+                                            @onclick="SluitWisProjectBevestiging"
+                                            data-testid="project-delete-cancel-button">
+                                        Annuleren
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-danger"
+                                            @onclick="BevestigWisProject"
+                                            data-testid="project-delete-confirm-button">
+                                        Ja, wis alles
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="project-muted-note">Wis project wordt beschikbaar zodra er inhoud of afwijkende projectinstellingen zijn opgeslagen.</div>
+                    }
+                </div>
+            </section>
+        </div>
+    </div>
+</div>

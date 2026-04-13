@@ -98,6 +98,11 @@ export class VerificatiePage {
 
     for (let index = 0; index < count; index++) {
       const toggle = toggles.nth(index);
+      const className = await toggle.getAttribute('class');
+      if (className?.includes('ok')) {
+        continue;
+      }
+
       await toggle.scrollIntoViewIfNeeded();
       await toggle.click();
     }

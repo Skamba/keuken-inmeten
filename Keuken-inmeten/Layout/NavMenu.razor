@@ -1,10 +1,5 @@
-﻿@using Keuken_inmeten.Services.Interop
-@using Microsoft.AspNetCore.Components.Forms
-@inject IJSRuntime JS
-@inject KeukenStateService State
-@inject DeelLinkService Delen
-@inject ProjectBeheerService Projectbeheer
-@implements IAsyncDisposable
+﻿@inject KeukenStateService State
+@implements IDisposable
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -91,166 +86,13 @@
             <div class="nav-section-divider px-3" aria-hidden="true"></div>
             <div class="nav-section-label px-3">Project</div>
             <div class="nav-item px-3">
-                <button type="button"
-                        class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
-                        @onclick="DeelHuidigePagina"
-                        title="Deel een link naar deze keukenconfiguratie"
-                        data-testid="nav-share-button">
+                <NavLink class="nav-link" href="project" data-testid="nav-project-link">
                     <span class="nav-link-content">
-                        <span class="nav-link-index nav-link-index--utility">Deel</span>
-                        <span class="nav-link-label">Deel project</span>
+                        <span class="nav-link-index nav-link-index--utility">Project</span>
+                        <span class="nav-link-label">Instellingen en opties</span>
                     </span>
-                </button>
-            </div>
-            <div class="nav-item px-3">
-                <button type="button"
-                        class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
-                        @onclick="ExporteerProject"
-                        title="Download het volledige keukenproject als JSON-bestand"
-                        data-testid="nav-export-button">
-                    <span class="nav-link-content">
-                        <span class="nav-link-index nav-link-index--utility">JSON</span>
-                        <span class="nav-link-label">Download project</span>
-                    </span>
-                </button>
-            </div>
-            <div class="nav-item px-3">
-                <button type="button"
-                        class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
-                        @onclick="OpenImportModal"
-                        @onclick:stopPropagation="true"
-                        title="Importeer een opgeslagen keukenproject vanuit JSON"
-                        data-testid="nav-import-button">
-                    <span class="nav-link-content">
-                        <span class="nav-link-index nav-link-index--utility">Laad</span>
-                        <span class="nav-link-label">Laad project</span>
-                    </span>
-                </button>
-            </div>
-            @if (State.HeeftProjectInhoud())
-            {
-                <div class="nav-item px-3">
-                    <button type="button"
-                            class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility nav-action-button--danger @(toonWisProjectBevestiging ? "nav-action-button--danger-active" : null)"
-                            @onclick="ToggleWisProjectBevestiging"
-                            @onclick:stopPropagation="true"
-                            title="Wis het volledige keukenproject en begin opnieuw"
-                            data-testid="nav-delete-button">
-                        <span class="nav-link-content">
-                            <span class="nav-link-index nav-link-index--utility">Wis</span>
-                            <span class="nav-link-label">Wis project</span>
-                        </span>
-                    </button>
-                </div>
-                @if (toonWisProjectBevestiging)
-                {
-                    <div class="nav-item px-3 nav-delete-confirmation" data-testid="nav-delete-confirmation">
-                        <div class="nav-delete-confirm-card">
-                            <div class="nav-delete-confirm-title">Hele keuken wissen?</div>
-                            <div class="nav-delete-confirm-copy">Alle wanden, kasten, panelen en apparaten worden verwijderd zodat u opnieuw kunt beginnen.</div>
-                            <div class="d-flex flex-wrap gap-2">
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-light"
-                                        @onclick="SluitWisProjectBevestiging"
-                                        @onclick:stopPropagation="true"
-                                        data-testid="nav-delete-cancel-button">
-                                    Annuleren
-                                </button>
-                                <button type="button"
-                                        class="btn btn-sm btn-danger"
-                                        @onclick="BevestigWisProject"
-                                        @onclick:stopPropagation="true"
-                                        data-testid="nav-delete-confirm-button">
-                                    Ja, wis alles
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                }
-            }
-            <div class="nav-item px-3">
-                <button type="button"
-                        class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
-                        @onclick="ToggleTheme"
-                        title="Wissel tussen licht en donker thema">
-                    <span class="nav-link-content">
-                        <span class="nav-link-index nav-link-index--utility">Thema</span>
-                        <span class="nav-link-label">@ThemeLabel</span>
-                    </span>
-                </button>
+                </NavLink>
             </div>
         </div>
     </nav>
 </div>
-
-@if (toonImportModal)
-{
-    <div class="nav-import-modal-overlay"
-         @onclick="SluitImportModal"
-         data-testid="nav-import-modal-overlay">
-        <aside class="nav-import-modal card border-0 shadow-lg"
-               role="dialog"
-               aria-modal="true"
-               aria-labelledby="nav-import-modal-title"
-               @onclick:stopPropagation="true"
-               data-testid="nav-import-modal">
-            <div class="card-header bg-primary bg-opacity-10 border-bottom">
-                <div class="d-flex justify-content-between align-items-start gap-3">
-                    <div>
-                        <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Projectimport</div>
-                        <h5 class="mb-1" id="nav-import-modal-title">Importeer JSON</h5>
-                        <p class="text-muted mb-0">Kies eerst een geëxporteerd projectbestand en bevestig daarna pas de import.</p>
-                    </div>
-                    <button type="button" class="btn-close" @onclick="SluitImportModal" aria-label="Sluit importvenster"></button>
-                </div>
-            </div>
-
-            <div class="card-body nav-import-modal-body">
-                <div class="small text-muted">
-                    Gebruik een eerder geëxporteerd keukenproject in JSON-formaat. Na import wordt de huidige keuken direct vervangen.
-                </div>
-
-                <div class="nav-import-picker">
-                    <span class="btn btn-outline-primary nav-import-picker-button" data-testid="nav-import-picker-button">
-                        Kies JSON-bestand
-                    </span>
-                    <InputFile @key="importInputVersion"
-                               class="nav-import-modal-input"
-                               accept=".json,application/json"
-                               aria-label="Kies een JSON-bestand om te importeren"
-                               title="Kies een opgeslagen keukenproject in JSON-formaat"
-                               OnChange="SelecteerImportBestand"
-                               data-testid="nav-import-input" />
-                </div>
-
-                @if (gekozenImportBestandNaam is { Length: > 0 } bestandsnaam)
-                {
-                    <div class="alert alert-light border py-2 px-3 mb-0" data-testid="nav-import-selected-file">
-                        <div class="small text-muted mb-1">Geselecteerd bestand</div>
-                        <div class="fw-semibold text-break">@bestandsnaam</div>
-                    </div>
-                }
-                else
-                {
-                    <div class="small text-muted mb-0">Nog geen bestand geselecteerd.</div>
-                }
-
-                <div class="d-flex flex-wrap justify-content-end gap-2">
-                    <button type="button"
-                            class="btn btn-outline-secondary"
-                            @onclick="SluitImportModal"
-                            data-testid="nav-import-cancel-button">
-                        Annuleren
-                    </button>
-                    <button type="button"
-                            class="btn btn-primary"
-                            @onclick="BevestigImportProject"
-                            disabled="@(gekozenImportBestand is null)"
-                            data-testid="nav-import-confirm-button">
-                        Importeer project
-                    </button>
-                </div>
-            </div>
-        </aside>
-    </div>
-}

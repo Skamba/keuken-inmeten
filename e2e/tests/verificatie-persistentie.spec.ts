@@ -78,15 +78,16 @@ test('verificatiestatus zit ook in de sharing link', async ({ page, context, bro
   await verificatie.expectLoaded();
   await verificatie.openControleVoorWand('Sharewand');
   await verificatie.vinkMatenCheckAf();
+  await verificatie.rondHuidigeVerificatieAf();
 
-  await page.getByTestId('nav-share-button').click();
+  await page.getByTestId('verificatie-share-button').click();
   await expect(page.getByTestId('actie-feedback-toast')).toContainText('De deellink is gekopieerd.');
 
   let deelUrl = '';
   await expect.poll(async () => {
     deelUrl = await page.evaluate(() => navigator.clipboard.readText());
     return deelUrl;
-  }).toContain('/verificatie?s=v4.');
+  }).toMatch(/\/verificatie(?:\?wand=[^&]+)?(?:&|\?)s=v4\./);
 
   const schoneContext = await browser.newContext();
   try {

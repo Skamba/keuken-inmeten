@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { IndelingPage } from '../pages/IndelingPage';
+import { ProjectPage } from '../pages/ProjectPage';
 
 test('home toont een compactere start zonder extra uitlegblokken', async ({ page }) => {
   await page.goto('/');
@@ -34,8 +35,9 @@ test('home toont een hervatdashboard zodra er projectdata bestaat', async ({ pag
   await expect(page.getByTestId('home-onboarding-help')).toHaveCount(0);
 });
 
-test('navbar deelt een v4-link naar de huidige stap die in een schone sessie opnieuw laadt', async ({ page, context, browser }) => {
+test('projectpagina deelt een v4-link die in een schone sessie opnieuw laadt', async ({ page, context, browser }) => {
   const indeling = new IndelingPage(page);
+  const project = new ProjectPage(page);
 
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.addInitScript(() => {
@@ -52,7 +54,13 @@ test('navbar deelt een v4-link naar de huidige stap die in een schone sessie opn
     diepte: 560,
   });
 
-  await page.getByTestId('nav-share-button').click();
+  await expect(page.getByTestId('nav-share-button')).toHaveCount(0);
+  await expect(page.getByTestId('nav-export-button')).toHaveCount(0);
+  await expect(page.getByTestId('nav-import-button')).toHaveCount(0);
+  await expect(page.getByTestId('nav-delete-button')).toHaveCount(0);
+
+  await project.openVanuitNavigatie();
+  await page.getByTestId('project-share-button').click();
 
   await expect(page.getByTestId('actie-feedback-toast')).toContainText('De deellink is gekopieerd.');
 
@@ -60,26 +68,27 @@ test('navbar deelt een v4-link naar de huidige stap die in een schone sessie opn
   await expect.poll(async () => {
     deelUrl = await page.evaluate(() => navigator.clipboard.readText());
     return deelUrl;
-  }).toContain('/kasten?s=v4.');
+  }).toContain('/project?s=v4.');
 
   const schoneContext = await browser.newContext();
   try {
     const gedeeldePagina = await schoneContext.newPage();
-    const gedeeldeIndeling = new IndelingPage(gedeeldePagina);
+    const gedeeldeProject = new ProjectPage(gedeeldePagina);
 
     await gedeeldePagina.goto(deelUrl);
 
-    await expect(gedeeldePagina).toHaveURL(/\/kasten\?s=v4\./);
-    await expect(gedeeldePagina.locator('[data-testid="nav-indeling-wand-link"][data-wand-naam="Achterwand"]')).toBeVisible();
-    await gedeeldeIndeling.openWandWerkruimte('Achterwand');
-    await expect(gedeeldePagina.locator('span.fw-semibold').filter({ hasText: 'Onderkast delen' })).toBeVisible();
+    await expect(gedeeldePagina).toHaveURL(/\/project\?s=v4\./);
+    await gedeeldeProject.expectLoaded();
+    await expect(gedeeldePagina.getByTestId('project-summary-card')).toContainText('1 wand(en)');
+    await expect(gedeeldePagina.getByTestId('project-summary-card')).toContainText('1 kast(en)');
   } finally {
     await schoneContext.close();
   }
 });
 
-test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en via een importmodal terug laden', async ({ page }) => {
+test('projectpagina exporteert projectjson en kan het project wissen en terug laden', async ({ page }) => {
   const indeling = new IndelingPage(page);
+  const project = new ProjectPage(page);
 
   await indeling.goto();
   await indeling.voegWandToe('Achterwand');
@@ -90,9 +99,17 @@ test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en
     diepte: 560,
   });
 
-  const downloadPromise = page.waitForEvent('download');
-  await page.getByTestId('nav-export-button').click();
-  const download = await downloadPromise;
+  await expect(page.getByTestId('nav-share-button')).toHaveCount(0);
+  await expect(page.getByTestId('nav-export-button')).toHaveCount(0);
+  await expect(page.getByTestId('nav-import-button')).toHaveCount(0);
+  await expect(page.getByTestId('nav-delete-button')).toHaveCount(0);
+
+  await project.openVanuitNavigatie();
+  await expect(page.getByTestId('project-randspeling-input')).toHaveValue('3');
+  await page.getByTestId('project-randspeling-input').fill('4');
+  await page.keyboard.press('Tab');
+
+  const download = await project.exporteerProject();
 
   expect(download.suggestedFilename()).toMatch(/^keuken-inmeten-\d{8}-\d{4}\.json$/);
 
@@ -105,35 +122,32 @@ test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en
 
   expect(exportData.schemaVersion).toBeGreaterThan(0);
   expect(exportData.data.wanden).toHaveLength(1);
+  expect(exportData.data.paneelRandSpeling).toBe(4);
 
   await expect(page.getByTestId('indeling-project-acties-details')).toHaveCount(0);
-  await page.getByTestId('nav-delete-button').click();
-  await expect(page.getByTestId('nav-delete-confirmation')).toBeVisible();
-  await page.getByTestId('nav-delete-confirm-button').click();
-  await expect(page.getByTestId('nav-delete-confirmation')).toHaveCount(0);
+  await project.wisProject();
+  await expect(page.getByTestId('project-delete-confirmation')).toHaveCount(0);
 
   await expect(page.getByTestId('actie-feedback-toast')).toContainText('Het keukenproject is gewist.');
-  await expect(page.getByText('Begin door een wand toe te voegen.')).toBeVisible();
-  await expect(page.getByTestId('nav-delete-button')).toHaveCount(0);
+  await expect(page.getByTestId('project-summary-card')).toContainText('Nog geen keukeninhoud geladen');
+  await expect(page.getByTestId('project-delete-button')).toHaveCount(0);
 
-  await expect(page.getByTestId('nav-import-modal')).toHaveCount(0);
-  await page.getByTestId('nav-import-button').click();
-  await expect(page.getByTestId('nav-import-modal')).toBeVisible();
-  await expect(page.getByTestId('nav-import-confirm-button')).toBeDisabled();
+  await expect(page.getByTestId('project-import-confirm-button')).toBeDisabled();
 
-  await page.getByTestId('nav-import-input').setInputFiles({
+  await page.getByTestId('project-import-input').setInputFiles({
     name: 'keuken-project.json',
     mimeType: 'application/json',
     buffer: Buffer.from(jsonMetBom, 'utf8'),
   });
 
-  await expect(page.getByTestId('nav-import-selected-file')).toContainText('keuken-project.json');
-  await expect(page.getByTestId('nav-import-confirm-button')).toBeEnabled();
-  await page.getByTestId('nav-import-confirm-button').click();
+  await expect(page.getByTestId('project-import-selected-file')).toContainText('keuken-project.json');
+  await expect(page.getByTestId('project-import-confirm-button')).toBeEnabled();
+  await page.getByTestId('project-import-confirm-button').click();
 
   await expect(page.getByTestId('actie-feedback-toast')).toContainText("Project 'keuken-project.json' is geladen.");
-  await expect(page.getByTestId('nav-import-modal')).toHaveCount(0);
+  await expect(page.getByTestId('project-delete-button')).toBeVisible();
 
+  await indeling.goto();
   await indeling.openWandWerkruimte('Achterwand');
   await expect(page.getByTestId('actieve-wand-werkruimte')).toContainText('Onderkast export');
 });
