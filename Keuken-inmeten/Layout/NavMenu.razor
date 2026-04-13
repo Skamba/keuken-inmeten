@@ -26,6 +26,7 @@
 <div id="app-navmenu" class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     @{
         var flowStatus = StappenFlowHelper.BepaalStatus(State);
+        var actieveWandNavigatieStapId = BepaalActieveWandNavigatieStapId();
     }
     <nav class="nav flex-column nav-menu-layout">
         <div class="nav-primary-section">
@@ -65,7 +66,7 @@
                         </span>
                     }
                 </div>
-                @if (gate is null && wandNavTestIdPrefix is not null && State.Wanden.Count > 0)
+                @if (gate is null && stap.Id == actieveWandNavigatieStapId && wandNavTestIdPrefix is not null && State.Wanden.Count > 0)
                 {
                     <div class="nav-submenu px-3" data-testid="@($"nav-{wandNavTestIdPrefix}-wanden")">
                         @foreach (var wand in State.Wanden)

@@ -72,6 +72,8 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
   await indeling.gaNaarPanelen();
   await panelen.expectLoaded();
   await expect(page.getByTestId('nav-panelen-wand-link')).toHaveCount(2);
+  await expect(page.getByTestId('nav-indeling-wanden')).toHaveCount(0);
+  await expect(page.getByTestId('nav-verificatie-wanden')).toHaveCount(0);
 
   await openPaneelWandViaNavbar(eersteWandId!);
   await page.locator('[data-testid="paneel-kast"]').first().click();
@@ -95,6 +97,8 @@ test('panelenoverzicht en verificatie houden wanden met gelijke namen gescheiden
   await verificatie.expectLoaded();
   await verificatie.expectTaaklijst();
   await expect(page.getByTestId('nav-verificatie-wand-link')).toHaveCount(2);
+  await expect(page.getByTestId('nav-indeling-wanden')).toHaveCount(0);
+  await expect(page.getByTestId('nav-panelen-wanden')).toHaveCount(0);
   await expect(page.getByTestId('verificatie-taakgroep')).toHaveCount(2);
   await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${eersteWandId}"]`)).toBeVisible();
   await expect(page.locator(`[data-testid="verificatie-taakgroep"][data-wand-id="${tweedeWandId}"]`)).toBeVisible();

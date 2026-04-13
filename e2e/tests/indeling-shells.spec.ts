@@ -92,6 +92,8 @@ test('stap 1 verplaatst wandnavigatie naar de navbar onder indeling', async ({ p
   await expect(page.getByRole('heading', { name: 'Wandenoverzicht' })).toHaveCount(0);
   await expect(page.getByTestId('nav-indeling-wanden')).toBeVisible();
   await expect(page.getByTestId('nav-indeling-wand-link')).toHaveCount(2);
+  await expect(page.getByTestId('nav-panelen-wanden')).toHaveCount(0);
+  await expect(page.getByTestId('nav-verificatie-wanden')).toHaveCount(0);
   await expect(page.locator('[data-testid="nav-indeling-wand-link"][data-wand-naam="Achterwand"]')).toBeVisible();
   await expect(page.locator('[data-testid="nav-indeling-wand-link"][data-wand-naam="Linkerwand"]')).toBeVisible();
 });

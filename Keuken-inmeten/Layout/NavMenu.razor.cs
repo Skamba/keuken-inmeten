@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
+using Keuken_inmeten.Services;
 using Keuken_inmeten.Services.Interop;
 using Microsoft.AspNetCore.Components.Forms;
 
@@ -131,6 +132,15 @@ public partial class NavMenu
             "verificatie" => $"verificatie?wand={wandId:D}",
             _ => throw new ArgumentOutOfRangeException(nameof(stapId), stapId, "Onbekende stap voor wandnavigatie.")
         };
+
+    private string? BepaalActieveWandNavigatieStapId()
+    {
+        var route = PersistentieDeelLinkHelper.BepaalRouteVoorHuidigeUrl(Navigation.ToBaseRelativePath(Navigation.Uri));
+
+        return StappenFlowHelper.AlleStappen.FirstOrDefault(stap =>
+            string.Equals(stap.Route, route, StringComparison.OrdinalIgnoreCase)
+            && BepaalWandNavTestIdPrefix(stap.Id) is not null)?.Id;
+    }
 
     private void ResetImportSelectie(bool vernieuwInput)
     {
