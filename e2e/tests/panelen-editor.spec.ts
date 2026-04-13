@@ -166,7 +166,8 @@ test('stap 2 sluit de actieve wand bij een tweede klik op dezelfde wand', async 
   await panelen.openWandWerkruimte('Achterwand');
   await panelen.sluitActieveWand('Achterwand');
   await expect(page.getByTestId('paneel-editor-weergave')).toBeVisible();
-  await expect(page.getByText('Open eerst één wand')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wandenoverzicht' })).toBeVisible();
+  await expect(page.getByText('Open één wand om panelen te plaatsen of te bewerken.')).toBeVisible();
 });
 
 test('stap 2 combineert editor en overzicht zonder viewtoggle', async ({ page }) => {
@@ -215,6 +216,40 @@ test('stap 2 toont het wandoverzicht direct in dezelfde werklaag', async ({ page
   await panelen.expectOverzichtVoorWand('Achterwand');
 });
 
+test('stap 2 toont geen werklaag- of andere-wanden fluff meer', async ({ page }) => {
+  const indeling = new IndelingPage(page);
+  const panelen = new PanelenPage(page);
+
+  await indeling.goto();
+  await indeling.voegWandToe('Achterwand');
+  await indeling.voegWandToe('Linkerwand');
+  await indeling.voegKastToeAanWand('Achterwand', {
+    naam: 'Onderkast actief',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.voegKastToeAanWand('Linkerwand', {
+    naam: 'Onderkast buur',
+    breedte: 600,
+    hoogte: 720,
+    diepte: 560,
+  });
+  await indeling.gaNaarPanelen();
+
+  await panelen.expectLoaded();
+  await panelen.openWandWerkruimte('Achterwand');
+  await expect(page.getByTestId('paneel-werklaag-samenvatting')).toHaveCount(0);
+  await expect(page.getByTestId('paneel-overige-wanden-summary')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Andere wanden' })).toHaveCount(0);
+
+  await page
+    .locator('[data-testid="paneel-wand-card"][data-wand-naam="Linkerwand"]')
+    .getByTestId('open-paneel-wand-button')
+    .click();
+  await panelen.expectActieveWerkruimte('Linkerwand');
+});
+
 test('stap 2 toont geen staphulp- of begrippenknoppen meer', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
@@ -247,7 +282,7 @@ test('stap 2 toont geen staphulp- of begrippenknoppen meer', async ({ page }) =>
   await expect(begrippenKnop).toHaveCount(0);
 });
 
-test('focuskaart toont geen extra toelichting onder open eerst één wand', async ({ page }) => {
+test('focuskaart toont alleen het compacte wandenoverzicht', async ({ page }) => {
   const indeling = new IndelingPage(page);
   const panelen = new PanelenPage(page);
 
@@ -262,7 +297,9 @@ test('focuskaart toont geen extra toelichting onder open eerst één wand', asyn
   await indeling.gaNaarPanelen();
 
   await panelen.expectLoaded();
-  await expect(page.getByText('Open eerst één wand')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wandenoverzicht' })).toBeVisible();
+  await expect(page.getByText('Open één wand om panelen te plaatsen of te bewerken.')).toBeVisible();
+  await expect(page.getByText('Open eerst één wand')).toHaveCount(0);
   await expect(page.getByText('Begin met één wand. Het overzicht wordt pas nuttig zodra er panelen zijn.')).toHaveCount(0);
 });
 

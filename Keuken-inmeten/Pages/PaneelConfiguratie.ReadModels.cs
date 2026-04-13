@@ -65,10 +65,6 @@ public static class PaneelConfiguratieReadModelHelper
             ToonCompacteStapIntro: toonCompacteStapIntro,
             ToonUitgeklapteProjectinstellingen: Math.Abs(paneelRandSpeling - 3) > 0.001,
             Kop: BouwKopModel(routeGate, actieveWerkruimte),
-            WerklaagSamenvatting: BouwWerklaagSamenvattingModel(
-                actieveWerkruimte,
-                toewijzingenAantal,
-                toonEditorDrawer),
             PaneelEditorStatus: paneelEditorStatus,
             OverzichtWanden: overzichtWanden,
             ActieveWerkruimte: actieveWerkruimte,
@@ -92,31 +88,6 @@ public static class PaneelConfiguratieReadModelHelper
         return new(
             LeadTekst: "Open één wand en plaats of controleer daarna panelen in één werklaag.",
             CompactBlok: null);
-    }
-
-    private static PaneelWerklaagSamenvattingModel BouwWerklaagSamenvattingModel(
-        PaneelActieveWerkruimteModel? actieveWerkruimte,
-        int toewijzingenAantal,
-        bool toonEditorDrawer)
-    {
-        var metaItems = new List<string>();
-        if (actieveWerkruimte is not null)
-        {
-            metaItems.Add($"Actief: {actieveWerkruimte.Samenvatting.Werkruimte.Wand.Naam}");
-            metaItems.Add($"{actieveWerkruimte.Samenvatting.Werkruimte.Toewijzingen.Count} paneel/panelen op deze wand");
-            metaItems.Add(toonEditorDrawer ? "Editor open" : "Editor gesloten");
-        }
-
-        return new(
-            Titel: actieveWerkruimte is null
-                ? "Open eerst één wand"
-                : $"Panelen voor {actieveWerkruimte.Samenvatting.Werkruimte.Wand.Naam}",
-            Beschrijving: actieveWerkruimte is null
-                ? "Daarna staan editor en overzicht samen in één werklaag."
-                : toonEditorDrawer
-                    ? "De editor staat open. Controleer panelen voor deze wand direct ernaast."
-                    : "Plaats of controleer panelen voor deze wand zonder van weergave te wisselen.",
-            MetaItems: metaItems);
     }
 
     private static PaneelActieveWerkruimteModel BouwActieveWerkruimteModel(
@@ -206,7 +177,6 @@ public sealed record PaneelConfiguratiePaginaModel(
     bool ToonCompacteStapIntro,
     bool ToonUitgeklapteProjectinstellingen,
     PaneelPaginaKopModel Kop,
-    PaneelWerklaagSamenvattingModel WerklaagSamenvatting,
     PaneelEditorStatusModel PaneelEditorStatus,
     IReadOnlyList<PaneelWandSamenvatting> OverzichtWanden,
     PaneelActieveWerkruimteModel? ActieveWerkruimte,
@@ -220,11 +190,6 @@ public sealed record PaneelCompacteKopModel(
     string Kicker,
     string Titel,
     string Beschrijving);
-
-public sealed record PaneelWerklaagSamenvattingModel(
-    string Titel,
-    string? Beschrijving,
-    IReadOnlyList<string> MetaItems);
 
 public sealed record PaneelWandSamenvatting(
     PaneelWerkruimteContext Werkruimte,

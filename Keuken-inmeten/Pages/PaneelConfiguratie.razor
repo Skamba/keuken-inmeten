@@ -44,31 +44,6 @@
 else
 {
     <div class="paneel-pagina-shell @(pagina.ToonEditorDrawer ? "editor-open" : null)">
-        <div class="border rounded p-3 mb-4 bg-body-tertiary paneel-werklaag-samenvatting"
-             data-testid="paneel-werklaag-samenvatting">
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-                <div>
-                    <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: .04em;">Werklaag</div>
-                    <div class="fw-semibold">@pagina.WerklaagSamenvatting.Titel</div>
-                    @if (!string.IsNullOrWhiteSpace(pagina.WerklaagSamenvatting.Beschrijving))
-                    {
-                        <div class="small text-muted">
-                            @pagina.WerklaagSamenvatting.Beschrijving
-                        </div>
-                    }
-                </div>
-                @if (pagina.WerklaagSamenvatting.MetaItems.Count > 0)
-                {
-                    <div class="stap-meta-list paneel-weergave-meta-list">
-                        @foreach (var item in pagina.WerklaagSamenvatting.MetaItems)
-                        {
-                            <span>@item</span>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-
         <details class="indeling-overige-wanden paneel-projectinstellingen mb-4"
                  data-testid="paneel-projectinstellingen"
                  open="@pagina.ToonUitgeklapteProjectinstellingen">
@@ -142,30 +117,24 @@ else
             }
             else if (pagina.OverzichtWanden.Count > 0)
             {
-                <IndelingDetailsBlok Titel="Andere wanden"
-                                     Beschrijving="Verborgen zodat de actieve werkruimte rustiger blijft."
-                                     BadgeText="@($"{pagina.OverzichtWanden.Count} wand(en) direct beschikbaar")"
-                                     DetailsClass="indeling-overige-wanden paneel-overige-wanden-details mb-4"
-                                     DetailsDataTestId="paneel-overige-wanden-details"
-                                     SummaryDataTestId="paneel-overige-wanden-summary">
-                    <div class="indeling-overige-wanden-lijst">
-                        @foreach (var wand in pagina.OverzichtWanden)
-                        {
-                            <IndelingWandSchakelaar WandId="wand.Werkruimte.Wand.Id"
-                                                    WandNaam="@wand.Werkruimte.Wand.Naam"
-                                                    DataTestId="paneel-wand-card"
-                                                    KnopDataTestId="open-paneel-wand-button"
-                                                    KnopLabel="@wand.SchakelaarKnopLabel"
-                                                    KnopUitgeschakeld="@wand.SchakelaarKnopUitgeschakeld"
-                                                    MetaClass="stap-meta-list"
-                                                    MetaItems="@wand.SchakelaarMetaItems"
-                                                    Beschrijving="@wand.SchakelaarBeschrijving"
-                                                    OnOpenen="@(() => ToggleWandWerkruimte(wand.Werkruimte.Wand.Id))"
-                                                    @key="wand.Werkruimte.Wand.Id">
-                            </IndelingWandSchakelaar>
-                        }
-                    </div>
-                </IndelingDetailsBlok>
+                <div class="indeling-overige-wanden-lijst mb-4"
+                     data-testid="paneel-overige-wanden-lijst">
+                    @foreach (var wand in pagina.OverzichtWanden)
+                    {
+                        <IndelingWandSchakelaar WandId="wand.Werkruimte.Wand.Id"
+                                                WandNaam="@wand.Werkruimte.Wand.Naam"
+                                                DataTestId="paneel-wand-card"
+                                                KnopDataTestId="open-paneel-wand-button"
+                                                KnopLabel="@wand.SchakelaarKnopLabel"
+                                                KnopUitgeschakeld="@wand.SchakelaarKnopUitgeschakeld"
+                                                MetaClass="stap-meta-list"
+                                                MetaItems="@wand.SchakelaarMetaItems"
+                                                Beschrijving="@wand.SchakelaarBeschrijving"
+                                                OnOpenen="@(() => ToggleWandWerkruimte(wand.Werkruimte.Wand.Id))"
+                                                @key="wand.Werkruimte.Wand.Id">
+                        </IndelingWandSchakelaar>
+                    }
+                </div>
             }
 
             @if (actieveWerkruimte is not null && geopendeWerkruimte is not null && geopendeWand is not null)
