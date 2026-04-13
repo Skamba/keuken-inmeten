@@ -198,6 +198,60 @@
     background: rgba(255, 255, 255, 0.02);
 }
 
+.nav-action-button--danger {
+    border-color: rgba(248, 113, 113, 0.22);
+    color: #fecaca;
+}
+
+.nav-action-button--danger .nav-link-index {
+    background: rgba(248, 113, 113, 0.12);
+    color: #fecaca;
+}
+
+.nav-action-button--danger:hover {
+    background: rgba(127, 29, 29, 0.28);
+    border-color: rgba(248, 113, 113, 0.35);
+}
+
+.nav-action-button--danger:hover .nav-link-index,
+.nav-action-button--danger:focus .nav-link-index,
+.nav-action-button--danger:focus-visible .nav-link-index {
+    background: rgba(248, 113, 113, 0.2);
+    color: #fff5f5;
+}
+
+.nav-action-button--danger-active {
+    background: rgba(127, 29, 29, 0.28);
+    border-color: rgba(248, 113, 113, 0.35);
+}
+
+.nav-delete-confirmation {
+    padding-top: 0;
+}
+
+.nav-delete-confirm-card {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.9rem;
+    border: 1px solid rgba(248, 113, 113, 0.22);
+    border-radius: 0.95rem;
+    background: rgba(127, 29, 29, 0.18);
+}
+
+.nav-delete-confirm-title {
+    color: #fecaca;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+}
+
+.nav-delete-confirm-copy {
+    color: rgba(254, 226, 226, 0.9);
+    font-size: 0.86rem;
+    line-height: 1.35;
+}
+
 .nav-import-modal-overlay {
     align-items: center;
     background: rgba(15, 23, 42, 0.55);

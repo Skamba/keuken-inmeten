@@ -18,7 +18,6 @@ public partial class KastenInvoer
     private Guid? bevestigVerwijderWandId;
     private Guid? bevestigVerwijderKastId;
     private Guid? _clipboardKastId;
-    private bool bevestigWisAlles;
     private bool toonWandToevoegenModal;
 
     private Guid? actieveWandId;

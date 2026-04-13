@@ -37,15 +37,6 @@ public partial class KastenInvoer
         nieuweWandNaam = "";
     }
 
-    private async Task WisAllesAsync()
-    {
-        bevestigWisAlles = false;
-        SluitKastFormulier();
-        SluitApparaatFormulier();
-        SluitWandWerkruimte();
-        await Projectbeheer.WisAllesAsync();
-    }
-
     private void WandNaamOpslaan()
     {
         if (bewerkWandId is null || string.IsNullOrWhiteSpace(bewerkWandNaam))

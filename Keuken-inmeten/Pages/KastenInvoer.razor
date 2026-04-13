@@ -1,7 +1,6 @@
 @page "/kasten"
 @inject KeukenStateService State
 @inject ActieFeedbackService Feedback
-@inject ProjectBeheerService Projectbeheer
 @implements IDisposable
 
 <PageTitle>Stap 1 — Indeling</PageTitle>
@@ -81,40 +80,6 @@ else
 }
 else
 {
-    @if (actieveWerkruimte is null)
-    {
-        @if (State.HeeftProjectInhoud())
-        {
-            <details class="indeling-overige-wanden mb-4" data-testid="indeling-project-acties-details">
-                <summary class="indeling-overige-wanden-summary" data-testid="indeling-project-acties-summary">
-                    <div>
-                        <h5 class="mb-0">Projectacties</h5>
-                        <div class="small text-muted">Verborgen zodat wissen niet concurreert met het kiezen of bewerken van een wand.</div>
-                    </div>
-                </summary>
-                <div class="indeling-overige-wanden-body">
-                    @if (bevestigWisAlles)
-                    {
-                        <div class="d-flex flex-wrap align-items-center gap-2">
-                            <span class="text-danger small fw-semibold">Hele keuken wissen? Alle wanden, kasten, panelen en apparaten worden teruggezet.</span>
-                            <button class="btn btn-sm btn-danger" @onclick="WisAllesAsync">Ja, wis alles</button>
-                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigWisAlles = false">Annuleren</button>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                            <p class="small text-muted mb-0">Gebruik dit alleen als u de hele keuken opnieuw wilt beginnen.</p>
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigWisAlles = true">
-                                Wis hele keuken
-                            </button>
-                        </div>
-                    }
-                </div>
-            </details>
-        }
-    }
-
     @if (actieveWerkruimte is not null)
     {
         var actieveWand = actieveWerkruimte.Samenvatting.Wand;
@@ -431,30 +396,6 @@ else
                         </button>
                     </div>
                 </div>
-            </IndelingDetailsBlok>
-
-            <IndelingDetailsBlok Titel="Projectacties"
-                                 Beschrijving="Open dit alleen voor zeldzame of destructieve acties buiten deze wand."
-                                 DetailsClass="indeling-overige-wanden mb-4"
-                                 DetailsDataTestId="indeling-project-acties-details"
-                                 SummaryDataTestId="indeling-project-acties-summary">
-                @if (bevestigWisAlles)
-                {
-                    <div class="d-flex flex-wrap align-items-center gap-2">
-                        <span class="text-danger small fw-semibold">Hele keuken wissen? Alle wanden, kasten, panelen en apparaten worden teruggezet.</span>
-                        <button class="btn btn-sm btn-danger" @onclick="WisAllesAsync">Ja, wis alles</button>
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => bevestigWisAlles = false">Annuleren</button>
-                    </div>
-                }
-                else
-                {
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                        <p class="small text-muted mb-0">Gebruik dit alleen als u de hele keuken opnieuw wilt beginnen.</p>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => bevestigWisAlles = true">
-                            Wis hele keuken
-                        </button>
-                    </div>
-                }
             </IndelingDetailsBlok>
         </div>
     }

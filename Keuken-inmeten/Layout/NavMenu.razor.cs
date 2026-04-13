@@ -11,6 +11,7 @@ public partial class NavMenu
 
     private bool collapseNavMenu = true;
     private bool toonImportModal;
+    private bool toonWisProjectBevestiging;
     private bool isDarkTheme;
     private IBrowserFile? gekozenImportBestand;
     private string? gekozenImportBestandNaam;
@@ -54,6 +55,7 @@ public partial class NavMenu
     private void OpenImportModal()
     {
         collapseNavMenu = true;
+        toonWisProjectBevestiging = false;
         toonImportModal = true;
         ResetImportSelectie(vernieuwInput: true);
     }
@@ -63,6 +65,16 @@ public partial class NavMenu
         toonImportModal = false;
         ResetImportSelectie(vernieuwInput: true);
     }
+
+    private void ToggleWisProjectBevestiging()
+    {
+        collapseNavMenu = true;
+        toonImportModal = false;
+        toonWisProjectBevestiging = !toonWisProjectBevestiging;
+    }
+
+    private void SluitWisProjectBevestiging()
+        => toonWisProjectBevestiging = false;
 
     private void SelecteerImportBestand(InputFileChangeEventArgs args)
     {
@@ -82,10 +94,22 @@ public partial class NavMenu
         ResetImportSelectie(vernieuwInput: true);
     }
 
+    private async Task BevestigWisProject()
+    {
+        toonWisProjectBevestiging = false;
+        await Projectbeheer.WisAllesAsync();
+    }
+
     private void ToggleNavMenu()
         => collapseNavMenu = !collapseNavMenu;
 
-    private void HandleStateChanged() => _ = InvokeAsync(StateHasChanged);
+    private void HandleStateChanged()
+    {
+        if (!State.HeeftProjectInhoud())
+            toonWisProjectBevestiging = false;
+
+        _ = InvokeAsync(StateHasChanged);
+    }
 
     private void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
         => _ = InvokeAsync(StateHasChanged);

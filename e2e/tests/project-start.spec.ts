@@ -106,12 +106,15 @@ test('navbar exporteert projectjson en stap 1 kan het project volledig wissen en
   expect(exportData.schemaVersion).toBeGreaterThan(0);
   expect(exportData.data.wanden).toHaveLength(1);
 
-  await page.getByTestId('indeling-project-acties-summary').click();
-  await page.getByRole('button', { name: 'Wis hele keuken' }).click();
-  await page.getByRole('button', { name: 'Ja, wis alles' }).click();
+  await expect(page.getByTestId('indeling-project-acties-details')).toHaveCount(0);
+  await page.getByTestId('nav-delete-button').click();
+  await expect(page.getByTestId('nav-delete-confirmation')).toBeVisible();
+  await page.getByTestId('nav-delete-confirm-button').click();
+  await expect(page.getByTestId('nav-delete-confirmation')).toHaveCount(0);
 
   await expect(page.getByTestId('actie-feedback-toast')).toContainText('Het keukenproject is gewist.');
   await expect(page.getByText('Begin door een wand toe te voegen.')).toBeVisible();
+  await expect(page.getByTestId('nav-delete-button')).toHaveCount(0);
 
   await expect(page.getByTestId('nav-import-modal')).toHaveCount(0);
   await page.getByTestId('nav-import-button').click();

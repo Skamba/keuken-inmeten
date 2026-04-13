@@ -125,6 +125,47 @@
                     </span>
                 </button>
             </div>
+            @if (State.HeeftProjectInhoud())
+            {
+                <div class="nav-item px-3">
+                    <button type="button"
+                            class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility nav-action-button--danger @(toonWisProjectBevestiging ? "nav-action-button--danger-active" : null)"
+                            @onclick="ToggleWisProjectBevestiging"
+                            @onclick:stopPropagation="true"
+                            title="Wis het volledige keukenproject en begin opnieuw"
+                            data-testid="nav-delete-button">
+                        <span class="nav-link-content">
+                            <span class="nav-link-index nav-link-index--utility">Wis</span>
+                            <span class="nav-link-label">Wis project</span>
+                        </span>
+                    </button>
+                </div>
+                @if (toonWisProjectBevestiging)
+                {
+                    <div class="nav-item px-3 nav-delete-confirmation" data-testid="nav-delete-confirmation">
+                        <div class="nav-delete-confirm-card">
+                            <div class="nav-delete-confirm-title">Hele keuken wissen?</div>
+                            <div class="nav-delete-confirm-copy">Alle wanden, kasten, panelen en apparaten worden verwijderd zodat u opnieuw kunt beginnen.</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-light"
+                                        @onclick="SluitWisProjectBevestiging"
+                                        @onclick:stopPropagation="true"
+                                        data-testid="nav-delete-cancel-button">
+                                    Annuleren
+                                </button>
+                                <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        @onclick="BevestigWisProject"
+                                        @onclick:stopPropagation="true"
+                                        data-testid="nav-delete-confirm-button">
+                                    Ja, wis alles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
             <div class="nav-item px-3">
                 <button type="button"
                         class="nav-link border-0 w-100 text-start nav-action-button nav-action-button--utility"
