@@ -214,6 +214,7 @@ public class BestellijstExportFlowHelperTests
     {
         var pdf = BestellijstExportFlowHelper.Voor(BestellijstExportType.Pdf);
         var excel = BestellijstExportFlowHelper.Voor(BestellijstExportType.Excel);
+        var adzaagt = BestellijstExportFlowHelper.Voor(BestellijstExportType.AdZaagtExcel);
 
         Assert.Equal("PDF met visualisaties", pdf.Label);
         Assert.Contains("zaagbedrijf", pdf.WanneerKiezen, StringComparison.OrdinalIgnoreCase);
@@ -222,6 +223,10 @@ public class BestellijstExportFlowHelperTests
         Assert.Equal("Excel alleen lijst", excel.Label);
         Assert.Contains("sorteren", excel.WanneerKiezen, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("Download Excel", excel.BevestigLabel);
+
+        Assert.Equal("AdZaagt zaagstaat", adzaagt.Label);
+        Assert.Contains("AdZaagt", adzaagt.WanneerKiezen);
+        Assert.Equal("Download AdZaagt", adzaagt.BevestigLabel);
     }
 
     [Fact]
@@ -235,11 +240,14 @@ public class BestellijstExportFlowHelperTests
 
         var pdfPunten = BestellijstExportFlowHelper.MaakPreviewPunten(document, BestellijstExportType.Pdf);
         var excelPunten = BestellijstExportFlowHelper.MaakPreviewPunten(document, BestellijstExportType.Excel);
+        var adzaagtPunten = BestellijstExportFlowHelper.MaakPreviewPunten(document, BestellijstExportType.AdZaagtExcel);
 
         Assert.Contains(pdfPunten, punt => punt.Contains("bronlocaties", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(pdfPunten, punt => punt.Contains(BestellijstExportFormatter.FormatVierkanteMeter(2.64), StringComparison.Ordinal));
         Assert.Contains(excelPunten, punt => punt.Contains("1 t/m 3", StringComparison.Ordinal));
         Assert.Contains(excelPunten, punt => punt.Contains("bronlocaties", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(adzaagtPunten, punt => punt.Contains("AdZaagt", StringComparison.Ordinal));
+        Assert.Contains(adzaagtPunten, punt => punt.Contains("kantenbandcodes", StringComparison.OrdinalIgnoreCase));
     }
 }
 

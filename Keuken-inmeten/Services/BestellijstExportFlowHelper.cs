@@ -5,7 +5,8 @@ using Keuken_inmeten.Models;
 public enum BestellijstExportType
 {
     Pdf,
-    Excel
+    Excel,
+    AdZaagtExcel
 }
 
 public sealed record BestellijstExportOptie(
@@ -36,7 +37,15 @@ public static class BestellijstExportFlowHelper
             "Kies Excel als u wilt filteren, sorteren of de lijst verder wilt bewerken.",
             "De browser downloadt direct een spreadsheetbestand naar uw Downloads-map.",
             "Handig voor werkvoorbereiding of nabewerking waarin u per kolom wilt zoeken en sorteren.",
-            "Download Excel")
+            "Download Excel"),
+        new(
+            BestellijstExportType.AdZaagtExcel,
+            "AdZaagt zaagstaat",
+            "Een spreadsheet in het AdZaagt-invullijstformaat met materiaal, afmetingen, kantenbandcodes en extra bewerkingen.",
+            "Kies AdZaagt als u de zaagstaat rechtstreeks wilt uploaden naar of aanleveren bij AdZaagt.",
+            "De browser downloadt direct een spreadsheetbestand in het AdZaagt-formaat naar uw Downloads-map.",
+            "Handig als u panelen laat zagen via AdZaagt en het bestand direct wilt insturen.",
+            "Download AdZaagt")
     ];
 
     public static BestellijstExportOptie Voor(BestellijstExportType type)
@@ -44,6 +53,7 @@ public static class BestellijstExportFlowHelper
         {
             BestellijstExportType.Pdf => Opties[0],
             BestellijstExportType.Excel => Opties[1],
+            BestellijstExportType.AdZaagtExcel => Opties[2],
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 
@@ -65,6 +75,15 @@ public static class BestellijstExportFlowHelper
                     ? $"Excel bevat X/Y-kolommen voor 35 mm potscharniergat 1 t/m {document.MaxBoorgaten}, plus oppervlaktes en bronlocaties."
                     : "Excel blijft een compacte lijst zonder extra kolommen voor 35 mm potscharniergaten omdat deze orderregels geen scharnierboringen hebben.",
                 "Gebruik dit formaat als u de lijst wilt filteren, sorteren of doorzetten naar werkvoorbereiding."
+            ],
+            BestellijstExportType.AdZaagtExcel =>
+            [
+                $"{document.Orderregels} orderregels voor {document.TotaalAantal} panelen en {BestellijstExportFormatter.FormatVierkanteMeter(document.TotaalOppervlakteM2)} totaal oppervlak.",
+                $"Materiaal {document.PaneelType} met dikte {BestellijstExportFormatter.FormatDikteLabel(document.DikteMm)}.",
+                "AdZaagt-formaat met kolommen voor materiaal, afmetingen, kantenbandcodes (BB/BO/LR/LL) en extra bewerkingen.",
+                document.TotaalBoorgaten > 0
+                    ? "Panelen met scharnierboringen worden automatisch gemarkeerd in de kolom Extra bewerkingen."
+                    : "Geen panelen met scharnierboringen in dit bestand."
             ],
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };

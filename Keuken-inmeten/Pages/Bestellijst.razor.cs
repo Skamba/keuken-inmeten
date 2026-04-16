@@ -66,6 +66,12 @@ public partial class Bestellijst
             return;
         }
 
+        if (_exportFlow.ExportType is BestellijstExportType.AdZaagtExcel)
+        {
+            await ExporteerAdZaagtExcel();
+            return;
+        }
+
         await ExporteerPdf();
     }
 
@@ -82,9 +88,13 @@ public partial class Bestellijst
     }
 
     private static string ExportTypeTestId(BestellijstExportType type)
-        => type is BestellijstExportType.Pdf
-            ? "bestellijst-export-type-pdf"
-            : "bestellijst-export-type-excel";
+        => type switch
+        {
+            BestellijstExportType.Pdf => "bestellijst-export-type-pdf",
+            BestellijstExportType.Excel => "bestellijst-export-type-excel",
+            BestellijstExportType.AdZaagtExcel => "bestellijst-export-type-adzaagt",
+            _ => "bestellijst-export-type-unknown"
+        };
 
     private async Task ExporteerExcel()
     {
@@ -110,6 +120,30 @@ public partial class Bestellijst
         Feedback.ToonSucces("Excel-bestand gedownload. Controleer nu de Downloads-map of open het bestand direct.");
     }
 
+    private async Task ExporteerAdZaagtExcel()
+    {
+        var generatedAt = DateTime.Now;
+        var pagina = MaakPaginaModel(generatedAt);
+        var bestand = BestellijstExportService.MaakBestandsNaam("adzaagt", pagina.ExportDocument.PaneelType, "xls", generatedAt);
+        var xml = AdZaagtExcelRenderer.Render(pagina.ExportDocument);
+
+        try
+        {
+            await ExportInterop.DownloadTextFileAsync(
+                bestand,
+                xml,
+                "application/vnd.ms-excel;charset=utf-8");
+        }
+        catch (JSException)
+        {
+            Feedback.ToonFout("AdZaagt-export lukte niet. Probeer opnieuw; als er niets gebeurt, controleer of downloads in deze browser zijn toegestaan.");
+            return;
+        }
+
+        SluitExportFlow();
+        Feedback.ToonSucces("AdZaagt-bestand gedownload. Controleer nu de Downloads-map of open het bestand direct.");
+    }
+
     private async Task ExporteerPdf()
     {
         var generatedAt = DateTime.Now;
@@ -133,6 +167,30 @@ public partial class Bestellijst
 
     private string DisplayPaneelType()
         => BestellijstReadModelHelper.BepaalPaneelTypeLabel(_exportFlow.PaneelType);
+
+    private static string ExportKicker(BestellijstExportType type) => type switch
+    {
+        BestellijstExportType.Pdf => "Rustig document",
+        BestellijstExportType.Excel => "Filterbare lijst",
+        BestellijstExportType.AdZaagtExcel => "AdZaagt zaagstaat",
+        _ => ""
+    };
+
+    private static string ExportBadge1(BestellijstExportType type) => type switch
+    {
+        BestellijstExportType.Pdf => "Download / bespreek",
+        BestellijstExportType.Excel => "Filter / sorteer",
+        BestellijstExportType.AdZaagtExcel => "Direct insturen",
+        _ => ""
+    };
+
+    private static string ExportBadge2(BestellijstExportType type) => type switch
+    {
+        BestellijstExportType.Pdf => "Visualisaties",
+        BestellijstExportType.Excel => "Spreadsheet",
+        BestellijstExportType.AdZaagtExcel => "AdZaagt-formaat",
+        _ => ""
+    };
 
     private string PaneelTypeInput
     {

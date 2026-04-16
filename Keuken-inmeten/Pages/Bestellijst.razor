@@ -138,14 +138,14 @@ else
                                 {
                                     var isGeselecteerd = _exportFlow.ExportType == optie.Type;
 
-                                    <div class="col-md-6">
+                                    <div class="col-lg-4">
                                         <button type="button"
                                                 class="bestellijst-export-keuze @(isGeselecteerd ? "is-selected" : null)"
                                                 @onclick="@(() => KiesExportType(optie.Type))"
                                                 data-testid="@ExportTypeTestId(optie.Type)">
                                             <div class="d-flex justify-content-between align-items-start gap-3">
                                                 <div>
-                                                    <div class="bestellijst-export-keuze-kicker">@(optie.Type is BestellijstExportType.Pdf ? "Rustig document" : "Filterbare lijst")</div>
+                                                    <div class="bestellijst-export-keuze-kicker">@ExportKicker(optie.Type)</div>
                                                     <div class="fw-semibold">@optie.Label</div>
                                                     <div class="small text-muted mt-1">@optie.KorteBeschrijving</div>
                                                 </div>
@@ -155,8 +155,8 @@ else
                                                 }
                                             </div>
                                             <div class="bestellijst-export-keuze-badges mt-3">
-                                                <span class="bestellijst-export-keuze-badge">@(optie.Type is BestellijstExportType.Pdf ? "Download / bespreek" : "Filter / sorteer")</span>
-                                                <span class="bestellijst-export-keuze-badge">@(optie.Type is BestellijstExportType.Pdf ? "Visualisaties" : "Spreadsheet")</span>
+                                                <span class="bestellijst-export-keuze-badge">@ExportBadge1(optie.Type)</span>
+                                                <span class="bestellijst-export-keuze-badge">@ExportBadge2(optie.Type)</span>
                                             </div>
                                             <div class="small text-muted mt-3">@optie.Voorbeeld</div>
                                         </button>
@@ -269,14 +269,19 @@ else
                                     <div class="border rounded p-3 h-100">
                                         <div class="small fw-semibold text-uppercase text-muted mb-2">Wat gebeurt hierna?</div>
                                         <ul class="small mb-0 ps-3">
-                                            @if (_exportFlow.ExportType is BestellijstExportType.Excel)
+                                            @if (_exportFlow.ExportType is BestellijstExportType.Pdf)
                                             {
-                                                <li class="mb-1">Uw browser downloadt direct een spreadsheetbestand.</li>
+                                                <li class="mb-1">Uw browser downloadt direct een PDF-bestand met visualisaties en boorbeeld.</li>
                                                 <li class="mb-1">Controleer daarna de Downloads-map of open het bestand meteen.</li>
+                                            }
+                                            else if (_exportFlow.ExportType is BestellijstExportType.AdZaagtExcel)
+                                            {
+                                                <li class="mb-1">Uw browser downloadt direct een spreadsheetbestand in het AdZaagt-formaat.</li>
+                                                <li class="mb-1">Controleer daarna de Downloads-map of stuur het bestand in bij AdZaagt.</li>
                                             }
                                             else
                                             {
-                                                <li class="mb-1">Uw browser downloadt direct een PDF-bestand met visualisaties en boorbeeld.</li>
+                                                <li class="mb-1">Uw browser downloadt direct een spreadsheetbestand.</li>
                                                 <li class="mb-1">Controleer daarna de Downloads-map of open het bestand meteen.</li>
                                             }
                                             <li class="mb-1">De ordercontrole op de pagina blijft daarna beschikbaar.</li>
