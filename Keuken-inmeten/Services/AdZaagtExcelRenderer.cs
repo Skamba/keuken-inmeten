@@ -43,29 +43,29 @@ public static class AdZaagtExcelRenderer
         sb.AppendLine("  <Worksheet ss:Name=\"AdZaagt\">");
         sb.AppendLine("    <Table>");
 
-        // Row 0: Title
-        AppendSparseRow(sb, (6, CellText("INVULLIJST ZAAGSTAAT ADZAAGT\nEindmaten invullen in mm, inclusief kantenband", "Titel")));
+        // Row 0: Title (merged across F–M)
+        AppendSparseRow(sb, (6, CellText("INVULLIJST ZAAGSTAAT ADZAAGT\nEindmaten invullen in mm, inclusief kantenband", "Titel", mergeAcross: 7)));
 
-        // Row 1: Kantcodes header + code 1
+        // Row 1: Kantcodes header (merged I–L) + code 1
         AppendSparseRow(sb,
-            (9, CellText("Kantcodes:", "Meta")),
+            (9, CellText("Kantcodes:", "Meta", mergeAcross: 3)),
             (13, CellText($"    {KantcodeLegenda[0]}", "Legenda")));
 
         // Rows 2-3: codes 2-3
         AppendSparseRow(sb, (13, CellText($"    {KantcodeLegenda[1]}", "Legenda")));
         AppendSparseRow(sb, (13, CellText($"    {KantcodeLegenda[2]}", "Legenda")));
 
-        // Row 4: Orderinformatie + code 4
+        // Row 4: Orderinformatie (merged F–L) + code 4
         AppendSparseRow(sb,
-            (6, CellText("Orderinformatie:", "Meta")),
+            (6, CellText("Orderinformatie:", "Meta", mergeAcross: 6)),
             (13, CellText($"    {KantcodeLegenda[3]}", "Legenda")));
 
-        // Rows 5-10: Order info labels + codes 5-10
+        // Rows 5-10: Order info labels (merged F–L) + codes 5-10
         string[] orderLabels = ["Naam klant:", "Referentie:", "Adres:", "Postcode:", "Plaats:", "Tel. nummer:"];
         for (var i = 0; i < orderLabels.Length; i++)
         {
             AppendSparseRow(sb,
-                (6, CellText(orderLabels[i], "Meta")),
+                (6, CellText(orderLabels[i], "Meta", mergeAcross: 6)),
                 (13, CellText($"    {KantcodeLegenda[i + 4]}", "Legenda")));
         }
 
@@ -94,7 +94,7 @@ public static class AdZaagtExcelRenderer
         foreach (var regel in document.Regels)
         {
             var kantcode = BepaalKantcode(regel.KantenbandLabel);
-            var extraBewerkingen = regel.Boorgaten.Count > 0 ? "Scharnierboringen" : "";
+            var extraBewerkingen = BouwExtraBewerkingen(regel.Boorgaten);
 
             AppendRow(sb,
             [
@@ -123,6 +123,17 @@ public static class AdZaagtExcelRenderer
     public static string BepaalKantcode(string kantenbandLabel)
         => kantenbandLabel.Contains("rondom", StringComparison.OrdinalIgnoreCase) ? KantcodeRondom : "";
 
+    private static string BouwExtraBewerkingen(IReadOnlyList<BestellijstExportBoorgat> boorgaten)
+    {
+        if (boorgaten.Count == 0) return "";
+
+        var posities = string.Join(", ", boorgaten
+            .OrderBy(b => b.YCncMm)
+            .Select(b => $"({Fmt(b.XCncMm)};{Fmt(b.YCncMm)})"));
+
+        return $"Scharnierboringen: {posities}";
+    }
+
     private static void AppendSparseRow(StringBuilder sb, params (int ColumnIndex1Based, string CellXml)[] cells)
     {
         sb.AppendLine("      <Row>");
@@ -132,13 +143,7 @@ public static class AdZaagtExcelRenderer
     }
 
     private static string InjectIndex(string cellXml, int index)
-    {
-        // Insert ss:Index attribute into existing <Cell> or <Cell ss:StyleID="..."> elements
-        if (cellXml.StartsWith("<Cell ss:StyleID=", StringComparison.Ordinal))
-            return cellXml.Replace("<Cell ss:StyleID=", $"<Cell ss:Index=\"{index}\" ss:StyleID=");
-
-        return cellXml.Replace("<Cell>", $"<Cell ss:Index=\"{index}\">");
-    }
+        => cellXml.Insert(5, $" ss:Index=\"{index}\"");
 
     private static void AppendRow(StringBuilder sb, IEnumerable<string> cells)
     {
@@ -148,12 +153,13 @@ public static class AdZaagtExcelRenderer
         sb.AppendLine("      </Row>");
     }
 
-    private static string CellText(string value, string? styleId = null)
+    private static string CellText(string value, string? styleId = null, int mergeAcross = 0)
     {
         var encoded = Encode(value);
+        var mergeAttr = mergeAcross > 0 ? $" ss:MergeAcross=\"{mergeAcross}\"" : "";
         return styleId is null
-            ? $"<Cell><Data ss:Type=\"String\">{encoded}</Data></Cell>"
-            : $"<Cell ss:StyleID=\"{styleId}\"><Data ss:Type=\"String\">{encoded}</Data></Cell>";
+            ? $"<Cell{mergeAttr}><Data ss:Type=\"String\">{encoded}</Data></Cell>"
+            : $"<Cell ss:StyleID=\"{styleId}\"{mergeAttr}><Data ss:Type=\"String\">{encoded}</Data></Cell>";
     }
 
     private static string CellNumber(double value, string? styleId = null)

@@ -15,6 +15,7 @@ public class AdZaagtExcelRendererTests
 
         Assert.Contains("INVULLIJST ZAAGSTAAT ADZAAGT", xml);
         Assert.Contains("Eindmaten invullen in mm, inclusief kantenband", xml);
+        Assert.Contains("MergeAcross", xml);
         Assert.Contains("Kantcodes:", xml);
         Assert.Contains("1 = 1mm pvc kleur als basis materiaal", xml);
         Assert.Contains("10 = 1 mm kantfineer", xml);
@@ -70,7 +71,10 @@ public class AdZaagtExcelRendererTests
 
         var xml = AdZaagtExcelRenderer.Render(document);
 
-        Assert.Contains("Scharnierboringen", xml);
+        Assert.Contains("Scharnierboringen:", xml);
+        Assert.Contains("(577.5;83)", xml);
+        Assert.Contains("(577.5;606)", xml);
+        Assert.Contains("(577.5;1118)", xml);
     }
 
     [Fact]
