@@ -1742,6 +1742,10 @@ code {
         grid-column: 1;
         grid-row: 1;
     }
+
+    .indeling-workspace-grid {
+        grid-template-columns: minmax(0, 1.05fr) minmax(20rem, 0.95fr);
+    }
 }
 
 @media (max-width: 767.98px) {
